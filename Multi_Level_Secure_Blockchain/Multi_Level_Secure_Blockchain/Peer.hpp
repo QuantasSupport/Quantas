@@ -11,14 +11,18 @@
 
 #include <stdio.h>
 #include <vector>
+#include <string>
 #include "Message.hpp"
 
 class Peer{
 protected:
+    std::string id;
     std::vector<Message> inStream;  // messages that have arrived at this peer
     std::vector<Message> outStream; // messages waiting to be sent by this peer
     std::vector<Peer>    neighbors; // Peers this peer has a link to
 public:
+                         // Sets Peer id
+    void                 setID(std::string);
                          // send a message to this peer
     void                 send(Message);
                          // preform one step of the Consensus algorithm with the messages in inStream

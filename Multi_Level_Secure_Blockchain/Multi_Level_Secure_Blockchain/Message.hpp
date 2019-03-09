@@ -10,10 +10,15 @@
 #define Message_hpp
 
 #include <stdio.h>
+#include <string>
 
 class Message{
 protected:
+    std::string     targetId;
+    std::string     fromId;
+    
 public:
+    
 };
 
 #endif /* Message_hpp */
