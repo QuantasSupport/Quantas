@@ -15,11 +15,22 @@
 
 class Peer{
 protected:
-    std::vector<Message> inStream;
-    std::vector<Peer> neighbors;
+    std::vector<Message> inStream;  // messages that have arrived at this peer
+    std::vector<Message> outStream; // messages waiting to be sent by this peer
+    std::vector<Peer>    neighbors; // Peers this peer has a link to
 public:
-    void send(Message);
-    void preformComputation();
+                         // send a message to this peer
+    void                 send(Message);
+                         // preform one step of the Consensus algorithm with the messages in inStream
+    void                 preformComputation();
+                         // add a link between this peer and another
+    void                 addNeighbor(Peer);
+                         // remove a link between this peer and another
+    void                 removeNeighbor(Peer);
+                         // send messages in outStream to each neighbor
+    void                 broadcast();
+                         // get a list of peers this peer has a link to
+    std::vector<Peer>    Neighborhood();
 };
 
 #endif /* Peer_hpp */
