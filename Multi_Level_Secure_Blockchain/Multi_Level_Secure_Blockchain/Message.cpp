@@ -9,33 +9,54 @@
 #include "Message.hpp"
 #include <string>
 
-Message::Message(){
-    targetId = "NOT SET";
-    sourceId = "NOT SET";
+//
+// Base message definitions
+//
+Message::Message(int id){
+    _id = id;
+    _targetId = "";
+    _sourceId = "";
 }
 
-Message::Message(std::string to, std::string from){
-    targetId = to;
-    sourceId = from;
+Message::Message(int id, std::string to, std::string from){
+    _id = id;
+    _targetId = to;
+    _sourceId = from;
 }
 
 Message::Message(const Message& rhs){
-    targetId = rhs.targetId;
-    sourceId = rhs.sourceId;
+    _id = rhs._id;
+    _targetId = rhs._targetId;
+    _sourceId = rhs._sourceId;
 }
 
 Message::~Message(){
     // no memory allocated so nothing to do
 }
 
-Message Message::operator=(const Message &rhs){
-    return Message(rhs);
+Message& Message::operator=(const Message &rhs){
+    _id = rhs._id;
+    _targetId = rhs._targetId;
+    _sourceId = rhs._sourceId;
+    return *this;
 }
 
 bool Message::operator==(const Message &rhs){
-    return targetId == rhs.targetId && sourceId == rhs.sourceId;
+    return _id == rhs._id;
 }
 
 bool Message::operator!=(const Message &rhs){
     return !(*this == rhs);
+}
+
+//
+// Basic message definitions (networking)
+//
+
+BasicMessage::BasicMessage(int id) : Message(id){
+    _text = "";
+}
+
+BasicMessage::BasicMessage(const BasicMessage& rhs) : Message(rhs){
+    _text = rhs._text;
 }
