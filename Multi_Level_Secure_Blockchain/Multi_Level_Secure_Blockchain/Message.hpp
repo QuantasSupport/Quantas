@@ -15,9 +15,17 @@
 class Message{
 protected:
     std::string     targetId;
-    std::string     fromId;
+    std::string     sourceId;
     
 public:
+    Message           ();
+    Message           (std::string to, std::string from);
+    Message           (const Message&);
+    ~Message          ();
+    
+    Message operator= (const Message &rhs);
+    bool operator==   (const Message &rhs);
+    bool operator!=   (const Message &rhs);
     
 };
 
