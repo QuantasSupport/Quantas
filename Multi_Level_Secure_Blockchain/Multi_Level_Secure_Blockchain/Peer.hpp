@@ -17,60 +17,61 @@
 //
 // Base Peer class
 //
+template <class MessageType>
 class Peer{
 private:
     // disallowing empty const so peer must have ID
     Peer(){};
 protected:
     std::string _id;
-    std::vector<Message> _inStream;  // messages that have arrived at this peer
-    std::vector<Message> _outStream; // messages waiting to be sent by this peer
-    std::vector<Peer>    _neighbors; // Peers this peer has a link to
-    
-    bool messageAlreadyReceved(Message);
+    std::vector<MessageType>        _channel;
+    std::vector<MessageType>        _inStream;  // messages that have arrived at this peer
+    std::vector<MessageType>        _outStream; // messages waiting to be sent by this peer
+    std::vector<Peer>           _groupMembers; // Peers this peer has a link to
+    static  int                 _DELAY_UPPER_BOUND; // message delay upper bound
     
 public:
     Peer(std::string);
     Peer(const Peer &);
     ~Peer();
-                         // Sets Peer id
-    void                 setID(std::string);
-                         // send a message to this peer
-    void                 send(Message);
-                         // send a messages each neighbor
-    void                 broadcast(Message);
-                         // for each meesage of _outStream if target peer is a neighbor send otherwise broadcast
-    void                 transmit();
-                         // for each message in the _inStream do somthing
-    void                 receive();
-                         // preform one step of the Consensus algorithm with the messages in inStream
-    void                 preformComputation();
-                         // add a link between this peer and another
-    void                 addNeighbor(const Peer);
-                         // remove a link between this peer and another
-    void                 removeNeighbor(const Peer);
-    void                 removeNeighbor(std::string);
+    // Setters
+    void                              setID(std::string id)                {_id = id;};
+    void                              setDelayUpperBound(int max_delay)    {_DELAY_UPPER_BOUND = max_delay;};
     
-                         // getters
-    std::vector<Peer>    Neighborhood()   {return _neighbors;};
-    std::string          id()             {return _id;};
+    // send a message to this peer
+    void                              send(MessageType);
+    // for each meesage of _outStream if target peer is a neighbor send otherwise broadcast
+    void                              transmit();
+    // for each message in the _inStream do somthing
+    void                              receive();
+    // preform one step of the Consensus algorithm with the messages in inStream
+    virtual void                      preformComputation() = 0;
+    // add a link between this peer and another
+    void                              addGroupMembers(const Peer<MessageType>);
     
-    Peer&                operator=(const Peer &);
-    bool                 operator==(const Peer &);
-    bool                 operator!=(const Peer &);
+    // remove a group member
+    void                              removeGroupMember(const Peer<MessageType>);
+    void                              removeGroupMember(std::string);
+    bool                              isGroupMember(std::string);
+    
+    // getters
+    std::vector<Peer<MessageType>>    GroupMembers()                       {return _groupMembers;};
+    std::string          id()                                 {return _id;};
+    
+    Peer<MessageType>&                operator=(const Peer<MessageType>&);
+    bool                              operator==(const Peer<MessageType>&);
+    bool                              operator!=(const Peer<MessageType>&);
 };
 
 //
 // Basic Peer used for network testing
 //
-class BasicPeer : Peer{
+class BasicPeer : Peer<BasicMessage>{
 protected:
-    std::vector<BasicMessage> _inStream;  // messages that have arrived at this peer
-    std::vector<BasicMessage> _outStream; // messages waiting to be sent by this peer
     int counter;
 public:
     BasicPeer(std::string);
-    BasicPeer(const Peer &rhs);
+    BasicPeer(const BasicPeer &rhs);
     ~BasicPeer();
     
     void                 receive();

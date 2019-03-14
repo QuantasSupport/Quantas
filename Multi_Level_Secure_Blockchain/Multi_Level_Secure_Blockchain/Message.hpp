@@ -11,6 +11,9 @@
 
 #include <stdio.h>
 #include <string>
+
+const std::string BROADCAST_TARGET = "BROADCAST";
+
 //
 //Base Message Class
 //
@@ -20,9 +23,10 @@ private:
     Message();
     
 protected:
-    int             _id;
-    std::string     _targetId;
-    std::string     _sourceId;
+    int             _id; // message id
+    std::string     _targetId; // traget node id
+    std::string     _sourceId; // source node id
+    int             _delay; // delay of the message
     
 public:
     Message              (int id);
@@ -32,6 +36,7 @@ public:
     
     void setSource       (std::string s){_sourceId = s;};
     void setTarget       (std::string t){_targetId = t;};
+    void setDelay        (int delay){_delay = delay;};
     
     int         id       (){return _id;};
     std::string targetId (){return _targetId;};

@@ -16,12 +16,14 @@ Message::Message(int id){
     _id = id;
     _targetId = "";
     _sourceId = "";
+    _delay = -1;
 }
 
 Message::Message(int id, std::string to, std::string from){
     _id = id;
     _targetId = to;
     _sourceId = from;
+    _delay = -1;
 }
 
 Message::Message(const Message& rhs){

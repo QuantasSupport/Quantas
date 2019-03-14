@@ -14,113 +14,92 @@
 //
 // Base Peer definitions
 //
-
-Peer::Peer(std::string id){
+template <class MessageType>
+Peer<MessageType>::Peer(std::string id){
     _id = id;
+    _channel = {};
     _inStream = {};
     _outStream = {};
-    _neighbors = {};
+    _groupMembers = {};
 }
 
-Peer::Peer(const Peer &rhs){
+template <class MessageType>
+Peer<MessageType>::Peer(const Peer &rhs){
     _id = rhs._id;
+    _channel = rhs._channel;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
-    _neighbors = rhs._neighbors;
+    _groupMembers = rhs._groupMembers;
 }
 
-Peer::~Peer(){
+template <class MessageType>
+Peer<MessageType>::~Peer(){
     // no memory allocated so nothing to do
 }
 
-void Peer::setID(std::string id){
-    _id = id;
+template <class MessageType>
+void Peer<MessageType>::send(MessageType outMessage){
 }
 
-void Peer::send(Message outMessage){
-    _inStream.push_back(outMessage);
+template <class MessageType>
+void Peer<MessageType>::transmit(){
 }
 
-void Peer::broadcast(Message mesgToBroadcast){
-    if(!messageAlreadyReceved(mesgToBroadcast)){
-        return;
-    }
-    for(int id=0; id < _neighbors.size(); id++){
-        if(_neighbors[id].id() != mesgToBroadcast.sourceId()){
-            _neighbors[id].send(mesgToBroadcast);
+template <class MessageType>
+void Peer<MessageType>::receive(){
+}
+
+template <class MessageType>
+void Peer<MessageType>::addGroupMembers(const Peer newNeighbor){
+    _groupMembers.push_back(newNeighbor);
+}
+
+template <class MessageType>
+void Peer<MessageType>::removeGroupMember(const Peer oldNeighbor){
+    for(int i=0; i < _groupMembers.size(); i++){
+        if(_groupMembers[i] == oldNeighbor){
+            _groupMembers.erase(_groupMembers.begin() + i);
         }
     }
 }
 
-void Peer::transmit(){
-    while(!_outStream.empty()){
-    Message outMessage = _outStream.back();
-    _outStream.pop_back();
-        // looks for target as neighbor if found send and return;
-        for(int i=0; i<_neighbors.size(); i++){
-            if(_neighbors[i].id() == outMessage.targetId()){
-                _neighbors[i].send(outMessage);
-                return;
-            }
-        }
-        // target not a neighbor broadcast
-        broadcast(outMessage);
-    }
-}
-
-void Peer::receive(){
-    _inStream.clear();
-    // left blank for base class needs to overwritten for derived classes
-}
-
-void Peer::preformComputation(){
-    // left empty for base class
-}
-
-void Peer::addNeighbor(const Peer newNeighbor){
-    _neighbors.push_back(newNeighbor);
-}
-
-void Peer::removeNeighbor(const Peer oldNeighbor){
-    for(int i=0; i < _neighbors.size(); i++){
-        if(_neighbors[i] == oldNeighbor){
-            _neighbors.erase(_neighbors.begin() + i);
+template <class MessageType>
+void Peer<MessageType>::removeGroupMember(const std::string oldNeighborId){
+    for(int i=0; i < _groupMembers.size(); i++){
+        if(_groupMembers[i].id() == oldNeighborId){
+            _groupMembers.erase(_groupMembers.begin() + i);
         }
     }
 }
 
-void Peer::removeNeighbor(const std::string oldNeighborId){
-    for(int i=0; i < _neighbors.size(); i++){
-        if(_neighbors[i].id() == oldNeighborId){
-            _neighbors.erase(_neighbors.begin() + i);
-        }
-    }
-}
-
-Peer& Peer::operator=(const Peer &rhs){
-    _id = rhs._id;
-    _inStream = rhs._inStream;
-    _outStream = rhs._outStream;
-    _neighbors = rhs._neighbors;
-    return *this;
-}
-
-bool Peer::operator==(const Peer &rhs){
-    return (_id == rhs._id && _neighbors == rhs._neighbors);
-}
-
-bool Peer::operator!=(const Peer &rhs){
-    return !(*this == rhs);
-}
-
-// util methods
-bool Peer::messageAlreadyReceved(Message aMessage){
-    for(int i=0; i<_inStream.size(); i++){
-        if(_inStream[i].id() == aMessage.id()){
+template <class MessageType>
+bool Peer<MessageType>::isGroupMember(std::string id){
+    for(int i=0; i<_groupMembers.size(); i++){
+        if(_groupMembers[i].id() == id){
             return true;
         }
     }
     return false;
+}
+
+template <class MessageType>
+Peer<MessageType>& Peer<MessageType>::operator=(const Peer &rhs){
+    _id = rhs._id;
+    _channel = rhs._channel;
+    _inStream = rhs._inStream;
+    _outStream = rhs._outStream;
+    _groupMembers = rhs._groupMembers;
+    return *this;
+}
+
+template <class MessageType>
+bool Peer<MessageType>::operator==(const Peer &rhs){
+    return (_id == rhs._id);
+}
+
+template <class MessageType>
+bool Peer<MessageType>::operator!=(const Peer &rhs){
+    return !(*this == rhs);
 }
 
 //
@@ -132,12 +111,11 @@ BasicPeer::BasicPeer(std::string id) : Peer(id){
 }
 
 void BasicPeer::receive(){
-    
 }
 
 void BasicPeer::preformComputation(){
     counter++;
-    BasicMessage newMesg;
+    BasicMessage newMesg(counter);
     newMesg.setText("Message " + std::to_string(counter));
     _outStream.push_back(newMesg);
 }
