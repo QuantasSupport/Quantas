@@ -120,14 +120,4 @@ bool Packet<content>::operator!=(const Packet<content> &rhs){
     return !(*this == rhs);
 }
 
-//
-// Example of a message body type
-//
-struct ExampleMessage{
-
-    std::string aPeerId;
-    std::string message;
-    
-};
-
 #endif /* Message_hpp */

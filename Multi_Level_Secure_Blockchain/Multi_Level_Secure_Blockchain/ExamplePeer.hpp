@@ -11,6 +11,17 @@
 
 #include <stdio.h>
 #include "Peer.hpp"
+
+//
+// Example of a message body type
+//
+struct ExampleMessage{
+    
+    std::string aPeerId;
+    std::string message;
+    
+};
+
 //
 // Example Peer used for network testing
 //
