@@ -32,10 +32,6 @@ Peer<algorithm>::Peer(const Peer &rhs){
 
 template <class algorithm>
 Peer<algorithm>::~Peer(){
-    _channel.clear();
-    _inStream.clear();
-    _outStream.clear();
-    _groupMembers.clear();
 }
 
 template <class algorithm>

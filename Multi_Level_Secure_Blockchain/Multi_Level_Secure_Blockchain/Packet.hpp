@@ -6,8 +6,8 @@
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
 
-#ifndef Message_hpp
-#define Message_hpp
+#ifndef Packet_hpp
+#define Packet_hpp
 
 #include <stdio.h>
 #include <string>
@@ -37,7 +37,7 @@ protected:
 public:
                 Packet          (int id);
                 Packet          (int id, std::string to, std::string from);
-                Packet          (const Packet&);
+                Packet          (const Packet<content>&);
                 ~Packet         ();
     
     // setters
@@ -58,16 +58,16 @@ public:
     
     //void
     
-    Packet&    operator=        (const Packet &rhs);
-    bool        operator==      (const Packet &rhs);
-    bool        operator!=      (const Packet &rhs);
+    Packet&     operator=       (const Packet<content> &rhs);
+    bool        operator==      (const Packet<content> &rhs);
+    bool        operator!=      (const Packet<content> &rhs);
     
 };
 
 //
-// Exsample of a message body type
+// Example of a message body type
 //
-struct ExsampleMessage{
+struct ExampleMessage{
 
     std::string aPeerId;
     std::string message;

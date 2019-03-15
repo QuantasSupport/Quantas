@@ -53,7 +53,7 @@ public:
     // sends all messages in _outStream to there respective targets
     void                              transmit              ();
     // preform one step of the Consensus algorithm with the messages in inStream
-    virtual void                      preformComputation    () = 0;
+    void                              preformComputation    (){};
 
     Peer&                             operator=             (const Peer&);
     bool                              operator==            (const Peer &rhs)     {return (_id == rhs._id);};
@@ -63,7 +63,7 @@ public:
 //
 // Example Peer used for network testing
 //
-class ExamplePeer : public Peer<ExsampleMessage>{
+class ExamplePeer : public Peer<ExampleMessage>{
 protected:
     int counter;
 public:
