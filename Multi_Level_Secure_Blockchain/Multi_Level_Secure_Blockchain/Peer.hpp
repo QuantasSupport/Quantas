@@ -13,6 +13,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <iostream>
 #include "Packet.hpp"
 
 //
@@ -25,7 +26,7 @@ protected:
     std::vector<Packet<algorithm>>       _channel;
     std::vector<Packet<algorithm>>       _inStream;  // messages that have arrived at this peer
     std::vector<Packet<algorithm>>       _outStream; // messages waiting to be sent by this peer
-    std::map<std::string, Peer>          _groupMembers; // Peers this peer has a link to
+    std::map<std::string, Peer*>          _groupMembers; // Peers this peer has a link to
     
 public:
     Peer                                                    ();
@@ -34,7 +35,7 @@ public:
     ~Peer                                                   ();
     // Setters
     void                              setID                 (std::string id)      {_id = id;};
-    void                              addGroupMembers       (const Peer &n)       {_groupMembers.insert(std::pair<std::string,Peer<algorithm>>(n.id(),n));};
+    void                              addGroupMembers       (Peer &n)             {_groupMembers.insert(std::pair<std::string,Peer<algorithm>*>(n.id(),&n));};
 
     // getters
     std::vector<Peer>                 GroupMembers          ()const               {return _groupMembers;};
@@ -95,16 +96,15 @@ Peer<algorithm>::~Peer(){
 
 template <class algorithm>
 void Peer<algorithm>::send(Packet<algorithm> outMessage){
-    outMessage.setTarget(_id);
     _channel.push_back(outMessage);
 }
 
 template <class algorithm>
 void Peer<algorithm>::transmit(){
     while(!_outStream.empty()){
-        Packet<algorithm> outMessage = _outStream.front();
+        Packet<algorithm> outMessage = _outStream[0];
         _outStream.erase(_outStream.begin());
-        _groupMembers[outMessage.targetId()].send(outMessage);
+        _groupMembers[outMessage.targetId()]->send(outMessage);
     }
 }
 
