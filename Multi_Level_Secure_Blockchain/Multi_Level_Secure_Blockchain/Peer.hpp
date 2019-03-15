@@ -11,70 +11,66 @@
 
 #include <stdio.h>
 #include <vector>
+#include <map>
 #include <string>
-#include "Message.hpp"
+#include "Packet.hpp"
 
 //
 // Base Peer class
 //
-template <class MessageType>
+template <class algorithm>
 class Peer{
 private:
     // disallowing empty const so peer must have ID
     Peer(){};
 protected:
-    std::string _id;
-    std::vector<MessageType>        _channel;
-    std::vector<MessageType>        _inStream;  // messages that have arrived at this peer
-    std::vector<MessageType>        _outStream; // messages waiting to be sent by this peer
-    std::vector<Peer>           _groupMembers; // Peers this peer has a link to
-    static  int                 _DELAY_UPPER_BOUND; // message delay upper bound
+    std::string                           _id;
+    std::vector<Packet<algorithm>>       _channel;
+    std::vector<Packet<algorithm>>       _inStream;  // messages that have arrived at this peer
+    std::vector<Packet<algorithm>>       _outStream; // messages waiting to be sent by this peer
+    std::map<std::string, Peer>          _groupMembers; // Peers this peer has a link to
     
 public:
     Peer(std::string);
     Peer(const Peer &);
     ~Peer();
     // Setters
-    void                              setID(std::string id)                {_id = id;};
-    void                              setDelayUpperBound(int max_delay)    {_DELAY_UPPER_BOUND = max_delay;};
+    void                              setID                 (std::string id)      {_id = id;};
+    void                              addGroupMembers       (const Peer &n)       {_groupMembers.insert(std::pair<char,int>(n.id(),n));};
+
+    // getters
+    std::vector<Peer>                 GroupMembers          ()                    {return _groupMembers;};
+    std::string                       id                    ()                    {return _id;};
+    bool                              isGroupMember         (std::string);
+    
+    // mutators
+    void                              removeGroupMember     (const Peer &p)       {_groupMembers.erase(p.id());};
+    void                              removeGroupMember     (std::string id)      {_groupMembers.erase(id);};
+    void                              receive               ();
     
     // send a message to this peer
-    void                              send(MessageType);
-    // for each meesage of _outStream if target peer is a neighbor send otherwise broadcast
-    void                              transmit();
-    // for each message in the _inStream do somthing
-    void                              receive();
+    void                              sendTo                (Packet<algorithm>);
+    // sends all messages in _outStream to there respective targets
+    void                              transmit              ();
     // preform one step of the Consensus algorithm with the messages in inStream
-    virtual void                      preformComputation() = 0;
-    // add a link between this peer and another
-    void                              addGroupMembers(const Peer<MessageType>);
-    
-    // remove a group member
-    void                              removeGroupMember(const Peer<MessageType>);
-    void                              removeGroupMember(std::string);
-    bool                              isGroupMember(std::string);
-    
-    // getters
-    std::vector<Peer<MessageType>>    GroupMembers()                       {return _groupMembers;};
-    std::string          id()                                 {return _id;};
-    
-    Peer<MessageType>&                operator=(const Peer<MessageType>&);
-    bool                              operator==(const Peer<MessageType>&);
-    bool                              operator!=(const Peer<MessageType>&);
+    virtual void                      preformComputation    () = 0;
+
+    Peer&                             operator=             (const Peer&);
+    bool                              operator==            (const Peer &rhs)     {return (_id == rhs._id);};
+    bool                              operator!=            (const Peer &rhs)     {return !(*this == rhs);};
 };
 
 //
-// Basic Peer used for network testing
+// Example Peer used for network testing
 //
-class BasicPeer : Peer<BasicMessage>{
+class ExamplePeer : public Peer<ExsampleMessage>{
 protected:
     int counter;
 public:
-    BasicPeer(std::string);
-    BasicPeer(const BasicPeer &rhs);
-    ~BasicPeer();
+    ExamplePeer(std::string);
+    ExamplePeer(const ExamplePeer &rhs);
+    ~ExamplePeer();
     
-    void                 receive();
     void                 preformComputation();
 };
 

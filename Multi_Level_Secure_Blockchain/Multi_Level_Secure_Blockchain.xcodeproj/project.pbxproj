@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		45926FA222336BC900266885 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45926FA122336BC900266885 /* main.cpp */; };
 		45926FAA2233737D00266885 /* Peer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45926FA82233737D00266885 /* Peer.cpp */; };
-		45926FAD223374DB00266885 /* Message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45926FAB223374DB00266885 /* Message.cpp */; };
+		45926FAD223374DB00266885 /* Packet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45926FAB223374DB00266885 /* Packet.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,8 +29,8 @@
 		45926FA122336BC900266885 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		45926FA82233737D00266885 /* Peer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Peer.cpp; sourceTree = "<group>"; };
 		45926FA92233737D00266885 /* Peer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Peer.hpp; sourceTree = "<group>"; };
-		45926FAB223374DB00266885 /* Message.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Message.cpp; sourceTree = "<group>"; };
-		45926FAC223374DB00266885 /* Message.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Message.hpp; sourceTree = "<group>"; };
+		45926FAB223374DB00266885 /* Packet.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Packet.cpp; sourceTree = "<group>"; };
+		45926FAC223374DB00266885 /* Packet.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Packet.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,8 +66,8 @@
 				45926FA122336BC900266885 /* main.cpp */,
 				45926FA82233737D00266885 /* Peer.cpp */,
 				45926FA92233737D00266885 /* Peer.hpp */,
-				45926FAB223374DB00266885 /* Message.cpp */,
-				45926FAC223374DB00266885 /* Message.hpp */,
+				45926FAB223374DB00266885 /* Packet.cpp */,
+				45926FAC223374DB00266885 /* Packet.hpp */,
 			);
 			path = Multi_Level_Secure_Blockchain;
 			sourceTree = "<group>";
@@ -130,7 +130,7 @@
 			files = (
 				45926FA222336BC900266885 /* main.cpp in Sources */,
 				45926FAA2233737D00266885 /* Peer.cpp in Sources */,
-				45926FAD223374DB00266885 /* Message.cpp in Sources */,
+				45926FAD223374DB00266885 /* Packet.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
