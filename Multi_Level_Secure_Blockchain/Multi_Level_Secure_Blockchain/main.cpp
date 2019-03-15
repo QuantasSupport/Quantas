@@ -7,9 +7,30 @@
 //
 
 #include <iostream>
+#include "ExamplePeer.hpp"
 
 int main(int argc, const char * argv[]) {
-    // Test test test
-    std::cout << "Hello, World!\n";
+    
+    ExamplePeer a("A");
+    ExamplePeer b("B");
+    
+    a.addGroupMembers(b);
+    b.addGroupMembers(a);
+    
+    for(int i =0; i < 25; i++){
+        std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
+        
+        a.receive();
+        b.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        
+        std::cout<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
+    }
+    
     return 0;
 }

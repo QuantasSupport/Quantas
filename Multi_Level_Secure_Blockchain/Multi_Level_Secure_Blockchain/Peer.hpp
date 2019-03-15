@@ -20,9 +20,6 @@
 //
 template <class algorithm>
 class Peer{
-private:
-    // disallowing empty const so peer must have ID
-    Peer(){};
 protected:
     std::string                           _id;
     std::vector<Packet<algorithm>>       _channel;
@@ -31,17 +28,18 @@ protected:
     std::map<std::string, Peer>          _groupMembers; // Peers this peer has a link to
     
 public:
-    Peer(std::string);
-    Peer(const Peer &);
-    ~Peer();
+    Peer                                                    ();
+    Peer                                                    (std::string);
+    Peer                                                    (const Peer &);
+    ~Peer                                                   ();
     // Setters
     void                              setID                 (std::string id)      {_id = id;};
-    void                              addGroupMembers       (const Peer &n)       {_groupMembers.insert(std::pair<char,int>(n.id(),n));};
+    void                              addGroupMembers       (const Peer &n)       {_groupMembers.insert(std::pair<std::string,Peer<algorithm>>(n.id(),n));};
 
     // getters
-    std::vector<Peer>                 GroupMembers          ()                    {return _groupMembers;};
-    std::string                       id                    ()                    {return _id;};
-    bool                              isGroupMember         (std::string);
+    std::vector<Peer>                 GroupMembers          ()const               {return _groupMembers;};
+    std::string                       id                    ()const               {return _id;};
+    bool                              isGroupMember         (std::string)const;
     
     // mutators
     void                              removeGroupMember     (const Peer &p)       {_groupMembers.erase(p.id());};
@@ -49,20 +47,29 @@ public:
     void                              receive               ();
     
     // send a message to this peer
-    void                              sendTo                (Packet<algorithm>);
-    // sends all messages in _outStream to there respective targets
+    void                              send                  (Packet<algorithm>);
+    // sends all messages in _outStream to thsere respective targets
     void                              transmit              ();
     // preform one step of the Consensus algorithm with the messages in inStream
     void                              preformComputation    (){};
 
     Peer&                             operator=             (const Peer&);
-    bool                              operator==            (const Peer &rhs)     {return (_id == rhs._id);};
-    bool                              operator!=            (const Peer &rhs)     {return !(*this == rhs);};
+    bool                              operator==            (const Peer &rhs)const {return (_id == rhs._id);};
+    bool                              operator!=            (const Peer &rhs)const {return !(*this == rhs);};
 };
 
 //
 // Base Peer definitions
 //
+
+template <class algorithm>
+Peer<algorithm>::Peer(){
+    _id = "NO ID";
+    _channel = {};
+    _inStream = {};
+    _outStream = {};
+    _groupMembers = {};
+}
 
 template <class algorithm>
 Peer<algorithm>::Peer(std::string id){
@@ -87,9 +94,9 @@ Peer<algorithm>::~Peer(){
 }
 
 template <class algorithm>
-void Peer<algorithm>::sendTo(Packet<algorithm> outMessage){
+void Peer<algorithm>::send(Packet<algorithm> outMessage){
     outMessage.setTarget(_id);
-    _channel.push(outMessage);
+    _channel.push_back(outMessage);
 }
 
 template <class algorithm>
@@ -105,8 +112,8 @@ template <class algorithm>
 void Peer<algorithm>::receive(){
     for(int i=0; i < _channel.size(); i++){
         if(_channel[i].hasArrived()){
-            _inStream.push(_channel[i]);
-            _channel.erase(i);
+            _inStream.push_back(_channel[i]);
+            _channel.erase(_channel.begin() + i);
         }else{
             _channel[i].moveForward();
         }
@@ -114,7 +121,7 @@ void Peer<algorithm>::receive(){
 }
 
 template <class algorithm>
-bool Peer<algorithm>::isGroupMember(std::string id){
+bool Peer<algorithm>::isGroupMember(std::string id)const{
     if(_groupMembers.find(id) != _groupMembers.end()){
         return true;
     }
@@ -130,19 +137,5 @@ Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
     _groupMembers = rhs._groupMembers;
     return *this;
 }
-
-//
-// Example Peer used for network testing
-//
-class ExamplePeer : public Peer<ExampleMessage>{
-protected:
-    int counter;
-public:
-    ExamplePeer(std::string);
-    ExamplePeer(const ExamplePeer &rhs);
-    ~ExamplePeer();
-    
-    void                 preformComputation();
-};
 
 #endif /* Peer_hpp */

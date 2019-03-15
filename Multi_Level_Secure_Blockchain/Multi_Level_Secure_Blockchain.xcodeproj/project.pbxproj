@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		45926FA222336BC900266885 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45926FA122336BC900266885 /* main.cpp */; };
-		45926FAA2233737D00266885 /* Peer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45926FA82233737D00266885 /* Peer.cpp */; };
+		45926FDE223C12AB00266885 /* ExamplePeer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45926FDC223C12AB00266885 /* ExamplePeer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,9 +26,10 @@
 /* Begin PBXFileReference section */
 		45926F9E22336BC900266885 /* Multi_Level_Secure_Blockchain */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Multi_Level_Secure_Blockchain; sourceTree = BUILT_PRODUCTS_DIR; };
 		45926FA122336BC900266885 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		45926FA82233737D00266885 /* Peer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Peer.cpp; sourceTree = "<group>"; };
 		45926FA92233737D00266885 /* Peer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Peer.hpp; sourceTree = "<group>"; };
 		45926FAC223374DB00266885 /* Packet.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Packet.hpp; sourceTree = "<group>"; };
+		45926FDC223C12AB00266885 /* ExamplePeer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ExamplePeer.cpp; sourceTree = "<group>"; };
+		45926FDD223C12AB00266885 /* ExamplePeer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ExamplePeer.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,9 +63,10 @@
 			isa = PBXGroup;
 			children = (
 				45926FA122336BC900266885 /* main.cpp */,
-				45926FA82233737D00266885 /* Peer.cpp */,
 				45926FA92233737D00266885 /* Peer.hpp */,
 				45926FAC223374DB00266885 /* Packet.hpp */,
+				45926FDC223C12AB00266885 /* ExamplePeer.cpp */,
+				45926FDD223C12AB00266885 /* ExamplePeer.hpp */,
 			);
 			path = Multi_Level_Secure_Blockchain;
 			sourceTree = "<group>";
@@ -126,7 +128,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				45926FA222336BC900266885 /* main.cpp in Sources */,
-				45926FAA2233737D00266885 /* Peer.cpp in Sources */,
+				45926FDE223C12AB00266885 /* ExamplePeer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
