@@ -22,16 +22,6 @@ ExamplePeer::ExamplePeer(std::string id) : Peer(id){
     counter =0;
 }
 
-void ExamplePeer::receive(){
-    std::cout<< "Peer:"<< _id<< " is receiveing"<< std::endl;
-    Peer<ExampleMessage>::receive();
-}
-
-void ExamplePeer::transmit(){
-    std::cout<< "Peer:"<< _id<< " is transmiting"<< std::endl;
-    Peer<ExampleMessage>::transmit();
-}
-
 void ExamplePeer::preformComputation(){
     counter++;
     std::cout<< "Peer:"<< _id<< " preforming computation"<<std::endl;

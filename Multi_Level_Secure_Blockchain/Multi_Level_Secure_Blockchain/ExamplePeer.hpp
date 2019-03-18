@@ -33,9 +33,6 @@ public:
     ExamplePeer(const ExamplePeer &rhs);
     ~ExamplePeer();
     
-
-    void                 receive();
     void                 preformComputation();
-    void                 transmit();
 };
 #endif /* ExamplePeer_hpp */

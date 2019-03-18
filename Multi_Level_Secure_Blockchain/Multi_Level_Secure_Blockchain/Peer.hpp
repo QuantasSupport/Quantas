@@ -22,11 +22,11 @@
 template <class algorithm>
 class Peer{
 protected:
-    std::string                           _id;
+    std::string                          _id;
     std::vector<Packet<algorithm>>       _channel;
     std::vector<Packet<algorithm>>       _inStream;  // messages that have arrived at this peer
     std::vector<Packet<algorithm>>       _outStream; // messages waiting to be sent by this peer
-    std::map<std::string, Peer*>          _groupMembers; // Peers this peer has a link to
+    std::map<std::string, Peer*>         _groupMembers; // Peers this peer has a link to
     
 public:
     Peer                                                    ();
@@ -110,13 +110,14 @@ void Peer<algorithm>::transmit(){
 
 template <class algorithm>
 void Peer<algorithm>::receive(){
-    for(int i=0; i < _channel.size(); i++){
-        if(_channel[i].hasArrived()){
-            _inStream.push_back(_channel[i]);
-            _channel.erase(_channel.begin() + i);
-        }else{
-            _channel[i].moveForward();
-        }
+    if(_channel.size() == 0){
+        return;
+    }
+    if(_channel[0].hasArrived()){
+        _inStream.push_back(_channel[0]);
+        _channel.erase(_channel.begin());
+    }else{
+        _channel[0].moveForward();
     }
 }
 
