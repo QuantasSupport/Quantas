@@ -21,13 +21,18 @@ struct PBFTMessage{
 
 class PBFT_Peer : public Peer<PBFTMessage>{
 protected:
-    
+    int         _viewNumber;
+    std::string _primary;
 public:
     PBFT_Peer(std::string);
     PBFT_Peer(const PBFT_Peer &rhs);
     ~PBFT_Peer();
     
-    void                 preformComputation();
+    void                preformComputation();
+    
+    std::string         primary           ()  {return _primary;};
+    
+    void                findPrimary       ();
 };
 
 #endif /* PBFT_Peer_hpp */
