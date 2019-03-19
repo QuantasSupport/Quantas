@@ -7,32 +7,15 @@
 //
 
 #include <iostream>
-#include "ExamplePeer.hpp"
+#include <string>
 
 
 int main(int argc, const char * argv[]) {
     
     srand((float)time(NULL));
     
-    ExamplePeer a("A");
-    ExamplePeer b("B");
-    
-    a.addGroupMembers(b);
-    b.addGroupMembers(a);
-    
-    for(int i =0; i < 25; i++){
-        std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
+    if(std::string(argv[1]) == "PBFT"){
         
-        a.receive();
-        b.receive();
-        
-        a.preformComputation();
-        b.preformComputation();
-        
-        a.transmit();
-        b.transmit();
-        
-        std::cout<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
     }
     
     return 0;
