@@ -9,7 +9,10 @@
 #include <iostream>
 #include "ExamplePeer.hpp"
 
+
 int main(int argc, const char * argv[]) {
+    
+    srand((float)time(NULL));
     
     ExamplePeer a("A");
     ExamplePeer b("B");

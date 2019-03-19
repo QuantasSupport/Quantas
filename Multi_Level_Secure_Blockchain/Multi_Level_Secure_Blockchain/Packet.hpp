@@ -13,7 +13,7 @@
 #include <string>
 #include <ctime>
 
-const int         DEFAULT_DELAY_BOUND = 10;
+const int         DEFAULT_DELAY_BOUND = 2;
 
 //
 //Base Message Class
@@ -50,11 +50,12 @@ public:
     int         id              ()                                              {return _id;};
     std::string targetId        ()                                              {return _targetId;};
     std::string sourceId        ()                                              {return _sourceId;};
-    bool        hasArrived      ()                                              {return !(_delay);};
+    bool        hasArrived      ()                                              {return !(bool)(_delay);};
     content     getMessage      ()                                              {return _body;};
+    int         getDelay        ()                                              {return _delay;};
     
     // mutators
-    void        moveForward     ()                                              {_delay++;};
+    void        moveForward     ()                                              {_delay--;};
     
     //void
     
@@ -71,8 +72,6 @@ Packet<content>::Packet(int id){
     _targetId = "";
     _body = content();
     _delayBound = DEFAULT_DELAY_BOUND;
-    
-    srand((float)time(NULL));
     _delay = rand()%_delayBound;
 }
 
@@ -83,9 +82,7 @@ Packet<content>::Packet(int id, std::string to ,std::string from){
     _targetId = to;
     _body = content();
     _delayBound = DEFAULT_DELAY_BOUND;
-    
-    srand((float)time(NULL));
-    _delay = rand()%_delayBound;;
+    _delay = rand()%_delayBound;
 }
 
 template<class content>
@@ -94,6 +91,7 @@ Packet<content>::Packet(const Packet<content>& rhs){
     _targetId = rhs._targetId;
     _sourceId = rhs._sourceId;
     _body = rhs._body;
+    _delay = rhs._delay;
 }
 
 template<class content>
@@ -107,6 +105,7 @@ Packet<content>& Packet<content>::operator=(const Packet<content> &rhs){
     _targetId = rhs._targetId;
     _sourceId = rhs._sourceId;
     _body = rhs._body;
+    _delay = rhs._delay;
     return *this;
 }
 
