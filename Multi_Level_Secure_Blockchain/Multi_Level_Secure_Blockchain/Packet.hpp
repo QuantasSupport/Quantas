@@ -32,7 +32,6 @@ protected:
     content         _body;
     
     int             _delay; // delay of the message
-    int             _delayBound; // message delay upper bound
     
 public:
                 Packet          (int id);
@@ -43,7 +42,7 @@ public:
     // setters
     void        setSource       (std::string s)                                 {_sourceId = s;};
     void        setTarget       (std::string t)                                 {_targetId = t;};
-    void        setDelayBound   (int delay)                                     {_delayBound = delay;};
+    void        setDelay        (int delayBound)                                {_delay = rand()%delayBound;};
     void        setBody         (const content c)                               {_body = c;};
     
     // getters
@@ -71,8 +70,7 @@ Packet<content>::Packet(int id){
     _sourceId = "";
     _targetId = "";
     _body = content();
-    _delayBound = DEFAULT_DELAY_BOUND;
-    _delay = rand()%_delayBound;
+    _delay = 0;
 }
 
 template<class content>
@@ -81,8 +79,7 @@ Packet<content>::Packet(int id, std::string to ,std::string from){
     _sourceId = from;
     _targetId = to;
     _body = content();
-    _delayBound = DEFAULT_DELAY_BOUND;
-    _delay = rand()%_delayBound;
+    _delay = 0;
 }
 
 template<class content>

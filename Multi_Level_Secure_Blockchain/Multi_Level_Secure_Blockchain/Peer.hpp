@@ -16,6 +16,8 @@
 #include <iostream>
 #include "Packet.hpp"
 
+
+
 //
 // Base Peer class
 //
@@ -26,7 +28,7 @@ protected:
     std::vector<Packet<algorithm>>       _channel;
     std::vector<Packet<algorithm>>       _inStream;  // messages that have arrived at this peer
     std::vector<Packet<algorithm>>       _outStream; // messages waiting to be sent by this peer
-    std::map<std::string, Peer*>         _groupMembers; // Peers this peer has a link to
+    std::map<Peer*,int>                  _neighbors; // Peers this peer has a link to and thier delay
     
 public:
     Peer                                                    ();
@@ -35,16 +37,15 @@ public:
     ~Peer                                                   ();
     // Setters
     void                              setID                 (std::string id)      {_id = id;};
-    void                              addGroupMembers       (Peer &n)             {_groupMembers.insert(std::pair<std::string,Peer<algorithm>*>(n.id(),&n));};
+    void                              addNeighbor           (Peer &, int);
 
     // getters
-    std::vector<Peer>                 GroupMembers          ()const               {return _groupMembers;};
+    std::vector<Peer>                 neighbors             ()const;
     std::string                       id                    ()const               {return _id;};
-    bool                              isGroupMember         (std::string)const;
+    bool                              isNeighbor            (const Peer &)const;
     
     // mutators
-    void                              removeGroupMember     (const Peer &p)       {_groupMembers.erase(p.id());};
-    void                              removeGroupMember     (std::string id)      {_groupMembers.erase(id);};
+    void                              removeNeighbor        (const Peer &p)       {_neighbors.erase(p);};
     void                              receive               ();
     
     // send a message to this peer
@@ -69,7 +70,7 @@ Peer<algorithm>::Peer(){
     _channel = {};
     _inStream = {};
     _outStream = {};
-    _groupMembers = {};
+    _neighbors = {};
 }
 
 template <class algorithm>
@@ -78,7 +79,7 @@ Peer<algorithm>::Peer(std::string id){
     _channel = {};
     _inStream = {};
     _outStream = {};
-    _groupMembers = {};
+    _neighbors = {};
 }
 
 template <class algorithm>
@@ -87,11 +88,21 @@ Peer<algorithm>::Peer(const Peer &rhs){
     _channel = rhs._channel;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
-    _groupMembers = rhs._groupMembers;
+    _neighbors = rhs._groupMembers;
 }
 
 template <class algorithm>
 Peer<algorithm>::~Peer(){
+}
+
+template <class algorithm>
+void Peer<algorithm>::addNeighbor(Peer &newNeighbor, int delay){
+    // grourd to make sure delay is at lest 1, less then 1 will couse errors when calculating delay (divisioin by 0)
+    int edgeDelay = delay;
+    if(edgeDelay < 1){
+        edgeDelay = 1;
+    }
+    _neighbors.insert(std::pair<Peer*,int>(&newNeighbor,edgeDelay));
 }
 
 template <class algorithm>
@@ -104,7 +115,12 @@ void Peer<algorithm>::transmit(){
     while(!_outStream.empty()){
         Packet<algorithm> outMessage = _outStream[0];
         _outStream.erase(_outStream.begin());
-        _groupMembers[outMessage.targetId()]->send(outMessage);
+        for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
+            if(it->first->id() == outMessage.targetId()){
+                outMessage.setDelay(it->second);
+                it->first->send(outMessage);
+            }
+        }
     }
 }
 
@@ -122,8 +138,8 @@ void Peer<algorithm>::receive(){
 }
 
 template <class algorithm>
-bool Peer<algorithm>::isGroupMember(std::string id)const{
-    if(_groupMembers.find(id) != _groupMembers.end()){
+bool Peer<algorithm>::isNeighbor(const Peer &id)const{
+    if(_neighbors.find(id) != _neighbors.end()){
         return true;
     }
     return false;
@@ -135,7 +151,7 @@ Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
     _channel = rhs._channel;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
-    _groupMembers = rhs._groupMembers;
+    _neighbors = rhs._neighbors;
     return *this;
 }
 

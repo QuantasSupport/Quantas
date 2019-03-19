@@ -17,8 +17,8 @@ int main(int argc, const char * argv[]) {
     ExamplePeer a("A");
     ExamplePeer b("B");
     
-    a.addGroupMembers(b);
-    b.addGroupMembers(a);
+    a.addNeighbor(b,1);
+    b.addNeighbor(a,5);
     
     for(int i =0; i < 25; i++){
         std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
