@@ -36,7 +36,6 @@ void ExamplePeer::preformComputation(){
         _outStream.push_back(newMessage);
     }
     
-    std::cout<< _id << ":" <<  _channel.size() << std::endl;
     for(int i = 0; i < _inStream.size(); i++){
         std::cout << std::endl << _id<< " has receved a message from "<< _inStream[i].sourceId()<< std::endl;
         std::cout << "  MESSAGE "<< std::to_string(_inStream[i].id()) <<  ":"<< _inStream[i].getMessage().message<<  _inStream[i].getMessage().aPeerId<< std::endl;
