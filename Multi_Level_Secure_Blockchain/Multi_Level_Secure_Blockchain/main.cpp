@@ -8,15 +8,35 @@
 
 #include <iostream>
 #include <string>
+#include "ExamplePeer.hpp"
 
 
 int main(int argc, const char * argv[]) {
     
     srand((float)time(NULL));
     
+
     if(std::string(argv[1]) == "PBFT"){
+
+        ExamplePeer a("A");
+        ExamplePeer b("B");
         
+        a.addNeighbor(b,1);
+        b.addNeighbor(a,5);
+        
+        for(int i =0; i < 25; i++){
+            std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
+            
+            a.receive();
+            b.receive();
+            
+            a.preformComputation();
+            b.preformComputation();
+            
+            a.transmit();
+            b.transmit();
+            
+        }
     }
-    
     return 0;
 }

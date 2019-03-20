@@ -26,12 +26,12 @@ void ExamplePeer::preformComputation(){
     std::cout<< "Peer:"<< _id<< " preforming computation"<<std::endl;
     std::map<std::string, Peer<ExampleMessage>*>::iterator it;
     
-    for ( it = _groupMembers.begin(); it != _groupMembers.end(); it++ )
+    for (auto it = _neighbors.begin(); it != _neighbors.end(); it++ )
     {
         ExampleMessage message;
         message.message = "Message: " + std::to_string(counter)  + " Hello From ";
         message.aPeerId = _id;
-        Packet<ExampleMessage> newMessage(counter, it->second->id(),_id);
+        Packet<ExampleMessage> newMessage(counter, it->first->id(),_id);
         newMessage.setBody(message);
         _outStream.push_back(newMessage);
     }
