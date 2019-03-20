@@ -7,7 +7,6 @@
 //
 
 #include <iostream>
-#include <string>
 #include "ExamplePeer.hpp"
 
 
@@ -15,28 +14,34 @@ int main(int argc, const char * argv[]) {
     
     srand((float)time(NULL));
     
-
-    if(std::string(argv[1]) == "PBFT"){
-
-        ExamplePeer a("A");
-        ExamplePeer b("B");
+    ExamplePeer a("A");
+    ExamplePeer b("B");
+    ExamplePeer c("C");
+    
+    // edge between A and B wight 5
+    a.addNeighbor(b,5);
+    b.addNeighbor(a,5);
+    
+    // edge between A and C wight 1
+    a.addNeighbor(c,1);
+    c.addNeighbor(a,1);
+    
+    for(int i =0; i < 25; i++){
+        std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
         
-        a.addNeighbor(b,1);
-        b.addNeighbor(a,5);
+        a.receive();
+        b.receive();
+        c.receive();
         
-        for(int i =0; i < 25; i++){
-            std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
-            
-            a.receive();
-            b.receive();
-            
-            a.preformComputation();
-            b.preformComputation();
-            
-            a.transmit();
-            b.transmit();
-            
-        }
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+        
+        std::cout<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
     }
     return 0;
 }

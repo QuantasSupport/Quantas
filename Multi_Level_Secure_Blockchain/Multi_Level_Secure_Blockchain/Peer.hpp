@@ -25,7 +25,10 @@ template <class algorithm>
 class Peer{
 protected:
     std::string                          _id;
-    std::vector<Packet<algorithm>>       _channel;
+    
+    typedef std::vector<Packet<algorithm>>aChannel;
+    std::map<std::string,aChannel>       _channels;
+    
     std::vector<Packet<algorithm>>       _inStream;  // messages that have arrived at this peer
     std::vector<Packet<algorithm>>       _outStream; // messages waiting to be sent by this peer
     std::map<Peer<algorithm>*,int>       _neighbors; // Peers this peer has a link to and thier delay
@@ -67,7 +70,7 @@ public:
 template <class algorithm>
 Peer<algorithm>::Peer(){
     _id = "NO ID";
-    _channel = {};
+    _channels = {};
     _inStream = {};
     _outStream = {};
     _neighbors = {};
@@ -76,7 +79,7 @@ Peer<algorithm>::Peer(){
 template <class algorithm>
 Peer<algorithm>::Peer(std::string id){
     _id = id;
-    _channel = {};
+    _channels = {};
     _inStream = {};
     _outStream = {};
     _neighbors = {};
@@ -85,7 +88,7 @@ Peer<algorithm>::Peer(std::string id){
 template <class algorithm>
 Peer<algorithm>::Peer(const Peer &rhs){
     _id = rhs._id;
-    _channel = rhs._channel;
+    _channels = rhs._channels;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
     _neighbors = rhs._groupMembers;
@@ -102,12 +105,16 @@ void Peer<algorithm>::addNeighbor(Peer<algorithm> &newNeighbor, int delay){
     if(edgeDelay < 1){
         edgeDelay = 1;
     }
-    _neighbors.insert(std::pair<Peer<algorithm>*,int>(&newNeighbor,edgeDelay));
+    _neighbors.insert(std::pair<Peer*,int>(&newNeighbor,edgeDelay));
+    
+    typedef std::vector<Packet<algorithm>> aChannel;
+    std::pair<std::string, aChannel> newChannel(newNeighbor.id(),{});
+    _channels.insert(newChannel);
 }
 
 template <class algorithm>
 void Peer<algorithm>::send(Packet<algorithm> outMessage){
-    _channel.push_back(outMessage);
+    _channels[outMessage.sourceId()].push_back(outMessage);
 }
 
 template <class algorithm>
@@ -126,16 +133,21 @@ void Peer<algorithm>::transmit(){
 
 template <class algorithm>
 void Peer<algorithm>::receive(){
-    if(_channel.size() == 0){
-        return;
-    }
-    if(_channel[0].hasArrived()){
-        _inStream.push_back(_channel[0]);
-        _channel.erase(_channel.begin());
-    }else{
-        _channel[0].moveForward();
+    for(auto i = _neighbors.begin(); i != _neighbors.end(); i++){
+        std::string neighborID = i->first->id();
+        if(!_channels[neighborID].empty()){
+            if(_channels[neighborID].size() != 0){
+                if(_channels[neighborID].front().hasArrived()){
+                    _inStream.push_back(_channels[neighborID].front());
+                    _channels[neighborID].erase(_channels[neighborID].begin());
+                }else{
+                    _channels[neighborID].front().moveForward();
+                }
+            }
+        }
     }
 }
+
 
 template <class algorithm>
 bool Peer<algorithm>::isNeighbor(const Peer &id)const{
@@ -148,7 +160,7 @@ bool Peer<algorithm>::isNeighbor(const Peer &id)const{
 template <class algorithm>
 Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
     _id = rhs._id;
-    _channel = rhs._channel;
+    _channels = rhs._channels;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
     _neighbors = rhs._neighbors;
