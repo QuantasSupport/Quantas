@@ -133,22 +133,21 @@ void Peer<algorithm>::transmit(){
 
 template <class algorithm>
 void Peer<algorithm>::receive(){
-    if(_channels.size() == 0){
-        return;
-    }
-    for(auto it = _channels.begin(); it != _channels.end(); it++){
-        auto channel = it->second;
-        if(channel.size() != 0){
-            if(channel.front().hasArrived()){
-                _inStream.push_back(channel.front());
-                channel.erase(channel.begin());
-            }else{
-                channel.front().moveForward();
+    for(auto i = _neighbors.begin(); i != _neighbors.end(); i++){
+        std::string neighborID = i->first->id();
+        if(!_channels[neighborID].empty()){
+            if(_channels[neighborID].size() != 0){
+                if(_channels[neighborID].front().hasArrived()){
+                    _inStream.push_back(_channels[neighborID].front());
+                    _channels[neighborID].erase(_channels[neighborID].begin());
+                }else{
+                    _channels[neighborID].front().moveForward();
+                }
             }
         }
-
     }
 }
+
 
 template <class algorithm>
 bool Peer<algorithm>::isNeighbor(const Peer &id)const{
