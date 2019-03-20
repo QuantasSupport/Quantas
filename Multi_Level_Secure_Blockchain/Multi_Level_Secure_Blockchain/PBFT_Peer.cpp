@@ -12,36 +12,18 @@
 
 
 PBFT_Peer::PBFT_Peer(std::string id, int faltBound) : Peer(id){
-    _currentView = 0;
-    _primary = nullptr;
-    _messageLog = {};
-    _faltUpperBound = faltBound;
+    _PBFTinstance = PBFT();
 }
 
 PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs){
-    _currentView = rhs._currentView;
-    _primary = rhs._primary;
-    _messageLog = rhs._messageLog;
-    _faltUpperBound = rhs._faltUpperBound;
-}
-
-void PBFT_Peer::findPrimary(){
-    int primaryIndex = _currentView%_neighbors.size();
-    auto it = _neighbors.begin();
-    for(int i = 0; i < primaryIndex; i++){
-        it++;
-    }
-    _primary = it->first;
+    _PBFTinstance = rhs._PBFTinstance;
 }
 
 PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
     
-    Peer<PBFT_BasicMessage>::operator=(rhs);
+    Peer<PBFT_Message>::operator=(rhs);
     
-    _currentView = rhs._currentView;
-    _primary = rhs._primary;
-    _messageLog = rhs._messageLog;
-    _faltUpperBound = rhs._faltUpperBound;
+    _PBFTinstance = rhs._PBFTinstance;
     
     return *this;
 }
