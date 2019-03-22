@@ -9,7 +9,6 @@
 #ifndef ExamplePeer_hpp
 #define ExamplePeer_hpp
 
-#include <stdio.h>
 #include "Peer.hpp"
 
 //

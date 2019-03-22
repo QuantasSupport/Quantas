@@ -6,16 +6,26 @@
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
 
-#include <string>
-#include <vector>
 #include "PBFT_Peer.hpp"
 
+PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
+    _faultUpperBound = fault;
+    _currentRound = 0;
+    _messageLog = {};
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequestResulte = 0;
+    _ledger = {};
+    _requestLog = {};
+    _currentRequest = {};
+}
 
-PBFT_Peer::PBFT_Peer(std::string id, int fault, int round) : Peer<PBFT_Message>(id){
+PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Message>(id){
     _faultUpperBound = fault;
     _currentRound = round;
     _messageLog = {};
-    _primary = findPrimary(_neighbors, _currentRound);
+    _primary = nullptr;
     _currentPhase = IDEAL;
     _currentView = 0;
     _currentRequestResulte = 0;
@@ -54,9 +64,29 @@ PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
     return *this;
 }
 
-void PBFT_Peer::preformComputation(int requestRate){
+void PBFT_Peer::preformComputation(int numberOfRoundsPerRequest){
+    if(numberOfRoundsPerRequest == 0){
+        return;
+    }
+    if(_primary == nullptr){
+        _primary = findPrimary(_neighbors);
+    }
+    if(_currentRound%numberOfRoundsPerRequest == 0){
+        // time for a new request pick a random peer
+        int randId = _currentRound%_neighbors.size();
+        auto peer =  _neighbors.begin();
+        std::advance (peer,randId);
+        if(_id == "A"){//peer->first->id()){
+            makeRequest();
+        }
+    }
+    collectRequest(); // will only excute if this peer is primary
+    prePrepare();
+    prepare();
+    waitPrepare();
+    commit();
+    waitCommit();
     _currentRound++;
-    
 }
 
 void PBFT_Peer::makeRequest(){
@@ -106,14 +136,14 @@ void PBFT_Peer::prePrepare(){
     if(_requestLog.empty()){
         return;
     }
-    
     PBFT_Message request = _requestLog.front();
     _requestLog.erase(_requestLog.begin());
     
     request.sequenceNumber = (int)_ledger.size() + 1;
     request.phase = PRE_PREPARE;
-    _currentPhase = PRE_PREPARE;
+    _currentPhase = PREPARE;
     _currentRequest = request;
+    _currentRequestResulte = executeQuery(request);
     braodcast(request);
 }
 
@@ -157,12 +187,13 @@ void PBFT_Peer::waitPrepare(){
     while(!_inStream.empty()){
         if(_inStream.front().getMessage().phase != PREPARE){
             _inStream.erase(_inStream.begin());
-        }
+        } else
         if(_inStream.front().getMessage().view != _currentView){
             _inStream.erase(_inStream.begin());
+        }else{
+            _messageLog.push_back(_inStream.front().getMessage());
+            _inStream.erase(_inStream.begin());
         }
-        _messageLog.push_back(_inStream.front().getMessage());
-        _inStream.erase(_inStream.begin());;
     }
     
     int numberOfPrepareMsg = 0;
@@ -173,7 +204,8 @@ void PBFT_Peer::waitPrepare(){
             }
         }
     }
-    if(numberOfPrepareMsg > (_neighbors.size() * _faultUpperBound) + 1){
+    // _neighbors.size() + 1 is neighbors plus this peer
+    if(numberOfPrepareMsg > (ceil((_neighbors.size() + 1) * _faultUpperBound) + 1)){
         _currentPhase = COMMIT;
     }
 }
@@ -229,7 +261,10 @@ void PBFT_Peer::waitCommit(){
     
 }
 
-Peer<PBFT_Message>* PBFT_Peer::findPrimary(std::map<Peer<PBFT_Message> *, int> peers, int roundNumber){
+Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::map<Peer<PBFT_Message> *, int> neighbors){
+    
+    std::map<Peer<PBFT_Message> *, int> peers = neighbors;
+    peers.insert(std::pair<Peer<PBFT_Message> *, int>(this,0));
     int peerIteration = _currentView%peers.size();
     
     auto it =  peers.begin();
@@ -251,7 +286,7 @@ void PBFT_Peer::collectRequest(){
     }
 }
 
-int PBFT_Peer::executeQuery(PBFT_Message query){
+int PBFT_Peer::executeQuery(const PBFT_Message query){
     switch (query.operation) {
         case ADD:
             return query.operands.first + query.operands.second;
@@ -268,12 +303,14 @@ int PBFT_Peer::executeQuery(PBFT_Message query){
     }
 }
 
-bool PBFT_Peer::isVailedRequest(PBFT_Message query){
+bool PBFT_Peer::isVailedRequest(const PBFT_Message query){
     if(query.view != _currentView){
         return false;
     }
-    if(query.sequenceNumber <= _messageLog.back().sequenceNumber){
-        return false;
+    if(!_messageLog.empty()){
+        if(query.sequenceNumber <= _messageLog.back().sequenceNumber){
+            return false;
+        }
     }
     if(query.phase != PRE_PREPARE){
         return false;
@@ -281,7 +318,7 @@ bool PBFT_Peer::isVailedRequest(PBFT_Message query){
     return true;
 }
 
-void PBFT_Peer::braodcast(PBFT_Message msg){
+void PBFT_Peer::braodcast(const PBFT_Message msg){
     for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
         Peer<PBFT_Message>* neighbor = it->first;
         Packet<PBFT_Message> pck(makePckId());
