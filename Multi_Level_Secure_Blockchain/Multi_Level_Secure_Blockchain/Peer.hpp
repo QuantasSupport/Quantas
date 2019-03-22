@@ -24,14 +24,15 @@
 template <class algorithm>
 class Peer{
 protected:
-    std::string                          _id;
+    std::string                             _id;
     
-    typedef std::vector<Packet<algorithm>>aChannel;
-    std::map<std::string,aChannel>       _channels;
+    // communication vars
+    typedef std::vector<Packet<algorithm>>  aChannel;
+    std::map<std::string,aChannel>          _channels;// list of chanels between this peer and others
+    std::map<Peer<algorithm>*,int>          _neighbors;// Peers this peer has a link to and thier delays
+    std::vector<Packet<algorithm>>          _inStream;// messages that have arrived at this peer
+    std::vector<Packet<algorithm>>          _outStream;// messages waiting to be sent by this peer
     
-    std::vector<Packet<algorithm>>       _inStream;  // messages that have arrived at this peer
-    std::vector<Packet<algorithm>>       _outStream; // messages waiting to be sent by this peer
-    std::map<Peer<algorithm>*,int>       _neighbors; // Peers this peer has a link to and thier delay
     
 public:
     Peer                                                    ();
@@ -39,16 +40,16 @@ public:
     Peer                                                    (const Peer &);
     ~Peer                                                   ();
     // Setters
-    void                              setID                 (std::string id)      {_id = id;};
+    void                              setID                 (std::string id){_id = id;};
     void                              addNeighbor           (Peer &, int);
 
     // getters
     std::vector<Peer>                 neighbors             ()const;
-    std::string                       id                    ()const               {return _id;};
+    std::string                       id                    ()const {return _id;};
     bool                              isNeighbor            (const Peer &)const;
     
     // mutators
-    void                              removeNeighbor        (const Peer &p)       {_neighbors.erase(p);};
+    void                              removeNeighbor        (const Peer &p){_neighbors.erase(p);};
     void                              receive               ();
     
     // send a message to this peer
@@ -91,7 +92,7 @@ Peer<algorithm>::Peer(const Peer &rhs){
     _channels = rhs._channels;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
-    _neighbors = rhs._groupMembers;
+    _neighbors = rhs._neighbors;
 }
 
 template <class algorithm>
@@ -120,12 +121,16 @@ void Peer<algorithm>::send(Packet<algorithm> outMessage){
 template <class algorithm>
 void Peer<algorithm>::transmit(){
     while(!_outStream.empty()){
+        
         Packet<algorithm> outMessage = _outStream[0];
         _outStream.erase(_outStream.begin());
+        
         for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
-            if(it->first->id() == outMessage.targetId()){
-                outMessage.setDelay(it->second);
-                it->first->send(outMessage);
+            Peer<algorithm>* peer = it->first;
+            int maxDelay = it->second;
+            if(peer->id() == outMessage.targetId()){
+                outMessage.setDelay(maxDelay);
+                peer->send(outMessage);
             }
         }
     }
@@ -136,13 +141,11 @@ void Peer<algorithm>::receive(){
     for(auto i = _neighbors.begin(); i != _neighbors.end(); i++){
         std::string neighborID = i->first->id();
         if(!_channels[neighborID].empty()){
-            if(_channels[neighborID].size() != 0){
-                if(_channels[neighborID].front().hasArrived()){
-                    _inStream.push_back(_channels[neighborID].front());
-                    _channels[neighborID].erase(_channels[neighborID].begin());
-                }else{
-                    _channels[neighborID].front().moveForward();
-                }
+            if(_channels[neighborID].front().hasArrived()){
+                _inStream.push_back(_channels[neighborID].front());
+                _channels[neighborID].erase(_channels[neighborID].begin());
+            }else{
+                _channels[neighborID].front().moveForward();
             }
         }
     }

@@ -25,7 +25,7 @@ private:
     Packet(){};
     
 protected:
-    int             _id; // message id
+    std::string     _id; // message id
     std::string     _targetId; // traget node id
     std::string     _sourceId; // source node id
     
@@ -34,27 +34,27 @@ protected:
     int             _delay; // delay of the message
     
 public:
-                Packet          (int id);
-                Packet          (int id, std::string to, std::string from);
-                Packet          (const Packet<content>&);
-                ~Packet         ();
+    Packet                      (std::string id);
+    Packet                      (std::string id, std::string to, std::string from);
+    Packet                      (const Packet<content>&);
+    ~Packet                     ();
     
     // setters
-    void        setSource       (std::string s)                                 {_sourceId = s;};
-    void        setTarget       (std::string t)                                 {_targetId = t;};
-    void        setDelay        (int delayBound)                                {_delay = rand()%delayBound;};
-    void        setBody         (const content c)                               {_body = c;};
+    void        setSource       (std::string s){_sourceId = s;};
+    void        setTarget       (std::string t){_targetId = t;};
+    void        setDelay        (int delayBound){_delay = rand()%delayBound;};
+    void        setBody         (const content c){_body = c;};
     
     // getters
-    int         id              ()                                              {return _id;};
-    std::string targetId        ()                                              {return _targetId;};
-    std::string sourceId        ()                                              {return _sourceId;};
-    bool        hasArrived      ()                                              {return !(bool)(_delay);};
-    content     getMessage      ()                                              {return _body;};
-    int         getDelay        ()                                              {return _delay;};
+    std::string id              (){return _id;};
+    std::string targetId        (){return _targetId;};
+    std::string sourceId        (){return _sourceId;};
+    bool        hasArrived      (){return !(bool)(_delay);};
+    content     getMessage      (){return _body;};
+    int         getDelay        (){return _delay;};
     
     // mutators
-    void        moveForward     ()                                              {_delay--;};
+    void        moveForward     (){_delay--;};
     
     //void
     
@@ -65,7 +65,7 @@ public:
 };
 
 template<class content>
-Packet<content>::Packet(int id){
+Packet<content>::Packet(std::string id){
     _id = id;
     _sourceId = "";
     _targetId = "";
@@ -74,7 +74,7 @@ Packet<content>::Packet(int id){
 }
 
 template<class content>
-Packet<content>::Packet(int id, std::string to ,std::string from){
+Packet<content>::Packet(std::string id, std::string to ,std::string from){
     _id = id;
     _sourceId = from;
     _targetId = to;
