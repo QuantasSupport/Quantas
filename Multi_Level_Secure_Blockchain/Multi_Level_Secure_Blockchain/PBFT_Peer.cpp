@@ -8,6 +8,19 @@
 
 #include "PBFT_Peer.hpp"
 
+PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
+    _faultUpperBound = 0;
+    _currentRound = 0;
+    _messageLog = {};
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequestResulte = 0;
+    _ledger = {};
+    _requestLog = {};
+    _currentRequest = {};
+}
+
 PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
     _faultUpperBound = fault;
     _currentRound = 0;
@@ -70,15 +83,6 @@ void PBFT_Peer::preformComputation(int numberOfRoundsPerRequest){
     }
     if(_primary == nullptr){
         _primary = findPrimary(_neighbors);
-    }
-    if(_currentRound%numberOfRoundsPerRequest == 0){
-        // time for a new request pick a random peer
-        int randId = _currentRound%_neighbors.size();
-        auto peer =  _neighbors.begin();
-        std::advance (peer,randId);
-        if(_id == "A"){//peer->first->id()){
-            makeRequest();
-        }
     }
     collectRequest(); // will only excute if this peer is primary
     prePrepare();

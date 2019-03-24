@@ -57,6 +57,8 @@ public:
     // preform one step of the Consensus algorithm with the messages in inStream
     virtual void                      preformComputation    (){};
 
+    virtual void                      makeRequest           (){};
+    
     Peer&                             operator=             (const Peer&);
     bool                              operator==            (const Peer &rhs)const {return (_id == rhs._id);};
     bool                              operator!=            (const Peer &rhs)const {return !(*this == rhs);};

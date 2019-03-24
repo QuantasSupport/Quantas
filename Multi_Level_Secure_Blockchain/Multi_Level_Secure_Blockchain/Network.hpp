@@ -43,7 +43,7 @@ public:
     //void                            setMinDelay         (int d)                              {_minDelay = d;};
     
     //accessors
-    int                             size                ()const                              {return _peers.size();};
+    int                             size                ()const                              {return (int)_peers.size();};
     //int                             maxDelay            ()const                              {return _maxDelay;};
     int                             avgDelay            ()const                              {return _avgDelay;};
     //int                             minDelay            ()const                              {return _minDelay;};
@@ -52,6 +52,7 @@ public:
     void                            receive             ();
     void                            preformComputation  ();
     void                            transmit            ();
+    void                            makeRequest         (int i)                              {_peers[i]->makeRequest();};
     
     // operators
     Network&                       operator=           (const Network&);
@@ -195,7 +196,7 @@ Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Netwo
 
 template<class type_msg, class peer_type>
 peer_type Network<type_msg,peer_type>::operator[](int i){
-    return *_peers[i];
+    return dynamic_cast<peer_type&>(*_peers[i]);
 }
 
 #endif /* Network_hpp */

@@ -77,7 +77,6 @@ protected:
     //
     
     // main methods used in preformComputation
-    void                        makeRequest         ();             // start distributed-consensus
     void                        collectRequest      ();             // primary collecting requests
     void                        prePrepare          ();             // phase 1 pre-prepare
     void                        prepare             ();             // phase 2 prepare
@@ -93,6 +92,7 @@ protected:
     void                        braodcast           (const PBFT_Message);
     
 public:
+    PBFT_Peer                                       (std::string id);
     PBFT_Peer                                       (std::string id, double fault);
     PBFT_Peer                                       (std::string id, double fault, int round);
     PBFT_Peer                                       (const PBFT_Peer &rhs);
@@ -100,11 +100,13 @@ public:
     
     std::vector<PBFT_Message>   getLedger           ()const{return _ledger;};
     std::vector<PBFT_Message>   getMessageLog       ()const{return _messageLog;};
+    
+    void                        setFaultTolerance   (double f){_faultUpperBound = f;};
     PBFT_Peer&                  operator=           (const PBFT_Peer &);
     
-    void                        preformComputation  (){std::cout<< "WARNING: preformComputation called with no request rate, no request will be made"<< std::endl; preformComputation(0);};
+    void                        preformComputation  (){preformComputation(5);};
     void                        preformComputation  (int numberOfRoundsPerRequest);// numberOfRoundsPerRequest as one request per X number of rounds
-    
+    void                        makeRequest         ();// start distributed-consensus
 };
 
 #endif /* PBFT_Peer_hpp */
