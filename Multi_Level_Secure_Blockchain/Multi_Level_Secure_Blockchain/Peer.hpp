@@ -16,8 +16,6 @@
 #include <iostream>
 #include "Packet.hpp"
 
-
-
 //
 // Base Peer class
 //
