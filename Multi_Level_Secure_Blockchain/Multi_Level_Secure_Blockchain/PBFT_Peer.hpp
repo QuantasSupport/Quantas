@@ -89,7 +89,7 @@ protected:
     Peer<PBFT_Message>*         findPrimary         (const std::map<Peer<PBFT_Message>*,int> peers);
     int                         executeQuery        (const PBFT_Message);
     std::string                 makePckId           ()const{ return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
-    bool                        isVailedRequest     (const PBFT_Message);
+    bool                        isVailedRequest     (const PBFT_Message)const;
     void                        braodcast           (const PBFT_Message);
     
 public:

@@ -303,7 +303,7 @@ int PBFT_Peer::executeQuery(const PBFT_Message query){
     }
 }
 
-bool PBFT_Peer::isVailedRequest(const PBFT_Message query){
+bool PBFT_Peer::isVailedRequest(const PBFT_Message query)const{
     if(query.view != _currentView){
         return false;
     }
