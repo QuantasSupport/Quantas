@@ -13,8 +13,6 @@
 #include <string>
 #include <ctime>
 
-const int         DEFAULT_DELAY_BOUND = 2;
-
 //
 //Base Message Class
 //

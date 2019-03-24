@@ -16,8 +16,6 @@
 #include <iostream>
 #include "Packet.hpp"
 
-
-
 //
 // Base Peer class
 //
@@ -45,8 +43,8 @@ public:
 
     // getters
     std::vector<Peer>                 neighbors             ()const;
-    std::string                       id                    ()const {return _id;};
-    bool                              isNeighbor            (const Peer &)const;
+    std::string                       id                    ()const               {return _id;};
+    bool                              isNeighbor            (std::string)const;
     
     // mutators
     void                              removeNeighbor        (const Peer &p){_neighbors.erase(p);};
@@ -57,7 +55,7 @@ public:
     // sends all messages in _outStream to thsere respective targets
     void                              transmit              ();
     // preform one step of the Consensus algorithm with the messages in inStream
-    void                              preformComputation    (){};
+    virtual void                      preformComputation    (){};
 
     Peer&                             operator=             (const Peer&);
     bool                              operator==            (const Peer &rhs)const {return (_id == rhs._id);};
@@ -153,9 +151,11 @@ void Peer<algorithm>::receive(){
 
 
 template <class algorithm>
-bool Peer<algorithm>::isNeighbor(const Peer &id)const{
-    if(_neighbors.find(id) != _neighbors.end()){
-        return true;
+bool Peer<algorithm>::isNeighbor(std::string id)const{
+    for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
+        if(id == it->first->id()){
+            return true;
+        }
     }
     return false;
 }

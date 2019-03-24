@@ -9,52 +9,23 @@
 #include <iostream>
 #include "ExamplePeer.hpp"
 #include "PBFT_Peer.hpp"
+#include "Network.hpp"
 
 void Example();
 void PBFT();
 
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
-    std::string algorithm = argv[1];
     
-    if(algorithm == "example"){
-        Example();
-    }
-    else if (algorithm== "pbft"){
-        PBFT();
-    }
-    
-    return 0;
-}
-
-void Example(){
-    ExamplePeer a("A");
-    ExamplePeer b("B");
-    ExamplePeer c("C");
-    
-    // edge between A and B wight 5
-    a.addNeighbor(b,5);
-    b.addNeighbor(a,5);
-    
-    // edge between A and C wight 1
-    a.addNeighbor(c,1);
-    c.addNeighbor(a,1);
-    
-    for(int i =0; i < 25; i++){
+    Network<ExampleMessage,ExamplePeer> n(50,1);
+   
+    for(int i =0; i < 100; i++){
         std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
         
-        a.receive();
-        b.receive();
-        c.receive();
-        
-        a.preformComputation();
-        b.preformComputation();
-        c.preformComputation();
-        
-        a.transmit();
-        b.transmit();
-        c.transmit();
-        
+        n.receive();
+        n.preformComputation();
+        n.transmit();
+
         std::cout<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
     }
 }
