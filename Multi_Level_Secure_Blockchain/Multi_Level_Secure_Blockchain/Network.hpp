@@ -15,53 +15,81 @@
 #include <random>
 #include "Peer.hpp"
 
-template<class peer_type>
+template<class type_msg, class peer_type>
 class Network{
 protected:
     
-    std::vector<Peer<peer_type>*>   _peers;
+    std::vector<Peer<type_msg>*>    _peers;
     std::default_random_engine      _randomGenerator;
+    int                             _avgDelay;
+    int                             _maxDelay;
+    int                             _minDelay;
     
-    std::string                     createId            ()const;
-    bool                            idTaken             (std::string)const;
-    std::string                     getUniqueId         ()const;
-    void                            addEdges            (Peer<peer_type>*, int avgDelay);
+    std::string                     createId            ();
+    bool                            idTaken             (std::string);
+    std::string                     getUniqueId         ();
+    void                            addEdges            (Peer<type_msg>*);
     
 public:
     Network                                             ();
-    Network                                             (const Network<peer_type>&);
+    Network                                             (int,int);
+    Network                                             (const Network<type_msg,peer_type>&);
     ~Network                                            ();
     
     // setters
-    void                            initNetwork         (const int); // initialize network with peers
+    void                            initNetwork         (int, int); // initialize network with peers
+    //void                            setMaxDelay         (int d)                              {_maxDelay = d;};
+    void                            setAvgDelay         (int d)                              {_avgDelay = d;};
+    //void                            setMinDelay         (int d)                              {_minDelay = d;};
     
     //accessors
     int                             size                ()const                              {return _peers.size();};
+    //int                             maxDelay            ()const                              {return _maxDelay;};
+    int                             avgDelay            ()const                              {return _avgDelay;};
+    //int                             minDelay            ()const                              {return _minDelay;};
     
     //mutators
+    void                            receive             ();
+    void                            preformComputation  ();
+    void                            transmit            ();
+    
+    // operators
+    Network&                       operator=           (const Network&);
+    peer_type                      operator[]          (int);
 };
 
-template<class peer_type>
-Network<peer_type>::Network(){
+template<class type_msg, class peer_type>
+Network<type_msg,peer_type>::Network(){
     _peers = {};
     _randomGenerator = std::default_random_engine();
+    _avgDelay = 0;
+    _maxDelay = 0;
+    _minDelay = 0;
 }
 
-template<class peer_type>
-Network<peer_type>::Network(const Network<peer_type> &rhs){
+template<class type_msg, class peer_type>
+Network<type_msg,peer_type>::Network(int size, int avgDelay) : Network(){
+    initNetwork(size, avgDelay);
+}
+
+template<class type_msg, class peer_type>
+Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
     _peers = rhs._peers;
     _randomGenerator = std::default_random_engine();
+    _avgDelay = rhs._avgDelay;
+    _maxDelay = rhs._maxDelay;
+    _minDelay = rhs._minDelay;
 }
 
-template<class peer_type>
-Network<peer_type>::~Network(){
+template<class type_msg, class peer_type>
+Network<type_msg,peer_type>::~Network(){
     for(int i = 0; i < _peers.size(); i++){
         delete _peers[i];
     }
 }
 
-template<class peer_type>
-std::string Network<peer_type>::createId()const{
+template<class type_msg, class peer_type>
+std::string Network<type_msg,peer_type>::createId(){
     char firstPos = '*';
     char secondPos = '*';
     char thirdPos = '*';
@@ -81,8 +109,8 @@ std::string Network<peer_type>::createId()const{
     return id;
 }
 
-template<class peer_type>
-bool Network<peer_type>::idTaken(std::string id)const{
+template<class type_msg, class peer_type>
+bool Network<type_msg,peer_type>::idTaken(std::string id){
     for(int i = 0; i < _peers.size(); i++){
         if(_peers[i]->id() == id){
             return true;
@@ -91,8 +119,8 @@ bool Network<peer_type>::idTaken(std::string id)const{
     return false;
 }
 
-template<class peer_type>
-std::string Network<peer_type>::getUniqueId()const{
+template<class type_msg, class peer_type>
+std::string Network<type_msg,peer_type>::getUniqueId(){
     std::string id = createId();
     
     while(idTaken(id)){
@@ -102,26 +130,72 @@ std::string Network<peer_type>::getUniqueId()const{
     return id;
 }
 
-template <class peer_type>
-void Network<peer_type>::addEdges(Peer<peer_type>* peer, int avgDelay){
-    std::poisson_distribution<int> poissonDist(avgDelay);
-    
+template<class type_msg, class peer_type>
+void Network<type_msg,peer_type>::addEdges(Peer<type_msg> *peer){
+    std::poisson_distribution<int> poissonDist(_avgDelay);
     for(int i = 0; i < _peers.size(); i++){
         if(_peers[i]->id() != peer->id()){
-            if(_peers[i]->isNeighbor(peer)){
+            if(!_peers[i]->isNeighbor(peer->id())){
                 int delay = poissonDist(_randomGenerator);
+                // guard agenst 0 and negative numbers
+                while(delay < 1){
+                    delay = poissonDist(_randomGenerator);
+                }
                 
+                peer->addNeighbor(*_peers[i], delay);
+                _peers[i]->addNeighbor(*peer,delay);
             }
         }
     }
 }
 
-template<class peer_type>
-void Network<peer_type>::initNetwork(int numberOfPeers){
+template<class type_msg, class peer_type>
+void Network<type_msg,peer_type>::initNetwork(int numberOfPeers, int avgDelay){
+    _avgDelay = avgDelay;
+    
     for(int i = 0; i < numberOfPeers; i++){
-        _peers.push_back(new Peer<peer_type>(getUniqueId()));
+        _peers.push_back(new peer_type(getUniqueId()));
+    }
+    for(int i = 0; i < _peers.size(); i++){
+        addEdges(_peers[i]);
     }
 }
 
+template<class type_msg, class peer_type>
+void Network<type_msg,peer_type>::receive(){
+    for(int i = 0; i < _peers.size(); i++){
+        _peers[i]->receive();
+    }
+}
+
+template<class type_msg, class peer_type>
+void Network<type_msg,peer_type>::preformComputation(){
+    for(int i = 0; i < _peers.size(); i++){
+        _peers[i]->preformComputation();
+    }
+}
+
+template<class type_msg, class peer_type>
+void Network<type_msg,peer_type>::transmit(){
+    for(int i = 0; i < _peers.size(); i++){
+        _peers[i]->transmit();
+    }
+}
+
+template<class type_msg, class peer_type>
+Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Network<type_msg, peer_type> &rhs){
+    _peers = rhs._peers;
+    _randomGenerator = std::default_random_engine();
+    _avgDelay = rhs._avgDelay;
+    _maxDelay = rhs._maxDelay;
+    _minDelay = rhs._minDelay;
+    
+    return *this;
+}
+
+template<class type_msg, class peer_type>
+peer_type Network<type_msg,peer_type>::operator[](int i){
+    return *_peers[i];
+}
 
 #endif /* Network_hpp */
