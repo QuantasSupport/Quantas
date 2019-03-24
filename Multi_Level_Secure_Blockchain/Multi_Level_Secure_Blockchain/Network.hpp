@@ -56,7 +56,7 @@ public:
     
     // operators
     Network&                       operator=           (const Network&);
-    peer_type                      operator[]          (int);
+    peer_type*                     operator[]          (int);
 };
 
 template<class type_msg, class peer_type>
@@ -195,8 +195,8 @@ Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Netwo
 }
 
 template<class type_msg, class peer_type>
-peer_type Network<type_msg,peer_type>::operator[](int i){
-    return dynamic_cast<peer_type&>(*_peers[i]);
+peer_type* Network<type_msg,peer_type>::operator[](int i){
+    return dynamic_cast<peer_type*>(_peers[i]);
 }
 
 #endif /* Network_hpp */

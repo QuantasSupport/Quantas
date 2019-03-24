@@ -24,7 +24,7 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 1; delay < 10; delay = delay + 2){
+        for(int delay = 1; delay < 11; delay = delay + 2){
             std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
             std::ofstream out;
             out.open("/Users/kendrichood/Desktop/PBFT_Delay:"+std::to_string(delay) + ".csv");
@@ -42,7 +42,11 @@ int main(int argc, const char * argv[]) {
 
 void PBFT(std::ofstream &out,int avgDelay){
     
-    Network<PBFT_Message, PBFT_Peer> system(100,1);
+    Network<PBFT_Message, PBFT_Peer> system(50,1);
+    for(int i = 0; i < system.size(); i++){
+        system[i]->setFaultTolerance(0.3);
+    }
+    
     
     for(int i =-1; i < 100; i++){
         std::cout<< ".";
@@ -61,15 +65,15 @@ void PBFT(std::ofstream &out,int avgDelay){
     }
     std::cout<< std::endl;
     
-    int min = system[0].getLedger().size();
-    int max = system[0].getLedger().size();
+    int min = system[0]->getLedger().size();
+    int max = system[0]->getLedger().size();
     for(int i = 0; i < system.size(); i++){
         //out<< "Peer ID:"<< system[i].id() << " Ledger Size:"<< system[i].getLedger().size()<< std::endl;
-        if(system[i].getLedger().size() < min){
-            min = system[i].getLedger().size();
+        if(system[i]->getLedger().size() < min){
+            min = system[i]->getLedger().size();
         }
-        if(system[i].getLedger().size() > max){
-            max = system[i].getLedger().size();
+        if(system[i]->getLedger().size() > max){
+            max = system[i]->getLedger().size();
         }
     }
     //out<< "Min Ledger:"<< min<< std::endl;
