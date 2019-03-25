@@ -17,19 +17,19 @@
 //
 
 // These are the type defintions for the messages
-const std::string REQUEST = "REQUEST";
-const std::string REPLY   = "REPLY";
+static const std::string REQUEST = "REQUEST";
+static const std::string REPLY   = "REPLY";
 
 // These are the phase type defintions (same as peer state)
-const std::string IDEAL         = "IDEAL";
-const std::string PRE_PREPARE   = "PRE-PREPARE";
-const std::string PREPARE       = "PREPARE";
-const std::string COMMIT        = "COMMIT";
-const std::string COMMIT_WAIT   = "COMMIT_WAIT";
+static const std::string IDEAL         = "IDEAL";
+static const std::string PRE_PREPARE   = "PRE-PREPARE";
+static const std::string PREPARE       = "PREPARE";
+static const std::string COMMIT        = "COMMIT";
+static const std::string COMMIT_WAIT   = "COMMIT_WAIT";
 
 // operation defintions
-const char ADD = '+';
-const char SUBTRACT = '-';
+static const char ADD = '+';
+static const char SUBTRACT = '-';
 
 struct PBFT_Message{
     //////////////////////////////////////////

@@ -17,49 +17,58 @@
 #include <iostream>
 #include "Peer.hpp"
 
+static const std::string POISSON = "POISSON";
+static const std::string RANDOM = "RANDOM";
+
 template<class type_msg, class peer_type>
 class Network{
 protected:
     
-    std::vector<Peer<type_msg>*>    _peers;
-    std::default_random_engine      _randomGenerator;
-    int                             _avgDelay;
-    int                             _maxDelay;
-    int                             _minDelay;
+    std::vector<Peer<type_msg>*>        _peers;
+    std::default_random_engine          _randomGenerator;
+    std::poisson_distribution<int>      _poissonDistribution;
+    std::uniform_int_distribution<int>  _randomDistribution;
+    int                                 _avgDelay;
+    int                                 _maxDelay;
+    int                                 _minDelay;
+    std::string                         _distribution;
     
-    std::string                     createId            ();
-    bool                            idTaken             (std::string);
-    std::string                     getUniqueId         ();
-    void                            addEdges            (Peer<type_msg>*);
+    std::string                         createId            ()const;
+    bool                                idTaken             (std::string)const;
+    std::string                         getUniqueId         ()const;
+    void                                addEdges            (Peer<type_msg>*);
+    int                                 getDelay            ()const;
     
 public:
-    Network                                             ();
-    Network                                             (int,int);
-    Network                                             (const Network<type_msg,peer_type>&);
-    ~Network                                            ();
+    Network                                                 ();
+    Network                                                 (int,int);
+    Network                                                 (const Network<type_msg,peer_type>&);
+    ~Network                                                ();
     
     // setters
-    void                            initNetwork         (int, int); // initialize network with peers
-    void                            setMaxDelay         (int d)                              {_maxDelay = d;};
-    void                            setAvgDelay         (int d)                              {_avgDelay = d;};
-    void                            setMinDelay         (int d)                              {_minDelay = d;};
+    void                                initNetwork         (int, int); // initialize network with peers
+    void                                setMaxDelay         (int d)                              {_maxDelay = d;  _randomDistribution = std::uniform_int_distribution<int>(_minDelay,_maxDelay);};
+    void                                setAvgDelay         (int d)                              {_avgDelay = d;  _poissonDistribution = std::poisson_distribution<int>(_avgDelay);};
+    void                                setMinDelay         (int d)                              {_minDelay = d;  _randomDistribution = std::uniform_int_distribution<int>(_minDelay,_maxDelay);};
+    void                                setToRandom         ()                                   {_distribution = RANDOM;};
+    void                                setToPoisson        ()                                   {_distribution = POISSON;};
     
     // getters
-    int                             size                ()const                              {return (int)_peers.size();};
-    int                             maxDelay            ()const                              {return _maxDelay;};
-    int                             avgDelay            ()const                              {return _avgDelay;};
-    int                             minDelay            ()const                              {return _minDelay;};
+    int                                 size                ()const                              {return (int)_peers.size();};
+    int                                 maxDelay            ()const                              {return _maxDelay;};
+    int                                 avgDelay            ()const                              {return _avgDelay;};
+    int                                 minDelay            ()const                              {return _minDelay;};
     
     //mutators
-    void                            receive             ();
-    void                            preformComputation  ();
-    void                            transmit            ();
-    void                            makeRequest         (int i)                              {_peers[i]->makeRequest();};
+    void                                receive             ();
+    void                                preformComputation  ();
+    void                                transmit            ();
+    void                                makeRequest         (int i)                              {_peers[i]->makeRequest();};
     
     // operators
-    Network&                       operator=           (const Network&);
-    peer_type*                     operator[]          (int);
-    friend std::ostream&           operator<<          (std::ostream&, const Network&);
+    Network&                            operator=           (const Network&);
+    peer_type*                          operator[]          (int);
+    friend std::ostream&                operator<<          (std::ostream&, const Network&);
 };
 
 template<class type_msg, class peer_type>
@@ -69,6 +78,9 @@ Network<type_msg,peer_type>::Network(){
     _avgDelay = 0;
     _maxDelay = std::numeric_limits<int>::max();;
     _minDelay = std::numeric_limits<int>::min();
+    _poissonDistribution = std::poisson_distribution<int>(_avgDelay);
+    _randomDistribution = std::uniform_int_distribution<int>(_minDelay,_maxDelay);
+    _distribution = RANDOM;
 }
 
 template<class type_msg, class peer_type>
@@ -83,6 +95,9 @@ Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
     _avgDelay = rhs._avgDelay;
     _maxDelay = rhs._maxDelay;
     _minDelay = rhs._minDelay;
+    _poissonDistribution = std::poisson_distribution<int>(_avgDelay);
+    _randomDistribution = std::uniform_int_distribution<int>(_minDelay,_maxDelay);
+    _distribution = rhs._distribution;
 }
 
 template<class type_msg, class peer_type>
@@ -93,7 +108,7 @@ Network<type_msg,peer_type>::~Network(){
 }
 
 template<class type_msg, class peer_type>
-std::string Network<type_msg,peer_type>::createId(){
+std::string Network<type_msg,peer_type>::createId()const{
     char firstPos = '*';
     char secondPos = '*';
     char thirdPos = '*';
@@ -114,7 +129,7 @@ std::string Network<type_msg,peer_type>::createId(){
 }
 
 template<class type_msg, class peer_type>
-bool Network<type_msg,peer_type>::idTaken(std::string id){
+bool Network<type_msg,peer_type>::idTaken(std::string id)const{
     for(int i = 0; i < _peers.size(); i++){
         if(_peers[i]->id() == id){
             return true;
@@ -124,7 +139,7 @@ bool Network<type_msg,peer_type>::idTaken(std::string id){
 }
 
 template<class type_msg, class peer_type>
-std::string Network<type_msg,peer_type>::getUniqueId(){
+std::string Network<type_msg,peer_type>::getUniqueId()const{
     std::string id = createId();
     
     while(idTaken(id)){
@@ -136,20 +151,30 @@ std::string Network<type_msg,peer_type>::getUniqueId(){
 
 template<class type_msg, class peer_type>
 void Network<type_msg,peer_type>::addEdges(Peer<type_msg> *peer){
-    std::poisson_distribution<int> poissonDist(_avgDelay);
     for(int i = 0; i < _peers.size(); i++){
         if(_peers[i]->id() != peer->id()){
             if(!_peers[i]->isNeighbor(peer->id())){
-                int delay = poissonDist(_randomGenerator);
+                int delay = getDelay();
                 // guard agenst 0 and negative numbers
                 while(delay < 1 && delay > _maxDelay && delay < _minDelay){
-                    delay = poissonDist(_randomGenerator);
+                    delay = getDelay();
                 }
                 peer->addNeighbor(*_peers[i], delay);
                 _peers[i]->addNeighbor(*peer,delay);
             }
         }
     }
+}
+
+template<class type_msg, class peer_type>
+int Network<type_msg,peer_type>::getDelay()const{
+    if(_distribution == RANDOM){
+        return _randomDistribution(_randomGenerator);
+    }
+    if(_distribution == POISSON){
+        return _poissonDistribution(_randomGenerator);
+    }
+    return -1;
 }
 
 template<class type_msg, class peer_type>
@@ -192,6 +217,9 @@ Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Netwo
     _avgDelay = rhs._avgDelay;
     _maxDelay = rhs._maxDelay;
     _minDelay = rhs._minDelay;
+    _poissonDistribution = std::poisson_distribution<int>(_avgDelay);
+    _randomDistribution = std::uniform_int_distribution<int>(_minDelay,_maxDelay);
+    _distribution = rhs._distribution;
     
     return *this;
 }
