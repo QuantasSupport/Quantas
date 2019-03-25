@@ -13,6 +13,8 @@
 #include <vector>
 #include <string>
 #include <random>
+#include <limits>
+#include <iostream>
 #include "Peer.hpp"
 
 template<class type_msg, class peer_type>
@@ -38,15 +40,15 @@ public:
     
     // setters
     void                            initNetwork         (int, int); // initialize network with peers
-    //void                            setMaxDelay         (int d)                              {_maxDelay = d;};
+    void                            setMaxDelay         (int d)                              {_maxDelay = d;};
     void                            setAvgDelay         (int d)                              {_avgDelay = d;};
-    //void                            setMinDelay         (int d)                              {_minDelay = d;};
+    void                            setMinDelay         (int d)                              {_minDelay = d;};
     
-    //accessors
+    // getters
     int                             size                ()const                              {return (int)_peers.size();};
-    //int                             maxDelay            ()const                              {return _maxDelay;};
+    int                             maxDelay            ()const                              {return _maxDelay;};
     int                             avgDelay            ()const                              {return _avgDelay;};
-    //int                             minDelay            ()const                              {return _minDelay;};
+    int                             minDelay            ()const                              {return _minDelay;};
     
     //mutators
     void                            receive             ();
@@ -57,6 +59,7 @@ public:
     // operators
     Network&                       operator=           (const Network&);
     peer_type*                     operator[]          (int);
+    friend std::ostream&           operator<<          (std::ostream&, const Network&);
 };
 
 template<class type_msg, class peer_type>
@@ -64,8 +67,8 @@ Network<type_msg,peer_type>::Network(){
     _peers = {};
     _randomGenerator = std::default_random_engine();
     _avgDelay = 0;
-    _maxDelay = 0;
-    _minDelay = 0;
+    _maxDelay = std::numeric_limits<int>::max();;
+    _minDelay = std::numeric_limits<int>::min();
 }
 
 template<class type_msg, class peer_type>
@@ -139,10 +142,9 @@ void Network<type_msg,peer_type>::addEdges(Peer<type_msg> *peer){
             if(!_peers[i]->isNeighbor(peer->id())){
                 int delay = poissonDist(_randomGenerator);
                 // guard agenst 0 and negative numbers
-                while(delay < 1){
+                while(delay < 1 && delay > _maxDelay && delay < _minDelay){
                     delay = poissonDist(_randomGenerator);
                 }
-                
                 peer->addNeighbor(*_peers[i], delay);
                 _peers[i]->addNeighbor(*peer,delay);
             }
@@ -197,6 +199,17 @@ Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Netwo
 template<class type_msg, class peer_type>
 peer_type* Network<type_msg,peer_type>::operator[](int i){
     return dynamic_cast<peer_type*>(_peers[i]);
+}
+
+template<class type_msg, class peer_type>
+std::ostream& operator<<(std::ostream &out, const Network<type_msg,peer_type> &system){
+    
+    for(int i = 0; i < system._peers.size(); i++){
+        Peer<type_msg> peer = &system._peers[i];
+        out<< peer;
+    }
+    
+    return out;
 }
 
 #endif /* Network_hpp */
