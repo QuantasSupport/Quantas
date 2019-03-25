@@ -33,11 +33,11 @@ protected:
     int                                 _minDelay;
     std::string                         _distribution;
     
-    std::string                         createId            ()const;
-    bool                                idTaken             (std::string)const;
-    std::string                         getUniqueId         ()const;
+    std::string                         createId            ();
+    bool                                idTaken             (std::string);
+    std::string                         getUniqueId         ();
     void                                addEdges            (Peer<type_msg>*);
-    int                                 getDelay            ()const;
+    int                                 getDelay            ();
     
 public:
     Network                                                 ();
@@ -108,7 +108,7 @@ Network<type_msg,peer_type>::~Network(){
 }
 
 template<class type_msg, class peer_type>
-std::string Network<type_msg,peer_type>::createId()const{
+std::string Network<type_msg,peer_type>::createId(){
     char firstPos = '*';
     char secondPos = '*';
     char thirdPos = '*';
@@ -129,7 +129,7 @@ std::string Network<type_msg,peer_type>::createId()const{
 }
 
 template<class type_msg, class peer_type>
-bool Network<type_msg,peer_type>::idTaken(std::string id)const{
+bool Network<type_msg,peer_type>::idTaken(std::string id){
     for(int i = 0; i < _peers.size(); i++){
         if(_peers[i]->id() == id){
             return true;
@@ -139,7 +139,7 @@ bool Network<type_msg,peer_type>::idTaken(std::string id)const{
 }
 
 template<class type_msg, class peer_type>
-std::string Network<type_msg,peer_type>::getUniqueId()const{
+std::string Network<type_msg,peer_type>::getUniqueId(){
     std::string id = createId();
     
     while(idTaken(id)){
@@ -167,7 +167,7 @@ void Network<type_msg,peer_type>::addEdges(Peer<type_msg> *peer){
 }
 
 template<class type_msg, class peer_type>
-int Network<type_msg,peer_type>::getDelay()const{
+int Network<type_msg,peer_type>::getDelay(){
     if(_distribution == RANDOM){
         return _randomDistribution(_randomGenerator);
     }

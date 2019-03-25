@@ -31,6 +31,7 @@
 		45926FAC223374DB00266885 /* Packet.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Packet.hpp; sourceTree = "<group>"; };
 		45926FDC223C12AB00266885 /* ExamplePeer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ExamplePeer.cpp; sourceTree = "<group>"; };
 		45926FDD223C12AB00266885 /* ExamplePeer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ExamplePeer.hpp; sourceTree = "<group>"; };
+		459FA26A224960B800ED6A3C /* Network.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Network.hpp; sourceTree = "<group>"; };
 		45CEED8E2240A39E0062D643 /* PBFT_Peer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PBFT_Peer.cpp; sourceTree = "<group>"; };
 		45CEED8F2240A39E0062D643 /* PBFT_Peer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PBFT_Peer.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -65,6 +66,7 @@
 		45926FA022336BC900266885 /* Multi_Level_Secure_Blockchain */ = {
 			isa = PBXGroup;
 			children = (
+				459FA26A224960B800ED6A3C /* Network.hpp */,
 				45926FA122336BC900266885 /* main.cpp */,
 				45926FA92233737D00266885 /* Peer.hpp */,
 				45926FAC223374DB00266885 /* Packet.hpp */,
