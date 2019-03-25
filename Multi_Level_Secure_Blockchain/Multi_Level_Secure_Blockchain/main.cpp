@@ -42,7 +42,8 @@ int main(int argc, const char * argv[]) {
 
 void PBFT(std::ofstream &out,int avgDelay){
     
-    Network<PBFT_Message, PBFT_Peer> system(500,1);
+    Network<PBFT_Message, PBFT_Peer> system;
+    system.initNetwork(500,1);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
     }
@@ -81,7 +82,8 @@ void PBFT(std::ofstream &out,int avgDelay){
 }
 
 void Example(){
-    Network<ExampleMessage,ExamplePeer> n(100,1);
+    Network<ExampleMessage,ExamplePeer> n;
+    n.initNetwork(100,1);
     
     for(int i =0; i < 100; i++){
         std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;

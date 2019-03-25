@@ -41,7 +41,6 @@ protected:
     
 public:
     Network                                                 ();
-    Network                                                 (int,int);
     Network                                                 (const Network<type_msg,peer_type>&);
     ~Network                                                ();
     
@@ -81,11 +80,6 @@ Network<type_msg,peer_type>::Network(){
     _poissonDistribution = std::poisson_distribution<int>(_avgDelay);
     _randomDistribution = std::uniform_int_distribution<int>(_minDelay,_maxDelay);
     _distribution = RANDOM;
-}
-
-template<class type_msg, class peer_type>
-Network<type_msg,peer_type>::Network(int size, int avgDelay) : Network(){
-    initNetwork(size, avgDelay);
 }
 
 template<class type_msg, class peer_type>
