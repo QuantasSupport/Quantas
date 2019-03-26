@@ -37,7 +37,7 @@ protected:
     std::vector<Packet<algorithm> >         _inStream;// messages that have arrived at this peer
     std::vector<Packet<algorithm> >         _outStream;// messages waiting to be sent by this peer
     
-    //std::ostream                            &_log;
+    std::ostream                            *_log;
     
 public:
     Peer                                                    ();
@@ -46,7 +46,7 @@ public:
     virtual ~Peer                                           ()=0;
     // Setters
     void                              setID                 (std::string id)                    {_id = id;};
-    //void                              setLogFile            (std::ostream &o)                   {_log = o;};
+    void                              setLogFile            (std::ostream &o)                   {_log = &o;};
 
     // getters
     std::vector<Peer>                 neighbors             ()const;
@@ -69,7 +69,7 @@ public:
     // preform one step of the Consensus algorithm with the messages in inStream
     virtual void                      preformComputation    ()=0;
     
-    void                              log                   ()const;
+    void                              log                   ();
     std::ostream&                     printTo               (std::ostream&)const;
     Peer&                             operator=             (const Peer&);
     bool                              operator==            (const Peer &rhs)const              {return (_id == rhs._id);};
@@ -91,7 +91,7 @@ Peer<algorithm>::Peer(){
     _neighbors = std::vector<Peer<algorithm>* >();
     _channelDelays = std::map<peerId,int>();
     _channels = std::map<peerId,aChannel>();
-    //_log = std::cout;
+    _log = &std::cout;
 }
 
 template <class algorithm>
@@ -104,7 +104,7 @@ Peer<algorithm>::Peer(std::string id){
     _neighbors = std::vector<Peer<algorithm>* >();
     _channelDelays = std::map<peerId,int>();
     _channels = std::map<peerId,aChannel>();
-    //_log = std::cout;
+    _log = &std::cout;
 }
 
 template <class algorithm>
@@ -115,7 +115,7 @@ Peer<algorithm>::Peer(const Peer &rhs){
     _neighbors = rhs._neighbors;
     _channels = rhs._channels;
     _channelDelays = rhs._channelDelays;
-    //_log = rhs._log;
+    _log = rhs._log;
 }
 
 template <class algorithm>
@@ -199,14 +199,14 @@ Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
     _neighbors = rhs._neighbors;
     _channels = rhs._channels;
     _channelDelays = rhs._channelDelays;
-    //_log = rhs._log;
+    _log = rhs._log;
     
     return *this;
 }
 
 template <class algorithm>
-void Peer<algorithm>::log()const{
-    //printTo(_log);
+void Peer<algorithm>::log(){
+    printTo(*_log);
 }
 
 template <class algorithm>

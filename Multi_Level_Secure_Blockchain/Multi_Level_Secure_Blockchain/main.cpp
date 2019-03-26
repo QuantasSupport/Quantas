@@ -26,17 +26,20 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 1; delay < 101; delay = delay + 10){
-            std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
-            std::ofstream out;
-            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".csv");
-            for(int run = 0; run < 5; run++){
-                PBFT(out,delay);
-            }
-            out.close();
-            std::cout<< "End with Delay "+std::to_string(delay)<< std::endl;
-        }
-
+//        for(int delay = 1; delay < 101; delay = delay + 10){
+//            std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
+//            std::ofstream out;
+//            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".csv");
+//            for(int run = 0; run < 5; run++){
+//                PBFT(out,delay);
+//            }
+//            out.close();
+//            std::cout<< "End with Delay "+std::to_string(delay)<< std::endl;
+//        }
+        int delay = 10;
+        std::ofstream out;
+        out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".csv");
+        PBFT(out,delay);
     }
     
     return 0;
@@ -46,9 +49,10 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
-    system.initNetwork(100,avgDelay);
+    system.initNetwork(10,avgDelay);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
+        system[i]->log();
         //std::cout<<*system[i]<<std::endl;
     }
     
