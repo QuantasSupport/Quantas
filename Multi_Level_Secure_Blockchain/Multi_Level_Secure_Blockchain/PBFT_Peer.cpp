@@ -8,6 +8,91 @@
 
 #include "PBFT_Peer.hpp"
 
+PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
+    _faultUpperBound = 0;
+    _currentRound = 0;
+    _messageLog = std::vector<PBFT_Message>();
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequestResulte = 0;
+    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::vector<PBFT_Message>();
+    _currentRequest = PBFT_Message();
+}
+
+PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
+    _faultUpperBound = fault;
+    _currentRound = 0;
+    _messageLog = std::vector<PBFT_Message>();
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequestResulte = 0;
+    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::vector<PBFT_Message>();
+    _currentRequest = PBFT_Message();
+}
+
+PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Message>(id){
+    _faultUpperBound = fault;
+    _currentRound = round;
+    _messageLog = std::vector<PBFT_Message>();
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequestResulte = 0;
+    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::vector<PBFT_Message>();
+    _currentRequest = PBFT_Message();
+}
+
+PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
+    _faultUpperBound = rhs._faultUpperBound;
+    _currentRound = rhs._currentRound;
+    _messageLog =rhs._messageLog;
+    _primary = rhs._primary;
+    _currentPhase = rhs._currentPhase;
+    _currentView = rhs._currentView;
+    _currentRequestResulte = rhs._currentRequestResulte;
+    _ledger = rhs._ledger;
+    _requestLog = rhs._requestLog;
+    _currentRequest = rhs._currentRequest;
+}
+
+PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
+    
+    Peer<PBFT_Message>::operator=(rhs);
+    _faultUpperBound = rhs._faultUpperBound;
+    _currentRound = rhs._currentRound;
+    _messageLog =rhs._messageLog;
+    _primary = rhs._primary;
+    _currentPhase = rhs._currentPhase;
+    _currentView = rhs._currentView;
+    _currentRequestResulte = rhs._currentRequestResulte;
+    _ledger = rhs._ledger;
+    _requestLog = rhs._requestLog;
+    _currentRequest = rhs._currentRequest;
+    
+    return *this;
+}
+
+void PBFT_Peer::preformComputation(int numberOfRoundsPerRequest){
+    if(numberOfRoundsPerRequest == 0){
+        return;
+    }
+    if(_primary == nullptr){
+        _primary = findPrimary(_neighbors);
+    }
+    collectRequest(); // will only excute if this peer is primary
+    prePrepare();
+    prepare();
+    waitPrepare();
+    commit();
+    waitCommit();
+    _currentRound++;
+}
+
 void PBFT_Peer::makeRequest(){
     if(_currentPhase != IDEAL){
         return;
@@ -173,7 +258,7 @@ void PBFT_Peer::waitCommit(){
     }
     if(numberOfCommitMsg > (_neighbors.size() * _faultUpperBound) + 1){
         _ledger.push_back(_currentRequest);
-        _currentRequest = {}; // clear old request
+        _currentRequest = PBFT_Message(); // clear old request
         _currentRequestResulte = 0; // clear old resulte
         _currentPhase = IDEAL; // complete distributed-consensus
     }

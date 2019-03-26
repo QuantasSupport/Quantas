@@ -29,7 +29,7 @@ protected:
     std::string                             _id;
     
     // communication vars
-    typedef std::vector<Packet<algorithm>>  aChannel;
+    typedef std::vector<Packet<algorithm> > aChannel;
     typedef std::string                     peerId;
     std::map<peerId,aChannel>               _channels;// list of chanels between this peer and others
     std::map<peerId,int>                    _channelDelays;// list of channels and there delays
@@ -83,6 +83,8 @@ public:
 
 template <class algorithm>
 Peer<algorithm>::Peer(){
+    typedef std::vector<Packet<algorithm> > aChannel;
+    typedef std::string peerId;
     _id = "NO ID";
     _inStream = {};
     _outStream = {};
@@ -94,6 +96,8 @@ Peer<algorithm>::Peer(){
 
 template <class algorithm>
 Peer<algorithm>::Peer(std::string id){
+    typedef std::vector<Packet<algorithm> > aChannel;
+    typedef std::string peerId;
     _id = id;
     _inStream = {};
     _outStream = {};

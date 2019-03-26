@@ -73,7 +73,7 @@ public:
 
 template<class type_msg, class peer_type>
 Network<type_msg,peer_type>::Network(){
-    _peers = {};
+    _peers = std::vector<Peer<type_msg>*>();
     _randomGenerator = std::default_random_engine();
     _avgDelay = 0;
     _maxDelay = std::numeric_limits<int>::max();;
