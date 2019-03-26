@@ -158,14 +158,12 @@ void Network<type_msg,peer_type>::addEdges(Peer<type_msg> *peer){
 template<class type_msg, class peer_type>
 int Network<type_msg,peer_type>::getDelay(){
     if(_distribution == RANDOM){
-         std::uniform_int_distribution<int> randomDistribution(_minDelay,_maxDelay);
-        int r = randomDistribution(_randomGenerator);
-        return r;
+        std::uniform_int_distribution<int> randomDistribution(_minDelay,_maxDelay);
+        return randomDistribution(_randomGenerator);
     }
     if(_distribution == POISSON){
         std::poisson_distribution<int> poissonDistribution(_avgDelay);
-        int r = poissonDistribution(_randomGenerator);
-        return r;
+        return poissonDistribution(_randomGenerator);
     }
     return -1;
 }
