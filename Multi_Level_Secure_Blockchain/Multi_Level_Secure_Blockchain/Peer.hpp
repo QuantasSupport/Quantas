@@ -117,7 +117,7 @@ void Peer<algorithm>::addNeighbor(Peer<algorithm> &newNeighbor, int delay){
     _neighbors.insert(std::pair<Peer*,int>(&newNeighbor,edgeDelay));
     
     typedef std::vector<Packet<algorithm> > aChannel;
-    std::pair<std::string, aChannel> newChannel(newNeighbor.id(),{});
+    std::pair<std::string, aChannel> newChannel(newNeighbor.id(),aChannel());
     _channels.insert(newChannel);
 }
 

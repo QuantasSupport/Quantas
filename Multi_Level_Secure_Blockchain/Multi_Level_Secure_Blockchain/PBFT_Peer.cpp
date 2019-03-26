@@ -11,40 +11,40 @@
 PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
     _faultUpperBound = 0;
     _currentRound = 0;
-    _messageLog = {};
+    _messageLog = std::vector<PBFT_Message>();
     _primary = nullptr;
     _currentPhase = IDEAL;
     _currentView = 0;
     _currentRequestResulte = 0;
-    _ledger = {};
-    _requestLog = {};
-    _currentRequest = {};
+    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::vector<PBFT_Message>();
+    _currentRequest = PBFT_Message();
 }
 
 PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
     _faultUpperBound = fault;
     _currentRound = 0;
-    _messageLog = {};
+    _messageLog = std::vector<PBFT_Message>();
     _primary = nullptr;
     _currentPhase = IDEAL;
     _currentView = 0;
     _currentRequestResulte = 0;
-    _ledger = {};
-    _requestLog = {};
-    _currentRequest = {};
+    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::vector<PBFT_Message>();
+    _currentRequest = PBFT_Message();
 }
 
 PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Message>(id){
     _faultUpperBound = fault;
     _currentRound = round;
-    _messageLog = {};
+    _messageLog = std::vector<PBFT_Message>();
     _primary = nullptr;
     _currentPhase = IDEAL;
     _currentView = 0;
     _currentRequestResulte = 0;
-    _ledger = {};
-    _requestLog = {};
-    _currentRequest = {};
+    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::vector<PBFT_Message>();
+    _currentRequest = PBFT_Message();
 }
 
 PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
