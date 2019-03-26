@@ -87,7 +87,7 @@ protected:
     // support methods used for the above
     Peer<PBFT_Message>*         findPrimary         (const std::vector<Peer<PBFT_Message>*> peers);
     int                         executeQuery        (const PBFT_Message);
-    std::string                 makePckId           ()const{ return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
+    std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
     bool                        isVailedRequest     (const PBFT_Message)const;
     void                        braodcast           (const PBFT_Message);
     
@@ -96,16 +96,18 @@ public:
     PBFT_Peer                                       (std::string id, double fault);
     PBFT_Peer                                       (std::string id, double fault, int round);
     PBFT_Peer                                       (const PBFT_Peer &rhs);
-    ~PBFT_Peer                                      (){};
+    ~PBFT_Peer                                      ()                                              {};
     
-    std::vector<PBFT_Message>   getLedger           ()const{return _ledger;};
-    std::vector<PBFT_Message>   getMessageLog       ()const{return _messageLog;};
+    std::vector<PBFT_Message>   getLedger           ()const                                         {return _ledger;};
+    std::vector<PBFT_Message>   getMessageLog       ()const                                         {return _messageLog;};
     
-    void                        setFaultTolerance   (double f){_faultUpperBound = f;};
+    void                        setFaultTolerance   (double f)                                      {_faultUpperBound = f;};
     PBFT_Peer&                  operator=           (const PBFT_Peer &);
+    std::ostream&               printTo             (std::ostream&)const;
+    //void                        log                 ()const                                         {printTo(_log);};
+    friend std::ostream&        operator<<          (std::ostream &o, const PBFT_Peer &p)           {p.printTo(o); return o;};
     
-    void                        preformComputation  (){preformComputation(5);};
-    void                        preformComputation  (int numberOfRoundsPerRequest);// numberOfRoundsPerRequest as one request per X number of rounds
+    void                        preformComputation  ();// numberOfRoundsPerRequest as one request per X number of rounds
     void                        makeRequest         ();// start distributed-consensus
 };
 

@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <fstream>
+#include "Peer.hpp"
 #include "ExamplePeer.hpp"
 #include "PBFT_Peer.hpp"
 #include "Network.hpp"
@@ -46,46 +47,48 @@ void PBFT(std::ofstream &out,int avgDelay){
     system.initNetwork(500,1);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
+        //std::cout<<*system[i]<<std::endl;
     }
     
+//    std::cout<< system<< std::endl;
     
-    for(int i =-1; i < 100; i++){
-        std::cout<< ".";
-       // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
-        
-        if(i%5 == 0){
-            int randIndex = rand()%system.size();
-            system.makeRequest(randIndex);
-        }
-        
-        system.receive();
-        system.preformComputation();
-        system.transmit();
-        
-        //out<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
-    }
-    std::cout<< std::endl;
-    
-    int min = system[0]->getLedger().size();
-    int max = system[0]->getLedger().size();
-    for(int i = 0; i < system.size(); i++){
-        //out<< "Peer ID:"<< system[i].id() << " Ledger Size:"<< system[i].getLedger().size()<< std::endl;
-        if(system[i]->getLedger().size() < min){
-            min = system[i]->getLedger().size();
-        }
-        if(system[i]->getLedger().size() > max){
-            max = system[i]->getLedger().size();
-        }
-    }
-    //out<< "Min Ledger:"<< min<< std::endl;
-    out<< "Max Ledger:,"<< max<< std::endl;
+//    for(int i =-1; i < 100; i++){
+//        std::cout<< ".";
+//       // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
+//
+//        if(i%5 == 0){
+//            int randIndex = rand()%system.size();
+//            system.makeRequest(randIndex);
+//        }
+//
+//        system.receive();
+//        system.preformComputation();
+//        system.transmit();
+//
+//        //out<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
+//    }
+//    std::cout<< std::endl;
+//
+//    int min = system[0]->getLedger().size();
+//    int max = system[0]->getLedger().size();
+//    for(int i = 0; i < system.size(); i++){
+//        //out<< "Peer ID:"<< system[i].id() << " Ledger Size:"<< system[i].getLedger().size()<< std::endl;
+//        if(system[i]->getLedger().size() < min){
+//            min = system[i]->getLedger().size();
+//        }
+//        if(system[i]->getLedger().size() > max){
+//            max = system[i]->getLedger().size();
+//        }
+//    }
+//    //out<< "Min Ledger:"<< min<< std::endl;
+//    out<< "Max Ledger:,"<< max<< std::endl;
 }
 
 void Example(){
     Network<ExampleMessage,ExamplePeer> n;
-    n.initNetwork(100,1);
+    n.initNetwork(10,1);
 
-    for(int i =0; i < 0; i++){
+    for(int i =0; i < 1; i++){
         std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
 
         n.receive();

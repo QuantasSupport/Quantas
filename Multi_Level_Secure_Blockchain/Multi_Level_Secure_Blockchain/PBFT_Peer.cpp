@@ -8,91 +8,6 @@
 
 #include "PBFT_Peer.hpp"
 
-PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
-    _faultUpperBound = 0;
-    _currentRound = 0;
-    _messageLog = {};
-    _primary = nullptr;
-    _currentPhase = IDEAL;
-    _currentView = 0;
-    _currentRequestResulte = 0;
-    _ledger = {};
-    _requestLog = {};
-    _currentRequest = {};
-}
-
-PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
-    _faultUpperBound = fault;
-    _currentRound = 0;
-    _messageLog = {};
-    _primary = nullptr;
-    _currentPhase = IDEAL;
-    _currentView = 0;
-    _currentRequestResulte = 0;
-    _ledger = {};
-    _requestLog = {};
-    _currentRequest = {};
-}
-
-PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Message>(id){
-    _faultUpperBound = fault;
-    _currentRound = round;
-    _messageLog = {};
-    _primary = nullptr;
-    _currentPhase = IDEAL;
-    _currentView = 0;
-    _currentRequestResulte = 0;
-    _ledger = {};
-    _requestLog = {};
-    _currentRequest = {};
-}
-
-PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
-    _faultUpperBound = rhs._faultUpperBound;
-    _currentRound = rhs._currentRound;
-    _messageLog =rhs._messageLog;
-    _primary = rhs._primary;
-    _currentPhase = rhs._currentPhase;
-    _currentView = rhs._currentView;
-    _currentRequestResulte = rhs._currentRequestResulte;
-    _ledger = rhs._ledger;
-    _requestLog = rhs._requestLog;
-    _currentRequest = rhs._currentRequest;
-}
-
-PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
-    
-    Peer<PBFT_Message>::operator=(rhs);
-    _faultUpperBound = rhs._faultUpperBound;
-    _currentRound = rhs._currentRound;
-    _messageLog =rhs._messageLog;
-    _primary = rhs._primary;
-    _currentPhase = rhs._currentPhase;
-    _currentView = rhs._currentView;
-    _currentRequestResulte = rhs._currentRequestResulte;
-    _ledger = rhs._ledger;
-    _requestLog = rhs._requestLog;
-    _currentRequest = rhs._currentRequest;
-    
-    return *this;
-}
-
-void PBFT_Peer::preformComputation(int numberOfRoundsPerRequest){
-    if(numberOfRoundsPerRequest == 0){
-        return;
-    }
-    if(_primary == nullptr){
-        _primary = findPrimary(_neighbors);
-    }
-    collectRequest(); // will only excute if this peer is primary
-    prePrepare();
-    prepare();
-    waitPrepare();
-    commit();
-    waitCommit();
-    _currentRound++;
-}
-
 void PBFT_Peer::makeRequest(){
     if(_currentPhase != IDEAL){
         return;
@@ -324,12 +239,99 @@ bool PBFT_Peer::isVailedRequest(const PBFT_Message query)const{
 
 void PBFT_Peer::braodcast(const PBFT_Message msg){
     for(int i = 0; i < _neighbors.size(); i++){
-        Peer<PBFT_Message>* neighbor = _neighbors[i];
+        std::string neighborId = _neighbors[i]->id();
         Packet<PBFT_Message> pck(makePckId());
         pck.setSource(_id);
-        pck.setTarget(neighbor->id());
+        pck.setTarget(neighborId);
         pck.setBody(msg);
         _outStream.push_back(pck);
     }
 }
 
+PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
+    _faultUpperBound = 0;
+    _currentRound = 0;
+    _messageLog = {};
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequestResulte = 0;
+    _ledger = {};
+    _requestLog = {};
+    _currentRequest = {};
+}
+
+PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
+    _faultUpperBound = fault;
+    _currentRound = 0;
+    _messageLog = {};
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequestResulte = 0;
+    _ledger = {};
+    _requestLog = {};
+    _currentRequest = {};
+}
+
+PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Message>(id){
+    _faultUpperBound = fault;
+    _currentRound = round;
+    _messageLog = {};
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequestResulte = 0;
+    _ledger = {};
+    _requestLog = {};
+    _currentRequest = {};
+}
+
+PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
+    _faultUpperBound = rhs._faultUpperBound;
+    _currentRound = rhs._currentRound;
+    _messageLog =rhs._messageLog;
+    _primary = rhs._primary;
+    _currentPhase = rhs._currentPhase;
+    _currentView = rhs._currentView;
+    _currentRequestResulte = rhs._currentRequestResulte;
+    _ledger = rhs._ledger;
+    _requestLog = rhs._requestLog;
+    _currentRequest = rhs._currentRequest;
+}
+
+PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
+    
+    Peer<PBFT_Message>::operator=(rhs);
+    _faultUpperBound = rhs._faultUpperBound;
+    _currentRound = rhs._currentRound;
+    _messageLog =rhs._messageLog;
+    _primary = rhs._primary;
+    _currentPhase = rhs._currentPhase;
+    _currentView = rhs._currentView;
+    _currentRequestResulte = rhs._currentRequestResulte;
+    _ledger = rhs._ledger;
+    _requestLog = rhs._requestLog;
+    _currentRequest = rhs._currentRequest;
+    
+    return *this;
+}
+
+std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
+    Peer<PBFT_Message>::printTo(out);
+    out<< "- PBFT Peer ID:"<< _id<< " -"<< std::endl;
+    out<< std::left;
+    
+    out<< "\t"<< "Settings:"<< std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< "Fault Upper Bound"<< std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _faultUpperBound<< std::endl;
+    
+    out<< "\t"<< "Current State:"<< std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< "Round"<< std::setw(LOG_WIDTH)<< "Current Phase"<< std::setw(LOG_WIDTH)<< "Current View"<< std::setw(LOG_WIDTH)<< "Primary ID"<< std::setw(LOG_WIDTH)<< "Current Request Client ID"<< std::setw(LOG_WIDTH)<< "Current Request Resulte"<< std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _currentPhase<< std::setw(LOG_WIDTH)<< _currentView<< std::setw(LOG_WIDTH)<< _primary->id()<< std::setw(LOG_WIDTH)<< _currentRequest.client_id<< std::setw(LOG_WIDTH)<< _currentRequestResulte<< std::endl;
+    
+    out<< "\t"<< std::setw(LOG_WIDTH)<< "Message Log Size"<< std::setw(LOG_WIDTH)<< "Request Log Size"<< "Ledger Size"<<  std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _messageLog.size()<< std::setw(LOG_WIDTH)<< _requestLog.size()<< _ledger.size()<< std::endl <<std::endl;
+    
+    return out;
+}

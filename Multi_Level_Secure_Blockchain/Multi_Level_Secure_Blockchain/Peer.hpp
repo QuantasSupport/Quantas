@@ -17,6 +17,9 @@
 #include <iomanip>
 #include "Packet.hpp"
 
+// var used for column width in loggin
+static const int LOG_WIDTH = 25;
+
 //
 // Base Peer class
 //
@@ -34,6 +37,7 @@ protected:
     std::vector<Packet<algorithm>>          _inStream;// messages that have arrived at this peer
     std::vector<Packet<algorithm>>          _outStream;// messages waiting to be sent by this peer
     
+    //std::ostream                            &_log;
     
 public:
     Peer                                                    ();
@@ -41,16 +45,17 @@ public:
     Peer                                                    (const Peer &);
     virtual ~Peer                                           ()=0;
     // Setters
-    void                              setID                 (std::string id){_id = id;};
+    void                              setID                 (std::string id)                    {_id = id;};
+    //void                              setLogFile            (std::ostream &o)                   {_log = o;};
 
     // getters
     std::vector<Peer>                 neighbors             ()const;
-    std::string                       id                    ()const               {return _id;};
+    std::string                       id                    ()const                             {return _id;};
     bool                              isNeighbor            (std::string id)const;
     int                               getDelayToNeighbor    (std::string id)const;
     
     // mutators
-    void                              removeNeighbor        (const Peer &neighbor){_neighbors.erase(neighbor);};
+    void                              removeNeighbor        (const Peer &neighbor)              {_neighbors.erase(neighbor);};
     void                              addNeighbor           (Peer &newNeighbor, int delay);
     
     // tells this peer to create a transation
@@ -64,11 +69,11 @@ public:
     // preform one step of the Consensus algorithm with the messages in inStream
     virtual void                      preformComputation    ()=0;
     
-    
-    std::ostream&                     print                 (std::ostream&)const;
+    void                              log                   ()const;
+    std::ostream&                     printTo               (std::ostream&)const;
     Peer&                             operator=             (const Peer&);
-    bool                              operator==            (const Peer &rhs)const {return (_id == rhs._id);};
-    bool                              operator!=            (const Peer &rhs)const {return !(*this == rhs);};
+    bool                              operator==            (const Peer &rhs)const              {return (_id == rhs._id);};
+    bool                              operator!=            (const Peer &rhs)const              {return !(*this == rhs);};
     friend std::ostream&              operator<<            (std::ostream&, const Peer&);
 };
 
@@ -84,6 +89,7 @@ Peer<algorithm>::Peer(){
     _neighbors = {};
     _channelDelays = {};
     _channels = {};
+    //_log = std::cout;
 }
 
 template <class algorithm>
@@ -94,6 +100,7 @@ Peer<algorithm>::Peer(std::string id){
     _neighbors = {};
     _channelDelays = {};
     _channels = {};
+    //_log = std::cout;
 }
 
 template <class algorithm>
@@ -104,6 +111,7 @@ Peer<algorithm>::Peer(const Peer &rhs){
     _neighbors = rhs._neighbors;
     _channels = rhs._channels;
     _channelDelays = rhs._channelDelays;
+    //_log = rhs._log;
 }
 
 template <class algorithm>
@@ -119,17 +127,14 @@ void Peer<algorithm>::addNeighbor(Peer<algorithm> &newNeighbor, int delay){
     }
     _neighbors.push_back(&newNeighbor);
     
-    _channelDelays.insert(std::pair<std::string,int>(newNeighbor.id(),edgeDelay));
-    
-    typedef std::vector<Packet<algorithm>> aChannel;
-    std::pair<std::string, aChannel> newChannel(newNeighbor.id(),{});
-    _channels.insert(newChannel);
+    _channelDelays[newNeighbor.id()] = edgeDelay;
+    _channels[newNeighbor.id()] = std::vector<Packet<algorithm>>();
 }
 
 // called on recever
 template <class algorithm>
 void Peer<algorithm>::send(Packet<algorithm> outMessage){
-    _channels[outMessage.sourceId()].push_back(outMessage);
+    _channels.at(outMessage.sourceId()).push_back(outMessage);
 }
 
 // called on sender
@@ -142,7 +147,7 @@ void Peer<algorithm>::transmit(){
         
         for(int i = 0; i < _neighbors.size(); i++){
             std::string neighborID = _neighbors[i]->id();
-            int maxDelay = _channelDelays[neighborID];
+            int maxDelay = _channelDelays.at(neighborID);
             if(neighborID == outMessage.targetId()){
                 outMessage.setDelay(maxDelay);
                 _neighbors[i]->send(outMessage);
@@ -155,12 +160,12 @@ template <class algorithm>
 void Peer<algorithm>::receive(){
     for(int i = 0; i < _neighbors.size(); i++){
         std::string neighborID = _neighbors[i]->id();
-        if(!_channels[neighborID].empty()){
-            if(_channels[neighborID].front().hasArrived()){
-                _inStream.push_back(_channels[neighborID].front());
-                _channels[neighborID].erase(_channels[neighborID].begin());
+        if(!_channels.at(neighborID).empty()){
+            if(_channels.at(neighborID).front().hasArrived()){
+                _inStream.push_back(_channels.at(neighborID).front());
+                _channels.at(neighborID).erase(_channels.at(neighborID).begin());
             }else{
-                _channels[neighborID].front().moveForward();
+                _channels.at(neighborID).front().moveForward();
             }
         }
     }
@@ -179,13 +184,7 @@ bool Peer<algorithm>::isNeighbor(std::string id)const{
 
 template <class algorithm>
 int Peer<algorithm>::getDelayToNeighbor(std::string id)const{
-    for(int i = 0; i < _neighbors.size(); i++){
-        std::string neighborId = _neighbors[i].id();
-        int delay = _channelDelays[neighborId];
-        if(neighborId == id){
-            return delay;
-        }
-    }
+    return _channelDelays.at(id);
 }
 
 template <class algorithm>
@@ -196,21 +195,26 @@ Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
     _neighbors = rhs._neighbors;
     _channels = rhs._channels;
     _channelDelays = rhs._channelDelays;
+    //_log = rhs._log;
     
     return *this;
 }
 
 template <class algorithm>
-std::ostream& Peer<algorithm>::print(std::ostream &out)const{
-    out<< "--- Peer ID:"<< _id<< " ---"<< std::endl;
+void Peer<algorithm>::log()const{
+    //printTo(_log);
+}
+
+template <class algorithm>
+std::ostream& Peer<algorithm>::printTo(std::ostream &out)const{
+    out<< "-- Peer ID:"<< _id<< " --"<< std::endl;
     out<< std::left;
-    out<< "\t"<< std::setw(20)<< "In Stream Size"<< std::setw(20)<< "Out Stream Size"<< std::endl;
-    out<< "\t"<< std::setw(20)<< _inStream.size()<< std::setw(20)<< _outStream.size()<<std::endl<<std::endl;
-    out<< "\t"<< std::setw(20)<< "Neighbor ID"<< std::setw(20)<< "Delay"<< std::setw(20)<< "Messages In Channel"<< std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< "In Stream Size"<< std::setw(LOG_WIDTH)<< "Out Stream Size"<< std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _inStream.size()<< std::setw(LOG_WIDTH)<< _outStream.size()<<std::endl<<std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< "Neighbor ID"<< std::setw(LOG_WIDTH)<< "Delay"<< std::setw(LOG_WIDTH)<< "Messages In Channel"<< std::endl;
     for(int i = 0; i <  _neighbors.size(); i++){
         std::string neighborId = _neighbors[i]->id();
-        //int delay = _channelDelays[neighborId];
-        //out<< "\t"<< neighborId<< " "<< delay<< _channels[neighborId].size()<< std::endl;
+        out<< "\t"<< std::setw(LOG_WIDTH)<< neighborId<< std::setw(LOG_WIDTH)<< getDelayToNeighbor(neighborId)<< std::setw(LOG_WIDTH)<<  _channels.at(neighborId).size()<< std::endl;
     }
     out << std::endl;
     return out;
@@ -218,7 +222,7 @@ std::ostream& Peer<algorithm>::print(std::ostream &out)const{
 
 template <class algorithm>
 std::ostream& operator<<(std::ostream &out, const Peer<algorithm> &peer){
-    peer.print(out);
+    peer.printTo(out);
     return out;
 }
 

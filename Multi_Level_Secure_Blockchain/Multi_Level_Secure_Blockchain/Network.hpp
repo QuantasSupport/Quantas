@@ -15,6 +15,7 @@
 #include <random>
 #include <limits>
 #include <iostream>
+#include <iomanip>
 #include "Peer.hpp"
 
 static const std::string POISSON = "POISSON";
@@ -57,7 +58,7 @@ public:
     int                                 maxDelay            ()const                              {return _maxDelay;};
     int                                 avgDelay            ()const                              {return _avgDelay;};
     int                                 minDelay            ()const                              {return _minDelay;};
-    
+    std::string                         distribution        ()const                              {return _distribution;};
     //mutators
     void                                receive             ();
     void                                preformComputation  ();
@@ -225,11 +226,14 @@ peer_type* Network<type_msg,peer_type>::operator[](int i){
 
 template<class type_msg, class peer_type>
 std::ostream& operator<<(std::ostream &out, const Network<type_msg,peer_type> &system){
+    out<< "--- NETWROK SETUP ---"<< std::endl;
+    out<< std::left;
+    out<< std::setw(20)<< "Number of Peers"<< std::setw(20)<< "Distribution"<< std::setw(20)<< "Min Delay"<< std::setw(20)<< "Average Delay"<< std::setw(20)<< "Max Delay"<< std::endl;
+    out<< std::setw(20)<< system.size()<< std::setw(20)<< system.distribution()<< std::setw(20)<< system.minDelay()<< std::setw(20)<< system.avgDelay()<< std::setw(20)<< system.maxDelay()<< std::endl;
     
-    for(int i = 0; i < system._peers.size(); i++){
-        Peer<type_msg> peer = &system._peers[i];
-        out<< peer;
-    }
+//    for(int i = 0; i < system.size(); i++){
+//        system[i]->print(out);
+//    }
     
     return out;
 }

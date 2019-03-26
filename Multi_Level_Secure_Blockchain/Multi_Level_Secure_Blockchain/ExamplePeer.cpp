@@ -46,7 +46,7 @@ void ExamplePeer::preformComputation(){
 }
 
 std::ostream& ExamplePeer::print(std::ostream &out)const{
-    Peer<ExampleMessage>::print(out);
+    Peer<ExampleMessage>::printTo(out);
     
     out<< _id<< std::endl;
     out<< "counter:"<< counter<< std::endl;
