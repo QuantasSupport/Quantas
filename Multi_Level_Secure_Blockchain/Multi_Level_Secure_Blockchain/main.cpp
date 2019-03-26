@@ -84,14 +84,23 @@ void PBFT(std::ofstream &out,int avgDelay){
 void Example(){
     Network<ExampleMessage,ExamplePeer> n;
     n.initNetwork(100,1);
-    
-    for(int i =0; i < 100; i++){
+
+    for(int i =0; i < 0; i++){
         std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
-        
+
         n.receive();
         n.preformComputation();
         n.transmit();
-        
+
         std::cout<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
     }
+    
+    ExamplePeer A("A");
+    ExamplePeer B("B");
+
+    A.addNeighbor(B, 10);
+    B.addNeighbor(A, 5);
+    
+    std::cout << A<< std::endl;
+    std::cout << B<< std::endl;
 }

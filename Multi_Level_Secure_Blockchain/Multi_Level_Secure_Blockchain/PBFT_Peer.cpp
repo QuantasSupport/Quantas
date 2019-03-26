@@ -265,15 +265,15 @@ void PBFT_Peer::waitCommit(){
     
 }
 
-Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::map<Peer<PBFT_Message> *, int> neighbors){
+Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::vector<Peer<PBFT_Message> *> neighbors){
     
-    std::map<Peer<PBFT_Message> *, int> peers = neighbors;
-    peers.insert(std::pair<Peer<PBFT_Message> *, int>(this,0));
+    std::vector<Peer<PBFT_Message> *> peers = neighbors;
+    peers.push_back(this);
     int peerIteration = _currentView%peers.size();
     
     auto it =  peers.begin();
     std::advance (it,peerIteration);
-    Peer<PBFT_Message>* primary = it->first;
+    Peer<PBFT_Message>* primary = *it;
     
     return primary;
 }
@@ -323,8 +323,8 @@ bool PBFT_Peer::isVailedRequest(const PBFT_Message query)const{
 }
 
 void PBFT_Peer::braodcast(const PBFT_Message msg){
-    for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
-        Peer<PBFT_Message>* neighbor = it->first;
+    for(int i = 0; i < _neighbors.size(); i++){
+        Peer<PBFT_Message>* neighbor = _neighbors[i];
         Packet<PBFT_Message> pck(makePckId());
         pck.setSource(_id);
         pck.setTarget(neighbor->id());

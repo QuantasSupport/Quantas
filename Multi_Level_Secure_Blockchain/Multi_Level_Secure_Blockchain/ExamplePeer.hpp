@@ -28,10 +28,13 @@ class ExamplePeer : public Peer<ExampleMessage>{
 protected:
     int counter;
 public:
-    ExamplePeer(std::string);
-    ExamplePeer(const ExamplePeer &rhs);
-    ~ExamplePeer();
+    ExamplePeer                             (std::string);
+    ExamplePeer                             (const ExamplePeer &rhs);
+    ~ExamplePeer                            ();
     
-    void                 preformComputation();
+    void                 preformComputation ();
+    void                 makeRequest        (){};
+    std::ostream&        print              (std::ostream&)const;
+    friend std::ostream& operator<<         (std::ostream&, const ExamplePeer&);
 };
 #endif /* ExamplePeer_hpp */

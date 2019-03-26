@@ -29,7 +29,8 @@ protected:
     typedef std::vector<Packet<algorithm>>  aChannel;
     typedef std::string                     peerId;
     std::map<peerId,aChannel>               _channels;// list of chanels between this peer and others
-    std::map<Peer<algorithm>*,int>          _neighbors;// Peers this peer has a link to and thier delays
+    std::map<peerId,int>                    _channelDelays;// list of channels and there delays
+    std::vector<Peer<algorithm>*>           _neighbors; // peers this peer has a link to
     std::vector<Packet<algorithm>>          _inStream;// messages that have arrived at this peer
     std::vector<Packet<algorithm>>          _outStream;// messages waiting to be sent by this peer
     
@@ -38,30 +39,33 @@ public:
     Peer                                                    ();
     Peer                                                    (std::string);
     Peer                                                    (const Peer &);
-    ~Peer                                                   ();
+    virtual ~Peer                                           ()=0;
     // Setters
     void                              setID                 (std::string id){_id = id;};
-    void                              addNeighbor           (Peer &, int);
 
     // getters
     std::vector<Peer>                 neighbors             ()const;
     std::string                       id                    ()const               {return _id;};
-    bool                              isNeighbor            (std::string)const;
-    int                               delayToNeighbor       (std::string)const;
+    bool                              isNeighbor            (std::string id)const;
+    int                               getDelayToNeighbor    (std::string id)const;
     
     // mutators
-    void                              removeNeighbor        (const Peer &p){_neighbors.erase(p);};
-    void                              receive               ();
+    void                              removeNeighbor        (const Peer &neighbor){_neighbors.erase(neighbor);};
+    void                              addNeighbor           (Peer &newNeighbor, int delay);
     
+    // tells this peer to create a transation
+    virtual void                      makeRequest           ()=0;
+    // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
+    void                              receive               ();
     // send a message to this peer
     void                              send                  (Packet<algorithm>);
     // sends all messages in _outStream to thsere respective targets
     void                              transmit              ();
     // preform one step of the Consensus algorithm with the messages in inStream
-    virtual void                      preformComputation    (){};
-
-    virtual void                      makeRequest           (){};
+    virtual void                      preformComputation    ()=0;
     
+    
+    std::ostream&                     print                 (std::ostream&)const;
     Peer&                             operator=             (const Peer&);
     bool                              operator==            (const Peer &rhs)const {return (_id == rhs._id);};
     bool                              operator!=            (const Peer &rhs)const {return !(*this == rhs);};
@@ -75,28 +79,31 @@ public:
 template <class algorithm>
 Peer<algorithm>::Peer(){
     _id = "NO ID";
-    _channels = {};
     _inStream = {};
     _outStream = {};
     _neighbors = {};
+    _channelDelays = {};
+    _channels = {};
 }
 
 template <class algorithm>
 Peer<algorithm>::Peer(std::string id){
     _id = id;
-    _channels = {};
     _inStream = {};
     _outStream = {};
     _neighbors = {};
+    _channelDelays = {};
+    _channels = {};
 }
 
 template <class algorithm>
 Peer<algorithm>::Peer(const Peer &rhs){
     _id = rhs._id;
-    _channels = rhs._channels;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
     _neighbors = rhs._neighbors;
+    _channels = rhs._channels;
+    _channelDelays = rhs._channelDelays;
 }
 
 template <class algorithm>
@@ -110,7 +117,9 @@ void Peer<algorithm>::addNeighbor(Peer<algorithm> &newNeighbor, int delay){
     if(edgeDelay < 1){
         edgeDelay = 1;
     }
-    _neighbors.insert(std::pair<Peer*,int>(&newNeighbor,edgeDelay));
+    _neighbors.push_back(&newNeighbor);
+    
+    _channelDelays.insert(std::pair<std::string,int>(newNeighbor.id(),edgeDelay));
     
     typedef std::vector<Packet<algorithm>> aChannel;
     std::pair<std::string, aChannel> newChannel(newNeighbor.id(),{});
@@ -131,12 +140,12 @@ void Peer<algorithm>::transmit(){
         Packet<algorithm> outMessage = _outStream[0];
         _outStream.erase(_outStream.begin());
         
-        for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
-            Peer<algorithm>* peer = it->first;
-            int maxDelay = it->second;
-            if(peer->id() == outMessage.targetId()){
+        for(int i = 0; i < _neighbors.size(); i++){
+            std::string neighborID = _neighbors[i]->id();
+            int maxDelay = _channelDelays[neighborID];
+            if(neighborID == outMessage.targetId()){
                 outMessage.setDelay(maxDelay);
-                peer->send(outMessage);
+                _neighbors[i]->send(outMessage);
             }
         }
     }
@@ -144,8 +153,8 @@ void Peer<algorithm>::transmit(){
 
 template <class algorithm>
 void Peer<algorithm>::receive(){
-    for(auto i = _neighbors.begin(); i != _neighbors.end(); i++){
-        std::string neighborID = i->first->id();
+    for(int i = 0; i < _neighbors.size(); i++){
+        std::string neighborID = _neighbors[i]->id();
         if(!_channels[neighborID].empty()){
             if(_channels[neighborID].front().hasArrived()){
                 _inStream.push_back(_channels[neighborID].front());
@@ -160,8 +169,8 @@ void Peer<algorithm>::receive(){
 
 template <class algorithm>
 bool Peer<algorithm>::isNeighbor(std::string id)const{
-    for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
-        if(id == it->first->id()){
+    for(int i = 0; i < _neighbors.size(); i++){
+        if(id == _neighbors[i]->id()){
             return true;
         }
     }
@@ -169,10 +178,10 @@ bool Peer<algorithm>::isNeighbor(std::string id)const{
 }
 
 template <class algorithm>
-int Peer<algorithm>::delayToNeighbor(std::string id)const{
-    for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
-        std::string neighborId = it->first->id();
-        int delay = it->second;
+int Peer<algorithm>::getDelayToNeighbor(std::string id)const{
+    for(int i = 0; i < _neighbors.size(); i++){
+        std::string neighborId = _neighbors[i].id();
+        int delay = _channelDelays[neighborId];
         if(neighborId == id){
             return delay;
         }
@@ -182,27 +191,35 @@ int Peer<algorithm>::delayToNeighbor(std::string id)const{
 template <class algorithm>
 Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
     _id = rhs._id;
-    _channels = rhs._channels;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
     _neighbors = rhs._neighbors;
+    _channels = rhs._channels;
+    _channelDelays = rhs._channelDelays;
+    
     return *this;
 }
 
 template <class algorithm>
-std::ostream& operator<<(std::ostream &out, const Peer<algorithm> &peer){
-    out<< "Peer ID:"<< peer._id<< std::endl;
-    out<< "\t"<< "Neighbors:";
-    out<< std::left<< std::setw(20);
-    out<< "\t"<< "In Stream Size"<< "Out Stream Size"<< std::endl;
-    out<< "\t"<< peer._inStream.size()<< peer._outStream.size();
-    out<< "\t"<< "ID"<< "Delay"<< "Messages In Channel"<< std::endl;
-    for(auto it = peer._neighbors.begin(); it !=  peer._neighbors.end(); it++){
-        Peer<algorithm>* neighbor = it->first;
-        int delay = it->second;
-        out<< "\t"<< neighbor->id()<< delay<< peer._channels[neighbor->id()].size()<< std::endl;
+std::ostream& Peer<algorithm>::print(std::ostream &out)const{
+    out<< "--- Peer ID:"<< _id<< " ---"<< std::endl;
+    out<< std::left;
+    out<< "\t"<< std::setw(20)<< "In Stream Size"<< std::setw(20)<< "Out Stream Size"<< std::endl;
+    out<< "\t"<< std::setw(20)<< _inStream.size()<< std::setw(20)<< _outStream.size()<<std::endl<<std::endl;
+    out<< "\t"<< std::setw(20)<< "Neighbor ID"<< std::setw(20)<< "Delay"<< std::setw(20)<< "Messages In Channel"<< std::endl;
+    for(int i = 0; i <  _neighbors.size(); i++){
+        std::string neighborId = _neighbors[i]->id();
+        //int delay = _channelDelays[neighborId];
+        //out<< "\t"<< neighborId<< " "<< delay<< _channels[neighborId].size()<< std::endl;
     }
-    
+    out << std::endl;
+    return out;
+}
+
+template <class algorithm>
+std::ostream& operator<<(std::ostream &out, const Peer<algorithm> &peer){
+    peer.print(out);
+    return out;
 }
 
 #endif /* Peer_hpp */

@@ -85,7 +85,7 @@ protected:
     void                        waitCommit          ();             // wait for 1/3F + 1 commit msgs ends distributed-consensus
     
     // support methods used for the above
-    Peer<PBFT_Message>*         findPrimary         (const std::map<Peer<PBFT_Message>*,int> peers);
+    Peer<PBFT_Message>*         findPrimary         (const std::vector<Peer<PBFT_Message>*> peers);
     int                         executeQuery        (const PBFT_Message);
     std::string                 makePckId           ()const{ return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
     bool                        isVailedRequest     (const PBFT_Message)const;
