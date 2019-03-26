@@ -26,12 +26,12 @@ protected:
     std::string                             _id;
     
     // communication vars
-    typedef std::vector<Packet<algorithm>>  aChannel;
+    typedef std::vector<Packet<algorithm> > aChannel;
     typedef std::string                     peerId;
     std::map<peerId,aChannel>               _channels;// list of chanels between this peer and others
     std::map<Peer<algorithm>*,int>          _neighbors;// Peers this peer has a link to and thier delays
-    std::vector<Packet<algorithm>>          _inStream;// messages that have arrived at this peer
-    std::vector<Packet<algorithm>>          _outStream;// messages waiting to be sent by this peer
+    std::vector<Packet<algorithm> >         _inStream;// messages that have arrived at this peer
+    std::vector<Packet<algorithm> >         _outStream;// messages waiting to be sent by this peer
     
     
 public:
@@ -74,20 +74,24 @@ public:
 
 template <class algorithm>
 Peer<algorithm>::Peer(){
+    typedef std::vector<Packet<algorithm> > aChannel;
+    typedef std::string peerId;
     _id = "NO ID";
-    _channels = {};
-    _inStream = {};
-    _outStream = {};
-    _neighbors = {};
+    _channels = std::map<peerId,aChannel>();
+    _inStream = std::vector<Packet<algorithm> >();
+    _outStream = std::vector<Packet<algorithm> >();
+    _neighbors = std::map<Peer<algorithm>*,int>();
 }
 
 template <class algorithm>
 Peer<algorithm>::Peer(std::string id){
+    typedef std::vector<Packet<algorithm> > aChannel;
+    typedef std::string peerId;
     _id = id;
-    _channels = {};
-    _inStream = {};
-    _outStream = {};
-    _neighbors = {};
+    _channels = std::map<peerId,aChannel>();
+    _inStream = std::vector<Packet<algorithm> >();
+    _outStream = std::vector<Packet<algorithm> >();
+    _neighbors = std::map<Peer<algorithm>*,int>();
 }
 
 template <class algorithm>
@@ -112,7 +116,7 @@ void Peer<algorithm>::addNeighbor(Peer<algorithm> &newNeighbor, int delay){
     }
     _neighbors.insert(std::pair<Peer*,int>(&newNeighbor,edgeDelay));
     
-    typedef std::vector<Packet<algorithm>> aChannel;
+    typedef std::vector<Packet<algorithm> > aChannel;
     std::pair<std::string, aChannel> newChannel(newNeighbor.id(),{});
     _channels.insert(newChannel);
 }
