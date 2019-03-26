@@ -22,7 +22,7 @@ void PBFT_Peer::prePrepare(){
     request.phase = PRE_PREPARE;
     _currentPhase = PREPARE;
     _currentRequest = request;
-    _currentRequestResulte = executeQuery(request);
+    _currentRequestResult = executeQuery(request);
     braodcast(request);
 }
 
@@ -48,7 +48,7 @@ void PBFT_Peer::prepare(){
     prepareMsg.type = REPLY;
     prepareMsg.round = _currentRound;
     prepareMsg.phase = PREPARE;
-    prepareMsg.resulte = executeQuery(prepareMsg);
+    prepareMsg.Result = executeQuery(prepareMsg);
     
     _messageLog.push_back(prePrepareMesg);
     _messageLog.push_back(prepareMsg);
@@ -56,7 +56,7 @@ void PBFT_Peer::prepare(){
     braodcast(prepareMsg);
     _currentPhase = PREPARE;
     _currentRequest = prepareMsg;
-    _currentRequestResulte = executeQuery(prepareMsg);
+    _currentRequestResult = executeQuery(prepareMsg);
 }
 
 void PBFT_Peer::waitPrepare(){
@@ -77,10 +77,11 @@ void PBFT_Peer::waitPrepare(){
     
     int numberOfPrepareMsg = 0;
     for(int i = 0; i < _messageLog.size(); i++){
-        if(_messageLog[i].sequenceNumber == _currentRequest.sequenceNumber && _messageLog[i].client_id == _currentRequest.client_id){
-            if(_messageLog[i].resulte == _currentRequestResulte){
-                numberOfPrepareMsg++;
-            }
+        if(_messageLog[i].phase == PREPARE &&
+           _messageLog[i].sequenceNumber == _currentRequest.sequenceNumber &&
+           _messageLog[i].client_id == _currentRequest.client_id &&
+           _messageLog[i].Result == _currentRequestResult){
+                    numberOfPrepareMsg++;
         }
     }
     // _neighbors.size() + 1 is neighbors plus this peer
@@ -99,7 +100,7 @@ void PBFT_Peer::commit(){
     commitMsg.creator_id = _id;
     commitMsg.view = _currentView;
     commitMsg.type = REPLY;
-    commitMsg.resulte = _currentRequestResulte;
+    commitMsg.Result = _currentRequestResult;
     commitMsg.round = _currentRound;
     
     _messageLog.push_back(commitMsg);
@@ -115,26 +116,27 @@ void PBFT_Peer::waitCommit(){
     while(!_inStream.empty()){
         if(_inStream.front().getMessage().phase != COMMIT){
             _inStream.erase(_inStream.begin());
-        }
-        if(_inStream.front().getMessage().view != _currentView){
+        }else if(_inStream.front().getMessage().view != _currentView){
+            _inStream.erase(_inStream.begin());
+        }else{
+            _messageLog.push_back(_inStream.front().getMessage());
             _inStream.erase(_inStream.begin());
         }
-        _messageLog.push_back(_inStream.front().getMessage());
-        _inStream.erase(_inStream.begin());;
     }
     
     int numberOfCommitMsg = 0;
     for(int i = 0; i < _messageLog.size(); i++){
-        if(_messageLog[i].sequenceNumber == _currentRequest.sequenceNumber && _messageLog[i].client_id == _currentRequest.client_id){
-            if(_messageLog[i].resulte == _currentRequestResulte){
+        if(_messageLog[i].phase == COMMIT &&
+           _messageLog[i].sequenceNumber == _currentRequest.sequenceNumber &&
+           _messageLog[i].client_id == _currentRequest.client_id &&
+           _messageLog[i].Result == _currentRequestResult){
                 numberOfCommitMsg++;
-            }
         }
     }
-    if(numberOfCommitMsg > (_neighbors.size() * _faultUpperBound) + 1){
+    if(numberOfCommitMsg > ceil((_neighbors.size() + 1) * _faultUpperBound) + 1){
         _ledger.push_back(_currentRequest);
         _currentRequest = PBFT_Message(); // clear old request
-        _currentRequestResulte = 0; // clear old resulte
+        _currentRequestResult = 0; // clear old Result
         _currentPhase = IDEAL; // complete distributed-consensus
     }
     
@@ -185,7 +187,7 @@ int PBFT_Peer::executeQuery(const PBFT_Message query){
             break;
             
         default:
-            std::cout<< "ERROR: invailed request excution"<< std::endl;
+            *_log<< "ERROR: invailed request excution"<< std::endl;
             return 0;
             break;
     }
@@ -223,7 +225,7 @@ PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
     _primary = nullptr;
     _currentPhase = IDEAL;
     _currentView = 0;
-    _currentRequestResulte = 0;
+    _currentRequestResult = 0;
     _ledger = std::vector<PBFT_Message>();
     _requestLog = std::vector<PBFT_Message>();
     _currentRequest = PBFT_Message();
@@ -236,7 +238,7 @@ PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
     _primary = nullptr;
     _currentPhase = IDEAL;
     _currentView = 0;
-    _currentRequestResulte = 0;
+    _currentRequestResult = 0;
     _ledger = std::vector<PBFT_Message>();
     _requestLog = std::vector<PBFT_Message>();
     _currentRequest = PBFT_Message();
@@ -249,7 +251,7 @@ PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Messag
     _primary = nullptr;
     _currentPhase = IDEAL;
     _currentView = 0;
-    _currentRequestResulte = 0;
+    _currentRequestResult = 0;
     _ledger = std::vector<PBFT_Message>();
     _requestLog = std::vector<PBFT_Message>();
     _currentRequest = PBFT_Message();
@@ -262,7 +264,7 @@ PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
     _primary = rhs._primary;
     _currentPhase = rhs._currentPhase;
     _currentView = rhs._currentView;
-    _currentRequestResulte = rhs._currentRequestResulte;
+    _currentRequestResult = rhs._currentRequestResult;
     _ledger = rhs._ledger;
     _requestLog = rhs._requestLog;
     _currentRequest = rhs._currentRequest;
@@ -277,7 +279,7 @@ PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
     _primary = rhs._primary;
     _currentPhase = rhs._currentPhase;
     _currentView = rhs._currentView;
-    _currentRequestResulte = rhs._currentRequestResulte;
+    _currentRequestResult = rhs._currentRequestResult;
     _ledger = rhs._ledger;
     _requestLog = rhs._requestLog;
     _currentRequest = rhs._currentRequest;
@@ -303,7 +305,7 @@ void PBFT_Peer::makeRequest(){
         return;
     }
     if(_primary == nullptr){
-        std::cout<< "ERROR: makeRequest called with no primary"<< std::endl;
+        *_log<< "ERROR: makeRequest called with no primary"<< std::endl;
         return;
     }
     
@@ -328,7 +330,7 @@ void PBFT_Peer::makeRequest(){
     request.round = _currentRound;
     request.phase = IDEAL;
     request.sequenceNumber = -1;
-    request.resulte = 0;
+    request.Result = 0;
     
     // create packet for request
     Packet<PBFT_Message> pck(makePckId());
@@ -355,8 +357,8 @@ std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     out<< "\t"<< std::setw(LOG_WIDTH)<< _faultUpperBound<< std::endl;
     
     out<< "\t"<< "Current State:"<< std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< "Round"<< std::setw(LOG_WIDTH)<< "Current Phase"<< std::setw(LOG_WIDTH)<< "Current View"<< std::setw(LOG_WIDTH)<< "Primary ID"<< std::setw(LOG_WIDTH)<< "Current Request Client ID"<< std::setw(LOG_WIDTH)<< "Current Request Resulte"<< std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _currentPhase<< std::setw(LOG_WIDTH)<< _currentView<< std::setw(LOG_WIDTH)<< primaryId<< std::setw(LOG_WIDTH)<< _currentRequest.client_id<< std::setw(LOG_WIDTH)<< _currentRequestResulte<< std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< "Round"<< std::setw(LOG_WIDTH)<< "Current Phase"<< std::setw(LOG_WIDTH)<< "Current View"<< std::setw(LOG_WIDTH)<< "Primary ID"<< std::setw(LOG_WIDTH)<< "Current Request Client ID"<< std::setw(LOG_WIDTH)<< "Current Request Result"<< std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _currentPhase<< std::setw(LOG_WIDTH)<< _currentView<< std::setw(LOG_WIDTH)<< primaryId<< std::setw(LOG_WIDTH)<< _currentRequest.client_id<< std::setw(LOG_WIDTH)<< _currentRequestResult<< std::endl;
     
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Message Log Size"<< std::setw(LOG_WIDTH)<< "Request Log Size"<< "Ledger Size"<<  std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< _messageLog.size()<< std::setw(LOG_WIDTH)<< _requestLog.size()<< _ledger.size()<< std::endl <<std::endl;

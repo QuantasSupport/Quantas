@@ -26,10 +26,10 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 1; delay < 101; delay = delay + 10){
+        for(int delay = 50; delay < 60; delay = delay + 10){
             std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
             std::ofstream out;
-            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".csv");
+            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".text");
             for(int run = 0; run < 5; run++){
                 PBFT(out,delay);
             }
@@ -45,15 +45,16 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
-    system.initNetwork(100,avgDelay);
+    system.initNetwork(20,avgDelay);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
+        system[i]->setLogFile(out);
     }
     
     //std::cout<< system<< std::endl;
     
-    for(int i =-1; i < 1000; i++){
-        //std::cout<< "."<< std::flush;
+    for(int i =-1; i < 100; i++){
+        std::cout<< "."<< std::flush;
        // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
 
         if(i%5 == 0){

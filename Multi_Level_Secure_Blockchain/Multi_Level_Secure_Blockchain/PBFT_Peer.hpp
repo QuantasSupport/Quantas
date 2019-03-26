@@ -44,7 +44,7 @@ struct PBFT_Message{
     std::string         type;
     char                operation;
     std::pair<int,int>  operands;
-    int                 resulte;
+    int                 Result;
     int                 round; // used instead of timestamp
     
     //////////////////////////////////////////
@@ -71,7 +71,7 @@ protected:
     std::string                     _currentPhase;
     int                             _currentView;
     PBFT_Message                    _currentRequest;
-    int                             _currentRequestResulte;
+    int                             _currentRequestResult;
     
     //
     // protected methds for PBFT execution inside the peer
