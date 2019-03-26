@@ -19,6 +19,7 @@ int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
     
     std::string algorithm = argv[1];
+    std::string filePath = argv[2];
     
     if(algorithm == "example"){
         Example();
@@ -27,7 +28,7 @@ int main(int argc, const char * argv[]) {
         for(int delay = 1; delay < 101; delay = delay + 10){
             std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
             std::ofstream out;
-            out.open("/Users/kendrichood/Desktop/pbft/PBFT_Delay:"+std::to_string(delay) + ".csv");
+            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".csv");
             for(int run = 0; run < 5; run++){
                 PBFT(out,delay);
             }
