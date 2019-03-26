@@ -62,8 +62,17 @@ void PBFT(std::ofstream &out,int avgDelay){
         }
 
         system.receive();
+        for(int i = 0; i < system.size(); i++){
+            system[i]->log();
+        }
         system.preformComputation();
+        for(int i = 0; i < system.size(); i++){
+            system[i]->log();
+        }
         system.transmit();
+        for(int i = 0; i < system.size(); i++){
+            system[i]->log();
+        }
 
         //out<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
     }
