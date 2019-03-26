@@ -26,20 +26,16 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-//        for(int delay = 1; delay < 101; delay = delay + 10){
-//            std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
-//            std::ofstream out;
-//            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".csv");
-//            for(int run = 0; run < 5; run++){
-//                PBFT(out,delay);
-//            }
-//            out.close();
-//            std::cout<< "End with Delay "+std::to_string(delay)<< std::endl;
-//        }
-        int delay = 10;
-        std::ofstream out;
-        out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".csv");
-        PBFT(out,delay);
+        for(int delay = 1; delay < 101; delay = delay + 10){
+            std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
+            std::ofstream out;
+            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".csv");
+            for(int run = 0; run < 5; run++){
+                PBFT(out,delay);
+            }
+            out.close();
+            std::cout<< "End with Delay "+std::to_string(delay)<< std::endl;
+        }
     }
     
     return 0;
@@ -49,45 +45,43 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
-    system.initNetwork(10,avgDelay);
+    system.initNetwork(100,avgDelay);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
-        system[i]->log();
-        //std::cout<<*system[i]<<std::endl;
     }
     
-//    std::cout<< system<< std::endl;
+    //std::cout<< system<< std::endl;
     
-//    for(int i =-1; i < 100; i++){
-//        std::cout<< ".";
-//       // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
-//
-//        if(i%5 == 0){
-//            int randIndex = rand()%system.size();
-//            system.makeRequest(randIndex);
-//        }
-//
-//        system.receive();
-//        system.preformComputation();
-//        system.transmit();
-//
-//        //out<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
-//    }
-//    std::cout<< std::endl;
-//
-//    int min = system[0]->getLedger().size();
-//    int max = system[0]->getLedger().size();
-//    for(int i = 0; i < system.size(); i++){
-//        //out<< "Peer ID:"<< system[i].id() << " Ledger Size:"<< system[i].getLedger().size()<< std::endl;
-//        if(system[i]->getLedger().size() < min){
-//            min = system[i]->getLedger().size();
-//        }
-//        if(system[i]->getLedger().size() > max){
-//            max = system[i]->getLedger().size();
-//        }
-//    }
-//    //out<< "Min Ledger:"<< min<< std::endl;
-//    out<< "Max Ledger:,"<< max<< std::endl;
+    for(int i =-1; i < 100; i++){
+        std::cout<< ".";
+       // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
+
+        if(i%5 == 0){
+            int randIndex = rand()%system.size();
+            system.makeRequest(randIndex);
+        }
+
+        system.receive();
+        system.preformComputation();
+        system.transmit();
+
+        //out<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
+    }
+    std::cout<< std::endl;
+
+    int min = system[0]->getLedger().size();
+    int max = system[0]->getLedger().size();
+    for(int i = 0; i < system.size(); i++){
+        //out<< "Peer ID:"<< system[i].id() << " Ledger Size:"<< system[i].getLedger().size()<< std::endl;
+        if(system[i]->getLedger().size() < min){
+            min = system[i]->getLedger().size();
+        }
+        if(system[i]->getLedger().size() > max){
+            max = system[i]->getLedger().size();
+        }
+    }
+    //out<< "Min Ledger:"<< min<< std::endl;
+    out<< "Max Ledger:,"<< max<< std::endl;
 }
 
 void Example(){
