@@ -44,7 +44,8 @@ int main(int argc, const char * argv[]) {
 void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
-    system.initNetwork(500,1);
+    system.setToPoisson();
+    system.initNetwork(100,avgDelay);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
     }
