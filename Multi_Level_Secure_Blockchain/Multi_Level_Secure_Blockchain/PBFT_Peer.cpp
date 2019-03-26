@@ -142,15 +142,24 @@ void PBFT_Peer::waitCommit(){
 
 Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::vector<Peer<PBFT_Message> *> neighbors){
     
-    std::vector<Peer<PBFT_Message> *> peers = neighbors;
-    peers.push_back(this);
-    int peerIteration = _currentView%peers.size();
+    std::vector<std::string> peerIds = std::vector<std::string>();
+    for(int i = 0; i < neighbors.size(); i++){
+        peerIds.push_back(neighbors[i]->id());
+    }
+    peerIds.push_back(_id);
     
-    auto it =  peers.begin();
-    std::advance (it,peerIteration);
-    Peer<PBFT_Message>* primary = *it;
+    std::sort(peerIds.begin(), peerIds.end());
+    std::string primaryId = peerIds[_currentView%peerIds.size()];
     
-    return primary;
+    if(primaryId == _id){
+        return this;
+    }
+    for(int i = 0; i < neighbors.size(); i++){
+        if(primaryId == neighbors[i]->id()){
+            return neighbors[i];
+        }
+    }
+    return nullptr;
 }
 
 void PBFT_Peer::collectRequest(){

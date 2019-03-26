@@ -10,6 +10,7 @@
 #define PBFT_Peer_hpp
 
 #include <math.h>
+#include <algorithm>
 #include "Peer.hpp"
 
 //
