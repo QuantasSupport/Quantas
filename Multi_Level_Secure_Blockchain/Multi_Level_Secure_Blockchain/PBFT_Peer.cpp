@@ -258,7 +258,7 @@ void PBFT_Peer::waitCommit(){
     }
     if(numberOfCommitMsg > (_neighbors.size() * _faultUpperBound) + 1){
         _ledger.push_back(_currentRequest);
-        _currentRequest = {}; // clear old request
+        _currentRequest = PBFT_Message(); // clear old request
         _currentRequestResulte = 0; // clear old resulte
         _currentPhase = IDEAL; // complete distributed-consensus
     }
