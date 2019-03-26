@@ -104,7 +104,7 @@ public:
     void                        setFaultTolerance   (double f)                                      {_faultUpperBound = f;};
     PBFT_Peer&                  operator=           (const PBFT_Peer &);
     std::ostream&               printTo             (std::ostream&)const;
-    //void                        log                 ()const                                         {printTo(_log);};
+    void                        log                 ()const                                         {printTo(*_log);};
     
     void                        preformComputation  ();// numberOfRoundsPerRequest as one request per X number of rounds
     void                        makeRequest         ();// start distributed-consensus

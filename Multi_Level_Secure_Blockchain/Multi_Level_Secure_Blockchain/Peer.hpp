@@ -18,7 +18,7 @@
 #include "Packet.hpp"
 
 // var used for column width in loggin
-static const int LOG_WIDTH = 25;
+static const int LOG_WIDTH = 27;
 
 //
 // Base Peer class
@@ -69,7 +69,7 @@ public:
     // preform one step of the Consensus algorithm with the messages in inStream
     virtual void                      preformComputation    ()=0;
     
-    void                              log                   ();
+    void                              log                   ()const;
     std::ostream&                     printTo               (std::ostream&)const;
     Peer&                             operator=             (const Peer&);
     bool                              operator==            (const Peer &rhs)const              {return (_id == rhs._id);};
@@ -205,7 +205,7 @@ Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
 }
 
 template <class algorithm>
-void Peer<algorithm>::log(){
+void Peer<algorithm>::log()const{
     printTo(*_log);
 }
 
