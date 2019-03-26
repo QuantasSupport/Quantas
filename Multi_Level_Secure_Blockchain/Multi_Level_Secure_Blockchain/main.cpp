@@ -52,7 +52,7 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     //std::cout<< system<< std::endl;
     
-    for(int i =-1; i < 100; i++){
+    for(int i =-1; i < 1000; i++){
         std::cout<< ".";
        // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
 
