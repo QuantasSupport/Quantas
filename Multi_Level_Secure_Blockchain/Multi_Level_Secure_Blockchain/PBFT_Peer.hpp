@@ -105,10 +105,11 @@ public:
     PBFT_Peer&                  operator=           (const PBFT_Peer &);
     std::ostream&               printTo             (std::ostream&)const;
     //void                        log                 ()const                                         {printTo(_log);};
-    friend std::ostream&        operator<<          (std::ostream &o, const PBFT_Peer &p)           {p.printTo(o); return o;};
     
     void                        preformComputation  ();// numberOfRoundsPerRequest as one request per X number of rounds
     void                        makeRequest         ();// start distributed-consensus
+
+    friend std::ostream&        operator<<          (std::ostream &o, const PBFT_Peer &p)           {p.printTo(o); return o;};
 };
 
 #endif /* PBFT_Peer_hpp */

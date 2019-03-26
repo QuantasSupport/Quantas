@@ -33,9 +33,9 @@ protected:
     typedef std::string                     peerId;
     std::map<peerId,aChannel>               _channels;// list of chanels between this peer and others
     std::map<peerId,int>                    _channelDelays;// list of channels and there delays
-    std::vector<Peer<algorithm>*>           _neighbors; // peers this peer has a link to
-    std::vector<Packet<algorithm>>          _inStream;// messages that have arrived at this peer
-    std::vector<Packet<algorithm>>          _outStream;// messages waiting to be sent by this peer
+    std::vector<Peer<algorithm>* >          _neighbors; // peers this peer has a link to
+    std::vector<Packet<algorithm> >         _inStream;// messages that have arrived at this peer
+    std::vector<Packet<algorithm> >         _outStream;// messages waiting to be sent by this peer
     
     //std::ostream                            &_log;
     
@@ -86,11 +86,11 @@ Peer<algorithm>::Peer(){
     typedef std::vector<Packet<algorithm> > aChannel;
     typedef std::string peerId;
     _id = "NO ID";
-    _inStream = {};
-    _outStream = {};
-    _neighbors = {};
-    _channelDelays = {};
-    _channels = {};
+    _inStream = std::vector<Packet<algorithm> >();
+    _outStream = std::vector<Packet<algorithm> >();
+    _neighbors = std::vector<Peer<algorithm>* >();
+    _channelDelays = std::map<peerId,int>();
+    _channels = std::map<peerId,aChannel>();
     //_log = std::cout;
 }
 
@@ -99,11 +99,11 @@ Peer<algorithm>::Peer(std::string id){
     typedef std::vector<Packet<algorithm> > aChannel;
     typedef std::string peerId;
     _id = id;
-    _inStream = {};
-    _outStream = {};
-    _neighbors = {};
-    _channelDelays = {};
-    _channels = {};
+    _inStream = std::vector<Packet<algorithm> >();
+    _outStream = std::vector<Packet<algorithm> >();
+    _neighbors = std::vector<Peer<algorithm>* >();
+    _channelDelays = std::map<peerId,int>();
+    _channels = std::map<peerId,aChannel>();
     //_log = std::cout;
 }
 
@@ -132,7 +132,7 @@ void Peer<algorithm>::addNeighbor(Peer<algorithm> &newNeighbor, int delay){
     _neighbors.push_back(&newNeighbor);
     
     _channelDelays[newNeighbor.id()] = edgeDelay;
-    _channels[newNeighbor.id()] = std::vector<Packet<algorithm>>();
+    _channels[newNeighbor.id()] = std::vector<Packet<algorithm> >();
 }
 
 // called on recever

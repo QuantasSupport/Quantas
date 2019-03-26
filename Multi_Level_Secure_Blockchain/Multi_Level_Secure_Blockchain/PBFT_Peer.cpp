@@ -8,131 +8,6 @@
 
 #include "PBFT_Peer.hpp"
 
-PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
-    _faultUpperBound = 0;
-    _currentRound = 0;
-    _messageLog = std::vector<PBFT_Message>();
-    _primary = nullptr;
-    _currentPhase = IDEAL;
-    _currentView = 0;
-    _currentRequestResulte = 0;
-    _ledger = std::vector<PBFT_Message>();
-    _requestLog = std::vector<PBFT_Message>();
-    _currentRequest = PBFT_Message();
-}
-
-PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
-    _faultUpperBound = fault;
-    _currentRound = 0;
-    _messageLog = std::vector<PBFT_Message>();
-    _primary = nullptr;
-    _currentPhase = IDEAL;
-    _currentView = 0;
-    _currentRequestResulte = 0;
-    _ledger = std::vector<PBFT_Message>();
-    _requestLog = std::vector<PBFT_Message>();
-    _currentRequest = PBFT_Message();
-}
-
-PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Message>(id){
-    _faultUpperBound = fault;
-    _currentRound = round;
-    _messageLog = std::vector<PBFT_Message>();
-    _primary = nullptr;
-    _currentPhase = IDEAL;
-    _currentView = 0;
-    _currentRequestResulte = 0;
-    _ledger = std::vector<PBFT_Message>();
-    _requestLog = std::vector<PBFT_Message>();
-    _currentRequest = PBFT_Message();
-}
-
-PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
-    _faultUpperBound = rhs._faultUpperBound;
-    _currentRound = rhs._currentRound;
-    _messageLog =rhs._messageLog;
-    _primary = rhs._primary;
-    _currentPhase = rhs._currentPhase;
-    _currentView = rhs._currentView;
-    _currentRequestResulte = rhs._currentRequestResulte;
-    _ledger = rhs._ledger;
-    _requestLog = rhs._requestLog;
-    _currentRequest = rhs._currentRequest;
-}
-
-PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
-    
-    Peer<PBFT_Message>::operator=(rhs);
-    _faultUpperBound = rhs._faultUpperBound;
-    _currentRound = rhs._currentRound;
-    _messageLog =rhs._messageLog;
-    _primary = rhs._primary;
-    _currentPhase = rhs._currentPhase;
-    _currentView = rhs._currentView;
-    _currentRequestResulte = rhs._currentRequestResulte;
-    _ledger = rhs._ledger;
-    _requestLog = rhs._requestLog;
-    _currentRequest = rhs._currentRequest;
-    
-    return *this;
-}
-
-void PBFT_Peer::preformComputation(int numberOfRoundsPerRequest){
-    if(numberOfRoundsPerRequest == 0){
-        return;
-    }
-    if(_primary == nullptr){
-        _primary = findPrimary(_neighbors);
-    }
-    collectRequest(); // will only excute if this peer is primary
-    prePrepare();
-    prepare();
-    waitPrepare();
-    commit();
-    waitCommit();
-    _currentRound++;
-}
-
-void PBFT_Peer::makeRequest(){
-    if(_currentPhase != IDEAL){
-        return;
-    }
-    if(_primary == nullptr){
-        std::cout<< "ERROR: makeRequest called with no primary"<< std::endl;
-        return;
-    }
-    
-    // create request
-    PBFT_Message request;
-    request.client_id = _id;
-    request.creator_id = _id;
-    request.view = _currentView;
-    request.type = REQUEST;
-    
-    bool add = (rand()%2);
-    if(add){
-        request.operation = ADD;
-    }else{
-        request.operation = SUBTRACT;
-    }
-    
-    request.operands = std::pair<int, int>();
-    request.operands.first = (rand()%100)+1;
-    request.operands.second = (rand()%100)+1;
-    
-    request.round = _currentRound;
-    request.phase = IDEAL;
-    request.sequenceNumber = -1;
-    request.resulte = 0;
-    
-    // create packet for request
-    Packet<PBFT_Message> pck(makePckId());
-    pck.setSource(_id);
-    pck.setTarget(_primary->id());
-    pck.setBody(request);
-    _outStream.push_back(pck);
-}
-
 void PBFT_Peer::prePrepare(){
     if(_currentPhase != IDEAL){
         return;
@@ -332,44 +207,43 @@ void PBFT_Peer::braodcast(const PBFT_Message msg){
         _outStream.push_back(pck);
     }
 }
-
 PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
     _faultUpperBound = 0;
     _currentRound = 0;
-    _messageLog = {};
+    _messageLog = std::vector<PBFT_Message>();
     _primary = nullptr;
     _currentPhase = IDEAL;
     _currentView = 0;
     _currentRequestResulte = 0;
-    _ledger = {};
-    _requestLog = {};
-    _currentRequest = {};
+    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::vector<PBFT_Message>();
+    _currentRequest = PBFT_Message();
 }
 
 PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
     _faultUpperBound = fault;
     _currentRound = 0;
-    _messageLog = {};
+    _messageLog = std::vector<PBFT_Message>();
     _primary = nullptr;
     _currentPhase = IDEAL;
     _currentView = 0;
     _currentRequestResulte = 0;
-    _ledger = {};
-    _requestLog = {};
-    _currentRequest = {};
+    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::vector<PBFT_Message>();
+    _currentRequest = PBFT_Message();
 }
 
 PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Message>(id){
     _faultUpperBound = fault;
     _currentRound = round;
-    _messageLog = {};
+    _messageLog = std::vector<PBFT_Message>();
     _primary = nullptr;
     _currentPhase = IDEAL;
     _currentView = 0;
     _currentRequestResulte = 0;
-    _ledger = {};
-    _requestLog = {};
-    _currentRequest = {};
+    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::vector<PBFT_Message>();
+    _currentRequest = PBFT_Message();
 }
 
 PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
@@ -400,6 +274,59 @@ PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
     _currentRequest = rhs._currentRequest;
     
     return *this;
+}
+
+void PBFT_Peer::preformComputation(){
+    if(_primary == nullptr){
+        _primary = findPrimary(_neighbors);
+    }
+    collectRequest(); // will only excute if this peer is primary
+    prePrepare();
+    prepare();
+    waitPrepare();
+    commit();
+    waitCommit();
+    _currentRound++;
+}
+
+void PBFT_Peer::makeRequest(){
+    if(_currentPhase != IDEAL){
+        return;
+    }
+    if(_primary == nullptr){
+        std::cout<< "ERROR: makeRequest called with no primary"<< std::endl;
+        return;
+    }
+    
+    // create request
+    PBFT_Message request;
+    request.client_id = _id;
+    request.creator_id = _id;
+    request.view = _currentView;
+    request.type = REQUEST;
+    
+    bool add = (rand()%2);
+    if(add){
+        request.operation = ADD;
+    }else{
+        request.operation = SUBTRACT;
+    }
+    
+    request.operands = std::pair<int, int>();
+    request.operands.first = (rand()%100)+1;
+    request.operands.second = (rand()%100)+1;
+    
+    request.round = _currentRound;
+    request.phase = IDEAL;
+    request.sequenceNumber = -1;
+    request.resulte = 0;
+    
+    // create packet for request
+    Packet<PBFT_Message> pck(makePckId());
+    pck.setSource(_id);
+    pck.setTarget(_primary->id());
+    pck.setBody(request);
+    _outStream.push_back(pck);
 }
 
 std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
