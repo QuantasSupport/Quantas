@@ -24,7 +24,7 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 70; delay < 72; delay = delay + 2){
+        for(int delay = 1; delay < 101; delay = delay + 10){
             std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
             std::ofstream out;
             out.open("/Users/kendrichood/Desktop/pbft/PBFT_Delay:"+std::to_string(delay) + ".csv");
@@ -49,7 +49,7 @@ void PBFT(std::ofstream &out,int avgDelay){
     }
     
     
-    for(int i =-1; i < 100; i++){
+    for(int i =-1; i < 1000; i++){
         std::cout<< ".";
        // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
         
