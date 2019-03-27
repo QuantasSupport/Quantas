@@ -16,6 +16,8 @@
 #include <limits>
 #include <iostream>
 #include <iomanip>
+#include <chrono>
+#include <ctime>
 #include "Peer.hpp"
 
 static const std::string POISSON = "POISSON";
