@@ -53,15 +53,9 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     //std::cout<< system<< std::endl;
     int numberOfRequests = 0;
-    for(int i =0; i < 500; i++){
+    for(int i =-1; i < 500; i++){
         //std::cout<< "."<< std::flush;
        // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
-
-        if(i%5 == 0){
-            int randIndex = rand()%system.size();
-            system.makeRequest(randIndex);
-            numberOfRequests++;
-        }
 
         system.receive();
 //        for(int i = 0; i < system.size(); i++){
@@ -76,6 +70,12 @@ void PBFT(std::ofstream &out,int avgDelay){
 //            system[i]->log();
 //        }
 
+        if(i%5 == 0){
+            int randIndex = rand()%system.size();
+            system.makeRequest(randIndex);
+            numberOfRequests++;
+        }
+        
         //out<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
     }
     std::cout<< std::endl;
