@@ -72,7 +72,8 @@ public:
 template<class type_msg, class peer_type>
 Network<type_msg,peer_type>::Network(){
     _peers = std::vector<Peer<type_msg>*>();
-    _randomGenerator = std::default_random_engine();
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    _randomGenerator = std::default_random_engine(seed);
     _avgDelay = 0;
     _maxDelay = std::numeric_limits<int>::max();;
     _minDelay = std::numeric_limits<int>::min();
@@ -82,7 +83,8 @@ Network<type_msg,peer_type>::Network(){
 template<class type_msg, class peer_type>
 Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
     _peers = rhs._peers;
-    _randomGenerator = std::default_random_engine();
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    _randomGenerator = std::default_random_engine(seed);
     _avgDelay = rhs._avgDelay;
     _maxDelay = rhs._maxDelay;
     _minDelay = rhs._minDelay;
@@ -204,7 +206,8 @@ void Network<type_msg,peer_type>::transmit(){
 template<class type_msg, class peer_type>
 Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Network<type_msg, peer_type> &rhs){
     _peers = rhs._peers;
-    _randomGenerator = std::default_random_engine();
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    _randomGenerator = std::default_random_engine(seed);
     _avgDelay = rhs._avgDelay;
     _maxDelay = rhs._maxDelay;
     _minDelay = rhs._minDelay;

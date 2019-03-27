@@ -44,7 +44,7 @@ struct PBFT_Message{
     std::string         type;
     char                operation;
     std::pair<int,int>  operands;
-    int                 Result;
+    int                 result;
     int                 round; // used instead of timestamp
     
     //////////////////////////////////////////

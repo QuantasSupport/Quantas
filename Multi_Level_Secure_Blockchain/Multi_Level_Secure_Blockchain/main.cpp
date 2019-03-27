@@ -26,10 +26,10 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 20; delay < 30; delay = delay + 10){
+        for(int delay = 1; delay < 2; delay = delay + 10){
             std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
             std::ofstream out;
-            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".text");
+            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".log");
             for(int run = 0; run < 1; run++){
                 PBFT(out,delay);
             }
@@ -45,21 +45,22 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
-    system.initNetwork(100,avgDelay);
+    system.initNetwork(10,avgDelay);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->setLogFile(out);
     }
     
     //std::cout<< system<< std::endl;
-    
-    for(int i =-1; i < 100; i++){
+    int numberOfRequests = 0;
+    for(int i =-1; i < 1000; i++){
         std::cout<< "."<< std::flush;
        // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
 
         if(i%5 == 0){
             int randIndex = rand()%system.size();
             system.makeRequest(randIndex);
+            numberOfRequests++;
         }
 
         system.receive();
@@ -90,8 +91,9 @@ void PBFT(std::ofstream &out,int avgDelay){
             max = system[i]->getLedger().size();
         }
     }
-    //out<< "Min Ledger:"<< min<< std::endl;
-    out<< "Max Ledger:,"<< max<< std::endl;
+    out<< "Min Ledger:"<< min<< std::endl;
+    out<< "Max Ledger:"<< max<< std::endl;
+    out<< "Total Request:"<< numberOfRequests<<std::endl;
 }
 
 void Example(){

@@ -15,8 +15,11 @@ void PBFT_Peer::prePrepare(){
     if(_requestLog.empty()){
         return;
     }
+    if(_primary->id() != _id){
+        return;
+    }
     PBFT_Message request = _requestLog.front();
-    _requestLog.erase(_requestLog.begin());
+    _requestLog.clear();
     
     request.sequenceNumber = (int)_ledger.size() + 1;
     request.phase = PRE_PREPARE;
@@ -32,10 +35,11 @@ void PBFT_Peer::prepare(){
     }
     PBFT_Message prePrepareMesg = {};
     while(!_inStream.empty()){
-        if(_inStream.front().getMessage().phase == PRE_PREPARE){
+        if(_inStream.front().getMessage().phase == PRE_PREPARE && prePrepareMesg.phase != PRE_PREPARE){
             prePrepareMesg = _inStream.front().getMessage();
-            _inStream.clear();
+            _inStream.erase(_inStream.begin());
         }else{
+            _messageLog.push_back(_inStream.front().getMessage());
             _inStream.erase(_inStream.begin());
         }
     }
@@ -48,7 +52,7 @@ void PBFT_Peer::prepare(){
     prepareMsg.type = REPLY;
     prepareMsg.round = _currentRound;
     prepareMsg.phase = PREPARE;
-    prepareMsg.Result = executeQuery(prepareMsg);
+    prepareMsg.result = executeQuery(prepareMsg);
     
     _messageLog.push_back(prePrepareMesg);
     _messageLog.push_back(prepareMsg);
@@ -60,7 +64,7 @@ void PBFT_Peer::prepare(){
 }
 
 void PBFT_Peer::waitPrepare(){
-    if(_currentPhase != PREPARE){
+    if(_currentPhase != PREPARE && _currentPhase != IDEAL){
         return;
     }
     while(!_inStream.empty()){
@@ -80,8 +84,10 @@ void PBFT_Peer::waitPrepare(){
         if(_messageLog[i].phase == PREPARE &&
            _messageLog[i].sequenceNumber == _currentRequest.sequenceNumber &&
            _messageLog[i].client_id == _currentRequest.client_id &&
-           _messageLog[i].Result == _currentRequestResult){
-                    numberOfPrepareMsg++;
+           _messageLog[i].result == _currentRequestResult){
+            numberOfPrepareMsg++;
+        }else if(_messageLog[i].phase == IDEAL && isVailedRequest(_messageLog[i])){
+            numberOfPrepareMsg++;
         }
     }
     // _neighbors.size() + 1 is neighbors plus this peer
@@ -100,7 +106,7 @@ void PBFT_Peer::commit(){
     commitMsg.creator_id = _id;
     commitMsg.view = _currentView;
     commitMsg.type = REPLY;
-    commitMsg.Result = _currentRequestResult;
+    commitMsg.result = _currentRequestResult;
     commitMsg.round = _currentRound;
     
     _messageLog.push_back(commitMsg);
@@ -129,12 +135,20 @@ void PBFT_Peer::waitCommit(){
         if(_messageLog[i].phase == COMMIT &&
            _messageLog[i].sequenceNumber == _currentRequest.sequenceNumber &&
            _messageLog[i].client_id == _currentRequest.client_id &&
-           _messageLog[i].Result == _currentRequestResult){
+           _messageLog[i].result == _currentRequestResult){
                 numberOfCommitMsg++;
         }
     }
     if(numberOfCommitMsg > ceil((_neighbors.size() + 1) * _faultUpperBound) + 1){
+        _currentRequest.round = _currentRound;
         _ledger.push_back(_currentRequest);
+        Packet<PBFT_Message> reply(makePckId());
+        
+        reply.setSource(_id);
+        reply.setTarget(_currentRequest.client_id);
+        reply.setBody(_currentRequest);
+        _outStream.push_back(reply);
+        
         _currentRequest = PBFT_Message(); // clear old request
         _currentRequestResult = 0; // clear old Result
         _currentPhase = IDEAL; // complete distributed-consensus
@@ -168,10 +182,13 @@ void PBFT_Peer::collectRequest(){
     if(_primary->id() != _id){
         return;
     }
-    for(int i = 0; i < _inStream.size(); i++){
+    int i = 0;
+    while( i < _inStream.size()){
         if(_inStream[i].getMessage().type == REQUEST){
             _requestLog.push_back(_inStream[i].getMessage());
             _inStream.erase(_inStream.begin()+i);
+        }else{
+            i=i+1;
         }
     }
 }
@@ -202,7 +219,7 @@ bool PBFT_Peer::isVailedRequest(const PBFT_Message query)const{
             return false;
         }
     }
-    if(query.phase != PRE_PREPARE){
+    if(query.phase != PRE_PREPARE && query.phase != PREPARE){
         return false;
     }
     return true;
@@ -330,7 +347,7 @@ void PBFT_Peer::makeRequest(){
     request.round = _currentRound;
     request.phase = IDEAL;
     request.sequenceNumber = -1;
-    request.Result = 0;
+    request.result = 0;
     
     // create packet for request
     Packet<PBFT_Message> pck(makePckId());
@@ -342,7 +359,6 @@ void PBFT_Peer::makeRequest(){
 
 std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     Peer<PBFT_Message>::printTo(out);
-    out<< "- PBFT Peer ID:"<< _id<< " -"<< std::endl;
     out<< std::left;
     
     std::string primaryId;
