@@ -77,7 +77,7 @@ Network<type_msg,peer_type>::Network(){
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     _randomGenerator = std::default_random_engine(seed);
     _avgDelay = 0;
-    _maxDelay = std::numeric_limits<int>::max();;
+    _maxDelay = std::numeric_limits<int>::max();
     _minDelay = std::numeric_limits<int>::min();
     _distribution = RANDOM;
 }

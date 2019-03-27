@@ -6,6 +6,7 @@
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
 
+#include <limits>
 #include "PBFT_Peer.hpp"
 
 void PBFT_Peer::prePrepare(){
@@ -33,16 +34,17 @@ void PBFT_Peer::prepare(){
     if(_currentPhase != IDEAL && _currentPhase != PRE_PREPARE){
         return;
     }
-    PBFT_Message prePrepareMesg = {};
+    
     while(!_inStream.empty()){
         if(_inStream.front().getMessage().phase == PRE_PREPARE){
-            prePrepareMesg = _inStream.front().getMessage();
+            _requestLog.push_back(_inStream.front().getMessage());
         }
         _messageLog.push_back(_inStream.front().getMessage());
         _inStream.erase(_inStream.begin());
     }
+    PBFT_Message prePrepareMesg = _requestLog.front();
     if(!isVailedRequest(prePrepareMesg)){
-        return;
+        return ;
     }
     PBFT_Message prepareMsg = prePrepareMesg;
     prepareMsg.creator_id = _id;
@@ -132,9 +134,6 @@ void PBFT_Peer::waitCommit(){
         reply.setTarget(_currentRequest.client_id);
         reply.setBody(_currentRequest);
         _outStream.push_back(reply);
-        
-        _currentRequest = PBFT_Message(); // clear old request
-        _currentRequestResult = 0; // clear old Result
         _currentPhase = IDEAL; // complete distributed-consensus
     }
     
@@ -199,8 +198,8 @@ bool PBFT_Peer::isVailedRequest(const PBFT_Message query)const{
     if(query.view != _currentView){
         return false;
     }
-    if(!_messageLog.empty()){
-        if(query.sequenceNumber > _messageLog.back().sequenceNumber){
+    if(!_ledger.empty()){
+        if(query.sequenceNumber > _ledger.back().sequenceNumber){
             return false;
         }
     }
@@ -365,21 +364,21 @@ std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Message Log Size"<< std::setw(LOG_WIDTH)<< "Request Log Size"<< "Ledger Size"<<  std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< _messageLog.size()<< std::setw(LOG_WIDTH)<< _requestLog.size()<< _ledger.size()<< std::endl <<std::endl;
     
-    out<< "\t"<< std::setw(LOG_WIDTH)<< "Message Log:"<< std::endl;
-    
-    for(int i = 0; i < _messageLog.size(); i++){
-        out<< "\t"<< std::setw(LOG_WIDTH)<< "Index:"<< i<< std::endl;
-        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "client_id:"<< _messageLog[i].client_id<< std::endl;
-        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "creator_id:"<< _messageLog[i].creator_id<< std::endl;
-        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "view:"<< _messageLog[i].view<< std::endl;
-        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "type:"<< _messageLog[i].type<< std::endl;
-        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "operation:"<< _messageLog[i].operation<< std::endl;
-        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "operands:"<< _messageLog[i].operands.first<< ", "<< _messageLog[i].operands.second<< std::endl;
-        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "result:"<< _messageLog[i].result<< std::endl;
-        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "round:"<< _messageLog[i].round<< std::endl;
-        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "phase:"<< _messageLog[i].phase<< std::endl;
-        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "sequenceNumber:"<< _messageLog[i].sequenceNumber<< std::endl;
-    }
+//    out<< "\t"<< std::setw(LOG_WIDTH)<< "Message Log:"<< std::endl;
+//
+//    for(int i = 0; i < _messageLog.size(); i++){
+//        out<< "\t"<< std::setw(LOG_WIDTH)<< "Index:"<< i<< std::endl;
+//        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "client_id:"<< _messageLog[i].client_id<< std::endl;
+//        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "creator_id:"<< _messageLog[i].creator_id<< std::endl;
+//        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "view:"<< _messageLog[i].view<< std::endl;
+//        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "type:"<< _messageLog[i].type<< std::endl;
+//        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "operation:"<< _messageLog[i].operation<< std::endl;
+//        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "operands:"<< _messageLog[i].operands.first<< ", "<< _messageLog[i].operands.second<< std::endl;
+//        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "result:"<< _messageLog[i].result<< std::endl;
+//        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "round:"<< _messageLog[i].round<< std::endl;
+//        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "phase:"<< _messageLog[i].phase<< std::endl;
+//        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "sequenceNumber:"<< _messageLog[i].sequenceNumber<< std::endl;
+//    }
     
     return out;
 }

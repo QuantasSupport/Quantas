@@ -26,11 +26,11 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 1; delay < 51; delay = delay + 10){
+        for(int delay = 1; delay < 2; delay = delay + 10){
             std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
             std::ofstream out;
-            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".csv");
-            for(int run = 0; run < 2; run++){
+            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".log");
+            for(int run = 0; run < 1; run++){
                 PBFT(out,delay);
             }
             out.close();
@@ -45,7 +45,7 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
-    system.initNetwork(100,avgDelay);
+    system.initNetwork(10,avgDelay);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->setLogFile(out);
@@ -53,22 +53,22 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     //std::cout<< system<< std::endl;
     int numberOfRequests = 0;
-    for(int i =-1; i < 500; i++){
-        //std::cout<< "."<< std::flush;
+    for(int i =-1; i < 100; i++){
+        std::cout<< "."<< std::flush;
        // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
 
         system.receive();
-//        for(int i = 0; i < system.size(); i++){
-//            system[i]->log();
-//        }
+        for(int i = 0; i < system.size(); i++){
+            system[i]->log();
+        }
         system.preformComputation();
-//        for(int i = 0; i < system.size(); i++){
-//            system[i]->log();
-//        }
+        for(int i = 0; i < system.size(); i++){
+            system[i]->log();
+        }
         system.transmit();
-//        for(int i = 0; i < system.size(); i++){
-//            system[i]->log();
-//        }
+        for(int i = 0; i < system.size(); i++){
+            system[i]->log();
+        }
 
         if(i%5 == 0){
             int randIndex = rand()%system.size();
