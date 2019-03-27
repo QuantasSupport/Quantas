@@ -26,11 +26,11 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 1; delay < 101; delay = delay + 10){
+        for(int delay = 1; delay < 51; delay = delay + 10){
             std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
             std::ofstream out;
-            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".log");
-            for(int run = 0; run < 10; run++){
+            out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".csv");
+            for(int run = 0; run < 2; run++){
                 PBFT(out,delay);
             }
             out.close();
@@ -45,7 +45,7 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
-    system.initNetwork(100,avgDelay);
+    system.initNetwork(10,avgDelay);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->setLogFile(out);
@@ -53,11 +53,11 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     //std::cout<< system<< std::endl;
     int numberOfRequests = 0;
-    for(int i =-1; i < 1000; i++){
+    for(int i =0; i < 500; i++){
         //std::cout<< "."<< std::flush;
        // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
 
-        if(i%10 == 0){
+        if(i%5 == 0){
             int randIndex = rand()%system.size();
             system.makeRequest(randIndex);
             numberOfRequests++;
@@ -78,7 +78,7 @@ void PBFT(std::ofstream &out,int avgDelay){
 
         //out<< "-- ENDING ROUND "<< i<< " --"<<  std::endl;
     }
-    //std::cout<< std::endl;
+    std::cout<< std::endl;
 
     int min = system[0]->getLedger().size();
     int max = system[0]->getLedger().size();
@@ -91,9 +91,9 @@ void PBFT(std::ofstream &out,int avgDelay){
             max = system[i]->getLedger().size();
         }
     }
-    out<< "Min Ledger:"<< min<< std::endl;
-    out<< "Max Ledger:"<< max<< std::endl;
-    out<< "Total Request:"<< numberOfRequests<<std::endl;
+    out<< "Min Ledger:,"<< min<< std::endl;
+    out<< "Max Ledger:,"<< max<< std::endl;
+    out<< "Total Request:,"<< numberOfRequests<<std::endl;
 }
 
 void Example(){

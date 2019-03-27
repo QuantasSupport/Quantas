@@ -35,13 +35,11 @@ void PBFT_Peer::prepare(){
     }
     PBFT_Message prePrepareMesg = {};
     while(!_inStream.empty()){
-        if(_inStream.front().getMessage().phase == PRE_PREPARE && prePrepareMesg.phase != PRE_PREPARE){
+        if(_inStream.front().getMessage().phase == PRE_PREPARE){
             prePrepareMesg = _inStream.front().getMessage();
-            _inStream.erase(_inStream.begin());
-        }else{
-            _messageLog.push_back(_inStream.front().getMessage());
-            _inStream.erase(_inStream.begin());
         }
+        _messageLog.push_back(_inStream.front().getMessage());
+        _inStream.erase(_inStream.begin());
     }
     if(!isVailedRequest(prePrepareMesg)){
         return;
@@ -54,7 +52,6 @@ void PBFT_Peer::prepare(){
     prepareMsg.phase = PREPARE;
     prepareMsg.result = executeQuery(prepareMsg);
     
-    _messageLog.push_back(prePrepareMesg);
     _messageLog.push_back(prepareMsg);
     
     braodcast(prepareMsg);
@@ -68,15 +65,8 @@ void PBFT_Peer::waitPrepare(){
         return;
     }
     while(!_inStream.empty()){
-        if(_inStream.front().getMessage().phase != PREPARE){
-            _inStream.erase(_inStream.begin());
-        } else
-        if(_inStream.front().getMessage().view != _currentView){
-            _inStream.erase(_inStream.begin());
-        }else{
-            _messageLog.push_back(_inStream.front().getMessage());
-            _inStream.erase(_inStream.begin());
-        }
+        _messageLog.push_back(_inStream.front().getMessage());
+        _inStream.erase(_inStream.begin());
     }
     
     int numberOfPrepareMsg = 0;
@@ -120,14 +110,8 @@ void PBFT_Peer::waitCommit(){
         return;
     }
     while(!_inStream.empty()){
-        if(_inStream.front().getMessage().phase != COMMIT){
-            _inStream.erase(_inStream.begin());
-        }else if(_inStream.front().getMessage().view != _currentView){
-            _inStream.erase(_inStream.begin());
-        }else{
-            _messageLog.push_back(_inStream.front().getMessage());
-            _inStream.erase(_inStream.begin());
-        }
+        _messageLog.push_back(_inStream.front().getMessage());
+        _inStream.erase(_inStream.begin());
     }
     
     int numberOfCommitMsg = 0;
@@ -186,6 +170,7 @@ void PBFT_Peer::collectRequest(){
     while( i < _inStream.size()){
         if(_inStream[i].getMessage().type == REQUEST){
             _requestLog.push_back(_inStream[i].getMessage());
+            _messageLog.push_back(_inStream[i].getMessage());
             _inStream.erase(_inStream.begin()+i);
         }else{
             i=i+1;
@@ -215,11 +200,11 @@ bool PBFT_Peer::isVailedRequest(const PBFT_Message query)const{
         return false;
     }
     if(!_messageLog.empty()){
-        if(query.sequenceNumber <= _messageLog.back().sequenceNumber){
+        if(query.sequenceNumber > _messageLog.back().sequenceNumber){
             return false;
         }
     }
-    if(query.phase != PRE_PREPARE && query.phase != PREPARE){
+    if(query.phase != PRE_PREPARE){
         return false;
     }
     return true;
@@ -354,6 +339,7 @@ void PBFT_Peer::makeRequest(){
     pck.setSource(_id);
     pck.setTarget(_primary->id());
     pck.setBody(request);
+    _messageLog.push_back(request);
     _outStream.push_back(pck);
 }
 
@@ -378,6 +364,22 @@ std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Message Log Size"<< std::setw(LOG_WIDTH)<< "Request Log Size"<< "Ledger Size"<<  std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< _messageLog.size()<< std::setw(LOG_WIDTH)<< _requestLog.size()<< _ledger.size()<< std::endl <<std::endl;
+    
+    out<< "\t"<< std::setw(LOG_WIDTH)<< "Message Log:"<< std::endl;
+    
+    for(int i = 0; i < _messageLog.size(); i++){
+        out<< "\t"<< std::setw(LOG_WIDTH)<< "Index:"<< i<< std::endl;
+        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "client_id:"<< _messageLog[i].client_id<< std::endl;
+        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "creator_id:"<< _messageLog[i].creator_id<< std::endl;
+        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "view:"<< _messageLog[i].view<< std::endl;
+        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "type:"<< _messageLog[i].type<< std::endl;
+        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "operation:"<< _messageLog[i].operation<< std::endl;
+        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "operands:"<< _messageLog[i].operands.first<< ", "<< _messageLog[i].operands.second<< std::endl;
+        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "result:"<< _messageLog[i].result<< std::endl;
+        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "round:"<< _messageLog[i].round<< std::endl;
+        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "phase:"<< _messageLog[i].phase<< std::endl;
+        out<< "\t\t"<< std::setw(LOG_WIDTH)<< "sequenceNumber:"<< _messageLog[i].sequenceNumber<< std::endl;
+    }
     
     return out;
 }
