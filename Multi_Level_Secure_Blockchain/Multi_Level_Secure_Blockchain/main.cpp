@@ -45,7 +45,7 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
-    system.initNetwork(10,avgDelay);
+    system.initNetwork(100,avgDelay);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->setLogFile(out);
