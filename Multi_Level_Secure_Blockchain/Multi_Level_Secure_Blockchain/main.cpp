@@ -57,7 +57,7 @@ void PBFT(std::ofstream &out,int avgDelay){
         std::cout<< "."<< std::flush;
        // out<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
 
-        if(i%5 == 0){
+        if(i%10 == 0){
             int randIndex = rand()%system.size();
             system.makeRequest(randIndex);
             numberOfRequests++;
