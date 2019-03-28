@@ -25,8 +25,9 @@ static const std::string REPLY   = "REPLY";
 static const std::string IDEAL         = "IDEAL";
 static const std::string PRE_PREPARE   = "PRE-PREPARE";
 static const std::string PREPARE       = "PREPARE";
+static const std::string PREPARE_WAIT  = "PREPARE_WAIT"; // waiting foir messages
 static const std::string COMMIT        = "COMMIT";
-static const std::string COMMIT_WAIT   = "COMMIT_WAIT";
+static const std::string COMMIT_WAIT   = "COMMIT_WAIT"; // waiting foir messages
 
 // operation defintions
 static const char ADD = '+';
@@ -60,10 +61,14 @@ class PBFT_Peer : public Peer<PBFT_Message>{
 protected:
     
     // tracking varables
-    std::vector<PBFT_Message>       _messageLog;
+    //std::vector<PBFT_Message>       _messageLog;
     std::vector<PBFT_Message>       _requestLog;
-    double                          _faultUpperBound;
+    std::vector<PBFT_Message>       _prePrepareLog;
+    std::vector<PBFT_Message>       _prepareLog;
+    std::vector<PBFT_Message>       _commitLog;
     std::vector<PBFT_Message>       _ledger;
+    
+    double                          _faultUpperBound;
     int                             _currentRound; // this is the peers clock
     
     // status varables
@@ -78,7 +83,8 @@ protected:
     //
     
     // main methods used in preformComputation
-    void                        collectRequest      ();             // primary collecting requests
+    void                        collectMessages     ();             // sorts messages from _inStream into there respective logs
+    
     void                        prePrepare          ();             // phase 1 pre-prepare
     void                        prepare             ();             // phase 2 prepare
     void                        waitPrepare         ();             // wait for 1/3F + 1 prepare msgs
@@ -87,10 +93,10 @@ protected:
     
     // support methods used for the above
     Peer<PBFT_Message>*         findPrimary         (const std::vector<Peer<PBFT_Message>*> peers);
-    int                         executeQuery        (const PBFT_Message);
+    int                         executeQuery        (const PBFT_Message&);
     std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
-    bool                        isVailedRequest     (const PBFT_Message)const;
-    void                        braodcast           (const PBFT_Message);
+    bool                        isVailedRequest     (const PBFT_Message&)const;
+    void                        braodcast           (const PBFT_Message&);
     
 public:
     PBFT_Peer                                       (std::string id);
@@ -99,17 +105,26 @@ public:
     PBFT_Peer                                       (const PBFT_Peer &rhs);
     ~PBFT_Peer                                      ()                                              {};
     
+    // getters
+    std::vector<PBFT_Message>   getRequestLog       ()const                                         {return _requestLog;};
+    std::vector<PBFT_Message>   getPrePrepareLog    ()const                                         {return _prePrepareLog;};
+    std::vector<PBFT_Message>   getPrepareLog       ()const                                         {return _prepareLog;};
+    std::vector<PBFT_Message>   getCommitLog        ()const                                         {return _commitLog;};
     std::vector<PBFT_Message>   getLedger           ()const                                         {return _ledger;};
-    std::vector<PBFT_Message>   getMessageLog       ()const                                         {return _messageLog;};
     
+    // setters
     void                        setFaultTolerance   (double f)                                      {_faultUpperBound = f;};
-    PBFT_Peer&                  operator=           (const PBFT_Peer &);
+    
+    // debug/logging
     std::ostream&               printTo             (std::ostream&)const;
     void                        log                 ()const                                         {printTo(*_log);};
     
-    void                        preformComputation  ();// numberOfRoundsPerRequest as one request per X number of rounds
-    void                        makeRequest         ();// start distributed-consensus
+    // base class functions
+    void                        preformComputation  ();
+    void                        makeRequest         ();// starts distributed-consensus
 
+    // operators
+    PBFT_Peer&                  operator=           (const PBFT_Peer &);
     friend std::ostream&        operator<<          (std::ostream &o, const PBFT_Peer &p)           {p.printTo(o); return o;};
 };
 
