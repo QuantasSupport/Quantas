@@ -167,7 +167,7 @@ int Network<type_msg,peer_type>::getDelay(){
     }
     if(_distribution == POISSON){
         std::poisson_distribution<int> poissonDistribution(_avgDelay);
-        return poissonDistribution(_randomGenerator);
+        return 1;//poissonDistribution(_randomGenerator);
     }
     return -1;
 }

@@ -111,6 +111,7 @@ public:
     std::vector<PBFT_Message>   getPrepareLog       ()const                                         {return _prepareLog;};
     std::vector<PBFT_Message>   getCommitLog        ()const                                         {return _commitLog;};
     std::vector<PBFT_Message>   getLedger           ()const                                         {return _ledger;};
+    bool                        isPrimary           ()const                                         {return _id == _primary->id();};
     
     // setters
     void                        setFaultTolerance   (double f)                                      {_faultUpperBound = f;};

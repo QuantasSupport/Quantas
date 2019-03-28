@@ -100,26 +100,23 @@ PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
 }
 
 void PBFT_Peer::collectMessages(){
-    int i = 0;
-    while( i < _inStream.size()){
-        if(_inStream[i].getMessage().type == REQUEST && _primary->id() == _id){
-            _requestLog.push_back(_inStream[i].getMessage());
-            _inStream.erase(_inStream.begin()+i);
+    while(!_inStream.empty()){
+        if(_inStream.front().getMessage().type == REQUEST && _primary->id() == _id){
+            _requestLog.push_back(_inStream.front().getMessage());
+            _inStream.erase(_inStream.begin());
             
-        }else if(_inStream[i].getMessage().phase == PRE_PREPARE){
-            _prePrepareLog.push_back(_inStream[i].getMessage());
-            _inStream.erase(_inStream.begin()+i);
+        }else if(_inStream.front().getMessage().phase == PRE_PREPARE){
+            _prePrepareLog.push_back(_inStream.front().getMessage());
+            _inStream.erase(_inStream.begin());
             
-        }else if(_inStream[i].getMessage().phase == PREPARE){
-            _prepareLog.push_back(_inStream[i].getMessage());
-            _inStream.erase(_inStream.begin()+i);
+        }else if(_inStream.front().getMessage().phase == PREPARE){
+            _prepareLog.push_back(_inStream.front().getMessage());
+            _inStream.erase(_inStream.begin());
             
-        }else if(_inStream[i].getMessage().phase == COMMIT){
-            _commitLog.push_back(_inStream[i].getMessage());
-            _inStream.erase(_inStream.begin()+i);
+        }else if(_inStream.front().getMessage().phase == COMMIT){
+            _commitLog.push_back(_inStream.front().getMessage());
+            _inStream.erase(_inStream.begin());
             
-        }else{
-            i=i+1;
         }
     }
 }
@@ -135,6 +132,7 @@ void PBFT_Peer::prePrepare(){
     
     request.sequenceNumber = (int)_ledger.size() + 1;
     request.phase = PRE_PREPARE;
+    request.type = REPLY;
     _currentPhase = PREPARE_WAIT;
     _currentRequest = request;
     _currentRequestResult = executeQuery(request);
@@ -221,6 +219,8 @@ void PBFT_Peer::waitCommit(){
         reply.round = _currentRound;
         reply.round = _currentRound;
         reply.result = _currentRequestResult;
+        reply.type = REPLY;
+        reply.phase = COMMIT;
         _ledger.push_back(reply);
         
         Packet<PBFT_Message> replayPck(makePckId());
@@ -229,6 +229,8 @@ void PBFT_Peer::waitCommit(){
         replayPck.setBody(reply);
         _outStream.push_back(replayPck);
         _currentPhase = IDEAL; // complete distributed-consensus
+        _currentRequestResult = 0;
+        _currentRequest = PBFT_Message();
     }
     
 }
