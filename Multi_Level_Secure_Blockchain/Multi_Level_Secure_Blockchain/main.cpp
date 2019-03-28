@@ -27,14 +27,13 @@ int main(int argc, const char * argv[]) {
     }
     else if (algorithm== "pbft"){
         for(int delay = 1; delay < 101; delay = delay + 10){
-            std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
+            std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
             out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".log");
-            for(int run = 0; run < 10; run++){
+            for(int run = 5; run < 1; run++){
                 PBFT(out,delay);
             }
             out.close();
-            std::cout<< "End with Delay "+std::to_string(delay)<< std::endl;
         }
     }
     
@@ -45,7 +44,7 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
-    system.initNetwork(1000,avgDelay);
+    system.initNetwork(100,avgDelay);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->setLogFile(out);
@@ -53,8 +52,11 @@ void PBFT(std::ofstream &out,int avgDelay){
     }
     
     int numberOfRequests = 0;
-    for(int i =-1; i < 100; i++){
-        //std::cout<< "."<< std::flush;
+    for(int i =-1; i < 1000; i++){
+        if(i%100 == 0){
+            std::cout<< std::endl;
+        }
+        std::cout<< "."<< std::flush;
         
         if(i%5 == 0){
             int randIndex = rand()%system.size();
