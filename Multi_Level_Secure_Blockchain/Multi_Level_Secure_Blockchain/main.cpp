@@ -16,7 +16,6 @@
 void Example();
 void PBFT(std::ofstream &out,int);
 
-
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
     
