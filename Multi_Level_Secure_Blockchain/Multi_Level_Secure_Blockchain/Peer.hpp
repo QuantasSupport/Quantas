@@ -155,6 +155,8 @@ void Peer<algorithm>::transmit(){
             if(neighborID == outMessage.targetId()){
                 outMessage.setDelay(maxDelay);
                 _neighbors[i]->send(outMessage);
+            }else if(_id == outMessage.targetId()){
+                _inStream.push_back(outMessage);
             }
         }
     }
