@@ -95,9 +95,9 @@ void PBFT(std::ofstream &out,int avgDelay){
 
 void Example(){
     Network<ExampleMessage,ExamplePeer> n;
-    n.initNetwork(10,1);
+    n.initNetwork(2,1);
 
-    for(int i =0; i < 1; i++){
+    for(int i =0; i < 3; i++){
         std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
 
         n.receive();
