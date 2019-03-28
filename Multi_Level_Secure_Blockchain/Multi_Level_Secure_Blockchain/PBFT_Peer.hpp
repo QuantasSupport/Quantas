@@ -115,6 +115,9 @@ public:
     // setters
     void                        setFaultTolerance   (double f)                                      {_faultUpperBound = f;};
     
+    // mutators
+    void                        init                ()                                              {_primary = findPrimary(_neighbors);};
+    
     // debug/logging
     std::ostream&               printTo             (std::ostream&)const;
     void                        log                 ()const                                         {printTo(*_log);};

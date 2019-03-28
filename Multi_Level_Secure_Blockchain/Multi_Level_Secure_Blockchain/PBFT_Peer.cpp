@@ -9,21 +9,115 @@
 #include <limits>
 #include "PBFT_Peer.hpp"
 
+PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
+    _requestLog = std::vector<PBFT_Message>();
+    _prePrepareLog = std::vector<PBFT_Message>();
+    _prepareLog = std::vector<PBFT_Message>();
+    _commitLog = std::vector<PBFT_Message>();
+    _ledger = std::vector<PBFT_Message>();
+    
+    _faultUpperBound = 0;
+    _currentRound = 0;
+    
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequest = PBFT_Message();
+    _currentRequestResult = 0;
+}
+
+PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
+    _requestLog = std::vector<PBFT_Message>();
+    _prePrepareLog = std::vector<PBFT_Message>();
+    _prepareLog = std::vector<PBFT_Message>();
+    _commitLog = std::vector<PBFT_Message>();
+    _ledger = std::vector<PBFT_Message>();
+    
+    _faultUpperBound = fault;
+    _currentRound = 0;
+    
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequest = PBFT_Message();
+    _currentRequestResult = 0;
+}
+
+PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Message>(id){
+    _requestLog = std::vector<PBFT_Message>();
+    _prePrepareLog = std::vector<PBFT_Message>();
+    _prepareLog = std::vector<PBFT_Message>();
+    _commitLog = std::vector<PBFT_Message>();
+    _ledger = std::vector<PBFT_Message>();
+    
+    _faultUpperBound = fault;
+    _currentRound = round;
+    
+    _primary = nullptr;
+    _currentPhase = IDEAL;
+    _currentView = 0;
+    _currentRequest = PBFT_Message();
+    _currentRequestResult = 0;
+}
+
+PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
+    _requestLog = rhs._requestLog;
+    _prePrepareLog = rhs._prePrepareLog;
+    _prepareLog = rhs._prepareLog;
+    _commitLog = rhs._commitLog;
+    _ledger = rhs._ledger;
+    
+    _faultUpperBound = rhs._faultUpperBound;
+    _currentRound = rhs._currentRound;
+    
+    _primary = rhs._primary;
+    _currentPhase = rhs._currentPhase;
+    _currentView = rhs._currentView;
+    _currentRequest = rhs._currentRequest;
+    _currentRequestResult = rhs._currentRequestResult;
+}
+
+PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
+    
+    Peer<PBFT_Message>::operator=(rhs);
+    
+    _requestLog = rhs._requestLog;
+    _prePrepareLog = rhs._prePrepareLog;
+    _prepareLog = rhs._prepareLog;
+    _commitLog = rhs._commitLog;
+    _ledger = rhs._ledger;
+    
+    _faultUpperBound = rhs._faultUpperBound;
+    _currentRound = rhs._currentRound;
+    
+    _primary = rhs._primary;
+    _currentPhase = rhs._currentPhase;
+    _currentView = rhs._currentView;
+    _currentRequest = rhs._currentRequest;
+    _currentRequestResult = rhs._currentRequestResult;
+    
+    return *this;
+}
+
 void PBFT_Peer::collectMessages(){
     int i = 0;
     while( i < _inStream.size()){
         if(_inStream[i].getMessage().type == REQUEST && _primary->id() == _id){
             _requestLog.push_back(_inStream[i].getMessage());
             _inStream.erase(_inStream.begin()+i);
-        }else if(_inStream[i].getMessage().type == PRE_PREPARE){
+            
+        }else if(_inStream[i].getMessage().phase == PRE_PREPARE){
             _prePrepareLog.push_back(_inStream[i].getMessage());
-             _inStream.erase(_inStream.begin()+i);
-        }else if(_inStream[i].getMessage().type == PREPARE){
+            _inStream.erase(_inStream.begin()+i);
+            
+        }else if(_inStream[i].getMessage().phase == PREPARE){
             _prepareLog.push_back(_inStream[i].getMessage());
-             _inStream.erase(_inStream.begin()+i);
-        }else if(_inStream[i].getMessage().type == COMMIT){
+            _inStream.erase(_inStream.begin()+i);
+            
+        }else if(_inStream[i].getMessage().phase == COMMIT){
             _commitLog.push_back(_inStream[i].getMessage());
-             _inStream.erase(_inStream.begin()+i);
+            _inStream.erase(_inStream.begin()+i);
+            
         }else{
             i=i+1;
         }
@@ -52,7 +146,7 @@ void PBFT_Peer::prepare(){
         return;
     }
     PBFT_Message prePrepareMesg;
-    if(!_prePrepareLog.empty() && _currentPhase != IDEAL){
+    if(!_prePrepareLog.empty()){
         prePrepareMesg = _prePrepareLog.front();
         _prePrepareLog.erase(_prePrepareLog.begin());
     }else{
@@ -201,95 +295,6 @@ void PBFT_Peer::braodcast(const PBFT_Message &msg){
         _outStream.push_back(pck);
     }
 }
-PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
-    _requestLog = std::vector<PBFT_Message>();
-    _prePrepareLog = std::vector<PBFT_Message>();
-    _prepareLog = std::vector<PBFT_Message>();
-    _commitLog = std::vector<PBFT_Message>();
-    _ledger = std::vector<PBFT_Message>();
-    
-    _faultUpperBound = 0;
-    _currentRound = 0;
-    
-    _primary = nullptr;
-    _currentPhase = IDEAL;
-    _currentView = 0;
-    _currentRequest = PBFT_Message();
-    _currentRequestResult = 0;
-}
-
-PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
-    _requestLog = std::vector<PBFT_Message>();
-    _prePrepareLog = std::vector<PBFT_Message>();
-    _prepareLog = std::vector<PBFT_Message>();
-    _commitLog = std::vector<PBFT_Message>();
-    _ledger = std::vector<PBFT_Message>();
-    
-    _faultUpperBound = fault;
-    _currentRound = 0;
-    
-    _primary = nullptr;
-    _currentPhase = IDEAL;
-    _currentView = 0;
-    _currentRequest = PBFT_Message();
-    _currentRequestResult = 0;
-}
-
-PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Message>(id){
-    _requestLog = std::vector<PBFT_Message>();
-    _prePrepareLog = std::vector<PBFT_Message>();
-    _prepareLog = std::vector<PBFT_Message>();
-    _commitLog = std::vector<PBFT_Message>();
-    _ledger = std::vector<PBFT_Message>();
-    
-    _faultUpperBound = fault;
-    _currentRound = round;
-    
-    _primary = nullptr;
-    _currentPhase = IDEAL;
-    _currentView = 0;
-    _currentRequest = PBFT_Message();
-    _currentRequestResult = 0;
-}
-
-PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
-    _requestLog = rhs._requestLog;
-    _prePrepareLog = rhs._prePrepareLog;
-    _prepareLog = rhs._prepareLog;
-    _commitLog = rhs._commitLog;
-    _ledger = rhs._ledger;
-    
-    _faultUpperBound = rhs._faultUpperBound;
-    _currentRound = rhs._currentRound;
-    
-    _primary = rhs._primary;
-    _currentPhase = rhs._currentPhase;
-    _currentView = rhs._currentView;
-    _currentRequest = rhs._currentRequest;
-    _currentRequestResult = rhs._currentRequestResult;
-}
-
-PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
-    
-    Peer<PBFT_Message>::operator=(rhs);
-    
-    _requestLog = rhs._requestLog;
-    _prePrepareLog = rhs._prePrepareLog;
-    _prepareLog = rhs._prepareLog;
-    _commitLog = rhs._commitLog;
-    _ledger = rhs._ledger;
-    
-    _faultUpperBound = rhs._faultUpperBound;
-    _currentRound = rhs._currentRound;
-    
-    _primary = rhs._primary;
-    _currentPhase = rhs._currentPhase;
-    _currentView = rhs._currentView;
-    _currentRequest = rhs._currentRequest;
-    _currentRequestResult = rhs._currentRequestResult;
-    
-    return *this;
-}
 
 void PBFT_Peer::preformComputation(){
     if(_primary == nullptr){
@@ -360,7 +365,7 @@ std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Round"<< std::setw(LOG_WIDTH)<< "Current Phase"<< std::setw(LOG_WIDTH)<< "Current View"<< std::setw(LOG_WIDTH)<< "Primary ID"<< std::setw(LOG_WIDTH)<< "Current Request Client ID"<< std::setw(LOG_WIDTH)<< "Current Request Result"<< std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _currentPhase<< std::setw(LOG_WIDTH)<< _currentView<< std::setw(LOG_WIDTH)<< primaryId<< std::setw(LOG_WIDTH)<< _currentRequest.client_id<< std::setw(LOG_WIDTH)<< _currentRequestResult<< std::endl;
     
-    out<< "\t"<< std::setw(LOG_WIDTH)<< "_requestLog"<< std::setw(LOG_WIDTH)<< "Pre-Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Commit Log Size"<< std::setw(LOG_WIDTH)<< "Ledger Size"<<  std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< "Request Log"<< std::setw(LOG_WIDTH)<< "Pre-Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Commit Log Size"<< std::setw(LOG_WIDTH)<< "Ledger Size"<<  std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< _requestLog.size()<< std::setw(LOG_WIDTH)<< _prePrepareLog.size()<< std::setw(LOG_WIDTH)<< _prepareLog.size()<< std::setw(LOG_WIDTH)<< _commitLog.size()<< std::setw(LOG_WIDTH)<< _ledger.size()<< std::endl <<std::endl;
     
     return out;
