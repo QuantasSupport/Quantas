@@ -121,4 +121,6 @@ void Example(){
     
     std::cout << A<< std::endl;
     std::cout << B<< std::endl;
+    
+    std::cout<< n<< std::endl;
 }

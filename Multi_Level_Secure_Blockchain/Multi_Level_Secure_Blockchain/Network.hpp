@@ -33,6 +33,7 @@ protected:
     int                                 _maxDelay;
     int                                 _minDelay;
     std::string                         _distribution;
+    std::ostream                         *_log;
     
     std::string                         createId            ();
     bool                                idTaken             (std::string);
@@ -65,10 +66,15 @@ public:
     void                                transmit            ();
     void                                makeRequest         (int i)                              {_peers[i]->makeRequest();};
     
+    // logging and debugging
+    std::ostream&                       printTo             (std::ostream&)const;
+    void                                log                 ()const                              {printTo(*_log);};
+    
     // operators
     Network&                            operator=           (const Network&);
     peer_type*                          operator[]          (int);
-    friend std::ostream&                operator<<          (std::ostream&, const Network&);
+//    friend std::ostream&              operator<<            (std::ostream&, const Peer&);
+    friend std::ostream&                operator<<          (std::ostream &out, const Network &system)      {return system.printTo(out);};
 };
 
 template<class type_msg, class peer_type>
@@ -80,6 +86,7 @@ Network<type_msg,peer_type>::Network(){
     _maxDelay = std::numeric_limits<int>::max();
     _minDelay = std::numeric_limits<int>::min();
     _distribution = RANDOM;
+    _log = &std::cout;
 }
 
 template<class type_msg, class peer_type>
@@ -91,6 +98,7 @@ Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
     _maxDelay = rhs._maxDelay;
     _minDelay = rhs._minDelay;
     _distribution = rhs._distribution;
+    _log = rhs._log;
 }
 
 template<class type_msg, class peer_type>
@@ -206,9 +214,24 @@ void Network<type_msg,peer_type>::transmit(){
 }
 
 template<class type_msg, class peer_type>
+std::ostream& Network<type_msg,peer_type>::printTo(std::ostream &out)const{
+    out<< "--- NETWROK SETUP ---"<< std::endl<< std::endl;
+    out<< std::left;
+    out<< std::setw(20)<< "Number of Peers"<< std::setw(20)<< "Distribution"<< std::setw(20)<< "Min Delay"<< std::setw(20)<< "Average Delay"<< std::setw(20)<< "Max Delay"<< std::endl;
+    out<< std::setw(20)<< _peers.size()<< std::setw(20)<< _distribution<< std::setw(20)<< _minDelay<< std::setw(20)<< _avgDelay<< std::setw(20)<< _maxDelay<< std::endl;
+    
+    for(int i = 0; i < _peers.size(); i++){
+        peer_type *p = dynamic_cast<peer_type*>(_peers[i]);
+        p->printTo(out);
+    }
+    
+    return out;
+}
+
+template<class type_msg, class peer_type>
 Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Network<type_msg, peer_type> &rhs){
     _peers = rhs._peers;
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    int seed = (int)std::chrono::system_clock::now().time_since_epoch().count();
     _randomGenerator = std::default_random_engine(seed);
     _avgDelay = rhs._avgDelay;
     _maxDelay = rhs._maxDelay;
@@ -221,20 +244,6 @@ Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Netwo
 template<class type_msg, class peer_type>
 peer_type* Network<type_msg,peer_type>::operator[](int i){
     return dynamic_cast<peer_type*>(_peers[i]);
-}
-
-template<class type_msg, class peer_type>
-std::ostream& operator<<(std::ostream &out, const Network<type_msg,peer_type> &system){
-    out<< "--- NETWROK SETUP ---"<< std::endl;
-    out<< std::left;
-    out<< std::setw(20)<< "Number of Peers"<< std::setw(20)<< "Distribution"<< std::setw(20)<< "Min Delay"<< std::setw(20)<< "Average Delay"<< std::setw(20)<< "Max Delay"<< std::endl;
-    out<< std::setw(20)<< system.size()<< std::setw(20)<< system.distribution()<< std::setw(20)<< system.minDelay()<< std::setw(20)<< system.avgDelay()<< std::setw(20)<< system.maxDelay()<< std::endl;
-    
-//    for(int i = 0; i < system.size(); i++){
-//        system[i]->print(out);
-//    }
-    
-    return out;
 }
 
 #endif /* Network_hpp */

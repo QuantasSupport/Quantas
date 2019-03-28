@@ -34,7 +34,8 @@ public:
     
     void                 preformComputation ();
     void                 makeRequest        (){};
-    std::ostream&        print              (std::ostream&)const;
+    void                 log                ()const{printTo(*_log);};
+    std::ostream&        printTo            (std::ostream&)const;
     friend std::ostream& operator<<         (std::ostream&, const ExamplePeer&);
 };
 #endif /* ExamplePeer_hpp */

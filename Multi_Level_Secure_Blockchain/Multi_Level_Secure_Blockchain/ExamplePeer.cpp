@@ -51,7 +51,7 @@ void ExamplePeer::preformComputation(){
     counter++;
 }
 
-std::ostream& ExamplePeer::print(std::ostream &out)const{
+std::ostream& ExamplePeer::printTo(std::ostream &out)const{
     Peer<ExampleMessage>::printTo(out);
     
     out<< _id<< std::endl;
@@ -61,6 +61,6 @@ std::ostream& ExamplePeer::print(std::ostream &out)const{
 }
 
 std::ostream& operator<< (std::ostream &out, const ExamplePeer &peer){
-    peer.print(out);
+    peer.printTo(out);
     return out;
 }
