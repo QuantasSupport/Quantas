@@ -8,10 +8,18 @@
 
 #include <iostream>
 #include <fstream>
+#include <set>
+#include "Blockchain.hpp"
 #include "Peer.hpp"
 #include "ExamplePeer.hpp"
 #include "PBFT_Peer.hpp"
 #include "Network.hpp"
+const int peerCount = 10;
+const int blockChainLength = 100;
+Blockchain *blockchain;
+
+void buildInitialChain(std::vector<std::string>);
+std::set<std::string> getPeersForConsensus(int);
 
 void Example();
 void PBFT(std::ofstream &out,int);
@@ -21,7 +29,14 @@ int main(int argc, const char * argv[]) {
     
     std::string algorithm = argv[1];
     std::string filePath = argv[2];
-    
+
+    /*
+    buildInitialChain({"P0","P1","P2","P3","P4","P5","P6","P7","P8","P9"});
+    for(const auto &s: getPeersForConsensus(2)){
+        std::cerr<<s<<std::endl;
+    }
+    */
+
     if(algorithm == "example"){
         Example();
     }
@@ -113,4 +128,55 @@ void Example(){
     std::cout << B<< std::endl;
     
     std::cout<< n<< std::endl;
+}
+
+void buildInitialChain(std::vector<std::string> peerIds) {
+    std::cerr << "Building initial chain" << std::endl;
+    srand(static_cast<unsigned int>(time(nullptr)));
+    Blockchain *preBuiltChain = new Blockchain(true);
+    int index = 1;                  //blockchain index starts from 1;
+    int blockCount = 1;
+    std::string prevHash = "genesisHash";
+
+    while (blockCount < blockChainLength) {
+        std::set<std::string> publishers;
+
+        std::string peerId = peerIds[rand()%peerIds.size()];
+        std::string blockHash = std::to_string(index) + "_" + peerId;
+        publishers.insert(peerId);
+        preBuiltChain->createBlock(index, prevHash, blockHash, publishers);
+        prevHash = blockHash;
+        index++;
+        blockCount++;
+    }
+
+    std::cerr << "Initial chain build complete." << std::endl;
+    std::cerr << "Prebuilt chain: " << std::endl;
+    std::cerr << *preBuiltChain << std::endl;
+    std::cerr << preBuiltChain->getChainSize() << std::endl;
+    blockchain = preBuiltChain;
+
+
+}
+
+std::set<std::string> getPeersForConsensus(int securityLevel) {
+    int numOfPeers = peerCount / securityLevel;
+    std::set<std::string> peersForConsensus;
+    int chainSize = blockchain->getChainSize ();
+    int i = blockchain->getChainSize() - 1;             //i keeps track of index in the chain
+    while (peersForConsensus.size() < numOfPeers) {
+        std::string peerId = *(blockchain->getBlockAt(i).getPublishers()).begin();
+        peersForConsensus.insert(peerId);
+        //random value
+        int randVal = rand()%peerCount;
+
+        int skip = randVal;
+        if ((i - skip) <= 0) {
+            i = chainSize - i - skip;
+
+        } else
+            i = i - skip;
+    }
+
+    return peersForConsensus;
 }
