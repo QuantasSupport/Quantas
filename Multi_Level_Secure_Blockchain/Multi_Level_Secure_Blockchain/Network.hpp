@@ -53,6 +53,7 @@ public:
     void                                setMinDelay         (int d)                              {_minDelay = d;};
     void                                setToRandom         ()                                   {_distribution = RANDOM;};
     void                                setToPoisson        ()                                   {_distribution = POISSON;};
+    void                                setLog              (std::ostream&);
     
     // getters
     int                                 size                ()const                              {return (int)_peers.size();};
@@ -105,6 +106,15 @@ template<class type_msg, class peer_type>
 Network<type_msg,peer_type>::~Network(){
     for(int i = 0; i < _peers.size(); i++){
         delete _peers[i];
+    }
+}
+
+template<class type_msg, class peer_type>
+void Network<type_msg,peer_type>::setLog(std::ostream &out){
+    _log = &out;
+    for(int i = 0; i < _peers.size(); i++){
+        peer_type *p = dynamic_cast<peer_type*>(_peers[i]);
+        p->setLogFile(out);
     }
 }
 

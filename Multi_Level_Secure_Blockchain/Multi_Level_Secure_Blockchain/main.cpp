@@ -26,7 +26,7 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 1; delay < 101; delay = delay + 10){
+        for(int delay = 50; delay < 51; delay = delay + 10){
             std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
             out.open(filePath + "/PBFT_Delay:"+std::to_string(delay) + ".log");
@@ -44,15 +44,15 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
-    system.initNetwork(100,avgDelay);
+    system.setLog(std::cout);
+    system.initNetwork(7,avgDelay);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
-        system[i]->setLogFile(out);
         system[i]->init();
     }
     
     int numberOfRequests = 0;
-    for(int i =-1; i < 1000; i++){
+    for(int i =-1; i < 4; i++){
         if(i%100 == 0){
             std::cout<< std::endl;
         }
@@ -67,20 +67,10 @@ void PBFT(std::ofstream &out,int avgDelay){
             numberOfRequests++;
         }
         
-//        for(int i = 0; i < system.size(); i++){
-//            system[i]->log();
-//        }
         system.receive();
-//        for(int i = 0; i < system.size(); i++){
-//            system[i]->log();
-//        }
         system.preformComputation();
-       
         system.transmit();
-//        for(int i = 0; i < system.size(); i++){
-//            system[i]->log();
-//        }
-        
+        system.log();
     }
 
     int min = (int)system[0]->getLedger().size();
