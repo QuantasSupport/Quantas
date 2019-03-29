@@ -76,10 +76,10 @@ public:
     bool                              operator==            (const Peer &rhs)const              {return (_id == rhs._id);};
     bool                              operator!=            (const Peer &rhs)const              {return !(*this == rhs);};
     friend std::ostream&              operator<<            (std::ostream&, const Peer&);
-    virtual bool					  isByzantine			(){return _byzantine;};
-    virtual void					  setByzantineFlag		(bool){};
-    virtual void                      makeCorrect           (){_byzantine = false;};
-    virtual void                      makeByzantine         (){_byzantine = true;};
+    virtual bool					  isByzantine			()                                  {return _byzantine;};
+    virtual void					  setByzantineFlag		(bool f)                            {_byzantine = f;};
+    virtual void                      makeCorrect           ()                                  {_byzantine = false;};
+    virtual void                      makeByzantine         ()                                  {_byzantine = true;};
 };
 
 //
@@ -97,6 +97,7 @@ Peer<algorithm>::Peer(){
     _channelDelays = std::map<peerId,int>();
     _channels = std::map<peerId,aChannel>();
     _log = &std::cout;
+    _byzantine = false;
 }
 
 template <class algorithm>
@@ -110,6 +111,7 @@ Peer<algorithm>::Peer(std::string id){
     _channelDelays = std::map<peerId,int>();
     _channels = std::map<peerId,aChannel>();
     _log = &std::cout;
+    _byzantine = false;
 }
 
 template <class algorithm>
@@ -121,6 +123,7 @@ Peer<algorithm>::Peer(const Peer &rhs){
     _channels = rhs._channels;
     _channelDelays = rhs._channelDelays;
     _log = rhs._log;
+    _byzantine = rhs._byzantine;
 }
 
 template <class algorithm>
@@ -207,6 +210,7 @@ Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
     _channels = rhs._channels;
     _channelDelays = rhs._channelDelays;
     _log = rhs._log;
+    _byzantine = rhs._byzantine;
     
     return *this;
 }
