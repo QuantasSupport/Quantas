@@ -44,7 +44,7 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 50; delay < 51; delay = delay + 10){
+        for(int delay = 2; delay < 51; delay = delay + 10){
             std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
             out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".log");
