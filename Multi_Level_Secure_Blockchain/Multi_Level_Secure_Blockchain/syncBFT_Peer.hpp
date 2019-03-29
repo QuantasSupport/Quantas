@@ -56,7 +56,7 @@ struct syncBFTmessage {
         for(auto &i:rhs.P){
             P.push_back (std::make_unique<syncBFTmessage> (*i));
         }
-
+        return *this;
     }
 
     ~syncBFTmessage() = default;
