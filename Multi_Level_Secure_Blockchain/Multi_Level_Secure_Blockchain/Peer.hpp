@@ -75,6 +75,8 @@ public:
     bool                              operator==            (const Peer &rhs)const              {return (_id == rhs._id);};
     bool                              operator!=            (const Peer &rhs)const              {return !(*this == rhs);};
     friend std::ostream&              operator<<            (std::ostream&, const Peer&);
+    virtual bool					  isByzantine			(){};
+    virtual void					  setByzantineFlag		(bool){};
 };
 
 //
