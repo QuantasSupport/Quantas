@@ -16,13 +16,16 @@ struct BGSMessage{
     
 };
 
-class BlockGuardSharded : PBFT_Peer{
+class BlockGuardSharded :Peer<BGSMessage> ,PBFT_Peer{
 protected:
     
 public:
     BlockGuardSharded();
     BlockGuardSharded(const BlockGuardSharded&);
     ~BlockGuardSharded();
+    
+    void makeRequest();
+    void preformComputation();
     
 };
 

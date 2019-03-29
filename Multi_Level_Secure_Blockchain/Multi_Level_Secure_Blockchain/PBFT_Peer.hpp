@@ -57,7 +57,7 @@ struct PBFT_Message{
 //
 // PBFT Peer defintion
 //
-class PBFT_Peer : public Peer<PBFT_Message>{
+class PBFT_Peer : public virtual Peer<PBFT_Message>{
 protected:
     
     // tracking varables
