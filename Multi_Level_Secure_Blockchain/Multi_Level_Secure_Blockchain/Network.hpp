@@ -47,7 +47,7 @@ public:
     ~Network                                                ();
     
     // setters
-    void                                initNetwork         (int, int); // initialize network with peers
+    void                                initNetwork         (int); // initialize network with peers
     void                                setMaxDelay         (int d)                              {_maxDelay = d;};
     void                                setAvgDelay         (int d)                              {_avgDelay = d;};
     void                                setMinDelay         (int d)                              {_minDelay = d;};
@@ -192,9 +192,7 @@ int Network<type_msg,peer_type>::getDelay(){
 }
 
 template<class type_msg, class peer_type>
-void Network<type_msg,peer_type>::initNetwork(int numberOfPeers, int avgDelay){
-    _avgDelay = avgDelay;
-    
+void Network<type_msg,peer_type>::initNetwork(int numberOfPeers){
     for(int i = 0; i < numberOfPeers; i++){
         _peers.push_back(new peer_type(getUniqueId()));
     }

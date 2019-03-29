@@ -61,7 +61,6 @@ class PBFT_Peer : public Peer<PBFT_Message>{
 protected:
     
     // tracking varables
-    //std::vector<PBFT_Message>       _messageLog;
     std::vector<PBFT_Message>       _requestLog;
     std::vector<PBFT_Message>       _prePrepareLog;
     std::vector<PBFT_Message>       _prepareLog;
@@ -97,6 +96,7 @@ protected:
     std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
     bool                        isVailedRequest     (const PBFT_Message&)const;
     void                        braodcast           (const PBFT_Message&);
+    int                         faultyPeers         ()const                                         {return (ceil((_neighbors.size() + 1) * _faultUpperBound) + 1);};
     
 public:
     PBFT_Peer                                       (std::string id);

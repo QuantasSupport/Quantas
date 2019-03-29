@@ -220,8 +220,10 @@ template <class algorithm>
 std::ostream& Peer<algorithm>::printTo(std::ostream &out)const{
     out<< "-- Peer ID:"<< _id<< " --"<< std::endl;
     out<< std::left;
+    std::string byzantineTF = _byzantine ? "True" : "False";
+    
     out<< "\t"<< std::setw(LOG_WIDTH)<< "In Stream Size"<< std::setw(LOG_WIDTH)<< "Out Stream Size"<< std::setw(LOG_WIDTH)<< "Is Byzantine"<<std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< _inStream.size()<< std::setw(LOG_WIDTH)<< _outStream.size()<<std::setw(LOG_WIDTH)<< std::boolalpha<<  _byzantine<<std::endl<<std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _inStream.size()<< std::setw(LOG_WIDTH)<< _outStream.size()<<std::setw(LOG_WIDTH)<< byzantineTF<<std::endl<<std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Neighbor ID"<< std::setw(LOG_WIDTH)<< "Delay"<< std::setw(LOG_WIDTH)<< "Messages In Channel"<< std::endl;
     for(int i = 0; i <  _neighbors.size(); i++){
         std::string neighborId = _neighbors[i]->id();

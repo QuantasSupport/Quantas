@@ -44,7 +44,7 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 50; delay < 51; delay = delay + 10){
+        for(int delay = 2; delay < 3; delay = delay + 10){
             std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
             out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".log");
@@ -73,14 +73,15 @@ void PBFT(std::ofstream &out,int avgDelay){
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
     system.setLog(std::cout);
-    system.initNetwork(7,avgDelay);
+    system.setAvgDelay(avgDelay);
+    system.initNetwork(7);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->init();
     }
     
     int numberOfRequests = 0;
-    for(int i =-1; i < 4; i++){
+    for(int i =-1; i < 100; i++){
         if(i%100 == 0){
             std::cout<< std::endl;
         }
@@ -131,7 +132,7 @@ void syncBFT(std::ofstream &out,int maxDelay){
 
     n.setMaxDelay(maxDelay);
     n.setToRandom();
-    n.initNetwork(syncBFT_Peer::peerCount,maxDelay);
+    n.initNetwork(syncBFT_Peer::peerCount);
 
     int consensusSize = 0;
 
@@ -218,7 +219,7 @@ void syncBFT(std::ofstream &out,int maxDelay){
 
 void Example(){
     Network<ExampleMessage,ExamplePeer> n;
-    n.initNetwork(2,1);
+    n.initNetwork(2);
 
     for(int i =0; i < 3; i++){
         std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;

@@ -176,8 +176,8 @@ void PBFT_Peer::waitPrepare(){
             numberOfPrepareMsg++;
         }
     }
-    // _neighbors.size() + 1 is neighbors plus this peer
-    if(numberOfPrepareMsg > (ceil((_neighbors.size() + 1) * _faultUpperBound) + 1)){
+    
+    if(numberOfPrepareMsg > faultyPeers()){
         _currentPhase = COMMIT;
     }
 }
@@ -214,7 +214,7 @@ void PBFT_Peer::waitCommit(){
             numberOfCommitMsg++;
         }
     }
-    if(numberOfCommitMsg > ceil((_neighbors.size() + 1) * _faultUpperBound) + 1){
+    if(numberOfCommitMsg > faultyPeers()){
         PBFT_Message reply = _currentRequest;
         reply.round = _currentRound;
         reply.round = _currentRound;
