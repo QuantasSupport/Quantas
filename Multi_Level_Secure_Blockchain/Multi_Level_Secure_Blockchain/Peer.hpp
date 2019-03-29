@@ -27,6 +27,7 @@ template <class algorithm>
 class Peer{
 protected:
     std::string                             _id;
+    bool                                    _byzantine;
     
     // communication vars
     typedef std::vector<Packet<algorithm> > aChannel;
@@ -75,8 +76,10 @@ public:
     bool                              operator==            (const Peer &rhs)const              {return (_id == rhs._id);};
     bool                              operator!=            (const Peer &rhs)const              {return !(*this == rhs);};
     friend std::ostream&              operator<<            (std::ostream&, const Peer&);
-    virtual bool					  isByzantine			(){};
+    virtual bool					  isByzantine			(){return _byzantine;};
     virtual void					  setByzantineFlag		(bool){};
+    virtual void                      makeCorrect           (){_byzantine = false;};
+    virtual void                      makeByzantine         (){_byzantine = true;};
 };
 
 //
@@ -217,8 +220,8 @@ template <class algorithm>
 std::ostream& Peer<algorithm>::printTo(std::ostream &out)const{
     out<< "-- Peer ID:"<< _id<< " --"<< std::endl;
     out<< std::left;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< "In Stream Size"<< std::setw(LOG_WIDTH)<< "Out Stream Size"<< std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< _inStream.size()<< std::setw(LOG_WIDTH)<< _outStream.size()<<std::endl<<std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< "In Stream Size"<< std::setw(LOG_WIDTH)<< "Out Stream Size"<< std::setw(LOG_WIDTH)<< "Is Byzantine"<<std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _inStream.size()<< std::setw(LOG_WIDTH)<< _outStream.size()<<std::setw(LOG_WIDTH)<< std::boolalpha<<  _byzantine<<std::endl<<std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Neighbor ID"<< std::setw(LOG_WIDTH)<< "Delay"<< std::setw(LOG_WIDTH)<< "Messages In Channel"<< std::endl;
     for(int i = 0; i <  _neighbors.size(); i++){
         std::string neighborId = _neighbors[i]->id();

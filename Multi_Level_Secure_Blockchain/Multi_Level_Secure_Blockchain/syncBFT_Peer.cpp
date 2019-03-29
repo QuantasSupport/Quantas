@@ -463,6 +463,7 @@ bool syncBFT_Peer::leaderChange(){
 
     }
     changeLeader = false;
+    return changeLeader;
 }
 
 void syncBFT_Peer::refreshSyncBFT(){

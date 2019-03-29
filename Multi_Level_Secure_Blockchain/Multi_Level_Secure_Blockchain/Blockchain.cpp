@@ -12,6 +12,7 @@ Blockchain::Blockchain(bool init){
 int Blockchain::createBlock(int blockIndex, string prevHash, string blockHash, set<string> publishers) {
     //inserting to the chain without any work
     this->chain.push_back(std::make_unique<Block>(blockIndex,prevHash,blockHash, publishers));
+    return blockIndex;
 }
 
 
