@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		45926FA222336BC900266885 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45926FA122336BC900266885 /* main.cpp */; };
 		45926FDE223C12AB00266885 /* ExamplePeer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45926FDC223C12AB00266885 /* ExamplePeer.cpp */; };
+		45B37E23224E867700D70D19 /* BlockGuardSharded.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45B37E1B224E867600D70D19 /* BlockGuardSharded.cpp */; };
+		45B37E24224E867700D70D19 /* syncBFT_Peer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45B37E1F224E867700D70D19 /* syncBFT_Peer.cpp */; };
+		45B37E25224E867700D70D19 /* Blockchain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45B37E20224E867700D70D19 /* Blockchain.cpp */; };
+		45B37E26224E867700D70D19 /* Block.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45B37E21224E867700D70D19 /* Block.cpp */; };
 		45CEED902240A39E0062D643 /* PBFT_Peer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 45CEED8E2240A39E0062D643 /* PBFT_Peer.cpp */; };
 /* End PBXBuildFile section */
 
@@ -32,6 +36,14 @@
 		45926FDC223C12AB00266885 /* ExamplePeer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ExamplePeer.cpp; sourceTree = "<group>"; };
 		45926FDD223C12AB00266885 /* ExamplePeer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ExamplePeer.hpp; sourceTree = "<group>"; };
 		459FA26A224960B800ED6A3C /* Network.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Network.hpp; sourceTree = "<group>"; };
+		45B37E1B224E867600D70D19 /* BlockGuardSharded.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BlockGuardSharded.cpp; sourceTree = "<group>"; };
+		45B37E1C224E867600D70D19 /* BlockGuardSharded.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BlockGuardSharded.hpp; sourceTree = "<group>"; };
+		45B37E1D224E867600D70D19 /* Block.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Block.hpp; sourceTree = "<group>"; };
+		45B37E1E224E867700D70D19 /* syncBFT_Peer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = syncBFT_Peer.hpp; sourceTree = "<group>"; };
+		45B37E1F224E867700D70D19 /* syncBFT_Peer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = syncBFT_Peer.cpp; sourceTree = "<group>"; };
+		45B37E20224E867700D70D19 /* Blockchain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Blockchain.cpp; sourceTree = "<group>"; };
+		45B37E21224E867700D70D19 /* Block.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Block.cpp; sourceTree = "<group>"; };
+		45B37E22224E867700D70D19 /* Blockchain.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Blockchain.hpp; sourceTree = "<group>"; };
 		45CEED8E2240A39E0062D643 /* PBFT_Peer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PBFT_Peer.cpp; sourceTree = "<group>"; };
 		45CEED8F2240A39E0062D643 /* PBFT_Peer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PBFT_Peer.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -66,6 +78,14 @@
 		45926FA022336BC900266885 /* Multi_Level_Secure_Blockchain */ = {
 			isa = PBXGroup;
 			children = (
+				45B37E21224E867700D70D19 /* Block.cpp */,
+				45B37E1D224E867600D70D19 /* Block.hpp */,
+				45B37E20224E867700D70D19 /* Blockchain.cpp */,
+				45B37E22224E867700D70D19 /* Blockchain.hpp */,
+				45B37E1B224E867600D70D19 /* BlockGuardSharded.cpp */,
+				45B37E1C224E867600D70D19 /* BlockGuardSharded.hpp */,
+				45B37E1F224E867700D70D19 /* syncBFT_Peer.cpp */,
+				45B37E1E224E867700D70D19 /* syncBFT_Peer.hpp */,
 				459FA26A224960B800ED6A3C /* Network.hpp */,
 				45926FA122336BC900266885 /* main.cpp */,
 				45926FA92233737D00266885 /* Peer.hpp */,
@@ -135,8 +155,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				45926FA222336BC900266885 /* main.cpp in Sources */,
+				45B37E26224E867700D70D19 /* Block.cpp in Sources */,
 				45926FDE223C12AB00266885 /* ExamplePeer.cpp in Sources */,
 				45CEED902240A39E0062D643 /* PBFT_Peer.cpp in Sources */,
+				45B37E25224E867700D70D19 /* Blockchain.cpp in Sources */,
+				45B37E24224E867700D70D19 /* syncBFT_Peer.cpp in Sources */,
+				45B37E23224E867700D70D19 /* BlockGuardSharded.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
