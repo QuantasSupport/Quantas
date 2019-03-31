@@ -1,3 +1,9 @@
+#include <utility>
+
+#include <utility>
+
+#include <utility>
+
 //
 // Created by srai on 3/15/19.
 //
@@ -11,6 +17,27 @@
 #include "Peer.hpp"
 #include "Blockchain.hpp"
 
+struct proposal{
+    std::vector<vector<string>> status;
+    std::vector<vector<string>> notify;
+
+    int size() const{
+        return (status.size() + notify.size());
+    }
+
+    void clear() {
+        status.clear();
+        notify.clear();
+    }
+
+};
+
+struct commitCertificate{
+    std::vector<vector<string>> commit;
+    void clear(){
+        commit.clear();
+    }
+};
 
 struct syncBFTmessage {
     std::string 							peerId;
@@ -20,8 +47,8 @@ struct syncBFTmessage {
     std::string 							iter;
     std::vector<std::string> 				message;
     std::string 							statusCert;
-    std::vector<std::unique_ptr<syncBFTmessage>> 			commitCertificate;
-    std::vector<std::unique_ptr<syncBFTmessage>> 			P;
+    proposal                                P;
+    commitCertificate                       cc;
 
     syncBFTmessage(const syncBFTmessage& rhs){
         peerId = rhs.peerId;
@@ -31,12 +58,8 @@ struct syncBFTmessage {
         iter = rhs.iter;
         message = rhs.message;
         statusCert = rhs.statusCert;
-        for(auto &i:rhs.commitCertificate){
-            commitCertificate.push_back (std::make_unique<syncBFTmessage> (*i));
-        }
-        for(auto &i:rhs.P){
-            P.push_back (std::make_unique<syncBFTmessage> (*i));
-        }
+        cc = rhs.cc;
+        P = rhs.P;
 
     }
     syncBFTmessage() = default;
@@ -50,13 +73,9 @@ struct syncBFTmessage {
         iter = rhs.iter;
         message = rhs.message;
         statusCert = rhs.statusCert;
-        for(auto &i:rhs.commitCertificate){
-            commitCertificate.push_back (std::make_unique<syncBFTmessage> (*i));
-        }
-        for(auto &i:rhs.P){
-            P.push_back (std::make_unique<syncBFTmessage> (*i));
-        }
-        return *this;
+        cc = rhs.cc;
+        P = rhs.P;
+
     }
 
     ~syncBFTmessage() = default;
@@ -69,21 +88,13 @@ class syncBFT_Peer : public Peer<syncBFTmessage> {
     struct acceptedState {
         std::string 							value;
         std::string 							valueAcceptedAt;
-        std::vector<unique_ptr<syncBFTmessage>> 			commitCertificate;
+        commitCertificate                       cc;
 
-        acceptedState(string v, string vAt , std::vector<unique_ptr<syncBFTmessage>> cc){
-            value = v;
-            valueAcceptedAt = vAt;
-            for(auto &c: cc){
-                commitCertificate.push_back (std::make_unique<syncBFTmessage> (*c));
-            }
-        }
+        acceptedState(string v, string vAt , commitCertificate c):value(std::move(v)), valueAcceptedAt(std::move(vAt)), cc(std::move(c)){}
         acceptedState(const acceptedState& rhs){
             value = rhs.value;
             valueAcceptedAt = rhs.valueAcceptedAt;
-            for(auto &c: rhs.commitCertificate){
-                commitCertificate.push_back (std::make_unique<syncBFTmessage> (*c));
-            }
+            cc = rhs.cc;
         };
 
         acceptedState& operator=(const acceptedState&) = delete;
@@ -94,16 +105,15 @@ class syncBFT_Peer : public Peer<syncBFTmessage> {
 
     int 											counter;
     Blockchain*			 							blockchain;
-    std::vector<unique_ptr<syncBFTmessage>> 		P;
-    std::vector<unique_ptr<acceptedState>> 			acceptedStates ;
+    proposal                                   		P;
+    std::vector<acceptedState>           			acceptedStates ;
     bool 											terminated ;
     std::string 									valueFromLeader;
-    std::vector<unique_ptr<syncBFTmessage>> 		commitCertificate;
+    commitCertificate                               cc;
     int 											syncBFTstate ;
-    unique_ptr<syncBFTmessage> 						statusMessageToSelf;
+    std::unique_ptr<syncBFTmessage>           						statusMessageToSelf;
     bool 											byzantineFlag ;
-    int 											syncStatus ;
-    std::vector<Packet<syncBFTmessage>> 			notifyMessages;
+    std::vector<Packet<syncBFTmessage>> 			notifyMessagesPacket;
 
 
 public:
@@ -130,7 +140,6 @@ public:
     void 									commitFromLeader						();
     void 									commit									();
     void 									notify									();
-    void 									receiveNotifyMessage					();
     bool 									isValidProposal							(const syncBFTmessage &message) const { return message.peerId == leaderId; }
     bool 									isValidNotify							(const syncBFTmessage &message) const { return true; }
     bool 									isValidStatus							(const syncBFTmessage &message) const { return true; }

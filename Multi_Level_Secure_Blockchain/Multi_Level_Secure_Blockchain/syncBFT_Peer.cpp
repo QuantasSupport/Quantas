@@ -17,17 +17,15 @@ syncBFT_Peer::syncBFT_Peer(std::string id) : Peer<syncBFTmessage>(id){
     counter = 0;
     blockchain = new Blockchain(true);
 
-    std::vector<unique_ptr<syncBFTmessage>> cc;
-    acceptedState as1("_","0",std::move(cc));
-    acceptedStates.emplace_back (std::make_unique<acceptedState> (as1));
+    acceptedState as1("_","0",{});
+    acceptedStates.emplace_back (as1);
 
     terminated = false;
     valueFromLeader ="_";
     syncBFTstate = 0;
     statusMessageToSelf = nullptr;
     byzantineFlag = false;
-    syncStatus = 0;
-    notifyMessages = {};
+    notifyMessagesPacket = {};
     iter = 0;
     leaderIdCandidates.push_back(id);
 
@@ -54,16 +52,10 @@ void syncBFT_Peer::currentStatusSend(){
     for(auto & i : _inStream){
         assert(i.getMessage().type == "NOTIFY");
         if(isValidNotify(i.getMessage())){
-            notifyMessages.push_back(i);
+            notifyMessagesPacket.push_back(i);
 
-            unique_ptr<acceptedState> tempState;
-            std::vector<unique_ptr<syncBFTmessage>> cc;
-            for(auto &cCert:commitCertificate){
-                cc.push_back (std::make_unique<syncBFTmessage> (*cCert));
-            }
-            acceptedState as1(valueFromLeader, std::to_string (iter),std::move(cc));
-
-            acceptedStates.push_back (std::make_unique<acceptedState> (as1));
+            acceptedState as1(valueFromLeader, std::to_string (iter),i.getMessage().cc);
+            acceptedStates.push_back (as1);
         }
         //just accept the first notify message
         break;
@@ -79,12 +71,8 @@ void syncBFT_Peer::currentStatusSend(){
     sMessage.type = "STATUS";
     sMessage.iter = std::to_string(iter);
     assert(!acceptedStates.empty());
-    sMessage.message = {std::to_string(iter), "STATUS", acceptedStates.back()->value,acceptedStates.back()->valueAcceptedAt};
-    sMessage.commitCertificate.clear ();
-    for(auto &i:acceptedStates.back()->commitCertificate){
-        sMessage.commitCertificate.push_back (std::make_unique<syncBFTmessage> (*i));
-    }
-//	statusMessage.commitCertificate = acceptedStates.back().commitCertificate;
+    sMessage.message = {std::to_string(iter), "STATUS", acceptedStates.back().value,acceptedStates.back().valueAcceptedAt};
+    sMessage.cc = acceptedStates.back().cc;
     sMessage.statusCert = "Cert_"+_id;
     Packet<syncBFTmessage> newMessage(std::to_string(iter), leaderId, _id);
     newMessage.setBody(sMessage);
@@ -112,7 +100,7 @@ void syncBFT_Peer::propose(){
     _inStream.push_back(newMessage);
 
     //concatenate notify messages
-    _inStream.insert(_inStream.end(), notifyMessages.begin(), notifyMessages.end());
+    _inStream.insert(_inStream.end(), notifyMessagesPacket.begin(), notifyMessagesPacket.end());
     //std::cerr<<"Checking for status and notify messages in a total of "<<_inStream.size()<<" messages"<<std::endl;
     for(auto & i : _inStream){
         assert(i.getMessage().type == "STATUS"||i.getMessage().type == "NOTIFY");
@@ -120,7 +108,11 @@ void syncBFT_Peer::propose(){
             break;
         }
         if(isValidStatus(i.getMessage())){
-            P.push_back(std::make_unique<syncBFTmessage> (i.getMessage()));
+            if(i.getMessage().type == "STATUS"){
+                P.status.push_back(i.getMessage().message);
+            }else if(i.getMessage().type == "NOTIFY"){
+                P.notify.push_back(i.getMessage().message);
+            }
         }
     }
 
@@ -129,14 +121,17 @@ void syncBFT_Peer::propose(){
     bool prevAcceptedValue = false;
     syncBFTmessage proposalMessage;
 
-    for (auto &i : P) {
-        if(i->type == "NOTIFY"){
-            //The accepted state has a value accepted at iter > 0
-            if(i->message[1]!="0"){
+    for(auto &n: P.notify){
+        assert(n.size() == 3);
+        //The accepted state has a value accepted at iter > 0
+        if(n[0]!="0"){
                 prevAcceptedValue = true;
-            }
-        }else if(i->type == "STATUS"){
-            if(i->message[3]!="0"){
+        }
+    }
+    if(!prevAcceptedValue){
+        for(auto &s: P.status){
+            assert(s.size() == 4);
+            if(s[3]!="0"){
                 prevAcceptedValue = true;
             }
         }
@@ -155,9 +150,7 @@ void syncBFT_Peer::propose(){
 
         //value proposed from here.
         proposalMessage.message = {std::to_string(iter),"PROPOSE","VALUE"};
-        for(auto &i:P){
-            proposalMessage.P.push_back (std::make_unique<syncBFTmessage> (*i));
-        }
+        proposalMessage.P = P;
         proposalMessage.value = "VALUE";
 
     }else{
@@ -166,26 +159,29 @@ void syncBFT_Peer::propose(){
         int highIter= 0;
         int index = 0;
 
-        for (auto &i : P) {
-            if(i->type == "NOTIFY"){
-                if(i->message[0]!="0") {
-                    if (std::stoi(i->message[0]) >= highIter)
-                        highIter = index;
+        string highIterVal;
+        for(auto &n: P.notify){
+            assert(n.size() == 3);
+            if(n[0]!="0") {
+                if (std::stoi(n[0]) >= highIter){
+                    highIterVal = n[2];
+                    highIter = index;
+                }
+
+            }
+        }
+        for(auto &s: P.status){
+            assert(s.size() == 4);
+            if(s[3]!="0"){
+                if(std::stoi(s[3])>=highIter){
+                    highIterVal = s[2];
+                    highIter = index;
                 }
             }
-            else if(i->type == "STATUS"){
-                if(i->message[3]!="0"){
-                    if(std::stoi(i->message[3])>=highIter)
-                        highIter = index;
-                }
-            }
-            index++;
         }
 
-        proposalMessage.message = {std::to_string(iter),"PROPOSE", P[highIter]->message[2]};
-        for(auto &i:P){
-            proposalMessage.P.push_back (std::make_unique<syncBFTmessage> (*i));
-        }
+        proposalMessage.message = {std::to_string(iter),"PROPOSE", highIterVal};
+        proposalMessage.P = P;
         proposalMessage.value = "VALUE";
 
     }
@@ -203,13 +199,13 @@ void syncBFT_Peer::commitFromLeader(){
     syncBFTmessage commitMessage;
     //searching for notify messages
 
-    _inStream.insert(_inStream.end(), notifyMessages.begin(), notifyMessages.end());
+    _inStream.insert(_inStream.end(), notifyMessagesPacket.begin(), notifyMessagesPacket.end());
     for(auto & i : _inStream){
         //std::cerr<<"Checking for notify messages"<<std::endl;
         if(i.getMessage().type == "NOTIFY"){
             //std::cerr<<"notify message found"<<std::endl;
             commitMessage = i.getMessage();
-            if(i.getMessage().value == acceptedStates.back()->value){
+            if(i.getMessage().value == acceptedStates.back().value){
                 populateOutStream(commitMessage);
                 //a notify message is a valid commit message
                 return;
@@ -217,7 +213,7 @@ void syncBFT_Peer::commitFromLeader(){
         }
     }
     //std::cerr<<"notify message not found"<<std::endl;
-    commitMessage.P.clear ();
+    commitMessage.P.clear();
     if(isByzantine ()){
         valueFromLeader = "CONFLICTING_VALUE";
     }
@@ -242,12 +238,12 @@ void syncBFT_Peer::commit(){
     //std::cerr<<"WORKING ALL: Forwarding if valid and committing"<<std::endl;
     bool virtualProposalFound = false;
     //check for notify message from the leader
-    _inStream.insert(_inStream.end(), notifyMessages.begin(), notifyMessages.end());
+    _inStream.insert(_inStream.end(), notifyMessagesPacket.begin(), notifyMessagesPacket.end());
     for(int i = 0; i< _inStream.size();i++){
         //std::cerr<<"Checking for notify message"<<std::endl;
         if(_inStream[i].getMessage().type == "NOTIFY"){
             virtualProposal = _inStream[i].getMessage();
-            if(_inStream[i].getMessage().value == acceptedStates.back()->value){
+            if(_inStream[i].getMessage().value == acceptedStates.back().value){
                 valueFromLeader = _inStream[i].getMessage().value;
                 //std::cerr<<"VIRTUAL PROPOSAL FOUND"<<std::endl;
                 syncBFTmessage virtualProposalMessage = virtualProposal;
@@ -301,7 +297,7 @@ void syncBFT_Peer::notify(){
     bool committed = false;
     //std::cerr<<"WORKING ALL: NOTIFYING EVERYONE IF COMMITTING"<<std::endl;
 
-    _inStream.insert(_inStream.end(), notifyMessages.begin(), notifyMessages.end());
+    _inStream.insert(_inStream.end(), notifyMessagesPacket.begin(), notifyMessagesPacket.end());
 
     for(auto & i : _inStream){
         assert(i.getMessage().type == "FORWARD_PROPOSAL_AND_COMMIT"||i.getMessage().type == "NOTIFY");
@@ -340,17 +336,13 @@ void syncBFT_Peer::notify(){
         for(auto & i : _inStream){
             if(i.getMessage().type=="FORWARD_PROPOSAL_AND_COMMIT"){
                 if(i.getMessage().value==valueFromLeader){
-                    commitCertificate.push_back(std::make_unique<syncBFTmessage>(i.getMessage()));
+                    cc.commit.push_back((i.getMessage().message));
                 }
             }
         }
 
-        std::vector<unique_ptr<syncBFTmessage>> cc;
-        for(auto &i:commitCertificate){
-            cc.push_back (std::make_unique<syncBFTmessage> (*i));
-        }
-        acceptedState as1(valueFromLeader, std::to_string (iter),std::move(cc));
-        acceptedStates.push_back(std::make_unique<acceptedState> (as1));
+        acceptedState as1(valueFromLeader, std::to_string (iter),cc);
+        acceptedStates.push_back(as1);
     }
     //std::cerr<<"The commit certificate size is "<<std::endl;
     //std::cerr<<commitCertificate.size()<<std::endl;
@@ -363,10 +355,8 @@ void syncBFT_Peer::notify(){
         bcMessage.peerId = _id;
         bcMessage.type="NOTIFY";
         bcMessage.message = {std::to_string(iter), "NOTIFY",valueFromLeader};
-        bcMessage.commitCertificate.clear ();
-        for(auto &i:commitCertificate){
-            bcMessage.commitCertificate.push_back (std::make_unique<syncBFTmessage> (*i));
-        }
+        bcMessage.cc.clear ();
+        bcMessage.cc = cc;
         bcMessage.iter = std::to_string(iter);
         bcMessage.value = valueFromLeader;
 
@@ -377,7 +367,7 @@ void syncBFT_Peer::notify(){
             terminated = true;
 
         //write to blockchain
-        createBlock({"All:D"});
+        createBlock({"All"});
 
 //		std::cerr<<"BLOCKCHAIN SIZE IS "<<blockchain->getChainSize()<<std::endl;
     }else{
@@ -471,13 +461,11 @@ void syncBFT_Peer::refreshSyncBFT(){
     P.clear();
 
     acceptedStates.clear();
-    std::vector<unique_ptr<syncBFTmessage>> cc;
-    acceptedState as1("_","0",std::move(cc));
-    acceptedStates.push_back (std::make_unique<acceptedState> (as1));
+    acceptedState as1("_","0", {});
+    acceptedStates.push_back (as1);
 
     terminated = false;
     valueFromLeader.clear();
-    commitCertificate.clear();
     syncBFTstate = 0;
     _inStream.clear();
     _outStream.clear();
