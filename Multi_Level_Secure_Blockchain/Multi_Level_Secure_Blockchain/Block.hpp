@@ -15,12 +15,13 @@ using std::string;
 using std::set;
 
 class Block {
-	int 							index;
+	int 							index = 0;
 	string 							previousHash;
 	string 							hash;
 	set<string> 					publishers;
 
 public:
+    Block                                                               ()= default;
 	Block																(int, string, string, set<string> );
 	string 							getPreviousHash						() const;
 	string 							getHash								() const;

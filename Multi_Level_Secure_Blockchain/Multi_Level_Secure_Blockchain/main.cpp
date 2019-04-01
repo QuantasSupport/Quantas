@@ -15,6 +15,10 @@
 #include "PBFT_Peer.hpp"
 #include "syncBFT_Peer.hpp"
 #include "Network.hpp"
+#include "bCoin_Peer.hpp"
+#include <iostream>
+#include <chrono>
+#include <random>
 const int peerCount = 10;
 const int blockChainLength = 100;
 Blockchain *blockchain;
@@ -22,10 +26,12 @@ Blockchain *blockchain;
 void buildInitialChain(std::vector<std::string>);
 std::set<std::string> getPeersForConsensus(int);
 int syncBFT_Peer::peerCount = 3;
+int shuffleByzantineInterval = 0;
 
 void Example();
 void PBFT(std::ofstream &out,int);
 void syncBFT(std::ofstream &out,int avgDelay);
+void bitcoin(std::ofstream &,int );
 
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
@@ -63,6 +69,9 @@ int main(int argc, const char * argv[]) {
             }
 
         }
+    }else if (algorithm == "bitcoin") {
+        std::ofstream out;
+        bitcoin(out, 1);
     }
     
     return 0;
@@ -214,6 +223,31 @@ void syncBFT(std::ofstream &out,int maxDelay){
 
     std::cerr<<"Shuffled byzantine peers every "<<shuffleByzantineInterval<<"\tMax delay: "<<maxDelay<<"\t Consensus count: "<<n[0]->getBlockchain()->getChainSize()-1<<std::endl;
 
+}
+
+void bitcoin(std::ofstream &out, int avgDelay){
+    Network<bCoinMessage, bCoin_Peer> n;
+    n.setToPoisson();
+    n.setLog(std::cout);
+    n.initNetwork(10,avgDelay);
+
+    //mining delays at the beginning
+    for(int i = 0; i<n.size(); i++){
+        n[i]->setMineNextAt( bCoin_Peer::distribution(bCoin_Peer::generator) );
+    }
+
+    for(int i = 1; i<100; i++){
+        std::cerr<<"Iteration "<<i<<std::endl;
+        n.receive();
+        n.preformComputation();
+        n.transmit();
+    }
+    int maxChain = 0;
+    for(int i =0;i<n.size();i++){
+        if(n[i]->getBlockchain()->getChainSize()>maxChain)
+            maxChain = i;
+    }
+    std::cerr<<"Number of confirmations = "<<n[maxChain]->getBlockchain()->getChainSize()<<std::endl;
 }
 
 void Example(){
