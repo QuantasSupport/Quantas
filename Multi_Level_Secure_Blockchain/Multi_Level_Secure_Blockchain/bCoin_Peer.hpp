@@ -31,6 +31,7 @@ struct bCoinMessage {
         iter = rhs.iter;
         message = rhs.message;
         length = rhs.length;
+        return *this;
     }
 
     ~bCoinMessage() = default;

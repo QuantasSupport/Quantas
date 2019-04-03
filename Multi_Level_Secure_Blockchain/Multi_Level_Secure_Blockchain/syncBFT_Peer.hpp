@@ -75,7 +75,7 @@ struct syncBFTmessage {
         statusCert = rhs.statusCert;
         cc = rhs.cc;
         P = rhs.P;
-
+        return *this;
     }
 
     ~syncBFTmessage() = default;
