@@ -121,6 +121,37 @@ void PBFT_Peer::collectMessages(){
     }
 }
 
+void PBFT_Peer::cleanLogs(){
+    for(int confirmedTransaction = 0; confirmedTransaction < _ledger.size(); confirmedTransaction++){
+        int oldTransaction = _ledger[confirmedTransaction].sequenceNumber;
+        int i = 0;
+        while(i < _prePrepareLog.size()){
+            if(_prePrepareLog[i].sequenceNumber == oldTransaction){
+                _prePrepareLog.erase(_prePrepareLog.begin() + i);
+            }else{
+                i++;
+            }
+        }
+        i = 0;
+        while(i < _prepareLog.size()){
+            if(_prepareLog[i].sequenceNumber == oldTransaction){
+                _prepareLog.erase(_prepareLog.begin() + i);
+            }else{
+                i++;
+            }
+        }
+        i = 0;
+        while(i < _commitLog.size()){
+            if(_commitLog[i].sequenceNumber == oldTransaction){
+                _commitLog.erase(_commitLog.begin() + i);
+            }else{
+                i++;
+            }
+        }
+    }
+    
+}
+
 void PBFT_Peer::prePrepare(){
     if(_currentPhase != IDEAL ||
        _requestLog.empty() ||
@@ -136,6 +167,7 @@ void PBFT_Peer::prePrepare(){
     _currentPhase = PREPARE_WAIT;
     _currentRequest = request;
     _currentRequestResult = executeQuery(request);
+    _prepareLog.push_back(request);
     braodcast(request);
 }
 
@@ -159,6 +191,7 @@ void PBFT_Peer::prepare(){
     prepareMsg.type = REPLY;
     prepareMsg.round = _currentRound;
     prepareMsg.phase = PREPARE;
+    _prepareLog.push_back(prepareMsg);
     braodcast(prepareMsg);
     _currentPhase = PREPARE_WAIT;
     _currentRequest = prePrepareMesg;
@@ -176,8 +209,7 @@ void PBFT_Peer::waitPrepare(){
             numberOfPrepareMsg++;
         }
     }
-    // _neighbors.size() + 1 is neighbors plus this peer
-    if(numberOfPrepareMsg > (ceil((_neighbors.size() + 1) * _faultUpperBound) + 1)){
+    if(numberOfPrepareMsg > (faultyPeers())){
         _currentPhase = COMMIT;
     }
 }
@@ -195,8 +227,8 @@ void PBFT_Peer::commit(){
     commitMsg.type = REPLY;
     commitMsg.result = _currentRequestResult;
     commitMsg.round = _currentRound;
+    _commitLog.push_back(commitMsg);
     braodcast(commitMsg);
-    
     _currentPhase = COMMIT_WAIT;
 }
 
@@ -214,25 +246,31 @@ void PBFT_Peer::waitCommit(){
             numberOfCommitMsg++;
         }
     }
-    if(numberOfCommitMsg > ceil((_neighbors.size() + 1) * _faultUpperBound) + 1){
-        PBFT_Message reply = _currentRequest;
-        reply.round = _currentRound;
-        reply.round = _currentRound;
-        reply.result = _currentRequestResult;
-        reply.type = REPLY;
-        reply.phase = COMMIT;
-        _ledger.push_back(reply);
-        
-        Packet<PBFT_Message> replayPck(makePckId());
-        replayPck.setSource(_id);
-        replayPck.setTarget(reply.client_id);
-        replayPck.setBody(reply);
-        _outStream.push_back(replayPck);
+    if(numberOfCommitMsg > (faultyPeers())){
+        sendCommitReply();
+        PBFT_Message commit = _currentRequest;
+        commit.result = _currentRequestResult;
+        commit.round = _currentRound;
+        _ledger.push_back(commit);
         _currentPhase = IDEAL; // complete distributed-consensus
         _currentRequestResult = 0;
         _currentRequest = PBFT_Message();
+        //cleanLogs();
     }
     
+}
+
+void PBFT_Peer::sendCommitReply(){
+    PBFT_Message reply = _currentRequest;
+    reply.round = _currentRound;
+    reply.result = _currentRequestResult;
+    reply.type = REPLY;
+    reply.phase = COMMIT;
+    Packet<PBFT_Message> replayPck(makePckId());
+    replayPck.setSource(_id);
+    replayPck.setTarget(reply.client_id);
+    replayPck.setBody(reply);
+    _outStream.push_back(replayPck);
 }
 
 Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::vector<Peer<PBFT_Message> *> neighbors){
@@ -340,12 +378,16 @@ void PBFT_Peer::makeRequest(){
     request.sequenceNumber = -1;
     request.result = 0;
     
-    // create packet for request
-    Packet<PBFT_Message> pck(makePckId());
-    pck.setSource(_id);
-    pck.setTarget(_primary->id());
-    pck.setBody(request);
-    _outStream.push_back(pck);
+    if(_id != _primary->id()){
+        // create packet for request
+        Packet<PBFT_Message> pck(makePckId());
+        pck.setSource(_id);
+        pck.setTarget(_primary->id());
+        pck.setBody(request);
+        _outStream.push_back(pck);
+    }else{
+        _requestLog.push_back(request);
+    }
 }
 
 std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
