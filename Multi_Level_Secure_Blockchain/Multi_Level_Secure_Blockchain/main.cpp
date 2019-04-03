@@ -16,11 +16,10 @@
 #include "syncBFT_Peer.hpp"
 #include "Network.hpp"
 #include "bCoin_Peer.hpp"
+#include "BlockGuardPeer_Sharded.hpp"
 #include <iostream>
 #include <chrono>
 #include <random>
-
-#include "BlockGuardPeer_Sharded.hpp"
 
 const int peerCount = 10;
 const int blockChainLength = 100;
@@ -74,13 +73,13 @@ int main(int argc, const char * argv[]) {
             }
 
         }
-    }else if (algorithm == "bitcoin") {
     }else if (algorithm == "bgs") {
-        std::ofstream out;
-        bitcoin(out, 1);
         out.open(filePath + "/BGS_Delay"+std::to_string(1) + ".log");
         bsg(out,1);
         out.close();
+    }else if (algorithm == "bitcoin") {
+        std::ofstream out;
+        bitcoin(out, 1);
     }
     
     return 0;
