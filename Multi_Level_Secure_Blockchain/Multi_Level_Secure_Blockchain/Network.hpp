@@ -47,7 +47,7 @@ public:
     ~Network                                                ();
     
     // setters
-    void                                initNetwork         (int); // initialize network with peers
+    void                                initNetwork         (int, int); // initialize network with peers
     void                                setMaxDelay         (int d)                              {_maxDelay = d;};
     void                                setAvgDelay         (int d)                              {_avgDelay = d;};
     void                                setMinDelay         (int d)                              {_minDelay = d;};
@@ -82,7 +82,7 @@ public:
 template<class type_msg, class peer_type>
 Network<type_msg,peer_type>::Network(){
     _peers = std::vector<Peer<type_msg>*>();
-    unsigned seed = (unsigned)std::chrono::system_clock::now().time_since_epoch().count();
+    int seed = time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
     _avgDelay = 0;
     _maxDelay = std::numeric_limits<int>::max();
@@ -94,7 +94,7 @@ Network<type_msg,peer_type>::Network(){
 template<class type_msg, class peer_type>
 Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
     _peers = rhs._peers;
-    unsigned seed = (unsigned)std::chrono::system_clock::now().time_since_epoch().count();
+    int seed = time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
     _avgDelay = rhs._avgDelay;
     _maxDelay = rhs._maxDelay;
@@ -192,7 +192,9 @@ int Network<type_msg,peer_type>::getDelay(){
 }
 
 template<class type_msg, class peer_type>
-void Network<type_msg,peer_type>::initNetwork(int numberOfPeers){
+void Network<type_msg,peer_type>::initNetwork(int numberOfPeers, int avgDelay){
+    _avgDelay = avgDelay;
+    
     for(int i = 0; i < numberOfPeers; i++){
         _peers.push_back(new peer_type(getUniqueId()));
     }

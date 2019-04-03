@@ -57,10 +57,11 @@ struct PBFT_Message{
 //
 // PBFT Peer defintion
 //
-class PBFT_Peer : public virtual Peer<PBFT_Message>{
+class PBFT_Peer : public Peer<PBFT_Message>{
 protected:
     
     // tracking varables
+    //std::vector<PBFT_Message>       _messageLog;
     std::vector<PBFT_Message>       _requestLog;
     std::vector<PBFT_Message>       _prePrepareLog;
     std::vector<PBFT_Message>       _prepareLog;
@@ -91,12 +92,14 @@ protected:
     void                        waitCommit          ();             // wait for 1/3F + 1 commit msgs ends distributed-consensus
     
     // support methods used for the above
-    Peer<PBFT_Message>*         findPrimary         (const std::vector<Peer<PBFT_Message>*> peers);
-    int                         executeQuery        (const PBFT_Message&);
+    virtual void                sendCommitReply     ();
+    virtual int                 faultyPeers         ()const                                         {return ceil((_neighbors.size() + 1) * _faultUpperBound);};
+    virtual Peer<PBFT_Message>* findPrimary         (const std::vector<Peer<PBFT_Message>*> peers);
+    virtual int                 executeQuery        (const PBFT_Message&);
     std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
-    bool                        isVailedRequest     (const PBFT_Message&)const;
-    void                        braodcast           (const PBFT_Message&);
-    int                         faultyPeers         ()const                                         {return (ceil((_neighbors.size() + 1) * _faultUpperBound) + 1);};
+    virtual bool                isVailedRequest     (const PBFT_Message&)const;
+    virtual void                braodcast           (const PBFT_Message&);
+    void                        cleanLogs           (); // clears logs for all transactions in _ledger
     
 public:
     PBFT_Peer                                       (std::string id);
