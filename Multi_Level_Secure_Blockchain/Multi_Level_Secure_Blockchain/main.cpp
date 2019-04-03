@@ -74,6 +74,7 @@ int main(int argc, const char * argv[]) {
 
         }
     }else if (algorithm == "bgs") {
+        std::ofstream out;
         out.open(filePath + "/BGS_Delay"+std::to_string(1) + ".log");
         bsg(out,1);
         out.close();
