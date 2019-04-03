@@ -40,6 +40,10 @@ public:
     void                    setCommittee                       (int id)                                                 {_committeeId = id;};
     void                    addGroupMember                     (BlockGuardPeer_Sharded &newMember)                      {_groupMembers.push_back(&newMember);};
     void                    addcommitteeMember                 (BlockGuardPeer_Sharded &newMember)                      {_committeeMembers.push_back(&newMember);};
+   
+    // mutators
+    void                    clearCommittee                     ()                                                       {_committeeMembers.clear(); _committeeId = -1;}
+    void                    clearGroup                         ()                                                       {_groupMembers.clear(); _groupId = -1;}
     
     void                    preformComputation                 ();
     
