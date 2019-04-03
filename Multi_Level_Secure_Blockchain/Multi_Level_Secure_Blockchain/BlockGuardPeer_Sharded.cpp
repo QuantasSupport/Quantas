@@ -5,7 +5,7 @@
 //  Created by Kendric Hood on 3/28/19.
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
-
+//
 #include "BlockGuardPeer_Sharded.hpp"
 
 BlockGuardPeer_Sharded::BlockGuardPeer_Sharded(std::string id) : PBFT_Peer(id) {
