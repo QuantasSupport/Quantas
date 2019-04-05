@@ -306,7 +306,7 @@ void bsg(std::ofstream &out,int avgDelay){
     system.setToPoisson();
     system.setAvgDelay(avgDelay);
     system.setLog(out);
-    system.initNetwork(100);
+    system.initNetwork(1000);
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
