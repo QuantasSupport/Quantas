@@ -235,8 +235,7 @@ void syncBFT_Peer::commit(){
     syncBFTmessage messageToForward;
     syncBFTmessage virtualProposal;
 
-    //std::cerr<<"WORKING ALL: Forwarding if valid and committing"<<std::endl;
-    bool virtualProposalFound = false;
+    //WORKING ALL: Forwarding if valid and committing
     //check for notify message from the leader
     _inStream.insert(_inStream.end(), notifyMessagesPacket.begin(), notifyMessagesPacket.end());
     for(int i = 0; i< _inStream.size();i++){
@@ -245,7 +244,7 @@ void syncBFT_Peer::commit(){
             virtualProposal = _inStream[i].getMessage();
             if(_inStream[i].getMessage().value == acceptedStates.back().value){
                 valueFromLeader = _inStream[i].getMessage().value;
-                //std::cerr<<"VIRTUAL PROPOSAL FOUND"<<std::endl;
+                //VIRTUAL PROPOSAL FOUND
                 syncBFTmessage virtualProposalMessage = virtualProposal;
                 virtualProposalMessage.P.clear ();
                 virtualProposalMessage.info = "Forward Propose Message/ Commit message: " + std::to_string(iter)  + " From "+_id;
@@ -260,7 +259,7 @@ void syncBFT_Peer::commit(){
     }
     //viewing content of _inStream
 
-    //std::cerr<<"Notify message not found, no virtual proposal"<<std::endl;
+    //Notify message not found, no virtual proposal
     assert(_inStream.size()==1);
     assert(_inStream[0].getMessage().type=="PROPOSE");
     if(isValidProposal(_inStream[0].getMessage())){
@@ -268,7 +267,7 @@ void syncBFT_Peer::commit(){
         valueFromLeader = (_inStream[0].getMessage().value);
         messageToForward = (_inStream[0].getMessage());
     } else{
-        //std::cerr<<"The proposal from the leader is not valid: NOTHING TO DO"<<std::endl;
+        //The proposal from the leader is not valid: NOTHING TO DO
         valueFromLeader = ("_");
     }
 

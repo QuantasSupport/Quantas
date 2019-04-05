@@ -114,13 +114,16 @@ public:
     std::vector<PBFT_Message>   getPrepareLog       ()const                                         {return _prepareLog;};
     std::vector<PBFT_Message>   getCommitLog        ()const                                         {return _commitLog;};
     std::vector<PBFT_Message>   getLedger           ()const                                         {return _ledger;};
+    std::string                 getPhase            ()const                                         {return _currentPhase;};
     bool                        isPrimary           ()const                                         {return _id == _primary->id();};
     
     // setters
     void                        setFaultTolerance   (double f)                                      {_faultUpperBound = f;};
+    void                        clearPrimary        ()                                              {_primary = nullptr;}
     
     // mutators
-    void                        init                ()                                              {_primary = findPrimary(_neighbors);};
+    void                        init                ()                                              {initPrimary();};
+    virtual void                initPrimary         ()                                              {_primary = findPrimary(_neighbors);};
     
     // debug/logging
     std::ostream&               printTo             (std::ostream&)const;

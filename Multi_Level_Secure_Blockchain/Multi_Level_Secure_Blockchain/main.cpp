@@ -17,6 +17,7 @@
 #include "Network.hpp"
 #include "bCoin_Peer.hpp"
 #include "BlockGuardPeer_Sharded.hpp"
+#include "BGSReferenceCommittee.hpp"
 #include <iostream>
 #include <chrono>
 #include <random>
@@ -41,13 +42,6 @@ int main(int argc, const char * argv[]) {
     
     std::string algorithm = argv[1];
     std::string filePath = argv[2];
-
-    /*
-    buildInitialChain({"P0","P1","P2","P3","P4","P5","P6","P7","P8","P9"});
-    for(const auto &s: getPeersForConsensus(2)){
-        std::cerr<<s<<std::endl;
-    }
-    */
 
     if(algorithm == "example"){
         Example();
@@ -76,6 +70,7 @@ int main(int argc, const char * argv[]) {
     }else if (algorithm == "bgs") {
         std::ofstream out;
         out.open(filePath + "/BGS_Delay"+std::to_string(1) + ".log");
+        std::cout<< "Start with Delay "+std::to_string(1)<< std::endl;
         bsg(out,1);
         out.close();
     }else if (algorithm == "bitcoin") {
@@ -91,7 +86,8 @@ void PBFT(std::ofstream &out,int avgDelay){
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
     system.setLog(std::cout);
-    system.initNetwork(100,avgDelay);
+    system.setAvgDelay(avgDelay);
+    system.initNetwork(100);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->init();
@@ -99,7 +95,7 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     int numberOfRequests = 0;
     for(int i =-1; i < 250; i++){
-        if(i%100 == 0){
+        if(i%100 == 0 && i != 0){
             //std::cout<< std::endl;
         }
         //std::cout<< "."<< std::flush;
@@ -133,10 +129,10 @@ void PBFT(std::ofstream &out,int avgDelay){
     out<< "Min Ledger:,"<< min<< std::endl;
     out<< "Max Ledger:,"<< max<< std::endl;
     out<< "Total Request:,"<< numberOfRequests<<std::endl;
+    std::cout<< std::endl;
 }
 
 void syncBFT(std::ofstream &out,int maxDelay){
-//    srand(1);
     srand(time(nullptr));
 
     syncBFT_Peer::changeLeader = true;
@@ -149,7 +145,7 @@ void syncBFT(std::ofstream &out,int maxDelay){
 
     n.setMaxDelay(maxDelay);
     n.setToRandom();
-    n.initNetwork(syncBFT_Peer::peerCount,maxDelay);
+    n.initNetwork(syncBFT_Peer::peerCount);
 
     int consensusSize = 0;
 
@@ -237,8 +233,9 @@ void syncBFT(std::ofstream &out,int maxDelay){
 void bitcoin(std::ofstream &out, int avgDelay){
     Network<bCoinMessage, bCoin_Peer> n;
     n.setToPoisson();
+    n.setAvgDelay(avgDelay);
     n.setLog(std::cout);
-    n.initNetwork(10,avgDelay);
+    n.initNetwork(10);
 
     //mining delays at the beginning
     for(int i = 0; i<n.size(); i++){
@@ -261,7 +258,8 @@ void bitcoin(std::ofstream &out, int avgDelay){
 
 void Example(){
     Network<ExampleMessage,ExamplePeer> n;
-    n.initNetwork(2,1);
+    n.setMaxDelay(1);
+    n.initNetwork(2);
 
     for(int i =0; i < 3; i++){
         std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl;
@@ -286,145 +284,46 @@ void Example(){
 }
 
 void bsg(std::ofstream &out,int){
-    BlockGuardPeer_Sharded a("A");
-    BlockGuardPeer_Sharded b("B");
-    BlockGuardPeer_Sharded c("C");
-    BlockGuardPeer_Sharded d("D");
-    BlockGuardPeer_Sharded e("E");
-    BlockGuardPeer_Sharded f("F");
-    
-    a.setFaultTolerance(0.5);
-    b.setFaultTolerance(0.5);
-    c.setFaultTolerance(0.5);
-    d.setFaultTolerance(0.5);
-    e.setFaultTolerance(0.5);
-    f.setFaultTolerance(0.5);
-    
-    
-    a.addNeighbor(b, 1);
-    a.addNeighbor(c, 1);
-    a.addNeighbor(d, 1);
-    a.addNeighbor(e, 1);
-    a.addNeighbor(f, 1);
-    
-    b.addNeighbor(a, 1);
-    b.addNeighbor(c, 1);
-    b.addNeighbor(d, 1);
-    b.addNeighbor(e, 1);
-    b.addNeighbor(f, 1);
-    
-    c.addNeighbor(b, 1);
-    c.addNeighbor(a, 1);
-    c.addNeighbor(d, 1);
-    c.addNeighbor(e, 1);
-    c.addNeighbor(f, 1);
-    
-    d.addNeighbor(b, 1);
-    d.addNeighbor(c, 1);
-    d.addNeighbor(a, 1);
-    d.addNeighbor(e, 1);
-    d.addNeighbor(f, 1);
-    
-    e.addNeighbor(b, 1);
-    e.addNeighbor(c, 1);
-    e.addNeighbor(d, 1);
-    e.addNeighbor(a, 1);
-    e.addNeighbor(f, 1);
-    
-    f.addNeighbor(b, 1);
-    f.addNeighbor(c, 1);
-    f.addNeighbor(d, 1);
-    f.addNeighbor(e, 1);
-    f.addNeighbor(a, 1);
-    
-    // group 1
-    a.setGroup(1);
-    b.setGroup(1);
-    a.addGroupMember(b);
-    b.addGroupMember(a);
-    
-    // group 2
-    c.setGroup(2);
-    d.setGroup(2);
-    c.addGroupMember(d);
-    d.addGroupMember(c);
-    
-    // group 3
-    e.setGroup(3);
-    f.setGroup(3);
-    e.addGroupMember(f);
-    f.addGroupMember(e);
-    
-    // form commmit one from group 1 and 3
-    a.setCommittee(1);
-    b.setCommittee(1);
-    e.setCommittee(1);
-    f.setCommittee(1);
-    
-    a.addcommitteeMember(b);
-    a.addcommitteeMember(e);
-    a.addcommitteeMember(f);
-    
-    b.addcommitteeMember(a);
-    b.addcommitteeMember(e);
-    b.addcommitteeMember(f);
-    
-    e.addcommitteeMember(b);
-    e.addcommitteeMember(a);
-    e.addcommitteeMember(f);
-    
-    f.addcommitteeMember(b);
-    f.addcommitteeMember(e);
-    f.addcommitteeMember(a);
-    
-    // for commit two from group 2
-    c.setCommittee(2);
-    d.setCommittee(2);
-    
-    c.addcommitteeMember(d);
-    d.addcommitteeMember(c);
-    
-    for(int i = 0; i < 10; i++){
-        a.printTo(out);
-        b.printTo(out);
-        c.printTo(out);
-        d.printTo(out);
-        e.printTo(out);
-        f.printTo(out);
+    BGSReferenceCommittee system = BGSReferenceCommittee();
+    system.setGroupSize(10);
+    system.setToOne();
+    system.setMaxDelay(1);
+    system.setMinDelay(1);
+    system.setLog(out);
+    system.initNetwork(100);
+    system.setFaultTolerance(0.3);
+
+    int numberOfRequests = 0;
+    for(int i =-1; i < 10; i++){
+        if(i%100 == 0 && i != 0){
+            std::cout<< std::endl;
+        }
+        std::cout<< "."<< std::flush;
         
-        a.receive();
-        b.receive();
-        c.receive();
-        d.receive();
-        e.receive();
-        f.receive();
+        if(i%5 == 0){
+            system.makeRequest();
+            numberOfRequests++;
+        }
         
-        a.preformComputation();
-        b.preformComputation();
-        c.preformComputation();
-        d.preformComputation();
-        e.preformComputation();
-        f.preformComputation();
-        
-        a.transmit();
-        b.transmit();
-        c.transmit();
-        d.transmit();
-        e.transmit();
-        f.transmit();
-        
-        if(i == 0){
-            b.makeRequest();
+        system.receive();
+        system.preformComputation();
+        system.transmit();
+        system.log();
+    }
+    int min = (int)system[0]->getLedger().size();
+    int max = (int)system[0]->getLedger().size();
+    for(int i = 0; i < system.size(); i++){
+        if(system[i]->getLedger().size() < min){
+            min = (int)system[i]->getLedger().size();
+        }
+        if(system[i]->getLedger().size() > max){
+            max = (int)system[i]->getLedger().size();
         }
     }
-    
-    out<< "A:"<< a.getLedger().size();
-    out<< "B:"<< b.getLedger().size();
-    out<< "C:"<< c.getLedger().size();
-    out<< "D:"<< d.getLedger().size();
-    out<< "E:"<< e.getLedger().size();
-    out<< "F:"<< f.getLedger().size();
-
+    out<< "Min Ledger:,"<< min<< std::endl;
+    out<< "Max Ledger:,"<< max<< std::endl;
+    out<< "Total Request:,"<< numberOfRequests<<std::endl;
+    std::cout<< std::endl;
 }
 
 //

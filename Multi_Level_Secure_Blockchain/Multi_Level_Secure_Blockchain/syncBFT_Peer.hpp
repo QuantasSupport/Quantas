@@ -147,7 +147,7 @@ public:
     static int 								incrementSyncBFTsystemState				();
     static bool 							leaderChange							();
     void 									preformComputation						();
-    void                                    populateOutStream                       (syncBFTmessage msg);
+    virtual void                            populateOutStream                       (syncBFTmessage msg); // broadcast
 
     bool									isByzantine								() { return byzantineFlag; }
 

@@ -12,12 +12,6 @@
 #include <stdio.h>
 #include "PBFT_Peer.hpp"
 
-static double SECURITY_LEVEL_1 = 1;
-static double SECURITY_LEVEL_2 = 0.5;
-static double SECURITY_LEVEL_3 = 0.25;
-static double SECURITY_LEVEL_4 = 0.125;
-static double SECURITY_LEVEL_5 = 0.0625;
-
 class BlockGuardPeer_Sharded : public PBFT_Peer{
 protected:
     
@@ -44,6 +38,7 @@ public:
     // mutators
     void                    clearCommittee                     ()                                                       {_committeeMembers.clear(); _committeeId = -1;}
     void                    clearGroup                         ()                                                       {_groupMembers.clear(); _groupId = -1;}
+    void                    initPrimary                        ()                                                       {_primary = findPrimary(_committeeMembers);};
     
     void                    preformComputation                 ();
     
