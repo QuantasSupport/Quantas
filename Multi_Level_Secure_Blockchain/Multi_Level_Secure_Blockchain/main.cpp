@@ -321,7 +321,7 @@ void bsg(std::ofstream &out,int avgDelay){
         system.receive();
         system.preformComputation();
         system.transmit();
-        system.log();
+        //system.log();
     }
     int min = 0;
     int max = 0;
