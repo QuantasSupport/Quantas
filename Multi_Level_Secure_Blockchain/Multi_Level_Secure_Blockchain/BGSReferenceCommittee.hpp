@@ -37,9 +37,9 @@ class BGSReferenceCommittee{
 protected:
     int                                                             _currentRound;
     int                                                             _groupSize;
-    int                                                             _numberOfGroups;
     int                                                             _nextCommitteeId;
     Network<PBFT_Message, BlockGuardPeer_Sharded>                   _peers;
+    std::vector<int>                                                _groupIds;
     std::vector<std::pair<int,aGroup> >                             _busyGroups;
     std::vector<std::pair<int,aGroup> >                             _freeGroups;
     std::vector<BGSrequest>                                         _requestQueue;
@@ -66,8 +66,10 @@ public:
     
     // getters
     int                     getGroupSize            ()const                                                     {return _groupSize;};
-    int                     numberOfGroups          ()const                                                     {return _numberOfGroups;};
+    int                     numberOfGroups          ()const                                                     {return _groupIds.size();};
     int                     size                    ()const                                                     {return _peers.size();}
+    aGroup                  getGroup                (int)const;
+    std::vector<int>        getGroupIds             ()const                                                     {return _groupIds;};
     
     // mutators
     void                    initNetwork             (int);

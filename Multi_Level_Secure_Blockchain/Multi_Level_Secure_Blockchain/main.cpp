@@ -26,11 +26,14 @@
 const int peerCount = 10;
 const int blockChainLength = 100;
 Blockchain *blockchain;
-
-void buildInitialChain(std::vector<std::string>);
-std::set<std::string> getPeersForConsensus(int);
 int syncBFT_Peer::peerCount = 3;
 int shuffleByzantineInterval = 0;
+
+// util functions
+void buildInitialChain(std::vector<std::string>);
+std::set<std::string> getPeersForConsensus(int);
+int getMaxLedgerFromBGS_PBFTGroup(std::vector<BlockGuardPeer_Sharded*>);
+int getMinLedgerFromBGS_PBFTGroup(std::vector<BlockGuardPeer_Sharded*>);
 
 void Example();
 void PBFT(std::ofstream &out,int);
@@ -70,9 +73,19 @@ int main(int argc, const char * argv[]) {
         }
     }else if (algorithm == "bgs") {
         std::ofstream out;
-        out.open(filePath + "/BGS_Delay"+std::to_string(1) + ".log");
-        std::cout<< "Start with Delay "+std::to_string(1)<< std::endl;
-        bsg(out,1);
+        for(int delay = 1; delay < 100; delay = delay + 10){
+            std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
+            std::ofstream out;
+            out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".log");
+            for(int run = 0; run < 5; run++){
+                std::cout<< "run:"<<run<<std::endl;
+                bsg(out,delay);
+            }
+            out.close();
+            if(delay == 1){
+                delay = 0;
+            }
+        }
         out.close();
     }else if (algorithm == "bitcoin") {
         std::ofstream out;
@@ -284,18 +297,17 @@ void Example(){
     std::cout<< n<< std::endl;
 }
 
-void bsg(std::ofstream &out,int){
+void bsg(std::ofstream &out,int avgDelay){
     BGSReferenceCommittee system = BGSReferenceCommittee();
     system.setGroupSize(10);
-    system.setToOne();
-    system.setMaxDelay(1);
-    system.setMinDelay(1);
+    system.setToPoisson();
+    system.setAvgDelay(avgDelay);
     system.setLog(out);
     system.initNetwork(100);
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
-    for(int i =-1; i < 10; i++){
+    for(int i =-1; i < 1000; i++){
         if(i%100 == 0 && i != 0){
             std::cout<< std::endl;
         }
@@ -311,16 +323,17 @@ void bsg(std::ofstream &out,int){
         system.transmit();
         system.log();
     }
-    int min = (int)system[0]->getLedger().size();
-    int max = (int)system[0]->getLedger().size();
-    for(int i = 0; i < system.size(); i++){
-        if(system[i]->getLedger().size() < min){
-            min = (int)system[i]->getLedger().size();
-        }
-        if(system[i]->getLedger().size() > max){
-            max = (int)system[i]->getLedger().size();
-        }
+    int min = 0;
+    int max = 0;
+    
+    for(int id = 0; id < system.numberOfGroups(); id++){
+        max += getMaxLedgerFromBGS_PBFTGroup(system.getGroup(id));
     }
+    
+    for(int id = 0; id < system.numberOfGroups(); id++){
+        min += getMinLedgerFromBGS_PBFTGroup(system.getGroup(id));
+    }
+    
     out<< "Min Ledger:,"<< min<< std::endl;
     out<< "Max Ledger:,"<< max<< std::endl;
     out<< "Total Request:,"<< numberOfRequests<<std::endl;
@@ -380,4 +393,24 @@ std::set<std::string> getPeersForConsensus(int securityLevel) {
     }
     
     return peersForConsensus;
+}
+
+int getMaxLedgerFromBGS_PBFTGroup(std::vector<BlockGuardPeer_Sharded*> group){
+    int max = (int)group[0]->getLedger().size();
+    for(int i = 0; i < group.size(); i++){
+        if(group[i]->getLedger().size() > max){
+            max = (int)group[i]->getLedger().size();
+        }
+    }
+    return max;
+}
+
+int getMinLedgerFromBGS_PBFTGroup(std::vector<BlockGuardPeer_Sharded*> group){
+    int min = (int)group[0]->getLedger().size();
+    for(int i = 0; i < group.size(); i++){
+        if(group[i]->getLedger().size() < min){
+            min = (int)group[i]->getLedger().size();
+        }
+    }
+    return min;
 }

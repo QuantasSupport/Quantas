@@ -15,10 +15,10 @@ BGSReferenceCommittee::BGSReferenceCommittee(){
     _currentRound = 0;
     _groupSize = -1;
     _peers = Network<PBFT_Message, BlockGuardPeer_Sharded>();
-    _numberOfGroups = 0;
     typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
     _busyGroups = std::vector<std::pair<int,aGroup> >();
     _freeGroups = std::vector<std::pair<int,aGroup> >();
+    _groupIds = std::vector<int>();
     _nextCommitteeId = 0;
     
     int seed = (int)time(nullptr);
@@ -29,9 +29,9 @@ BGSReferenceCommittee::BGSReferenceCommittee(const BGSReferenceCommittee &rhs){
     _currentRound = rhs._currentRound;
     _groupSize = rhs._groupSize;
     _peers = rhs._peers;
-    _numberOfGroups = rhs._numberOfGroups;
     _busyGroups = rhs._busyGroups;
     _freeGroups = rhs._freeGroups;
+    _groupIds = rhs._groupIds;
     _nextCommitteeId = rhs._nextCommitteeId;
     
     int seed = (int)time(nullptr);
@@ -47,10 +47,9 @@ void BGSReferenceCommittee::makeGroup(std::vector<BlockGuardPeer_Sharded*> group
             }
         }
     }
-    
     typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
     _freeGroups.push_back(std::pair<int,aGroup>(id,group));
-    _numberOfGroups++;
+    _groupIds.push_back(id);
 }
 
 void BGSReferenceCommittee::initNetwork(int numberOfPeers){
@@ -115,7 +114,7 @@ BGSrequest BGSReferenceCommittee::generateRequest(){
 typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
 void BGSReferenceCommittee::makeRequest(){
     _requestQueue.push_back(generateRequest());
-    int groupsNeeded = (int)(_numberOfGroups*_requestQueue.front().securityLevel) == 0 ? 1 : _numberOfGroups*_requestQueue.front().securityLevel;
+    int groupsNeeded = (int)(_groupIds.size()*_requestQueue.front().securityLevel) == 0 ? 1 : _groupIds.size()*_requestQueue.front().securityLevel;
     
     // return if there is not enough free groups to make the committee
     if(_freeGroups.size() < groupsNeeded){
@@ -176,11 +175,41 @@ void BGSReferenceCommittee::setFaultTolerance(double f){
     }
 }
 
+typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
+aGroup BGSReferenceCommittee::getGroup(int id)const{
+    for(int i = 0; i < _freeGroups.size(); i++){
+        if(_freeGroups[i].first == id){
+            return _freeGroups[i].second;
+        }
+    }
+    for(int i = 0; i < _busyGroups.size(); i++){
+        if(_busyGroups[i].first == id){
+            return _busyGroups[i].second;
+        }
+    }
+    return aGroup();
+}
+
+BGSReferenceCommittee& BGSReferenceCommittee::operator=(const BGSReferenceCommittee &rhs){
+    _currentRound = rhs._currentRound;
+    _groupSize = rhs._groupSize;
+    _peers = rhs._peers;
+    _busyGroups = rhs._busyGroups;
+    _freeGroups = rhs._freeGroups;
+    _groupIds = rhs._groupIds;
+    _nextCommitteeId = rhs._nextCommitteeId;
+    
+    int seed = (int)time(nullptr);
+    _randomGenerator = std::default_random_engine(seed);
+    
+    return *this;
+}
+
 std::ostream& BGSReferenceCommittee::printTo(std::ostream& out)const{
     out<< "-- REFERENCE COMMITTEE SETUP --"<< std::endl<< std::endl;
     out<< std::left;
     out<< '\t'<< std::setw(LOG_WIDTH)<< "Current Round"<< std::setw(LOG_WIDTH)<< "Group Size"<< std::setw(LOG_WIDTH)<< "Number Of Groups"<< std::setw(LOG_WIDTH)<< "Number Of Free Groups"<< std::setw(LOG_WIDTH)<< "Number Of Busy Groups"<< std::setw(LOG_WIDTH)<< std::endl;
-    out<< '\t'<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _groupSize<< std::setw(LOG_WIDTH)<< _numberOfGroups<< std::setw(LOG_WIDTH)<< _freeGroups.size()<< std::setw(LOG_WIDTH)<< _busyGroups.size()<< std::setw(LOG_WIDTH)<< std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _groupSize<< std::setw(LOG_WIDTH)<< _groupIds.size()<< std::setw(LOG_WIDTH)<< _freeGroups.size()<< std::setw(LOG_WIDTH)<< _busyGroups.size()<< std::setw(LOG_WIDTH)<< std::endl;
     out<< '\t'<< std::setw(LOG_WIDTH)<< "Request Queue Size"<< std::setw(LOG_WIDTH)<< "Next Committee Id"<< std::endl;
     out<< '\t'<< std::setw(LOG_WIDTH)<< _requestQueue.size()<< std::setw(LOG_WIDTH)<< _nextCommitteeId<< std::endl;
     
