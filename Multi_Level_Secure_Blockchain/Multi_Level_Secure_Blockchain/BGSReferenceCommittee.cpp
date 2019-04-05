@@ -115,6 +115,7 @@ typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
 void BGSReferenceCommittee::makeRequest(){
     _requestQueue.push_back(generateRequest());
     int groupsNeeded = (int)(_groupIds.size()*_requestQueue.front().securityLevel) == 0 ? 1 : _groupIds.size()*_requestQueue.front().securityLevel;
+    updateBusyGroup();
     
     // return if there is not enough free groups to make the committee
     if(_freeGroups.size() < groupsNeeded){
@@ -140,6 +141,27 @@ void BGSReferenceCommittee::makeRequest(){
         }
     }
     
+}
+
+typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
+void BGSReferenceCommittee::updateBusyGroup(){
+    for(int id = 0; id < _groupIds.size(); id++){
+        aGroup group= getGroup(id);
+        bool stillBusy = false;
+        for(int i = 0; i < group.size(); i++){
+            if(group[i]->getPhase() != IDEAL){
+                stillBusy = true;
+            }
+        }
+        if(!stillBusy){
+            for(int i =0; i < _busyGroups.size(); i++){
+                if(_busyGroups[i].first == id){
+                    _busyGroups.erase(_busyGroups.begin() + i);
+                    _freeGroups.push_back(std::pair<int, aGroup>(id,group));
+                }
+            }
+        }
+    }
 }
 
 void BGSReferenceCommittee::initCommittee(std::vector<std::pair<int, aGroup> > groupsInCommittee){

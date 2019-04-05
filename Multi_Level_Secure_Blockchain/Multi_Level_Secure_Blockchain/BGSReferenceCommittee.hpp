@@ -53,7 +53,7 @@ protected:
     double                  pickSecrityLevel        ();
     void                    makeCommittee           (std::vector<std::pair<int,aGroup> >);
     void                    initCommittee           (std::vector<std::pair<int,aGroup> >);
-    
+    void                    updateBusyGroup         ();
 public:
     BGSReferenceCommittee                           ();
     BGSReferenceCommittee                           (const BGSReferenceCommittee&);

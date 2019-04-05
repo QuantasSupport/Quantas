@@ -28,6 +28,7 @@ const int blockChainLength = 100;
 Blockchain *blockchain;
 int syncBFT_Peer::peerCount = 3;
 int shuffleByzantineInterval = 0;
+std::ofstream progress;
 
 // util functions
 void buildInitialChain(std::vector<std::string>);
@@ -72,13 +73,15 @@ int main(int argc, const char * argv[]) {
 
         }
     }else if (algorithm == "bgs") {
+        std::cout<< "BGS"<<std::endl;
         std::ofstream out;
-        for(int delay = 1; delay < 100; delay = delay + 10){
-            std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
+        for(int delay = 1; delay < 50; delay = delay + 10){
+            progress<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
-            out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".log");
+            out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
+            progress.open(filePath + "/progress.txt");
             for(int run = 0; run < 5; run++){
-                std::cout<< "run:"<<run<<std::endl;
+                progress<< "run:"<<run<<std::endl;
                 bsg(out,delay);
             }
             out.close();
@@ -309,9 +312,9 @@ void bsg(std::ofstream &out,int avgDelay){
     int numberOfRequests = 0;
     for(int i =-1; i < 1000; i++){
         if(i%100 == 0 && i != 0){
-            std::cout<< std::endl;
+           progress<< std::endl;
         }
-        std::cout<< "."<< std::flush;
+        progress<< "."<< std::flush;
         
         if(i%5 == 0){
             system.makeRequest();
@@ -337,7 +340,7 @@ void bsg(std::ofstream &out,int avgDelay){
     out<< "Min Ledger:,"<< min<< std::endl;
     out<< "Max Ledger:,"<< max<< std::endl;
     out<< "Total Request:,"<< numberOfRequests<<std::endl;
-    std::cout<< std::endl;
+    progress<< std::endl;
 }
 
 //
