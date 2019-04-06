@@ -93,8 +93,6 @@ double BGSReferenceCommittee::pickSecrityLevel(){
         case 2: return SECURITY_LEVEL_3; break;
         case 3: return SECURITY_LEVEL_4; break;
         case 4: return SECURITY_LEVEL_5; break;
-        case 5: return SECURITY_LEVEL_6; break;
-        case 6: return SECURITY_LEVEL_7; break;
 
         default: return SECURITY_LEVEL_1; break;
     }
@@ -114,7 +112,7 @@ BGSrequest BGSReferenceCommittee::generateRequest(){
 typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
 void BGSReferenceCommittee::makeRequest(){
     _requestQueue.push_back(generateRequest());
-    int groupsNeeded = (int)(_groupIds.size()*_requestQueue.front().securityLevel) == 0 ? 1 : _groupIds.size()*_requestQueue.front().securityLevel;
+    int groupsNeeded = _requestQueue.front().securityLevel;
     updateBusyGroup();
     
     // return if there is not enough free groups to make the committee

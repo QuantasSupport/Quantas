@@ -19,13 +19,12 @@
 #include <random>
 #include <stdio.h>
 
-static double SECURITY_LEVEL_7 = 1; // whole system
-static double SECURITY_LEVEL_6 = SECURITY_LEVEL_7/2; // half of system
-static double SECURITY_LEVEL_5 = SECURITY_LEVEL_6/2; // quarter of system
-static double SECURITY_LEVEL_4 = SECURITY_LEVEL_5/2; // so on ...
-static double SECURITY_LEVEL_3 = SECURITY_LEVEL_4/2;
-static double SECURITY_LEVEL_2 = SECURITY_LEVEL_3/2;
-static double SECURITY_LEVEL_1 = SECURITY_LEVEL_2/2; // for 1000 peers and group size of 10 this will be ~1.5625 round down for one committee
+
+static double SECURITY_LEVEL_5 = 64;
+static double SECURITY_LEVEL_4 = 32;
+static double SECURITY_LEVEL_3 = 16;
+static double SECURITY_LEVEL_2 = 8;
+static double SECURITY_LEVEL_1 = 4;
 
 struct BGSrequest{
     double securityLevel;
@@ -48,53 +47,54 @@ protected:
     std::default_random_engine                                      _randomGenerator;
     
     // util functions
-    BGSrequest              generateRequest         ();
-    void                    makeGroup               (std::vector<BlockGuardPeer_Sharded*>,int);
-    double                  pickSecrityLevel        ();
-    void                    makeCommittee           (std::vector<std::pair<int,aGroup> >);
-    void                    initCommittee           (std::vector<std::pair<int,aGroup> >);
-    void                    updateBusyGroup         ();
+    BGSrequest                      generateRequest         ();
+    void                            makeGroup               (std::vector<BlockGuardPeer_Sharded*>,int);
+    double                          pickSecrityLevel        ();
+    void                            makeCommittee           (std::vector<std::pair<int,aGroup> >);
+    void                            initCommittee           (std::vector<std::pair<int,aGroup> >);
+    void                            updateBusyGroup         ();
 public:
-    BGSReferenceCommittee                           ();
-    BGSReferenceCommittee                           (const BGSReferenceCommittee&);
-    ~BGSReferenceCommittee                          ()                                                          {};
+    BGSReferenceCommittee                                   ();
+    BGSReferenceCommittee                                   (const BGSReferenceCommittee&);
+    ~BGSReferenceCommittee                                  ()                                                          {};
     
     // setters
-    void                    setGroupSize            (int g)                                                     {_groupSize = g;};
-    void                    setFaultTolerance       (double);
-    void                    setLog                  (std::ostream &o)                                           {_log = &o; _peers.setLog(o);}
+    void                            setGroupSize            (int g)                                                     {_groupSize = g;};
+    void                            setFaultTolerance       (double);
+    void                            setLog                  (std::ostream &o)                                           {_log = &o; _peers.setLog(o);}
     
     // getters
-    int                     getGroupSize            ()const                                                     {return _groupSize;};
-    int                     numberOfGroups          ()const                                                     {return _groupIds.size();};
-    int                     size                    ()const                                                     {return _peers.size();}
-    aGroup                  getGroup                (int)const;
-    std::vector<int>        getGroupIds             ()const                                                     {return _groupIds;};
+    int                             getGroupSize            ()const                                                     {return _groupSize;};
+    int                             numberOfGroups          ()const                                                     {return (int)_groupIds.size();};
+    int                             size                    ()const                                                     {return _peers.size();}
+    aGroup                          getGroup                (int)const;
+    std::vector<int>                getGroupIds             ()const                                                     {return _groupIds;};
     
     // mutators
-    void                    initNetwork             (int);
-    void                    makeRequest             ();
+    void                            initNetwork             (int);
+    void                            makeRequest             ();
     
     // pass-through to Network class
-    void                    receive                 ()                                                          {_peers.receive();};
-    void                    preformComputation      ()                                                          {_peers.preformComputation(); _currentRound++;};
-    void                    transmit                ()                                                          {_peers.transmit();};
-    void                    setMaxDelay             (int d)                                                     {_peers.setMaxDelay(d);};
-    void                    setAvgDelay             (int d)                                                     {_peers.setAvgDelay(d);};
-    void                    setMinDelay             (int d)                                                     {_peers.setMinDelay(d);};
-    void                    setToPoisson            ()                                                          {_peers.setToPoisson();};
-    void                    setToOne                ()                                                          {_peers.setToOne();};
-    void                    setToRandom             ()                                                          {_peers.setToRandom();};
+    void                            receive                 ()                                                          {_peers.receive();};
+    void                            preformComputation      ()                                                          {_peers.preformComputation(); _currentRound++;};
+    void                            transmit                ()                                                          {_peers.transmit();};
+    void                            setMaxDelay             (int d)                                                     {_peers.setMaxDelay(d);};
+    void                            setAvgDelay             (int d)                                                     {_peers.setAvgDelay(d);};
+    void                            setMinDelay             (int d)                                                     {_peers.setMinDelay(d);};
+    void                            setToPoisson            ()                                                          {_peers.setToPoisson();};
+    void                            setToOne                ()                                                          {_peers.setToOne();};
+    void                            setToRandom             ()                                                          {_peers.setToRandom();};
     
     
     // logging and debugging
-    std::ostream&           printTo                 (std::ostream&)const;
-    void                    log                     ()const                                                     {printTo(*_log);};
+    std::ostream&                   printTo                 (std::ostream&)const;
+    void                            log                     ()const                                                     {printTo(*_log);};
     
     // operators
-    BGSReferenceCommittee&  operator=               (const BGSReferenceCommittee&);
-    BlockGuardPeer_Sharded* operator[]              (int i)                                                     {return _peers[i];};
-    friend std::ostream&    operator<<              (std::ostream &out, const BGSReferenceCommittee &system)    {return system.printTo(out);};
+    BGSReferenceCommittee&          operator=               (const BGSReferenceCommittee&);
+    BlockGuardPeer_Sharded*         operator[]              (int i)                                                     {return _peers[i];};
+    const BlockGuardPeer_Sharded*   operator[]              (int i)const                                                     {return _peers[i];};
+    friend std::ostream&            operator<<              (std::ostream &out, const BGSReferenceCommittee &system)    {return system.printTo(out);};
 
 };
 

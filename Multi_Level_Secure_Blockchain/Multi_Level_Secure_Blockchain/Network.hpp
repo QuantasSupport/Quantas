@@ -79,6 +79,7 @@ public:
     // operators
     Network&                            operator=           (const Network&);
     peer_type*                          operator[]          (int);
+    const peer_type*                    operator[]          (int)const;
     friend std::ostream&                operator<<          (std::ostream &out, const Network &system)      {return system.printTo(out);};
 };
 
@@ -258,6 +259,11 @@ Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Netwo
 
 template<class type_msg, class peer_type>
 peer_type* Network<type_msg,peer_type>::operator[](int i){
+    return dynamic_cast<peer_type*>(_peers[i]);
+}
+
+template<class type_msg, class peer_type>
+const peer_type* Network<type_msg,peer_type>::operator[](int i)const{
     return dynamic_cast<peer_type*>(_peers[i]);
 }
 

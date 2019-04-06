@@ -33,8 +33,9 @@ std::ofstream progress;
 // util functions
 void buildInitialChain(std::vector<std::string>);
 std::set<std::string> getPeersForConsensus(int);
-int getMaxLedgerFromBGS_PBFTGroup(std::vector<BlockGuardPeer_Sharded*>);
-int getMinLedgerFromBGS_PBFTGroup(std::vector<BlockGuardPeer_Sharded*>);
+int getMaxLedgerFromBGS_PBFTGroup(const std::vector<BlockGuardPeer_Sharded*>&);
+int getMinLedgerFromBGS_PBFTGroup(const std::vector<BlockGuardPeer_Sharded*>&);
+int sumMessagesSentBGS(const BGSReferenceCommittee&);
 
 void Example();
 void PBFT(std::ofstream &out,int);
@@ -80,7 +81,7 @@ int main(int argc, const char * argv[]) {
             std::ofstream out;
             out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
             progress.open(filePath + "/progress.txt");
-            for(int run = 0; run < 5; run++){
+            for(int run = 0; run < 10; run++){
                 progress<< "run:"<<run<<std::endl;
                 bsg(out,delay);
             }
@@ -117,7 +118,7 @@ void PBFT(std::ofstream &out,int avgDelay){
         }
         //std::cout<< "."<< std::flush;
         
-        if(i%5 == 0){
+        if(i%2 == 0){
             int randIndex = rand()%system.size();
             while(system[randIndex]->isPrimary()){
                 randIndex = rand()%system.size();
@@ -302,11 +303,11 @@ void Example(){
 
 void bsg(std::ofstream &out,int avgDelay){
     BGSReferenceCommittee system = BGSReferenceCommittee();
-    system.setGroupSize(10);
+    system.setGroupSize(16);
     system.setToPoisson();
     system.setAvgDelay(avgDelay);
     system.setLog(out);
-    system.initNetwork(1000);
+    system.initNetwork(1024);
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
@@ -314,7 +315,7 @@ void bsg(std::ofstream &out,int avgDelay){
         if(i%100 == 0 && i != 0){
            progress<< std::endl;
         }
-        progress<< "."<< std::flush;
+        progress<< ".";
         
         if(i%5 == 0){
             system.makeRequest();
@@ -337,8 +338,11 @@ void bsg(std::ofstream &out,int avgDelay){
         min += getMinLedgerFromBGS_PBFTGroup(system.getGroup(id));
     }
     
+    int totalMessages = sumMessagesSentBGS(system);
+    
     out<< "Min Ledger:,"<< min<< std::endl;
     out<< "Max Ledger:,"<< max<< std::endl;
+    out<< "Total Messages:"<< totalMessages<< std::endl;
     out<< "Total Request:,"<< numberOfRequests<<std::endl;
     progress<< std::endl;
 }
@@ -398,7 +402,7 @@ std::set<std::string> getPeersForConsensus(int securityLevel) {
     return peersForConsensus;
 }
 
-int getMaxLedgerFromBGS_PBFTGroup(std::vector<BlockGuardPeer_Sharded*> group){
+int getMaxLedgerFromBGS_PBFTGroup(const std::vector<BlockGuardPeer_Sharded*> &group){
     int max = (int)group[0]->getLedger().size();
     for(int i = 0; i < group.size(); i++){
         if(group[i]->getLedger().size() > max){
@@ -408,7 +412,7 @@ int getMaxLedgerFromBGS_PBFTGroup(std::vector<BlockGuardPeer_Sharded*> group){
     return max;
 }
 
-int getMinLedgerFromBGS_PBFTGroup(std::vector<BlockGuardPeer_Sharded*> group){
+int getMinLedgerFromBGS_PBFTGroup(const std::vector<BlockGuardPeer_Sharded*> &group){
     int min = (int)group[0]->getLedger().size();
     for(int i = 0; i < group.size(); i++){
         if(group[i]->getLedger().size() < min){
@@ -416,4 +420,12 @@ int getMinLedgerFromBGS_PBFTGroup(std::vector<BlockGuardPeer_Sharded*> group){
         }
     }
     return min;
+}
+
+int sumMessagesSentBGS(const BGSReferenceCommittee &system){
+    int sum = 0;
+    for(int i = 0; i < system.size(); i++){
+        sum += system[i]->getMessageCount();
+    }
+    return sum;
 }
