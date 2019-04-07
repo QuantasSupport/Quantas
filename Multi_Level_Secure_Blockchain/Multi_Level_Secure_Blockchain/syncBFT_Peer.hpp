@@ -13,6 +13,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <queue>
 
 #include "Peer.hpp"
 #include "Blockchain.hpp"
@@ -111,12 +112,14 @@ class syncBFT_Peer : public Peer<syncBFTmessage> {
     std::string 									valueFromLeader;
     commitCertificate                               cc;
     int 											syncBFTstate ;
-    std::unique_ptr<syncBFTmessage>           						statusMessageToSelf;
+    std::unique_ptr<syncBFTmessage>           		statusMessageToSelf;
     bool 											byzantineFlag ;
     std::vector<Packet<syncBFTmessage>> 			notifyMessagesPacket;
 
 
 public:
+    static std::queue<std::string>          txQueue;
+    static string                           txToConsensus;
     static std::vector<std::string> 		leaderIdCandidates;
     static int 								syncBFTsystemState;
     static bool 							changeLeader;
@@ -132,7 +135,7 @@ public:
     static std::string 						getLeaderId								() { return leaderId; }
     bool 									getTerminationFlag						() const { return terminated; }
 
-    void 									createBlock								(std::set<std::string>);
+    void 									createBlock								(std::set<std::string>, string);
     bool 									isLeader								() { return leaderId == _id; }
     void 									run										();
     void 									currentStatusSend						();
@@ -152,7 +155,7 @@ public:
     bool									isByzantine								() { return byzantineFlag; }
 
     ~syncBFT_Peer() 						{ delete blockchain; }
-    void                                    makeRequest(){}
+    void                                    makeRequest                             ();
 
 };
 

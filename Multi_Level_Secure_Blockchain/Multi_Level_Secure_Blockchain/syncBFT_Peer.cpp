@@ -11,8 +11,8 @@ bool syncBFT_Peer::changeLeader = true;
 vector<string> syncBFT_Peer::leaderIdCandidates = {};
 string syncBFT_Peer::leaderId;
 int syncBFT_Peer::syncBFTsystemState = 0;
-
-
+std::queue<std::string> syncBFT_Peer::txQueue;
+string syncBFT_Peer::txToConsensus;
 syncBFT_Peer::syncBFT_Peer(std::string id) : Peer<syncBFTmessage>(id){
     counter = 0;
     blockchain = new Blockchain(true);
@@ -39,8 +39,8 @@ void syncBFT_Peer::populateOutStream(syncBFTmessage msg){
         _outStream.push_back(newMessage);
     }
 }
-void syncBFT_Peer::createBlock(std::set<std::string> publishers){
-    blockchain->createBlock(blockchain->getChainSize(), blockchain->getLatestBlockHash(), std::to_string(blockchain->getChainSize())+"_"+id(), std::move(publishers));
+void syncBFT_Peer::createBlock(std::set<std::string> publishers, string blockHash){
+    blockchain->createBlock(blockchain->getChainSize(), blockchain->getLatestBlockHash(), blockHash, std::move(publishers));
 }
 void syncBFT_Peer::currentStatusSend(){
 
@@ -149,9 +149,10 @@ void syncBFT_Peer::propose(){
         //choose any value to propose if no value has been accepted in P
 
         //value proposed from here.
-        proposalMessage.message = {std::to_string(iter),"PROPOSE","VALUE"};
+        proposalMessage.message = {std::to_string(iter),"PROPOSE",txToConsensus};
         proposalMessage.P = P;
-        proposalMessage.value = "VALUE";
+        proposalMessage.value = txToConsensus;
+        valueFromLeader = txToConsensus;
 
     }else{
         //Some values were Previously accepted
@@ -182,7 +183,7 @@ void syncBFT_Peer::propose(){
 
         proposalMessage.message = {std::to_string(iter),"PROPOSE", highIterVal};
         proposalMessage.P = P;
-        proposalMessage.value = "VALUE";
+        proposalMessage.value = highIterVal;
 
     }
 
@@ -217,9 +218,7 @@ void syncBFT_Peer::commitFromLeader(){
     if(isByzantine ()){
         valueFromLeader = "CONFLICTING_VALUE";
     }
-    else
-        valueFromLeader = "VALUE";
-    commitMessage.info = "Forward Propose Message/ Commit message: " + std::to_string(iter)  + " From "+_id;
+
     commitMessage.type = "FORWARD_PROPOSAL_AND_COMMIT";
     commitMessage.value = valueFromLeader;
     commitMessage.peerId = _id;
@@ -367,7 +366,7 @@ void syncBFT_Peer::notify(){
             terminated = true;
 
         //write to blockchain
-        createBlock({"All"});
+        createBlock({"All"}, valueFromLeader);
 
 //		std::cerr<<"BLOCKCHAIN SIZE IS "<<blockchain->getChainSize()<<std::endl;
     }else{
@@ -474,6 +473,7 @@ void syncBFT_Peer::refreshSyncBFT(){
         _channel.second.clear();
 
     }
+    txToConsensus.clear();
 }
 
 int syncBFT_Peer::incrementSyncBFTsystemState(){
@@ -486,3 +486,6 @@ int syncBFT_Peer::incrementSyncBFTsystemState(){
     return syncBFTsystemState;
 }
 
+void syncBFT_Peer::makeRequest(){
+    txQueue.push("Tx_"+id()+"_");
+}
