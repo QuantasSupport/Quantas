@@ -83,8 +83,9 @@ double BGSReferenceCommittee::pickSecrityLevel(){
     std::uniform_int_distribution<int> coin(0,1);
     int trails = 0;
     int heads = coin(_randomGenerator);
-    if(!heads){
+    while(!heads){
         trails++;
+        heads = coin(_randomGenerator);
     }
     
     switch (trails) {
