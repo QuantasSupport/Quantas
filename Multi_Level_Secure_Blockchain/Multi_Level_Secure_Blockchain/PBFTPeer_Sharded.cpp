@@ -6,23 +6,23 @@
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
 //
-#include "BlockGuardPeer_Sharded.hpp"
+#include "PBFTPeer_Sharded.hpp"
 
-BlockGuardPeer_Sharded::BlockGuardPeer_Sharded(std::string id) : PBFT_Peer(id) {
+PBFTPeer_Sharded::PBFTPeer_Sharded(std::string id) : PBFT_Peer(id) {
     _groupId = -1;
     _committeeId = -1;
     _groupMembers = std::vector<Peer<PBFT_Message>* >();
     _committeeMembers = std::vector<Peer<PBFT_Message>* >();
 }
 
-BlockGuardPeer_Sharded::BlockGuardPeer_Sharded(const BlockGuardPeer_Sharded &rhs) : PBFT_Peer(rhs){
+PBFTPeer_Sharded::PBFTPeer_Sharded(const PBFTPeer_Sharded &rhs) : PBFT_Peer(rhs){
     _groupId = rhs._groupId;
     _committeeId = rhs._committeeId;
     _groupMembers = rhs._groupMembers;
     _committeeMembers = rhs._committeeMembers;
 }
 
-void BlockGuardPeer_Sharded::braodcast(const PBFT_Message &msg){
+void PBFTPeer_Sharded::braodcast(const PBFT_Message &msg){
     for(int i = 0; i < _committeeMembers.size(); i++){
         std::string neighborId = _committeeMembers[i]->id();
         Packet<PBFT_Message> pck(makePckId());
@@ -33,7 +33,7 @@ void BlockGuardPeer_Sharded::braodcast(const PBFT_Message &msg){
     }
 }
 
-void BlockGuardPeer_Sharded::preformComputation(){
+void PBFTPeer_Sharded::preformComputation(){
     if(_primary == nullptr){
         _primary = findPrimary(_committeeMembers);
     }
@@ -46,7 +46,7 @@ void BlockGuardPeer_Sharded::preformComputation(){
     _currentRound++;
 }
 
-BlockGuardPeer_Sharded& BlockGuardPeer_Sharded::operator= (const BlockGuardPeer_Sharded &rhs){
+PBFTPeer_Sharded& PBFTPeer_Sharded::operator= (const PBFTPeer_Sharded &rhs){
     PBFT_Peer::operator=(rhs);
     
     _groupId = rhs._groupId;
@@ -57,7 +57,7 @@ BlockGuardPeer_Sharded& BlockGuardPeer_Sharded::operator= (const BlockGuardPeer_
     return *this;
 }
 
-std::ostream& BlockGuardPeer_Sharded::printTo(std::ostream &out)const{
+std::ostream& PBFTPeer_Sharded::printTo(std::ostream &out)const{
     PBFT_Peer::printTo(out);
     
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Group Id"<< std::setw(LOG_WIDTH)<< "Committee Id"<< std::setw(LOG_WIDTH)<< "Group Size"<< std::setw(LOG_WIDTH)<< "Committee Size"<<  std::endl;

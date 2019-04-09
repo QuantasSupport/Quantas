@@ -16,7 +16,7 @@
 #include "syncBFT_Peer.hpp"
 #include "Network.hpp"
 #include "bCoin_Peer.hpp"
-#include "BlockGuardPeer_Sharded.hpp"
+#include "PBFTPeer_Sharded.hpp"
 #include "BGSReferenceCommittee.hpp"
 #include <iostream>
 #include <chrono>
@@ -33,8 +33,8 @@ std::ofstream progress;
 // util functions
 void buildInitialChain(std::vector<std::string>);
 std::set<std::string> getPeersForConsensus(int);
-int getMaxLedgerFromBGS_PBFTGroup(const std::vector<BlockGuardPeer_Sharded*>&);
-int getMinLedgerFromBGS_PBFTGroup(const std::vector<BlockGuardPeer_Sharded*>&);
+int getMaxLedgerFromBGS_PBFTGroup(const std::vector<PBFTPeer_Sharded*>&);
+int getMinLedgerFromBGS_PBFTGroup(const std::vector<PBFTPeer_Sharded*>&);
 int sumMessagesSentBGS(const BGSReferenceCommittee&);
 
 void Example();
@@ -402,7 +402,7 @@ std::set<std::string> getPeersForConsensus(int securityLevel) {
     return peersForConsensus;
 }
 
-int getMaxLedgerFromBGS_PBFTGroup(const std::vector<BlockGuardPeer_Sharded*> &group){
+int getMaxLedgerFromBGS_PBFTGroup(const std::vector<PBFTPeer_Sharded*> &group){
     int max = (int)group[0]->getLedger().size();
     for(int i = 0; i < group.size(); i++){
         if(group[i]->getLedger().size() > max){
@@ -412,7 +412,7 @@ int getMaxLedgerFromBGS_PBFTGroup(const std::vector<BlockGuardPeer_Sharded*> &gr
     return max;
 }
 
-int getMinLedgerFromBGS_PBFTGroup(const std::vector<BlockGuardPeer_Sharded*> &group){
+int getMinLedgerFromBGS_PBFTGroup(const std::vector<PBFTPeer_Sharded*> &group){
     int min = (int)group[0]->getLedger().size();
     for(int i = 0; i < group.size(); i++){
         if(group[i]->getLedger().size() < min){

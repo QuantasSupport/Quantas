@@ -14,7 +14,7 @@
 #define BGSReferenceCommittee_hpp
 
 #include "Network.hpp"
-#include "BlockGuardPeer_Sharded.hpp"
+#include "PBFTPeer_Sharded.hpp"
 #include <iostream>
 #include <random>
 #include <stdio.h>
@@ -31,13 +31,13 @@ struct BGSrequest{
     int id;
 };
 
-typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
+typedef std::vector<PBFTPeer_Sharded*> aGroup;
 class BGSReferenceCommittee{
 protected:
     int                                                             _currentRound;
     int                                                             _groupSize;
     int                                                             _nextCommitteeId;
-    Network<PBFT_Message, BlockGuardPeer_Sharded>                   _peers;
+    Network<PBFT_Message, PBFTPeer_Sharded>                         _peers;
     std::vector<int>                                                _groupIds;
     std::vector<std::pair<int,aGroup> >                             _busyGroups;
     std::vector<std::pair<int,aGroup> >                             _freeGroups;
@@ -48,7 +48,7 @@ protected:
     
     // util functions
     BGSrequest                      generateRequest         ();
-    void                            makeGroup               (std::vector<BlockGuardPeer_Sharded*>,int);
+    void                            makeGroup               (std::vector<PBFTPeer_Sharded*>,int);
     double                          pickSecrityLevel        ();
     void                            makeCommittee           (std::vector<std::pair<int,aGroup> >);
     void                            initCommittee           (std::vector<std::pair<int,aGroup> >);
@@ -92,8 +92,8 @@ public:
     
     // operators
     BGSReferenceCommittee&          operator=               (const BGSReferenceCommittee&);
-    BlockGuardPeer_Sharded*         operator[]              (int i)                                                     {return _peers[i];};
-    const BlockGuardPeer_Sharded*   operator[]              (int i)const                                                     {return _peers[i];};
+    PBFTPeer_Sharded*               operator[]              (int i)                                                     {return _peers[i];};
+    const PBFTPeer_Sharded*         operator[]              (int i)const                                                     {return _peers[i];};
     friend std::ostream&            operator<<              (std::ostream &out, const BGSReferenceCommittee &system)    {return system.printTo(out);};
 
 };

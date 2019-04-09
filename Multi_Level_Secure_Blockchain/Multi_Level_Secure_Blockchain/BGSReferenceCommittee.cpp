@@ -14,8 +14,8 @@
 BGSReferenceCommittee::BGSReferenceCommittee(){
     _currentRound = 0;
     _groupSize = -1;
-    _peers = Network<PBFT_Message, BlockGuardPeer_Sharded>();
-    typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
+    _peers = Network<PBFT_Message, PBFTPeer_Sharded>();
+    typedef std::vector<PBFTPeer_Sharded*> aGroup;
     _busyGroups = std::vector<std::pair<int,aGroup> >();
     _freeGroups = std::vector<std::pair<int,aGroup> >();
     _groupIds = std::vector<int>();
@@ -38,7 +38,7 @@ BGSReferenceCommittee::BGSReferenceCommittee(const BGSReferenceCommittee &rhs){
     _randomGenerator = std::default_random_engine(seed);
 }
 
-void BGSReferenceCommittee::makeGroup(std::vector<BlockGuardPeer_Sharded*> group, int id){
+void BGSReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int id){
     for(int i = 0; i < group.size(); i++){
         for(int j = 0; j < group.size(); j++){
             if(group[i]->id() != group[j]->id()){
@@ -47,7 +47,7 @@ void BGSReferenceCommittee::makeGroup(std::vector<BlockGuardPeer_Sharded*> group
             }
         }
     }
-    typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
+    typedef std::vector<PBFTPeer_Sharded*> aGroup;
     _freeGroups.push_back(std::pair<int,aGroup>(id,group));
     _groupIds.push_back(id);
 }
@@ -56,7 +56,7 @@ void BGSReferenceCommittee::initNetwork(int numberOfPeers){
     _peers.initNetwork(numberOfPeers);
     
     int groupId = 0;
-    std::vector<BlockGuardPeer_Sharded*> group = std::vector<BlockGuardPeer_Sharded*>();
+    std::vector<PBFTPeer_Sharded*> group = std::vector<PBFTPeer_Sharded*>();
     
     for(int i = 0; i < _peers.size(); i++){
         
@@ -65,7 +65,7 @@ void BGSReferenceCommittee::initNetwork(int numberOfPeers){
         
         if(group.size() == _groupSize){
             makeGroup(group,groupId);
-            group = std::vector<BlockGuardPeer_Sharded*>();
+            group = std::vector<PBFTPeer_Sharded*>();
             groupId++;
         }
     }
@@ -110,7 +110,7 @@ BGSrequest BGSReferenceCommittee::generateRequest(){
     return _requestQueue.front();
 }
 
-typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
+typedef std::vector<PBFTPeer_Sharded*> aGroup;
 void BGSReferenceCommittee::makeRequest(){
     _requestQueue.push_back(generateRequest());
     int groupsNeeded = _requestQueue.front().securityLevel;
@@ -142,7 +142,7 @@ void BGSReferenceCommittee::makeRequest(){
     
 }
 
-typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
+typedef std::vector<PBFTPeer_Sharded*> aGroup;
 void BGSReferenceCommittee::updateBusyGroup(){
     for(int id = 0; id < _groupIds.size(); id++){
         aGroup group= getGroup(id);
@@ -174,7 +174,7 @@ void BGSReferenceCommittee::initCommittee(std::vector<std::pair<int, aGroup> > g
 }
 
 
-typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
+typedef std::vector<PBFTPeer_Sharded*> aGroup;
 void BGSReferenceCommittee::makeCommittee(std::vector<std::pair<int,aGroup> >  groupsForCommittee){
     for(int groupIndex = 0; groupIndex < groupsForCommittee.size(); groupIndex++){
         aGroup groupInCommitte = groupsForCommittee[groupIndex].second;
@@ -196,7 +196,7 @@ void BGSReferenceCommittee::setFaultTolerance(double f){
     }
 }
 
-typedef std::vector<BlockGuardPeer_Sharded*> aGroup;
+typedef std::vector<PBFTPeer_Sharded*> aGroup;
 aGroup BGSReferenceCommittee::getGroup(int id)const{
     for(int i = 0; i < _freeGroups.size(); i++){
         if(_freeGroups[i].first == id){
