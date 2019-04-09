@@ -343,8 +343,10 @@ void bsg(std::ofstream &out,int avgDelay){
         }
         progress<< ".";
         
-        system.makeRequest();
-        numberOfRequests++;
+        if(i%5 == 0){
+            system.makeRequest();
+            numberOfRequests++;
+        }
         
         system.receive();
         system.preformComputation();
