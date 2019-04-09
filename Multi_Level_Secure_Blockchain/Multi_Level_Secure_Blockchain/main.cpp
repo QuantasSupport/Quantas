@@ -103,29 +103,28 @@ void PBFT(std::ofstream &out,int avgDelay){
     
     Network<PBFT_Message, PBFT_Peer> system;
     system.setToPoisson();
-    system.setLog(std::cout);
+    system.setLog(out);
+    system.setToPoisson();
     system.setAvgDelay(avgDelay);
-    system.initNetwork(100);
+    system.initNetwork(1024);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->init();
     }
     
     int numberOfRequests = 0;
-    for(int i =-1; i < 250; i++){
+    for(int i =-1; i < 1000; i++){
         if(i%100 == 0 && i != 0){
-            //std::cout<< std::endl;
+            progress<< std::endl;
         }
-        //std::cout<< "."<< std::flush;
+        progress<< "."<< std::flush;
         
-        if(i%2 == 0){
-            int randIndex = rand()%system.size();
-            while(system[randIndex]->isPrimary()){
-                randIndex = rand()%system.size();
-            }
-            system.makeRequest(randIndex);
-            numberOfRequests++;
+        int randIndex = rand()%system.size();
+        while(system[randIndex]->isPrimary()){
+            randIndex = rand()%system.size();
         }
+        system.makeRequest(randIndex);
+        numberOfRequests++;
         
         system.receive();
         system.preformComputation();
@@ -135,6 +134,7 @@ void PBFT(std::ofstream &out,int avgDelay){
 
     int min = (int)system[0]->getLedger().size();
     int max = (int)system[0]->getLedger().size();
+    int totalMessages = system[0]->getMessageCount();
     for(int i = 0; i < system.size(); i++){
         //out<< "Peer ID:"<< system[i].id() << " Ledger Size:"<< system[i].getLedger().size()<< std::endl;
         if(system[i]->getLedger().size() < min){
@@ -143,9 +143,11 @@ void PBFT(std::ofstream &out,int avgDelay){
         if(system[i]->getLedger().size() > max){
             max = (int)system[i]->getLedger().size();
         }
+        totalMessages += system[i]->getMessageCount();
     }
     out<< "Min Ledger:,"<< min<< std::endl;
     out<< "Max Ledger:,"<< max<< std::endl;
+    out<< "Total Messages:,"<< totalMessages<< std::endl;
     out<< "Total Request:,"<< numberOfRequests<<std::endl;
     std::cout<< std::endl;
 }
@@ -340,7 +342,7 @@ void bsg(std::ofstream &out,int avgDelay){
     
     out<< "Min Ledger:,"<< min<< std::endl;
     out<< "Max Ledger:,"<< max<< std::endl;
-    out<< "Total Messages:"<< totalMessages<< std::endl;
+    out<< "Total Messages:,"<< totalMessages<< std::endl;
     out<< "Total Request:,"<< numberOfRequests<<std::endl;
     progress<< std::endl;
 }

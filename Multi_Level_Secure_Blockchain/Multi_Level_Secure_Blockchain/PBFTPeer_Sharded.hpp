@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "PBFT_Peer.hpp"
 
-class BlockGuardPeer_Sharded : public PBFT_Peer{
+class PBFTPeer_Sharded : public PBFT_Peer{
 protected:
     
     int                                                        _groupId;
