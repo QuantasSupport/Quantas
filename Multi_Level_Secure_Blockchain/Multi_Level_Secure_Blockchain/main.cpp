@@ -57,7 +57,7 @@ int main(int argc, const char * argv[]) {
             std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
             out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".log");
-            for(int run = 0; run < 5; run++){
+            for(int run = 0; run < 10; run++){
                 std::cout<< "run:"<<run<<std::endl;
                 PBFT(out,delay);
             }
