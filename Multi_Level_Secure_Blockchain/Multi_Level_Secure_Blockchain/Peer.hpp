@@ -235,7 +235,7 @@ std::ostream& Peer<algorithm>::printTo(std::ostream &out)const{
     out<< "-- Peer ID:"<< _id<< " --"<< std::endl;
     out<< std::left;
     out<< "\t"<< std::setw(LOG_WIDTH)<< "In Stream Size"<< std::setw(LOG_WIDTH)<< "Out Stream Size"<< std::setw(LOG_WIDTH)<< "Is Byzantine"<< std::setw(LOG_WIDTH)<< "Message Count"<<std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< _inStream.size()<< std::setw(LOG_WIDTH)<< _outStream.size()<<std::setw(LOG_WIDTH)<< std::boolalpha<<  _byzantine<< std::setw(LOG_WIDTH)<< _numberOfMessagesSent<<std::endl<<std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _inStream.size()<< std::setw(LOG_WIDTH)<< _outStream.size()<<std::setw(LOG_WIDTH)<< std::boolalpha<<  _byzantine<< std::setw(LOG_WIDTH)<<std::setw(LOG_WIDTH)<< _numberOfMessagesSent<<std::endl<<std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Neighbor ID"<< std::setw(LOG_WIDTH)<< "Delay"<< std::setw(LOG_WIDTH)<< "Messages In Channel"<< std::endl;
     for(int i = 0; i <  _neighbors.size(); i++){
         std::string neighborId = _neighbors[i]->id();

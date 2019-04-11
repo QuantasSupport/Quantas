@@ -316,9 +316,9 @@ bool PBFT_Peer::isVailedRequest(const PBFT_Message &query)const{
     if(query.view != _currentView){
         return false;
     }
-    if(query.sequenceNumber <= _ledger.size()){
-        return false;
-    }
+//    if(query.sequenceNumber <= _ledger.size()){
+//        return false;
+//    }
     if(query.phase != PRE_PREPARE){
         return false;
     }
@@ -410,7 +410,12 @@ std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     out<< "\t"<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _currentPhase<< std::setw(LOG_WIDTH)<< _currentView<< std::setw(LOG_WIDTH)<< primaryId<< std::setw(LOG_WIDTH)<< _currentRequest.client_id<< std::setw(LOG_WIDTH)<< _currentRequestResult<< std::endl;
     
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Request Log"<< std::setw(LOG_WIDTH)<< "Pre-Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Commit Log Size"<< std::setw(LOG_WIDTH)<< "Ledger Size"<<  std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< _requestLog.size()<< std::setw(LOG_WIDTH)<< _prePrepareLog.size()<< std::setw(LOG_WIDTH)<< _prepareLog.size()<< std::setw(LOG_WIDTH)<< _commitLog.size()<< std::setw(LOG_WIDTH)<< _ledger.size()<< std::endl <<std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _requestLog.size()<< std::setw(LOG_WIDTH)<< _prePrepareLog.size()<< std::setw(LOG_WIDTH)<< _prepareLog.size()<< std::setw(LOG_WIDTH)<< _commitLog.size()<< std::setw(LOG_WIDTH)<< _ledger.size()<< std::endl;
+    
+    //out<< "\t"<< std::setw(LOG_WIDTH)<< "inStream Messages"<< std::setw(LOG_WIDTH)<< "outStream Messages"<< std::endl;
+    
+    
+    
     
     return out;
 }

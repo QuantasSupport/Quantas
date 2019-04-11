@@ -52,6 +52,20 @@ struct PBFT_Message{
     // phases info
     std::string         phase;
     int                 sequenceNumber;
+    
+    bool operator==(const PBFT_Message& rhs)
+    {
+        return(
+                client_id == rhs.client_id &&
+                creator_id == rhs.creator_id &&
+                view == rhs.view &&
+                type == rhs.type &&
+                operation == rhs.operation &&
+                operands == rhs.operands &&
+                result == rhs.result &&
+                round == rhs.round
+               );
+    }
 };
 
 //

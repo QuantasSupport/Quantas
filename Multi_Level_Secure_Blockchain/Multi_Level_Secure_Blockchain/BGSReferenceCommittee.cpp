@@ -176,14 +176,22 @@ void BGSReferenceCommittee::initCommittee(std::vector<std::pair<int, aGroup> > g
 
 typedef std::vector<PBFTPeer_Sharded*> aGroup;
 void BGSReferenceCommittee::makeCommittee(std::vector<std::pair<int,aGroup> >  groupsForCommittee){
+    // gets list of all committee members
+    std::vector<PBFTPeer_Sharded*> committeeMembers =  std::vector<PBFTPeer_Sharded*>();
     for(int groupIndex = 0; groupIndex < groupsForCommittee.size(); groupIndex++){
         aGroup groupInCommitte = groupsForCommittee[groupIndex].second;
         for(int peerIndex = 0; peerIndex < groupInCommitte.size(); peerIndex++){
-            groupInCommitte[peerIndex]->setCommittee(_nextCommitteeId);
-            for(int otherPeer = 0; otherPeer < groupInCommitte.size(); otherPeer++){
-                if(groupInCommitte[peerIndex]->id() != groupInCommitte[otherPeer]->id()){
-                    groupInCommitte[peerIndex]->addcommitteeMember(*groupInCommitte[otherPeer]);
-                }
+            committeeMembers.push_back(groupInCommitte[peerIndex]);
+        }
+    }
+    
+    // joins them togeather
+    for(int peer = 0; peer < committeeMembers.size(); peer++){
+        committeeMembers[peer]->clearCommittee();
+        for(int otherPeer = 0; otherPeer < committeeMembers.size(); otherPeer++){
+            committeeMembers[peer]->setCommittee(_nextCommitteeId);
+            if(!(committeeMembers[peer]->id() == committeeMembers[otherPeer]->id())){
+                committeeMembers[peer]->addcommitteeMember(*committeeMembers[otherPeer]);
             }
         }
     }
@@ -209,6 +217,14 @@ aGroup BGSReferenceCommittee::getGroup(int id)const{
         }
     }
     return aGroup();
+}
+
+std::vector<PBFTPeer_Sharded> BGSReferenceCommittee::getPeers()const{
+    std::vector<PBFTPeer_Sharded> peers = std::vector<PBFTPeer_Sharded>();
+    for(int i = 0; i < _peers.size(); i++){
+        peers.push_back(*_peers[i]);
+    }
+    return peers;
 }
 
 BGSReferenceCommittee& BGSReferenceCommittee::operator=(const BGSReferenceCommittee &rhs){

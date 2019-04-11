@@ -26,15 +26,13 @@
 const int peerCount = 10;
 const int blockChainLength = 100;
 Blockchain *blockchain;
-int syncBFT_Peer::peerCount = 3;
 int shuffleByzantineInterval = 0;
 std::ofstream progress;
 
 // util functions
 void buildInitialChain(std::vector<std::string>);
 std::set<std::string> getPeersForConsensus(int);
-int getMaxLedgerFromBGS_PBFTGroup(const std::vector<PBFTPeer_Sharded*>&);
-int getMinLedgerFromBGS_PBFTGroup(const std::vector<PBFTPeer_Sharded*>&);
+int getNumberOfConfimedTransactionsBGS_PBFT(const std::vector<PBFTPeer_Sharded>&);
 int sumMessagesSentBGS(const BGSReferenceCommittee&);
 
 void Example();
@@ -53,7 +51,7 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 2; delay < 51; delay = delay + 10){
+        for(int delay = 1; delay < 50; delay = delay + 10){
             std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
             out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".log");
@@ -62,6 +60,9 @@ int main(int argc, const char * argv[]) {
                 PBFT(out,delay);
             }
             out.close();
+            if(delay == 1){
+                delay = 0;
+            }
         }
 
     }else if (algorithm == "syncBFT") {
@@ -76,12 +77,12 @@ int main(int argc, const char * argv[]) {
     }else if (algorithm == "bgs") {
         std::cout<< "BGS"<<std::endl;
         std::ofstream out;
-        for(int delay = 1; delay < 50; delay = delay + 10){
-            progress<< "Delay:"+std::to_string(delay)<< std::endl;
+        for(int delay = 1; delay < 5; delay = delay + 10){
             std::ofstream out;
             out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
             progress.open(filePath + "/progress.txt");
-            for(int run = 0; run < 10; run++){
+            progress<< "Delay:"+std::to_string(delay)<< std::endl;
+            for(int run = 0; run < 1; run++){
                 progress<< "run:"<<run<<std::endl;
                 bsg(out,delay);
             }
@@ -99,21 +100,19 @@ int main(int argc, const char * argv[]) {
     return 0;
 }
 
-void PBFT(std::ofstream &out,int avgDelay){
-    
+void PBFT(std::ofstream &out,int delay){
     Network<PBFT_Message, PBFT_Peer> system;
-    system.setToPoisson();
     system.setLog(out);
-    system.setToPoisson();
-    system.setAvgDelay(avgDelay);
-    system.initNetwork(1024);
+    system.setToRandom();
+    system.setMaxDelay(delay);
+    system.initNetwork(100);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->init();
     }
     
     int numberOfRequests = 0;
-    for(int i =-1; i < 1000; i++){
+    for(int i =-1; i < 100; i++){
         if(i%100 == 0 && i != 0){
             progress<< std::endl;
         }
@@ -129,7 +128,7 @@ void PBFT(std::ofstream &out,int avgDelay){
         system.receive();
         system.preformComputation();
         system.transmit();
-        //system.log();
+        system.log();
     }
 
     int min = (int)system[0]->getLedger().size();
@@ -156,24 +155,19 @@ void syncBFT(std::ofstream &out,int maxDelay){
     srand(time(nullptr));
     int shuffleByzantineInterval = 50;
     int shuffleByzantineCount = 1;
-
-    syncBFT_Peer::changeLeader = true;
-    syncBFT_Peer::leaderIdCandidates = {};
-    syncBFT_Peer::leaderId = "";
-    syncBFT_Peer::syncBFTsystemState = 0;
+    int numberOfPeers = 1024;
 
     Network<syncBFTmessage, syncBFT_Peer> n;
-    Network<PBFT_Message, PBFT_Peer> system;
 
     n.setMaxDelay(maxDelay);
     n.setToRandom();
-    n.initNetwork(syncBFT_Peer::peerCount);
+    n.initNetwork(numberOfPeers);
 
     int consensusSize = 0;
 
     vector<string> byzantinePeers;
-    while(byzantinePeers.size()<(syncBFT_Peer::peerCount-1)/2) {
-        int index = rand()%syncBFT_Peer::peerCount;
+    while(byzantinePeers.size()<(numberOfPeers-1)/2) {
+        int index = rand()%numberOfPeers;
         if (std::find(byzantinePeers.begin(),byzantinePeers.end(),n[index]->id())!= byzantinePeers.end()){
         }else{
             n[index]->setByzantineFlag(true);
@@ -191,7 +185,6 @@ void syncBFT(std::ofstream &out,int maxDelay){
     //start with the first peer as leader
 
     bool shuffleByzantinePeers = false;
-    syncBFT_Peer::txToConsensus = "InitialTx";
 
     for(int i =1; i<1000; i++){
 
@@ -203,75 +196,75 @@ void syncBFT(std::ofstream &out,int maxDelay){
         if( i%5 == 0 ){
             n.makeRequest(rand()%n.size());
         }
-        if(syncBFT_Peer::txToConsensus.empty() && !syncBFT_Peer::txQueue.empty()){
-            syncBFT_Peer::txToConsensus = syncBFT_Peer::txQueue.front();
-            syncBFT_Peer::txQueue.pop();
-        }
-
         n.receive();
-        if(!syncBFT_Peer::txToConsensus.empty()){
 
-            n.preformComputation();
 
-            if(syncBFT_Peer::syncBFTsystemState == 3){
-                if(shuffleByzantinePeers){
-                    n.shuffleByzantines (shuffleByzantineCount);
-                    shuffleByzantinePeers = false;
-                }
-                //check if all peers terminated
-                bool consensus = true;
-                for(int peerId = 0; peerId<n.size(); peerId++ ) {
-                    if (!n[peerId]->getTerminationFlag()) {
-                        //the leader does not need to terminate
-                        if (n[peerId]->id() == syncBFT_Peer::getLeaderId()) {
-                            continue;
-                        }
-                        consensus = false;
-                        break;
+        n.preformComputation();
+
+        int leadeIndex = 0;
+        for(int i = 0; i < n.size(); i++){
+            if (n[i]->isLeader()){
+                leadeIndex = i;
+            }
+        }
+        //syncBFT_Peer::syncBFTsystemState
+        if(n[leadeIndex]->getStatus() == 3){
+            if(shuffleByzantinePeers){
+                n.shuffleByzantines (shuffleByzantineCount);
+                shuffleByzantinePeers = false;
+            }
+            //check if all peers terminated
+            bool consensus = true;
+            for(int peerId = 0; peerId<n.size(); peerId++ ) {
+                if (!n[peerId]->getTerminationFlag()) {
+                    //the leader does not need to terminate
+                    if (n[peerId]->id() == n[peerId]->getLeaderId()) {
+                        continue;
                     }
+                    consensus = false;
+                    break;
                 }
-                if (consensus){
-                    consensusSize++;
-                    std::cerr<<"++++++++++++++++++++++++++++++++++++++++++Consensus reached at iteration "<<i<<std::endl;
-                    //refresh the peers
-                    for(int i = 0;i<n.size();i++){
-                        n[i]->refreshSyncBFT();
+            }
+            if (consensus){
+                consensusSize++;
+                out<<"++++++++++++++++++++++++++++++++++++++++++Consensus reached at iteration "<<i<<std::endl;
+                //refresh the peers
+                for(int i = 0;i<n.size();i++){
+                    n[i]->refreshSyncBFT();
 
-                    }
-                    //reset system-wide sync state
-                    syncBFT_Peer::syncBFTsystemState = 0;
+                }
+                //reset system-wide sync state
+                for(int i = 0; i<n.size();i++){
+                    n[i]->setSyncBFTState(0);
+                }
 
-                    lastConsensusAt = i;
-                    continue;
+                lastConsensusAt = i;
+                continue;
+            }
+        }
+
+        if((i-lastConsensusAt)%n.maxDelay() ==0){
+            // find leader
+            int leadeIndex = 0;
+            for(int i = 0; i < n.size(); i++){
+                if (n[i]->isLeader()){
+                    leadeIndex = i;
                 }
             }
 
-            if((i-lastConsensusAt)%n.maxDelay() ==0){
-                //reset sync status of the peers after a notify step is done.
-                if(syncBFT_Peer::syncBFTsystemState==3){
-                    for(int i = 0; i<n.size();i++){
-                        n[i]->setSyncBFTState(0);
-                        n[i]->iter++;
-                    }
+            //reset sync status of the peers after a notify step is done.
+            if(n[leadeIndex]->getStatus() == 3){
+                for(int i = 0; i<n.size();i++){
+                    n[i]->setSyncBFTState(0);
+                    n[i]->iter++;
+                    n[i]->incrementSyncBFTsystemState();
                 }
-                syncBFT_Peer::incrementSyncBFTsystemState();
             }
-
-        }
-        else{
-            std::cerr<<"IDLE FOR ITERATION "<<i<<std::endl;
+            n.transmit();
         }
 
-        n.transmit();
     }
-
-    while(!syncBFT_Peer::txQueue.empty()){
-        std::cerr<<syncBFT_Peer::txQueue.front()<<std::endl;
-        syncBFT_Peer::txQueue.pop();
-    }
-
-    std::cerr<<"Shuffled byzantine peers every "<<shuffleByzantineInterval<<"\tMax delay: "<<maxDelay<<"\t Consensus count: "<<n[0]->getBlockchain()->getChainSize()-1<<std::endl;
-
+    out<<"Shuffled byzantine peers every "<<shuffleByzantineInterval<<"\tMax delay: "<<maxDelay<<"\t Consensus count: "<<n[0]->getBlockchain()->getChainSize()-1<<std::endl;
 }
 
 void bitcoin(std::ofstream &out, int avgDelay){
@@ -327,21 +320,21 @@ void Example(){
     std::cout<< n<< std::endl;
 }
 
-void bsg(std::ofstream &out,int avgDelay){
+void bsg(std::ofstream &out,int delay){
     BGSReferenceCommittee system = BGSReferenceCommittee();
-    system.setGroupSize(16);
-    system.setToPoisson();
-    system.setAvgDelay(avgDelay);
+    system.setGroupSize(3);
+    system.setToRandom();
+    system.setMaxDelay(delay);
     system.setLog(out);
-    system.initNetwork(1024);
+    system.initNetwork(18);
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
-    for(int i =-1; i < 1000; i++){
+    for(int i =-1; i < 100; i++){
         if(i%100 == 0 && i != 0){
-           progress<< std::endl;
+            std::cout<< std::endl;
         }
-        progress<< ".";
+        std::cout<< "."<< std::flush;
         
         if(i%5 == 0){
             system.makeRequest();
@@ -351,22 +344,12 @@ void bsg(std::ofstream &out,int avgDelay){
         system.receive();
         system.preformComputation();
         system.transmit();
-        //system.log();
+        system.log();
     }
-    int min = 0;
-    int max = 0;
-    
-    for(int id = 0; id < system.numberOfGroups(); id++){
-        max += getMaxLedgerFromBGS_PBFTGroup(system.getGroup(id));
-    }
-    
-    for(int id = 0; id < system.numberOfGroups(); id++){
-        min += getMinLedgerFromBGS_PBFTGroup(system.getGroup(id));
-    }
-    
+
+    int max = getNumberOfConfimedTransactionsBGS_PBFT(system.getPeers());
     int totalMessages = sumMessagesSentBGS(system);
     
-    out<< "Min Ledger:,"<< min<< std::endl;
     out<< "Max Ledger:,"<< max<< std::endl;
     out<< "Total Messages:,"<< totalMessages<< std::endl;
     out<< "Total Request:,"<< numberOfRequests<<std::endl;
@@ -428,24 +411,27 @@ std::set<std::string> getPeersForConsensus(int securityLevel) {
     return peersForConsensus;
 }
 
-int getMaxLedgerFromBGS_PBFTGroup(const std::vector<PBFTPeer_Sharded*> &group){
-    int max = (int)group[0]->getLedger().size();
-    for(int i = 0; i < group.size(); i++){
-        if(group[i]->getLedger().size() > max){
-            max = (int)group[i]->getLedger().size();
+bool match(std::vector<PBFT_Message> ledger, PBFT_Message aMessage){
+    for(int i = 0; i < ledger.size(); i++){
+        if(ledger[i] == aMessage){
+            return true;
         }
     }
-    return max;
+    return false;
 }
 
-int getMinLedgerFromBGS_PBFTGroup(const std::vector<PBFTPeer_Sharded*> &group){
-    int min = (int)group[0]->getLedger().size();
-    for(int i = 0; i < group.size(); i++){
-        if(group[i]->getLedger().size() < min){
-            min = (int)group[i]->getLedger().size();
+int getNumberOfConfimedTransactionsBGS_PBFT(const std::vector<PBFTPeer_Sharded> &peers){
+    std::vector<PBFT_Message> globalLegder = peers[0].getLedger();
+    for(int i = 0; i < peers.size(); i++){
+        std::vector<PBFT_Message> localLegder = peers[i].getLedger();
+        for(int j = 0; j < localLegder.size(); j++){
+            if(!match(globalLegder,localLegder[j])){
+                globalLegder.push_back(localLegder[j]);
+            }
         }
     }
-    return min;
+    
+    return globalLegder.size();
 }
 
 int sumMessagesSentBGS(const BGSReferenceCommittee &system){
