@@ -266,7 +266,9 @@ void syncBFT_Peer::commit(){
     //viewing content of _inStream
 
     //Notify message not found, no virtual proposal
-    assert(_inStream.size()==1);
+    ////////////////////////////////////////////////////////////////////////
+    assert(_inStream.size()==1); // fails due to status messages in _inStream
+    ////////////////////////////////////////////////////////////////////////
     assert(_inStream[0].getMessage().type=="PROPOSE");
     if(isValidProposal(_inStream[0].getMessage())){
         //std::cerr<<"The proposal from the leader is valid"<<std::endl;

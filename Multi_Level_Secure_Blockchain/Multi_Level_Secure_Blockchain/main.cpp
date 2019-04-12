@@ -27,7 +27,7 @@ const int peerCount = 10;
 const int blockChainLength = 100;
 Blockchain *blockchain;
 int shuffleByzantineInterval = 0;
-std::ofstream progress;
+//std::ofstream progress;
 
 // util functions
 void buildInitialChain(std::vector<std::string>);
@@ -56,6 +56,9 @@ int main(int argc, const char * argv[]) {
             //std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
             out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".csv");
+            if ( out.fail() ){
+                std::cerr << "Error: " << strerror(errno);
+            }
             for(int run = 0; run < 10; run++){
                 //td::cout<< "run:"<<run<<std::endl;
                 PBFT(out,delay);
@@ -81,10 +84,13 @@ int main(int argc, const char * argv[]) {
         for(int delay = 1; delay < 51; delay = delay + 10){
             std::ofstream out;
             out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
-            progress.open(filePath + "/progress.txt");
-            progress<< "Delay:"+std::to_string(delay)<< std::endl;
+            if ( out.fail() ){
+                std::cerr << "Error: " << strerror(errno);
+            }
+            //progress.open(filePath + "/progress.txt");
+            //progress<< "Delay:"+std::to_string(delay)<< std::endl;
             for(int run = 0; run < 10; run++){
-                progress<< "run:"<<run<<std::endl;
+                //progress<< "run:"<<run<<std::endl;
                 bsg(out,delay);
             }
             out.close();
@@ -156,7 +162,7 @@ void syncBFT(std::ofstream &out,int maxDelay){
     srand(time(nullptr));
     int shuffleByzantineInterval = 50;
     int shuffleByzantineCount = 1;
-    int numberOfPeers = 1024;
+    int numberOfPeers = 10;
 
     Network<syncBFTmessage, syncBFT_Peer> n;
 
@@ -214,34 +220,34 @@ void syncBFT(std::ofstream &out,int maxDelay){
                 n.shuffleByzantines (shuffleByzantineCount);
                 shuffleByzantinePeers = false;
             }
-            //check if all peers terminated
-            bool consensus = true;
-            for(int peerId = 0; peerId<n.size(); peerId++ ) {
-                if (!n[peerId]->getTerminationFlag()) {
-                    //the leader does not need to terminate
-                    if (n[peerId]->id() == n[peerId]->getLeaderId()) {
-                        continue;
-                    }
-                    consensus = false;
-                    break;
+        }
+        //check if all peers terminated
+        bool consensus = true;
+        for(int peerId = 0; peerId<n.size(); peerId++ ) {
+            if (!n[peerId]->getTerminationFlag()) {
+                //the leader does not need to terminate
+                if (n[peerId]->id() == n[peerId]->getLeaderId()) {
+                    continue;
                 }
+                consensus = false;
+                break;
             }
-            if (consensus){
-                consensusSize++;
-                out<<"++++++++++++++++++++++++++++++++++++++++++Consensus reached at iteration "<<i<<std::endl;
-                //refresh the peers
-                for(int i = 0;i<n.size();i++){
-                    n[i]->refreshSyncBFT();
+        }
+        if (consensus){
+            consensusSize++;
+            out<<"++++++++++++++++++++++++++++++++++++++++++Consensus reached at iteration "<<i<<std::endl;
+            //refresh the peers
+            for(int i = 0;i<n.size();i++){
+                n[i]->refreshSyncBFT();
 
-                }
-                //reset system-wide sync state
-                for(int i = 0; i<n.size();i++){
-                    n[i]->setSyncBFTState(0);
-                }
-
-                lastConsensusAt = i;
-                continue;
             }
+            //reset system-wide sync state
+            for(int i = 0; i<n.size();i++){
+                n[i]->setSyncBFTState(0);
+            }
+
+            lastConsensusAt = i;
+            continue;
         }
 
         if((i-lastConsensusAt)%n.maxDelay() ==0){
@@ -258,8 +264,11 @@ void syncBFT(std::ofstream &out,int maxDelay){
                 for(int i = 0; i<n.size();i++){
                     n[i]->setSyncBFTState(0);
                     n[i]->iter++;
-                    n[i]->incrementSyncBFTsystemState();
+                    
                 }
+            }
+            for(int i = 0; i<n.size();i++){
+                n[i]->incrementSyncBFTsystemState();
             }
             n.transmit();
         }
@@ -354,7 +363,7 @@ void bsg(std::ofstream &out,int delay){
     out<< "Max Ledger:,"<< max<< std::endl;
     out<< "Total Messages:,"<< totalMessages<< std::endl;
     out<< "Total Request:,"<< numberOfRequests<<std::endl;
-    progress<< std::endl;
+    //progress<< std::endl;
 }
 
 //
