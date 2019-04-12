@@ -51,12 +51,13 @@ int main(int argc, const char * argv[]) {
         Example();
     }
     else if (algorithm== "pbft"){
-        for(int delay = 1; delay < 50; delay = delay + 10){
-            std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
+        for(int delay = 1; delay < 51; delay = delay + 10){
+            std::cout<< "PBFT"<<std::endl;
+            //std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
-            out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".log");
+            out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".csv");
             for(int run = 0; run < 10; run++){
-                std::cout<< "run:"<<run<<std::endl;
+                //td::cout<< "run:"<<run<<std::endl;
                 PBFT(out,delay);
             }
             out.close();
@@ -77,12 +78,12 @@ int main(int argc, const char * argv[]) {
     }else if (algorithm == "bgs") {
         std::cout<< "BGS"<<std::endl;
         std::ofstream out;
-        for(int delay = 1; delay < 5; delay = delay + 10){
+        for(int delay = 1; delay < 51; delay = delay + 10){
             std::ofstream out;
             out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
             progress.open(filePath + "/progress.txt");
             progress<< "Delay:"+std::to_string(delay)<< std::endl;
-            for(int run = 0; run < 1; run++){
+            for(int run = 0; run < 10; run++){
                 progress<< "run:"<<run<<std::endl;
                 bsg(out,delay);
             }
