@@ -57,7 +57,7 @@ int main(int argc, const char * argv[]) {
             std::ofstream out;
             out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".csv");
             if ( out.fail() ){
-                std::cerr << "Error: " << strerror(errno);
+                std::cerr << "Error: could not open file" << std::endl;
             }
             for(int run = 0; run < 10; run++){
                 //td::cout<< "run:"<<run<<std::endl;
@@ -85,7 +85,7 @@ int main(int argc, const char * argv[]) {
             std::ofstream out;
             out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
             if ( out.fail() ){
-                std::cerr << "Error: " << std::strerror(errno);
+                std::cerr << "Error: could not open file" << std::endl;
             }
             //progress.open(filePath + "/progress.txt");
             //progress<< "Delay:"+std::to_string(delay)<< std::endl;
