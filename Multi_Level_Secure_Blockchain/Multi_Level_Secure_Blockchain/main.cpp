@@ -85,7 +85,7 @@ int main(int argc, const char * argv[]) {
             std::ofstream out;
             out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
             if ( out.fail() ){
-                std::cerr << "Error: " << strerror(errno);
+                std::cerr << "Error: " << std::strerror(errno);
             }
             //progress.open(filePath + "/progress.txt");
             //progress<< "Delay:"+std::to_string(delay)<< std::endl;
