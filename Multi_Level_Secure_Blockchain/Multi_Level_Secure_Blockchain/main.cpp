@@ -105,18 +105,18 @@ void PBFT(std::ofstream &out,int delay){
     system.setLog(out);
     system.setToRandom();
     system.setMaxDelay(delay);
-    system.initNetwork(100);
+    system.initNetwork(512);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->init();
     }
     
     int numberOfRequests = 0;
-    for(int i =-1; i < 100; i++){
-        if(i%100 == 0 && i != 0){
-            progress<< std::endl;
-        }
-        progress<< "."<< std::flush;
+    for(int i =-1; i < 1000; i++){
+//        if(i%100 == 0 && i != 0){
+//            progress<< std::endl;
+//        }
+//        progress<< "."<< std::flush;
         
         int randIndex = rand()%system.size();
         while(system[randIndex]->isPrimary()){
@@ -128,7 +128,7 @@ void PBFT(std::ofstream &out,int delay){
         system.receive();
         system.preformComputation();
         system.transmit();
-        system.log();
+        //system.log();
     }
 
     int min = (int)system[0]->getLedger().size();
@@ -148,7 +148,7 @@ void PBFT(std::ofstream &out,int delay){
     out<< "Max Ledger:,"<< max<< std::endl;
     out<< "Total Messages:,"<< totalMessages<< std::endl;
     out<< "Total Request:,"<< numberOfRequests<<std::endl;
-    std::cout<< std::endl;
+    //std::cout<< std::endl;
 }
 
 void syncBFT(std::ofstream &out,int maxDelay){
@@ -322,19 +322,19 @@ void Example(){
 
 void bsg(std::ofstream &out,int delay){
     BGSReferenceCommittee system = BGSReferenceCommittee();
-    system.setGroupSize(3);
+    system.setGroupSize(16);
     system.setToRandom();
     system.setMaxDelay(delay);
     system.setLog(out);
-    system.initNetwork(18);
+    system.initNetwork(512);
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
-    for(int i =-1; i < 100; i++){
-        if(i%100 == 0 && i != 0){
-            std::cout<< std::endl;
-        }
-        std::cout<< "."<< std::flush;
+    for(int i =-1; i < 1000; i++){
+//        if(i%100 == 0 && i != 0){
+//            //std::cout<< std::endl;
+//        }
+        //td::cout<< "."<< std::flush;
         
         if(i%5 == 0){
             system.makeRequest();
@@ -344,7 +344,7 @@ void bsg(std::ofstream &out,int delay){
         system.receive();
         system.preformComputation();
         system.transmit();
-        system.log();
+        //system.log();
     }
 
     int max = getNumberOfConfimedTransactionsBGS_PBFT(system.getPeers());

@@ -97,7 +97,14 @@ Network<type_msg,peer_type>::Network(){
 
 template<class type_msg, class peer_type>
 Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
-    _peers = rhs._peers;
+    if(this == &rhs){
+        return;
+    }
+    
+    _peers = std::vector<Peer<type_msg>*>();
+    for(int i = 0; i < rhs._peers.size(); i++){
+        _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
+    }
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
     _avgDelay = rhs._avgDelay;
@@ -246,7 +253,15 @@ std::ostream& Network<type_msg,peer_type>::printTo(std::ostream &out)const{
 
 template<class type_msg, class peer_type>
 Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Network<type_msg, peer_type> &rhs){
-    _peers = rhs._peers;
+    if(this == &rhs){
+        return *this;
+    }
+    
+    _peers = std::vector<Peer<type_msg>*>();
+    for(int i = 0; i < rhs._peers.size(); i++){
+        _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
+    }
+    
     int seed = (int)std::chrono::system_clock::now().time_since_epoch().count();
     _randomGenerator = std::default_random_engine(seed);
     _avgDelay = rhs._avgDelay;

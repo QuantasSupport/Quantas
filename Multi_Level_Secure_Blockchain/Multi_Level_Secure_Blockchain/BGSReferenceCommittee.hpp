@@ -20,10 +20,10 @@
 #include <stdio.h>
 
 
-static double SECURITY_LEVEL_5 = 6;
-static double SECURITY_LEVEL_4 = 5;
-static double SECURITY_LEVEL_3 = 4;
-static double SECURITY_LEVEL_2 = 3;
+static double SECURITY_LEVEL_5 = 32;
+static double SECURITY_LEVEL_4 = 16;
+static double SECURITY_LEVEL_3 = 8;
+static double SECURITY_LEVEL_2 = 4;
 static double SECURITY_LEVEL_1 = 2;
 
 struct BGSrequest{
