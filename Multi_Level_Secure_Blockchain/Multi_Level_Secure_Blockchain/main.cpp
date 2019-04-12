@@ -336,10 +336,10 @@ void bsg(std::ofstream &out,int delay){
 //        }
         //td::cout<< "."<< std::flush;
         
-        if(i%5 == 0){
-            system.makeRequest();
-            numberOfRequests++;
-        }
+        //if(i%5 == 0){
+        system.makeRequest();
+        numberOfRequests++;
+        //}
         
         system.receive();
         system.preformComputation();
