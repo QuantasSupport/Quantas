@@ -53,14 +53,12 @@ int main(int argc, const char * argv[]) {
     else if (algorithm== "pbft"){
         for(int delay = 1; delay < 51; delay = delay + 10){
             std::cout<< "PBFT"<<std::endl;
-            //std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
             out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".log");
             if ( out.fail() ){
                 std::cerr << "Error: could not open file" << std::endl;
             }
             for(int run = 0; run < 10; run++){
-                //td::cout<< "run:"<<run<<std::endl;
                 PBFT(out,delay);
             }
             out.close();
@@ -112,7 +110,7 @@ void PBFT(std::ofstream &out,int delay){
     system.setLog(out);
     system.setToRandom();
     system.setMaxDelay(delay);
-    system.initNetwork(512);
+    system.initNetwork(1024);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->init();
@@ -120,11 +118,6 @@ void PBFT(std::ofstream &out,int delay){
     
     int numberOfRequests = 0;
     for(int i =-1; i < 1000; i++){
-//        if(i%100 == 0 && i != 0){
-//            progress<< std::endl;
-//        }
-//        progress<< "."<< std::flush;
-        
         int randIndex = rand()%system.size();
         while(system[randIndex]->isPrimary()){
             randIndex = rand()%system.size();
@@ -336,7 +329,7 @@ void bsg(std::ofstream &out,int delay){
     system.setToRandom();
     system.setMaxDelay(delay);
     system.setLog(out);
-    system.initNetwork(64);
+    system.initNetwork(1024);
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
