@@ -53,6 +53,13 @@ void BGSReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int 
 }
 
 void BGSReferenceCommittee::initNetwork(int numberOfPeers){
+    
+    SECURITY_LEVEL_5 = numberOfPeers/_groupSize;
+    SECURITY_LEVEL_4 = SECURITY_LEVEL_5/2;
+    SECURITY_LEVEL_3 = SECURITY_LEVEL_4/2;
+    SECURITY_LEVEL_2 = SECURITY_LEVEL_3/2;
+    SECURITY_LEVEL_1 = SECURITY_LEVEL_2/2;
+    
     _peers.initNetwork(numberOfPeers);
     
     int groupId = 0;
@@ -113,7 +120,7 @@ BGSrequest BGSReferenceCommittee::generateRequest(){
 typedef std::vector<PBFTPeer_Sharded*> aGroup;
 void BGSReferenceCommittee::makeRequest(){
     _requestQueue.push_back(generateRequest());
-    int groupsNeeded = _requestQueue.front().securityLevel;
+    int groupsNeeded = std::ceil(_requestQueue.front().securityLevel);
     updateBusyGroup();
     
     // return if there is not enough free groups to make the committee

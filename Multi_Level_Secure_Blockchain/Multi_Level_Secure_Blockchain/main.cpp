@@ -55,7 +55,7 @@ int main(int argc, const char * argv[]) {
             std::cout<< "PBFT"<<std::endl;
             //std::cout<< "Delay:"+std::to_string(delay)<< std::endl;
             std::ofstream out;
-            out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".csv");
+            out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".log");
             if ( out.fail() ){
                 std::cerr << "Error: could not open file" << std::endl;
             }
@@ -81,9 +81,9 @@ int main(int argc, const char * argv[]) {
     }else if (algorithm == "bgs") {
         std::cout<< "BGS"<<std::endl;
         std::ofstream out;
-        for(int delay = 1; delay < 51; delay = delay + 10){
+        for(int delay = 1; delay < 50; delay = delay + 10){
             std::ofstream out;
-            out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
+            out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".log");
             if ( out.fail() ){
                 std::cerr << "Error: could not open file" << std::endl;
             }
@@ -135,7 +135,7 @@ void PBFT(std::ofstream &out,int delay){
         system.receive();
         system.preformComputation();
         system.transmit();
-        //system.log();
+        system.log();
     }
 
     int min = (int)system[0]->getLedger().size();
@@ -336,25 +336,17 @@ void bsg(std::ofstream &out,int delay){
     system.setToRandom();
     system.setMaxDelay(delay);
     system.setLog(out);
-    system.initNetwork(512);
+    system.initNetwork(64);
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
     for(int i =-1; i < 1000; i++){
-//        if(i%100 == 0 && i != 0){
-//            //std::cout<< std::endl;
-//        }
-        //td::cout<< "."<< std::flush;
-        
-        //if(i%5 == 0){
         system.makeRequest();
         numberOfRequests++;
-        //}
-        
         system.receive();
         system.preformComputation();
         system.transmit();
-        //system.log();
+        system.log();
     }
 
     int max = getNumberOfConfimedTransactionsBGS_PBFT(system.getPeers());
@@ -363,7 +355,6 @@ void bsg(std::ofstream &out,int delay){
     out<< "Max Ledger:,"<< max<< std::endl;
     out<< "Total Messages:,"<< totalMessages<< std::endl;
     out<< "Total Request:,"<< numberOfRequests<<std::endl;
-    //progress<< std::endl;
 }
 
 //
