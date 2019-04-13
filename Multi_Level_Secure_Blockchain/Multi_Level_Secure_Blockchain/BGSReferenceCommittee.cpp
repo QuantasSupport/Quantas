@@ -141,9 +141,11 @@ void BGSReferenceCommittee::makeRequest(){
     initCommittee(groupsInCommittee);
     
     for(int i = 0; i < groupsInCommittee.size(); i++){
-        if(!groupsInCommittee.front().second[i]->isPrimary()){
-            groupsInCommittee.front().second[i]->makeRequest();
-            return;
+        for(int j = 0; j < groupsInCommittee.front().second.size(); j++){
+            if(groupsInCommittee[i].second[j]->isPrimary()){
+                groupsInCommittee[i].second[j]->makeRequest();
+                return;
+            }
         }
     }
     
