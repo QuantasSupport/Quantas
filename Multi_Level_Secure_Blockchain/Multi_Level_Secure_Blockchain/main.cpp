@@ -39,7 +39,7 @@ void Example();
 void PBFT(std::ofstream &out,int);
 void syncBFT(std::ofstream &,int );
 void bitcoin(std::ofstream &,int );
-void bsg(std::ofstream &out,int);
+void bsg(std::ofstream &csv, std::ofstream &log,int);
 
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
@@ -80,8 +80,13 @@ int main(int argc, const char * argv[]) {
         std::cout<< "BGS"<<std::endl;
         std::ofstream out;
         for(int delay = 1; delay < 50; delay = delay + 10){
-            std::ofstream out;
-            out.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".log");
+            std::ofstream csv;
+            std::ofstream log;
+            log.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".log");
+            if ( out.fail() ){
+                std::cerr << "Error: could not open file" << std::endl;
+            }
+            csv.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
             if ( out.fail() ){
                 std::cerr << "Error: could not open file" << std::endl;
             }
@@ -89,7 +94,7 @@ int main(int argc, const char * argv[]) {
             //progress<< "Delay:"+std::to_string(delay)<< std::endl;
             for(int run = 0; run < 10; run++){
                 //progress<< "run:"<<run<<std::endl;
-                bsg(out,delay);
+                bsg(csv,log,delay);
             }
             out.close();
             if(delay == 1){
@@ -324,12 +329,12 @@ void Example(){
     std::cout<< n<< std::endl;
 }
 
-void bsg(std::ofstream &out,int delay){
+void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     BGSReferenceCommittee system = BGSReferenceCommittee();
     system.setGroupSize(16);
     system.setToRandom();
     system.setMaxDelay(delay);
-    system.setLog(out);
+    system.setLog(log);
     system.initNetwork(1024);
     system.setFaultTolerance(0.3);
 
@@ -347,9 +352,9 @@ void bsg(std::ofstream &out,int delay){
     int max = getNumberOfConfimedTransactionsBGS_PBFT(system.getPeers());
     int totalMessages = sumMessagesSentBGS(system);
     
-    out<< "Max Ledger:,"<< max<< std::endl;
-    out<< "Total Messages:,"<< totalMessages<< std::endl;
-    out<< "Total Request:,"<< numberOfRequests<<std::endl;
+    csv<< "Max Ledger:,"<< max<< std::endl;
+    csv<< "Total Messages:,"<< totalMessages<< std::endl;
+    csv<< "Total Request:,"<< numberOfRequests<<std::endl;
 }
 
 //
