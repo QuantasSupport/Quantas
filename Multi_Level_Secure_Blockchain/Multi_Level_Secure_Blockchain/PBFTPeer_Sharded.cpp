@@ -46,6 +46,8 @@ void PBFTPeer_Sharded::preformComputation(){
     _currentRound++;
 }
 
+
+
 PBFTPeer_Sharded& PBFTPeer_Sharded::operator= (const PBFTPeer_Sharded &rhs){
     PBFT_Peer::operator=(rhs);
     

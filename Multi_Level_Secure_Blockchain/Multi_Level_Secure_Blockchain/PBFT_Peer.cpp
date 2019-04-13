@@ -117,6 +117,8 @@ void PBFT_Peer::collectMessages(){
             _commitLog.push_back(_inStream.front().getMessage());
             _inStream.erase(_inStream.begin());
             
+        }else{
+            _inStream.erase(_inStream.begin());
         }
     }
 }

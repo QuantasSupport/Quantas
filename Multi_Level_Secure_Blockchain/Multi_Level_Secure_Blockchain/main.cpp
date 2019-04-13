@@ -129,6 +129,7 @@ void PBFT(std::ofstream &out,int delay){
         system.preformComputation();
         system.transmit();
         system.log();
+        std::cout<< '.'<< std::flush;
     }
 
     int min = (int)system[0]->getLedger().size();
@@ -340,6 +341,7 @@ void bsg(std::ofstream &out,int delay){
         system.preformComputation();
         system.transmit();
         system.log();
+        std::cout<< '.'<< std::flush;
     }
 
     int max = getNumberOfConfimedTransactionsBGS_PBFT(system.getPeers());
