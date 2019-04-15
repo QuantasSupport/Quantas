@@ -257,7 +257,7 @@ void PBFT_Peer::waitCommit(){
         _currentPhase = IDEAL; // complete distributed-consensus
         _currentRequestResult = 0;
         _currentRequest = PBFT_Message();
-        //cleanLogs();
+        cleanLogs();
     }
     
 }

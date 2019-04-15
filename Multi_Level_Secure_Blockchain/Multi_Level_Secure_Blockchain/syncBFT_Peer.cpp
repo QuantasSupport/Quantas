@@ -88,7 +88,6 @@ void syncBFT_Peer::currentStatusSend(){
         statusMessageToSelf = std::make_unique<syncBFTmessage> (sMessage);
         setSyncBFTState(1);
     }else{
-
         _outStream.push_back(newMessage);
         setSyncBFTState(2);
     }
@@ -295,6 +294,8 @@ void syncBFT_Peer::commit(){
 
     }
 
+    ///////////////////////////////////////////
+    // check state movment
     setSyncBFTState(3);
 
 
@@ -456,6 +457,8 @@ vector<string> syncBFT_Peer::leaderIdCandidates()const{
     for(int i = 0; i < _neighbors.size(); i++){
         candidates.push_back(_neighbors[i]->id());
     }
+    candidates.push_back(_id);
+    std::sort(candidates.begin(), candidates.end());
     return candidates;
 }
 
@@ -500,7 +503,7 @@ void syncBFT_Peer::refreshSyncBFT(){
 
 int syncBFT_Peer::incrementSyncBFTsystemState(){
     if(syncBFTsystemState == 3) {
-        changeLeader = true;
+        //changeLeader = true;
         syncBFTsystemState=0;
     }
     else
