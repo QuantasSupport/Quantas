@@ -5,3 +5,6 @@ Multi_Level_Secure_Blockchain/Multi_Level_Secure_Blockchain.xcodeproj/project.xc
 *.gch
 *.pbxproj
 *.xcbkptlist
+.vscode/*
+.vscode
+*.DS_Store
