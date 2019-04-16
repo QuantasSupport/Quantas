@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "45926F9D22336BC900266885"
-               BuildableName = "Multi_Level_Secure_Blockchain"
-               BlueprintName = "Multi_Level_Secure_Blockchain"
-               ReferencedContainer = "container:Multi_Level_Secure_Blockchain.xcodeproj">
+               BuildableName = "BlockGuard"
+               BlueprintName = "BlockGuard"
+               ReferencedContainer = "container:Testing.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "45926F9D22336BC900266885"
-            BuildableName = "Multi_Level_Secure_Blockchain"
-            BlueprintName = "Multi_Level_Secure_Blockchain"
-            ReferencedContainer = "container:Multi_Level_Secure_Blockchain.xcodeproj">
+            BuildableName = "BlockGuard"
+            BlueprintName = "BlockGuard"
+            ReferencedContainer = "container:Testing.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -56,9 +56,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "45926F9D22336BC900266885"
-            BuildableName = "Multi_Level_Secure_Blockchain"
-            BlueprintName = "Multi_Level_Secure_Blockchain"
-            ReferencedContainer = "container:Multi_Level_Secure_Blockchain.xcodeproj">
+            BuildableName = "BlockGuard"
+            BlueprintName = "BlockGuard"
+            ReferencedContainer = "container:Testing.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
@@ -67,12 +67,20 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "pbft"
+            argument = "syncBFT"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/kendrichood/Desktop/pbft"
+            argument = "/Users.kendrichood/Desktop/syncBFT"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "pbft"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/kendrichood/Desktop/pbft"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "bgs"
@@ -97,9 +105,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "45926F9D22336BC900266885"
-            BuildableName = "Multi_Level_Secure_Blockchain"
-            BlueprintName = "Multi_Level_Secure_Blockchain"
-            ReferencedContainer = "container:Multi_Level_Secure_Blockchain.xcodeproj">
+            BuildableName = "BlockGuard"
+            BlueprintName = "BlockGuard"
+            ReferencedContainer = "container:Testing.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
