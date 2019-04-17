@@ -9,8 +9,13 @@
 // run tests over classes
 
 #include <stdio.h>
+#include <string>
+#include "PBFTPeerTest.hpp"
 
-int RunAllTest(){
+
+int RunAllTest(std::string filepath){
+
+    
 
     return 0;
 }

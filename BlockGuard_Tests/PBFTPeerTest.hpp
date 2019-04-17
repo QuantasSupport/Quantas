@@ -1,5 +1,5 @@
 //
-//  PeerTest.hpp
+//  PBFTPeerTest.hpp
 //  Multi_Level_Secure_Blockchain
 //
 //  Created by Kendric Hood on 4/15/19.
@@ -12,24 +12,18 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <iostream>
 #include "../BlockGuard/PBFT_Peer.hpp"
 
-void constructors();            // test basic peer constructors
-void testSettersMutators();     // test setters and test Mutators
-void testGetters();             // test getters
+void constructors           (std::ostream &log);// test basic peer constructors
+void testSettersMutators    (std::ostream &log);// test setters and test Mutators
+void testGetters            (std::ostream &log);// test getters
 
-void oneRequest();          // test PrePrepare make sure it ends in prepare and send out the right message
-void multiRequest();             // test Prepare make sure it ends in either WaitPrepare or commite and send out the right message
-void testWaitPrepare();         // test WaitPrepare make sure it ends in either WaitPrepare or commite  and send out the right message
-void testCommit();              // test Commit make sure it ends in either WaitCommit or Commite  and send out the right message
-void testWaitCommit();          // test WaitCommit make sure it ends in either WaitCommit or IDEAL and send out the right message
-
-void testComputation();         // test to make sure preform computation moves though the phases and does not get stuck
-
-void testBraodcast();           // tests Braodcast
-void testCleanLogs();           // test that logs are cleaned after a WaitCommit ends and not before
-void testInitPrimary();         // test that correct primary is found
-void testFaultyPeers();         // test that fault tolerance is computered correctly
+void requestFromLeader      (std::ostream &log);// test request from leader can make consensus
+void requestFromPeer        (std::ostream &log);// test request from peer can make consensus
+void multiRequest           (std::ostream &log);// test multiple request are queued and are commited 
+void slowLeaderConnection   (std::ostream &log);// test when leader has slow connection to network
+void slowPeerConnection     (std::ostream &log);// test when peer has slow connection to network
 
 
 #endif /* PBFTPeerTest_hpp */

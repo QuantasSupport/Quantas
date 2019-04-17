@@ -48,7 +48,9 @@ int main(int argc, const char * argv[]) {
     std::string algorithm = argv[1];
     std::string filePath = argv[2];
 
-    if(algorithm == "example"){
+    if(algorithm == "test"){
+        RunAllTest(filePath);
+    }else if(algorithm == "example"){
         Example();
     }
     else if (algorithm== "pbft"){

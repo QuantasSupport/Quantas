@@ -77,7 +77,6 @@ class PBFT_Peer : public Peer<PBFT_Message>{
 protected:
     
     // tracking varables
-    //std::vector<PBFT_Message>       _messageLog;
     std::vector<PBFT_Message>       _requestLog;
     std::vector<PBFT_Message>       _prePrepareLog;
     std::vector<PBFT_Message>       _prepareLog;
