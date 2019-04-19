@@ -40,7 +40,7 @@ public:
     // setters
     void        setSource       (std::string s){_sourceId = s;};
     void        setTarget       (std::string t){_targetId = t;};
-    void        setDelay        (int delayBound){_delay = rand()%delayBound == 0 ? 1 : rand()%delayBound;};
+    void        setDelay        (int delayBound){_delay = rand()%delayBound;};
     void        setBody         (const content c){_body = c;};
     
     // getters
