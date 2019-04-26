@@ -10,6 +10,7 @@
 #define test_hpp
 #include <string>
 #include <iostream>
+#include <assert.h>
 
 int RunTest(std::string filepath, std::string testOption);
 
