@@ -44,7 +44,7 @@ void BGSReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int 
     for(int i = 0; i < group.size(); i++){
         for(int j = 0; j < group.size(); j++){
             if(group[i]->id() != group[j]->id()){
-                assert(group[i]->getPhase() == IDEAL);
+                //assert(group[i]->getPhase() == IDEAL);
                 group[i]->addGroupMember(*group[j]);
                 group[i]->setGroup(id);
             }
