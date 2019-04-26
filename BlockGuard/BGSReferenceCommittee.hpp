@@ -18,6 +18,7 @@
 #include <iostream>
 #include <random>
 #include <stdio.h>
+#include <assert.h>
 
 
 static double SECURITY_LEVEL_5;
