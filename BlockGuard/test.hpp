@@ -11,6 +11,7 @@
 #include <string>
 #include <iostream>
 #include <assert.h>
+#include <cassert>
 
 int RunTest(std::string filepath, std::string testOption);
 
