@@ -20,6 +20,7 @@ BGSReferenceCommittee::BGSReferenceCommittee(){
     _freeGroups = std::vector<std::pair<int,aGroup> >();
     _groupIds = std::vector<int>();
     _nextCommitteeId = 0;
+    _nextSquenceNumber = 0;
     
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
@@ -33,6 +34,7 @@ BGSReferenceCommittee::BGSReferenceCommittee(const BGSReferenceCommittee &rhs){
     _freeGroups = rhs._freeGroups;
     _groupIds = rhs._groupIds;
     _nextCommitteeId = rhs._nextCommitteeId;
+    _nextSquenceNumber = rhs._nextSquenceNumber;
     
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
@@ -42,6 +44,7 @@ void BGSReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int 
     for(int i = 0; i < group.size(); i++){
         for(int j = 0; j < group.size(); j++){
             if(group[i]->id() != group[j]->id()){
+                assert(group[i]->getPhase() == IDEAL);
                 group[i]->addGroupMember(*group[j]);
                 group[i]->setGroup(id);
             }
@@ -143,7 +146,8 @@ void BGSReferenceCommittee::makeRequest(){
     for(int i = 0; i < groupsInCommittee.size(); i++){
         for(int j = 0; j < groupsInCommittee.front().second.size(); j++){
             if(groupsInCommittee[i].second[j]->isPrimary()){
-                groupsInCommittee[i].second[j]->makeRequest();
+                groupsInCommittee[i].second[j]->makeRequest(_nextSquenceNumber);
+                _nextSquenceNumber++;
                 return;
             }
         }
@@ -244,6 +248,7 @@ BGSReferenceCommittee& BGSReferenceCommittee::operator=(const BGSReferenceCommit
     _freeGroups = rhs._freeGroups;
     _groupIds = rhs._groupIds;
     _nextCommitteeId = rhs._nextCommitteeId;
+    _nextSquenceNumber = rhs._nextSquenceNumber;
     
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);

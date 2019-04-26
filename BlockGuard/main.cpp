@@ -18,7 +18,7 @@
 #include "bCoin_Peer.hpp"
 #include "PBFTPeer_Sharded.hpp"
 #include "BGSReferenceCommittee.hpp"
-#include "../BlockGuard_Tests/test.cpp"
+#include "test.hpp"
 #include <iostream>
 #include <chrono>
 #include <random>
@@ -44,12 +44,20 @@ void bsg(std::ofstream &csv, std::ofstream &log,int);
 
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
-    
+    if(argc < 3){
+        std::cerr << "Error: need algorithm and output path" << std::endl;
+    }
+
+
     std::string algorithm = argv[1];
     std::string filePath = argv[2];
+    std::string testOption;
+    if(argc == 4){
+        testOption = argv[3];
+    }
 
     if(algorithm == "test"){
-        RunAllTest(filePath);
+        RunTest(filePath,testOption);
     }else if(algorithm == "example"){
         Example();
     }
@@ -86,11 +94,11 @@ int main(int argc, const char * argv[]) {
             std::ofstream csv;
             std::ofstream log;
             log.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".log");
-            if ( out.fail() ){
+            if ( log.fail() ){
                 std::cerr << "Error: could not open file" << std::endl;
             }
             csv.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
-            if ( out.fail() ){
+            if ( csv.fail() ){
                 std::cerr << "Error: could not open file" << std::endl;
             }
             //progress.open(filePath + "/progress.txt");
@@ -343,7 +351,7 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
 
     int numberOfRequests = 0;
     for(int i =-1; i < 1000; i++){
-        system.makeRequest();
+        if(i%5 == 0 ){system.makeRequest();}
         numberOfRequests++;
         system.receive();
         system.preformComputation();

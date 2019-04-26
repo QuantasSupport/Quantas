@@ -128,7 +128,7 @@ public:
     std::vector<PBFT_Message>   getCommitLog        ()const                                         {return _commitLog;};
     std::vector<PBFT_Message>   getLedger           ()const                                         {return _ledger;};
     std::string                 getPhase            ()const                                         {return _currentPhase;};
-    bool                        isPrimary           ()const                                         {return _id == _primary->id();};
+    bool                        isPrimary           ()const                                         {return _primary == nullptr ? false : _id == _primary->id();};
     virtual int                 faultyPeers         ()const                                         {return ceil((_neighbors.size() + 1) * _faultUpperBound);};
     int                         getRound            ()const                                         {return _currentRound;};
     std::string                 getPrimary          ()const                                         {return _primary == nullptr ? NO_PRIMARY : _primary->id();}
@@ -148,6 +148,7 @@ public:
     // base class functions
     void                        preformComputation  ();
     void                        makeRequest         ();// starts distributed-consensus
+    void                        makeRequest         (int);// starts distributed-consensus with a squence number
 
     // operators
     PBFT_Peer&                  operator=           (const PBFT_Peer &);

@@ -146,7 +146,12 @@ void PBFT_Peer::prePrepare(){
     PBFT_Message request = _requestLog.front();
     _requestLog.erase(_requestLog.begin());
     
-    request.sequenceNumber = (int)_ledger.size() + 1;
+    if(request.sequenceNumber == -1){
+        request.sequenceNumber = (int)_ledger.size() + 1;
+    }else{
+        // request came with a sequenceNumber number nothing to do
+    }
+    
     request.phase = PRE_PREPARE;
     request.type = REPLY;
     request.creator_id = _id;
@@ -154,6 +159,9 @@ void PBFT_Peer::prePrepare(){
     _currentRequest = request;
     _currentRequestResult = executeQuery(request);
     _prePrepareLog.push_back(request);
+    PBFT_Message myPrepareMsg = request;
+    myPrepareMsg.phase = PREPARE;
+    _prepareLog.push_back(myPrepareMsg);
     braodcast(request);
 }
 
@@ -171,6 +179,8 @@ void PBFT_Peer::prepare(){
     if(!isVailedRequest(prePrepareMesg)){
         return;
     }
+    prePrepareMesg.phase = PREPARE;
+    _prepareLog.push_back(prePrepareMesg);
     PBFT_Message prepareMsg = prePrepareMesg;
     prepareMsg.creator_id = _id;
     prepareMsg.view = _currentView;
@@ -195,7 +205,7 @@ void PBFT_Peer::waitPrepare(){
             numberOfPrepareMsg++;
         }
     }
-    if(numberOfPrepareMsg > (faultyPeers())){
+    if(numberOfPrepareMsg >= (faultyPeers())){
         _currentPhase = COMMIT;
     }
 }
@@ -232,8 +242,8 @@ void PBFT_Peer::waitCommit(){
             numberOfCommitMsg++;
         }
     }
-    if(numberOfCommitMsg > (faultyPeers())){
-        sendCommitReply();
+    if(numberOfCommitMsg >= (faultyPeers())){
+        // sendCommitReply();
         PBFT_Message commit = _currentRequest;
         commit.result = _currentRequestResult;
         commit.round = _currentRound;
@@ -362,6 +372,47 @@ void PBFT_Peer::makeRequest(){
     request.round = _currentRound;
     request.phase = IDEAL;
     request.sequenceNumber = -1;
+    request.result = 0;
+    
+    if(_id != _primary->id()){
+        // create packet for request
+        Packet<PBFT_Message> pck(makePckId());
+        pck.setSource(_id);
+        pck.setTarget(_primary->id());
+        pck.setBody(request);
+        _outStream.push_back(pck);
+    }else{
+        _requestLog.push_back(request);
+    }
+}
+
+void PBFT_Peer::makeRequest(int squenceNumber){
+    if(_primary == nullptr){
+        *_log<< "ERROR: makeRequest called with no primary"<< std::endl;
+        return;
+    }
+    
+    // create request
+    PBFT_Message request;
+    request.client_id = _id;
+    request.creator_id = _id;
+    request.view = _currentView;
+    request.type = REQUEST;
+    
+    bool add = (rand()%2);
+    if(add){
+        request.operation = ADD;
+    }else{
+        request.operation = SUBTRACT;
+    }
+    
+    request.operands = std::pair<int, int>();
+    request.operands.first = (rand()%100)+1;
+    request.operands.second = (rand()%100)+1;
+    
+    request.round = _currentRound;
+    request.phase = IDEAL;
+    request.sequenceNumber = squenceNumber;
     request.result = 0;
     
     if(_id != _primary->id()){

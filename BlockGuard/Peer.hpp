@@ -43,6 +43,7 @@ protected:
     
     // logging
     std::ostream                            *_log;
+    bool                                    _printNeighborhood;
     
 public:
     Peer                                                    ();
@@ -52,7 +53,9 @@ public:
     // Setters
     void                              setID                 (std::string id)                    {_id = id;};
     void                              setLogFile            (std::ostream &o)                   {_log = &o;};
-
+    void                              printNeighborhoodOn   ()                                  {_printNeighborhood = true;}
+    void                              printNeighborhoodOff  ()                                  {_printNeighborhood = false;}
+    
     // getters
     std::vector<std::string>          neighbors             ()const;
     std::string                       id                    ()const                             {return _id;};
@@ -104,6 +107,7 @@ Peer<algorithm>::Peer(){
     _log = &std::cout;
     _byzantine = false;
     _numberOfMessagesSent = 0;
+    _printNeighborhood = false;
 }
 
 template <class algorithm>
@@ -119,6 +123,7 @@ Peer<algorithm>::Peer(std::string id){
     _log = &std::cout;
     _byzantine = false;
     _numberOfMessagesSent = 0;
+    _printNeighborhood = false;
 }
 
 template <class algorithm>
@@ -132,6 +137,7 @@ Peer<algorithm>::Peer(const Peer &rhs){
     _log = rhs._log;
     _byzantine = rhs._byzantine;
     _numberOfMessagesSent = rhs._numberOfMessagesSent;
+    _printNeighborhood = rhs._printNeighborhood;
 }
 
 template <class algorithm>
@@ -154,26 +160,28 @@ void Peer<algorithm>::addNeighbor(Peer<algorithm> &newNeighbor, int delay){
 // called on recever
 template <class algorithm>
 void Peer<algorithm>::send(Packet<algorithm> outMessage){
-    _numberOfMessagesSent++;
     _channels.at(outMessage.sourceId()).push_back(outMessage);
 }
 
 // called on sender
 template <class algorithm>
 void Peer<algorithm>::transmit(){
+    // send all messages to there destantion peer channels  
     while(!_outStream.empty()){
         
         Packet<algorithm> outMessage = _outStream[0];
         _outStream.erase(_outStream.begin());
         
+        // find neighbor that packet is to be sent to
         for(int i = 0; i < _neighbors.size(); i++){
             std::string neighborID = _neighbors[i]->id();
             int maxDelay = _channelDelays.at(neighborID);
             if(neighborID == outMessage.targetId()){
                 outMessage.setDelay(maxDelay);
                 _neighbors[i]->send(outMessage);
+                _numberOfMessagesSent++;
             }else if(_id == outMessage.targetId()){
-                _inStream.push_back(outMessage);
+                _inStream.push_back(outMessage); // if sent to self loop back next round
             }
         }
     }
@@ -230,6 +238,7 @@ Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
     _log = rhs._log;
     _byzantine = rhs._byzantine;
     _numberOfMessagesSent = rhs._numberOfMessagesSent;
+    _printNeighborhood = rhs._printNeighborhood;
     
     return *this;
 }
@@ -243,12 +252,14 @@ template <class algorithm>
 std::ostream& Peer<algorithm>::printTo(std::ostream &out)const{
     out<< "-- Peer ID:"<< _id<< " --"<< std::endl;
     out<< std::left;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< "In Stream Size"<< std::setw(LOG_WIDTH)<< "Out Stream Size"<< std::setw(LOG_WIDTH)<< "Is Byzantine"<< std::setw(LOG_WIDTH)<< "Message Count"<<std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< _inStream.size()<< std::setw(LOG_WIDTH)<< _outStream.size()<<std::setw(LOG_WIDTH)<< std::boolalpha<<  _byzantine<< std::setw(LOG_WIDTH)<<std::setw(LOG_WIDTH)<< _numberOfMessagesSent<<std::endl<<std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< "Neighbor ID"<< std::setw(LOG_WIDTH)<< "Delay"<< std::setw(LOG_WIDTH)<< "Messages In Channel"<< std::endl;
-    for(int i = 0; i <  _neighbors.size(); i++){
-        std::string neighborId = _neighbors[i]->id();
-        out<< "\t"<< std::setw(LOG_WIDTH)<< neighborId<< std::setw(LOG_WIDTH)<< getDelayToNeighbor(neighborId)<< std::setw(LOG_WIDTH)<<  _channels.at(neighborId).size()<< std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< "In Stream Size"<< std::setw(LOG_WIDTH)<< "Out Stream Size"<< std::setw(LOG_WIDTH)<< "Message Count"<< std::setw(LOG_WIDTH)<< "Is Byzantine"<<std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _inStream.size()<< std::setw(LOG_WIDTH)<< _outStream.size()<<std::setw(LOG_WIDTH)<< _numberOfMessagesSent<< std::setw(LOG_WIDTH)<<std::setw(LOG_WIDTH)<< std::boolalpha<<  _byzantine<<std::endl<<std::endl;
+    if(_printNeighborhood){
+        out<< "\t"<< std::setw(LOG_WIDTH)<< "Neighbor ID"<< std::setw(LOG_WIDTH)<< "Delay"<< std::setw(LOG_WIDTH)<< "Messages In Channel"<< std::endl;
+        for(int i = 0; i <  _neighbors.size(); i++){
+            std::string neighborId = _neighbors[i]->id();
+            out<< "\t"<< std::setw(LOG_WIDTH)<< neighborId<< std::setw(LOG_WIDTH)<< getDelayToNeighbor(neighborId)<< std::setw(LOG_WIDTH)<<  _channels.at(neighborId).size()<< std::endl;
+        }
     }
     out << std::endl;
     return out;

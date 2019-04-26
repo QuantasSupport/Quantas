@@ -8,14 +8,17 @@
 
 // run tests over classes
 
-#include <stdio.h>
-#include <string>
 #include "PBFTPeerTest.hpp"
+#include "test.hpp"
 
-
-int RunAllTest(std::string filepath){
-
-    
+int RunTest(std::string filepath, std::string testOption){
+    if(testOption == "all"){
+        RunPBFT_Tests(filepath);
+    }else if(testOption == "pbft"){
+        RunPBFT_Tests(filepath);
+    }
 
     return 0;
 }
+
+

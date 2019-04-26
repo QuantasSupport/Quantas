@@ -37,6 +37,7 @@ protected:
     int                                                             _currentRound;
     int                                                             _groupSize;
     int                                                             _nextCommitteeId;
+    int                                                             _nextSquenceNumber;
     Network<PBFT_Message, PBFTPeer_Sharded>                         _peers;
     std::vector<int>                                                _groupIds;
     std::vector<std::pair<int,aGroup> >                             _busyGroups;

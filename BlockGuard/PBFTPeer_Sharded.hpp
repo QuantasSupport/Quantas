@@ -21,8 +21,8 @@ protected:
     std::vector<Peer<PBFT_Message>* >                          _groupMembers;
     std::vector<Peer<PBFT_Message>* >                          _committeeMembers;
     
-    int                     faultyPeers             ()const                                         {return ceil((_committeeMembers.size() + 1) * _faultUpperBound);};
-    void                    braodcast               (const PBFT_Message&);
+    int                     faultyPeers             ()const override                                {return ceil((_committeeMembers.size() + 1) * _faultUpperBound);};
+    void                    braodcast               (const PBFT_Message&) override; 
     
 public:
     PBFTPeer_Sharded                                (std::string);
@@ -38,9 +38,9 @@ public:
     // mutators
     void                    clearCommittee          ()                                              {_committeeMembers.clear(); _committeeId = -1;}
     void                    clearGroup              ()                                              {_groupMembers.clear(); _groupId = -1;}
-    void                    initPrimary             ()                                              {_primary = findPrimary(_committeeMembers);};
+    void                    initPrimary             () override                                     {_primary = findPrimary(_committeeMembers);};
     
-    void                    preformComputation      ();
+    void                    preformComputation      () override;
     
     std::ostream&           printTo                 (std::ostream&)const;
     void                    log                     ()const                                         {printTo(*_log);};
