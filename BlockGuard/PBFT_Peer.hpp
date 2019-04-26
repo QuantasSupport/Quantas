@@ -11,7 +11,10 @@
 
 #include <math.h>
 #include <algorithm>
+#include <assert.h>
+#include <cassert>
 #include "Peer.hpp"
+
 
 //
 // PBFT Message defintion
