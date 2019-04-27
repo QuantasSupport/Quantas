@@ -11,7 +11,10 @@
 
 #include <math.h>
 #include <algorithm>
+#include <assert.h>
+#include <cassert>
 #include "Peer.hpp"
+
 
 //
 // PBFT Message defintion
@@ -28,6 +31,8 @@ static const std::string PREPARE       = "PREPARE";
 static const std::string PREPARE_WAIT  = "PREPARE_WAIT"; // waiting foir messages
 static const std::string COMMIT        = "COMMIT";
 static const std::string COMMIT_WAIT   = "COMMIT_WAIT"; // waiting foir messages
+
+static const std::string NO_PRIMARY    = "NO PRIMARY";
 
 // operation defintions
 static const char ADD = '+';
@@ -52,6 +57,20 @@ struct PBFT_Message{
     // phases info
     std::string         phase;
     int                 sequenceNumber;
+    
+    bool operator==(const PBFT_Message& rhs)
+    {
+        return(
+                client_id == rhs.client_id &&
+                creator_id == rhs.creator_id &&
+                view == rhs.view &&
+                type == rhs.type &&
+                operation == rhs.operation &&
+                operands == rhs.operands &&
+                result == rhs.result &&
+                round == rhs.round
+               );
+    }
 };
 
 //
@@ -61,7 +80,6 @@ class PBFT_Peer : public Peer<PBFT_Message>{
 protected:
     
     // tracking varables
-    //std::vector<PBFT_Message>       _messageLog;
     std::vector<PBFT_Message>       _requestLog;
     std::vector<PBFT_Message>       _prePrepareLog;
     std::vector<PBFT_Message>       _prepareLog;
@@ -93,7 +111,6 @@ protected:
     
     // support methods used for the above
     virtual void                sendCommitReply     ();
-    virtual int                 faultyPeers         ()const                                         {return ceil((_neighbors.size() + 1) * _faultUpperBound);};
     virtual Peer<PBFT_Message>* findPrimary         (const std::vector<Peer<PBFT_Message>*> peers);
     virtual int                 executeQuery        (const PBFT_Message&);
     std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
@@ -104,7 +121,6 @@ protected:
 public:
     PBFT_Peer                                       (std::string id);
     PBFT_Peer                                       (std::string id, double fault);
-    PBFT_Peer                                       (std::string id, double fault, int round);
     PBFT_Peer                                       (const PBFT_Peer &rhs);
     ~PBFT_Peer                                      ()                                              {};
     
@@ -114,13 +130,19 @@ public:
     std::vector<PBFT_Message>   getPrepareLog       ()const                                         {return _prepareLog;};
     std::vector<PBFT_Message>   getCommitLog        ()const                                         {return _commitLog;};
     std::vector<PBFT_Message>   getLedger           ()const                                         {return _ledger;};
-    bool                        isPrimary           ()const                                         {return _id == _primary->id();};
+    std::string                 getPhase            ()const                                         {return _currentPhase;};
+    bool                        isPrimary           ()const                                         {return _primary == nullptr ? false : _id == _primary->id();};
+    virtual int                 faultyPeers         ()const                                         {return ceil((_neighbors.size() + 1) * _faultUpperBound);};
+    int                         getRound            ()const                                         {return _currentRound;};
+    std::string                 getPrimary          ()const                                         {return _primary == nullptr ? NO_PRIMARY : _primary->id();}
     
     // setters
     void                        setFaultTolerance   (double f)                                      {_faultUpperBound = f;};
-    
+ 
     // mutators
-    void                        init                ()                                              {_primary = findPrimary(_neighbors);};
+    void                        clearPrimary        ()                                              {_primary = nullptr;}
+    void                        init                ()                                              {initPrimary();};
+    virtual void                initPrimary         ()                                              {_primary = findPrimary(_neighbors);};
     
     // debug/logging
     std::ostream&               printTo             (std::ostream&)const;
@@ -129,6 +151,7 @@ public:
     // base class functions
     void                        preformComputation  ();
     void                        makeRequest         ();// starts distributed-consensus
+    void                        makeRequest         (int);// starts distributed-consensus with a squence number
 
     // operators
     PBFT_Peer&                  operator=           (const PBFT_Peer &);

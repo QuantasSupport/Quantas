@@ -43,23 +43,6 @@ PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
     _currentRequestResult = 0;
 }
 
-PBFT_Peer::PBFT_Peer(std::string id, double fault, int round) : Peer<PBFT_Message>(id){
-    _requestLog = std::vector<PBFT_Message>();
-    _prePrepareLog = std::vector<PBFT_Message>();
-    _prepareLog = std::vector<PBFT_Message>();
-    _commitLog = std::vector<PBFT_Message>();
-    _ledger = std::vector<PBFT_Message>();
-    
-    _faultUpperBound = fault;
-    _currentRound = round;
-    
-    _primary = nullptr;
-    _currentPhase = IDEAL;
-    _currentView = 0;
-    _currentRequest = PBFT_Message();
-    _currentRequestResult = 0;
-}
-
 PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
     _requestLog = rhs._requestLog;
     _prePrepareLog = rhs._prePrepareLog;
@@ -117,6 +100,8 @@ void PBFT_Peer::collectMessages(){
             _commitLog.push_back(_inStream.front().getMessage());
             _inStream.erase(_inStream.begin());
             
+        }else{
+            _inStream.erase(_inStream.begin());
         }
     }
 }
@@ -161,13 +146,22 @@ void PBFT_Peer::prePrepare(){
     PBFT_Message request = _requestLog.front();
     _requestLog.erase(_requestLog.begin());
     
-    request.sequenceNumber = (int)_ledger.size() + 1;
+    if(request.sequenceNumber == -1){
+        request.sequenceNumber = (int)_ledger.size() + 1;
+    }else{
+        // request came with a sequenceNumber number nothing to do
+    }
+    
     request.phase = PRE_PREPARE;
     request.type = REPLY;
+    request.creator_id = _id;
     _currentPhase = PREPARE_WAIT;
     _currentRequest = request;
     _currentRequestResult = executeQuery(request);
-    _prepareLog.push_back(request);
+    _prePrepareLog.push_back(request);
+    PBFT_Message myPrepareMsg = request;
+    myPrepareMsg.phase = PREPARE;
+    _prepareLog.push_back(myPrepareMsg);
     braodcast(request);
 }
 
@@ -185,6 +179,8 @@ void PBFT_Peer::prepare(){
     if(!isVailedRequest(prePrepareMesg)){
         return;
     }
+    prePrepareMesg.phase = PREPARE;
+    _prepareLog.push_back(prePrepareMesg);
     PBFT_Message prepareMsg = prePrepareMesg;
     prepareMsg.creator_id = _id;
     prepareMsg.view = _currentView;
@@ -209,7 +205,7 @@ void PBFT_Peer::waitPrepare(){
             numberOfPrepareMsg++;
         }
     }
-    if(numberOfPrepareMsg > (faultyPeers())){
+    if(numberOfPrepareMsg >= (faultyPeers())){
         _currentPhase = COMMIT;
     }
 }
@@ -246,8 +242,8 @@ void PBFT_Peer::waitCommit(){
             numberOfCommitMsg++;
         }
     }
-    if(numberOfCommitMsg > (faultyPeers())){
-        sendCommitReply();
+    if(numberOfCommitMsg >= (faultyPeers())){
+        // sendCommitReply();
         PBFT_Message commit = _currentRequest;
         commit.result = _currentRequestResult;
         commit.round = _currentRound;
@@ -255,7 +251,7 @@ void PBFT_Peer::waitCommit(){
         _currentPhase = IDEAL; // complete distributed-consensus
         _currentRequestResult = 0;
         _currentRequest = PBFT_Message();
-        //cleanLogs();
+        cleanLogs();
     }
     
 }
@@ -316,9 +312,9 @@ bool PBFT_Peer::isVailedRequest(const PBFT_Message &query)const{
     if(query.view != _currentView){
         return false;
     }
-    if(query.sequenceNumber <= _ledger.size()){
-        return false;
-    }
+//    if(query.sequenceNumber <= _ledger.size()){
+//        return false;
+//    }
     if(query.phase != PRE_PREPARE){
         return false;
     }
@@ -390,13 +386,54 @@ void PBFT_Peer::makeRequest(){
     }
 }
 
+void PBFT_Peer::makeRequest(int squenceNumber){
+    if(_primary == nullptr){
+        *_log<< "ERROR: makeRequest called with no primary"<< std::endl;
+        return;
+    }
+    
+    // create request
+    PBFT_Message request;
+    request.client_id = _id;
+    request.creator_id = _id;
+    request.view = _currentView;
+    request.type = REQUEST;
+    
+    bool add = (rand()%2);
+    if(add){
+        request.operation = ADD;
+    }else{
+        request.operation = SUBTRACT;
+    }
+    
+    request.operands = std::pair<int, int>();
+    request.operands.first = (rand()%100)+1;
+    request.operands.second = (rand()%100)+1;
+    
+    request.round = _currentRound;
+    request.phase = IDEAL;
+    request.sequenceNumber = squenceNumber;
+    request.result = 0;
+    
+    if(_id != _primary->id()){
+        // create packet for request
+        Packet<PBFT_Message> pck(makePckId());
+        pck.setSource(_id);
+        pck.setTarget(_primary->id());
+        pck.setBody(request);
+        _outStream.push_back(pck);
+    }else{
+        _requestLog.push_back(request);
+    }
+}
+
 std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     Peer<PBFT_Message>::printTo(out);
     out<< std::left;
     
     std::string primaryId;
     if(_primary == nullptr){
-        primaryId = "NO PRIMARY";
+        primaryId = NO_PRIMARY;
     }else{
         primaryId = _primary->id();
     }
@@ -410,7 +447,12 @@ std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     out<< "\t"<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _currentPhase<< std::setw(LOG_WIDTH)<< _currentView<< std::setw(LOG_WIDTH)<< primaryId<< std::setw(LOG_WIDTH)<< _currentRequest.client_id<< std::setw(LOG_WIDTH)<< _currentRequestResult<< std::endl;
     
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Request Log"<< std::setw(LOG_WIDTH)<< "Pre-Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Commit Log Size"<< std::setw(LOG_WIDTH)<< "Ledger Size"<<  std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< _requestLog.size()<< std::setw(LOG_WIDTH)<< _prePrepareLog.size()<< std::setw(LOG_WIDTH)<< _prepareLog.size()<< std::setw(LOG_WIDTH)<< _commitLog.size()<< std::setw(LOG_WIDTH)<< _ledger.size()<< std::endl <<std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _requestLog.size()<< std::setw(LOG_WIDTH)<< _prePrepareLog.size()<< std::setw(LOG_WIDTH)<< _prepareLog.size()<< std::setw(LOG_WIDTH)<< _commitLog.size()<< std::setw(LOG_WIDTH)<< _ledger.size()<< std::endl;
+    
+    //out<< "\t"<< std::setw(LOG_WIDTH)<< "inStream Messages"<< std::setw(LOG_WIDTH)<< "outStream Messages"<< std::endl;
+    
+    
+    
     
     return out;
 }

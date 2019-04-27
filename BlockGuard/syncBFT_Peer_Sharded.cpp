@@ -1,54 +1,31 @@
 //
-//  BlockGuardSharded.cpp
+//  syncBFT_Peer_Sharded.cpp
 //  Multi_Level_Secure_Blockchain
 //
-//  Created by Kendric Hood on 3/28/19.
+//  Created by Kendric Hood on 4/9/19.
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
-//
-#include "BlockGuardPeer_Sharded.hpp"
 
-BlockGuardPeer_Sharded::BlockGuardPeer_Sharded(std::string id) : PBFT_Peer(id) {
+#include "syncBFT_Peer_Sharded.hpp"
+
+syncBFT_Peer_Sharded::syncBFT_Peer_Sharded(std::string id) : syncBFT_Peer(id){
     _groupId = -1;
     _committeeId = -1;
-    _groupMembers = std::vector<Peer<PBFT_Message>* >();
-    _committeeMembers = std::vector<Peer<PBFT_Message>* >();
+    _groupMembers = std::vector<Peer<syncBFTmessage>* >();
+    _committeeMembers = std::vector<Peer<syncBFTmessage>* >();
+    _faultUpperBound = ((peerCount() - 1)/2) +1;
 }
 
-BlockGuardPeer_Sharded::BlockGuardPeer_Sharded(const BlockGuardPeer_Sharded &rhs) : PBFT_Peer(rhs){
+syncBFT_Peer_Sharded::syncBFT_Peer_Sharded(const syncBFT_Peer_Sharded &rhs) : syncBFT_Peer(rhs){
     _groupId = rhs._groupId;
     _committeeId = rhs._committeeId;
     _groupMembers = rhs._groupMembers;
     _committeeMembers = rhs._committeeMembers;
+    _faultUpperBound = rhs._faultUpperBound;
 }
 
-void BlockGuardPeer_Sharded::braodcast(const PBFT_Message &msg){
-    for(int i = 0; i < _committeeMembers.size(); i++){
-        std::string neighborId = _committeeMembers[i]->id();
-        Packet<PBFT_Message> pck(makePckId());
-        pck.setSource(_id);
-        pck.setTarget(neighborId);
-        pck.setBody(msg);
-        _outStream.push_back(pck);
-    }
-}
-
-void BlockGuardPeer_Sharded::preformComputation(){
-    if(_primary == nullptr){
-        _primary = findPrimary(_committeeMembers);
-    }
-    collectMessages(); // sorts messages into there repective logs
-    prePrepare();
-    prepare();
-    waitPrepare();
-    commit();
-    waitCommit();
-    _currentRound++;
-}
-
-BlockGuardPeer_Sharded& BlockGuardPeer_Sharded::operator= (const BlockGuardPeer_Sharded &rhs){
-    PBFT_Peer::operator=(rhs);
-    
+syncBFT_Peer_Sharded& syncBFT_Peer_Sharded::operator=(const syncBFT_Peer_Sharded &rhs){
+    syncBFT_Peer::operator=(rhs);
     _groupId = rhs._groupId;
     _committeeId = rhs._committeeId;
     _groupMembers = rhs._groupMembers;
@@ -57,8 +34,24 @@ BlockGuardPeer_Sharded& BlockGuardPeer_Sharded::operator= (const BlockGuardPeer_
     return *this;
 }
 
-std::ostream& BlockGuardPeer_Sharded::printTo(std::ostream &out)const{
-    PBFT_Peer::printTo(out);
+void syncBFT_Peer_Sharded::populateOutStream(const syncBFTmessage &msg){
+    for(auto &member : _committeeMembers) {
+        Packet<syncBFTmessage> newMessage(std::to_string(iter), member->id(), _id);
+        newMessage.setBody(msg);
+        _outStream.push_back(newMessage);
+    }
+}
+
+std::vector<std::string> syncBFT_Peer_Sharded::leaderIdCandidates()const{
+    vector<string> candidates = vector<string>();
+    for(int i = 0; i < _committeeMembers.size(); i++){
+        candidates.push_back(_committeeMembers[i]->id());
+    }
+    return candidates;
+}
+
+std::ostream& syncBFT_Peer_Sharded::printTo(std::ostream &out)const{
+    syncBFT_Peer::printTo(out);
     
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Group Id"<< std::setw(LOG_WIDTH)<< "Committee Id"<< std::setw(LOG_WIDTH)<< "Group Size"<< std::setw(LOG_WIDTH)<< "Committee Size"<<  std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< _groupId<< std::setw(LOG_WIDTH)<< _committeeId<< std::setw(LOG_WIDTH)<< _groupMembers.size() + 1<< std::setw(LOG_WIDTH)<< _committeeMembers.size() + 1<< std::endl<< std::endl;
