@@ -1,6 +1,6 @@
 //
 //  Peer.hpp
-//  Multi_Level_Secure_Blockchain
+//  BlockGuard
 //
 //  Created by Kendric Hood on 3/8/19.
 //  Copyright © 2019 Kent State University. All rights reserved.
@@ -15,6 +15,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>    // std::std::lower_bound, std::sort
 #include "Packet.hpp"
 
 // var used for column width in loggin
@@ -23,20 +24,20 @@ static const int LOG_WIDTH = 27;
 //
 // Base Peer class
 //
-template <class algorithm>
+template <class message>
 class Peer{
 protected:
     std::string                             _id;
     bool                                    _byzantine;
     
-    // communication vars
-    typedef std::vector<Packet<algorithm> > aChannel;
+    // type abbreviations
+    typedef std::vector<Packet<message> >   aChannel;
     typedef std::string                     peerId;
     std::map<peerId,aChannel>               _channels;// list of chanels between this peer and others
     std::map<peerId,int>                    _channelDelays;// list of channels and there delays
-    std::vector<Peer<algorithm>* >          _neighbors; // peers this peer has a link to
-    std::vector<Packet<algorithm> >         _inStream;// messages that have arrived at this peer
-    std::vector<Packet<algorithm> >         _outStream;// messages waiting to be sent by this peer
+    std::vector<Peer<message>* >            _neighbors; // peers this peer has a link to
+    std::vector<Packet<message> >           _inStream;// messages that have arrived at this peer
+    std::vector<Packet<message> >           _outStream;// messages waiting to be sent by this peer
     
     // metrics
     int                                     _numberOfMessagesSent;
@@ -72,17 +73,29 @@ public:
     // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
     void                              receive               ();
     // send a message to this peer
-    void                              send                  (Packet<algorithm>);
+    void                              send                  (Packet<message>);
     // sends all messages in _outStream to thsere respective targets
     void                              transmit              ();
-    // preform one step of the Consensus algorithm with the messages in inStream
+    // preform one step of the Consensus message with the messages in inStream
     virtual void                      preformComputation    ()=0;
     
     void                              log                   ()const;
     std::ostream&                     printTo               (std::ostream&)const;
     Peer&                             operator=             (const Peer&);
+
+    // == and != compare all attributes 
     bool                              operator==            (const Peer &rhs)const              {return (_id == rhs._id);};
     bool                              operator!=            (const Peer &rhs)const              {return !(*this == rhs);};
+    // greater and less then are based on peer id (standard string comparison)
+    bool                              operator<=            (const Peer &rhs)const              {return (_id <= rhs._id);};
+    bool                              operator<             (const Peer &rhs)const              {return (_id < rhs._id);};
+    bool                              operator>=            (const Peer &rhs)const              {return (_id >= rhs._id);};
+    bool                              operator>             (const Peer &rhs)const              {return (_id > rhs._id);};
+    bool                              operator<=            (const std::string &rhs)const       {return (_id <= rhs);};
+    bool                              operator<             (const std::string &rhs)const       {return (_id < rhs);};
+    bool                              operator>=            (const std::string &rhs)const       {return (_id >= rhs);};
+    bool                              operator>             (const std::string &rhs)const       {return (_id > rhs);};
+
     friend std::ostream&              operator<<            (std::ostream&, const Peer&);
     virtual bool					  isByzantine			()                                  {return _byzantine;};
     virtual void					  setByzantineFlag		(bool f)                            {_byzantine = f;};
@@ -94,14 +107,14 @@ public:
 // Base Peer definitions
 //
 
-template <class algorithm>
-Peer<algorithm>::Peer(){
-    typedef std::vector<Packet<algorithm> > aChannel;
+template <class message>
+Peer<message>::Peer(){
+    typedef std::vector<Packet<message> > aChannel;
     typedef std::string peerId;
     _id = "NO ID";
-    _inStream = std::vector<Packet<algorithm> >();
-    _outStream = std::vector<Packet<algorithm> >();
-    _neighbors = std::vector<Peer<algorithm>* >();
+    _inStream = std::vector<Packet<message> >();
+    _outStream = std::vector<Packet<message> >();
+    _neighbors = std::vector<Peer<message>* >();
     _channelDelays = std::map<peerId,int>();
     _channels = std::map<peerId,aChannel>();
     _log = &std::cout;
@@ -110,14 +123,14 @@ Peer<algorithm>::Peer(){
     _printNeighborhood = false;
 }
 
-template <class algorithm>
-Peer<algorithm>::Peer(std::string id){
-    typedef std::vector<Packet<algorithm> > aChannel;
+template <class message>
+Peer<message>::Peer(std::string id){
+    typedef std::vector<Packet<message> > aChannel;
     typedef std::string peerId;
     _id = id;
-    _inStream = std::vector<Packet<algorithm> >();
-    _outStream = std::vector<Packet<algorithm> >();
-    _neighbors = std::vector<Peer<algorithm>* >();
+    _inStream = std::vector<Packet<message> >();
+    _outStream = std::vector<Packet<message> >();
+    _neighbors = std::vector<Peer<message>* >();
     _channelDelays = std::map<peerId,int>();
     _channels = std::map<peerId,aChannel>();
     _log = &std::cout;
@@ -126,8 +139,8 @@ Peer<algorithm>::Peer(std::string id){
     _printNeighborhood = false;
 }
 
-template <class algorithm>
-Peer<algorithm>::Peer(const Peer &rhs){
+template <class message>
+Peer<message>::Peer(const Peer &rhs){
     _id = rhs._id;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
@@ -140,12 +153,12 @@ Peer<algorithm>::Peer(const Peer &rhs){
     _printNeighborhood = rhs._printNeighborhood;
 }
 
-template <class algorithm>
-Peer<algorithm>::~Peer(){
+template <class message>
+Peer<message>::~Peer(){
 }
 
-template <class algorithm>
-void Peer<algorithm>::addNeighbor(Peer<algorithm> &newNeighbor, int delay){
+template <class message>
+void Peer<message>::addNeighbor(Peer<message> &newNeighbor, int delay){
     // grourd to make sure delay is at lest 1, less then 1 will couse errors when calculating delay (divisioin by 0)
     int edgeDelay = delay;
     if(edgeDelay < 1){
@@ -154,41 +167,54 @@ void Peer<algorithm>::addNeighbor(Peer<algorithm> &newNeighbor, int delay){
     _neighbors.push_back(&newNeighbor);
     
     _channelDelays[newNeighbor.id()] = edgeDelay;
-    _channels[newNeighbor.id()] = std::vector<Packet<algorithm> >();
+    _channels[newNeighbor.id()] = std::vector<Packet<message> >();
+    std::sort (_neighbors.begin(), _neighbors.end());
 }
 
 // called on recever
-template <class algorithm>
-void Peer<algorithm>::send(Packet<algorithm> outMessage){
+template <class message>
+void Peer<message>::send(Packet<message> outMessage){
     _channels.at(outMessage.sourceId()).push_back(outMessage);
 }
 
+template <class message>
+struct comparePeerPtrToStringId {
+    bool operator()( const Peer<message>**& rhs, const std::string& lhs) {
+        return lhs < rhs->id();
+    }
+};
+
 // called on sender
-template <class algorithm>
-void Peer<algorithm>::transmit(){
+template <class message>
+void Peer<message>::transmit(){
     // send all messages to there destantion peer channels  
     while(!_outStream.empty()){
         
-        Packet<algorithm> outMessage = _outStream[0];
+        Packet<message> outMessage = _outStream[0];
         _outStream.erase(_outStream.begin());
         
-        // find neighbor that packet is to be sent to
-        for(int i = 0; i < _neighbors.size(); i++){
-            std::string neighborID = _neighbors[i]->id();
-            int maxDelay = _channelDelays.at(neighborID);
-            if(neighborID == outMessage.targetId()){
-                outMessage.setDelay(maxDelay);
-                _neighbors[i]->send(outMessage);
-                _numberOfMessagesSent++;
-            }else if(_id == outMessage.targetId()){
-                _inStream.push_back(outMessage); // if sent to self loop back next round
-            }
+        // if sent to self loop back next round
+        if(_id == outMessage.targetId()){
+            outMessage.setDelay(1);
+            _inStream.push_back(outMessage); 
+        }
+
+        // there is no good find in log time for sorted vectors in the stl so we use lower bound see http://www.cplusplus.com/reference/algorithm/lower_bound/
+        std::string targetId = outMessage.targetId();
+        auto target = std::lower_bound(_neighbors.begin(),_neighbors.end(), targetId, comparePeerPtrToStringId<message>() ); // iterator for target peer
+        
+        // if we found the target peer
+        if(target->id() == targetId){
+            int maxDelay = _channelDelays.at(targetId);
+            outMessage.setDelay(maxDelay);
+            target->send(outMessage);
+            _numberOfMessagesSent++;
         }
     }
 }
 
-template <class algorithm>
-void Peer<algorithm>::receive(){
+template <class message>
+void Peer<message>::receive(){
     for(int i = 0; i < _neighbors.size(); i++){
         std::string neighborID = _neighbors[i]->id();
         if(!_channels.at(neighborID).empty()){
@@ -203,8 +229,8 @@ void Peer<algorithm>::receive(){
 }
 
 
-template <class algorithm>
-bool Peer<algorithm>::isNeighbor(std::string id)const{
+template <class message>
+bool Peer<message>::isNeighbor(std::string id)const{
     for(int i = 0; i < _neighbors.size(); i++){
         if(id == _neighbors[i]->id()){
             return true;
@@ -213,8 +239,8 @@ bool Peer<algorithm>::isNeighbor(std::string id)const{
     return false;
 }
 
-template <class algorithm>
-std::vector<std::string> Peer<algorithm>::neighbors()const{
+template <class message>
+std::vector<std::string> Peer<message>::neighbors()const{
     std::vector<std::string> neighborIds = std::vector<std::string>();
     for(int i = 0; i < _neighbors.size(); i++){
         neighborIds.push_back(_neighbors[i]->id());
@@ -222,13 +248,13 @@ std::vector<std::string> Peer<algorithm>::neighbors()const{
     return neighborIds;
 }
 
-template <class algorithm>
-int Peer<algorithm>::getDelayToNeighbor(std::string id)const{
+template <class message>
+int Peer<message>::getDelayToNeighbor(std::string id)const{
     return _channelDelays.at(id);
 }
 
-template <class algorithm>
-Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
+template <class message>
+Peer<message>& Peer<message>::operator=(const Peer<message> &rhs){
     _id = rhs._id;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
@@ -243,13 +269,13 @@ Peer<algorithm>& Peer<algorithm>::operator=(const Peer<algorithm> &rhs){
     return *this;
 }
 
-template <class algorithm>
-void Peer<algorithm>::log()const{
+template <class message>
+void Peer<message>::log()const{
     printTo(*_log);
 }
 
-template <class algorithm>
-std::ostream& Peer<algorithm>::printTo(std::ostream &out)const{
+template <class message>
+std::ostream& Peer<message>::printTo(std::ostream &out)const{
     out<< "-- Peer ID:"<< _id<< " --"<< std::endl;
     out<< std::left;
     out<< "\t"<< std::setw(LOG_WIDTH)<< "In Stream Size"<< std::setw(LOG_WIDTH)<< "Out Stream Size"<< std::setw(LOG_WIDTH)<< "Message Count"<< std::setw(LOG_WIDTH)<< "Is Byzantine"<<std::endl;
@@ -265,8 +291,8 @@ std::ostream& Peer<algorithm>::printTo(std::ostream &out)const{
     return out;
 }
 
-template <class algorithm>
-std::ostream& operator<<(std::ostream &out, const Peer<algorithm> &peer){
+template <class message>
+std::ostream& operator<<(std::ostream &out, const Peer<message> &peer){
     peer.printTo(out);
     return out;
 }

@@ -1,6 +1,6 @@
 //
 //  PBFT_Peer.hpp
-//  Multi_Level_Secure_Blockchain
+//  BlockGuard
 //
 //  Created by Kendric Hood on 3/19/19.
 //  Copyright © 2019 Kent State University. All rights reserved.

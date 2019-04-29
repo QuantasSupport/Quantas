@@ -1,6 +1,6 @@
 //
 //  main.cpp
-//  Multi_Level_Secure_Blockchain
+//  BlockGuard
 //
 //  Created by Kendric Hood on 3/8/19.
 //  Copyright © 2019 Kent State University. All rights reserved.
@@ -17,7 +17,7 @@
 #include "Network.hpp"
 #include "bCoin_Peer.hpp"
 #include "PBFTPeer_Sharded.hpp"
-#include "BGSReferenceCommittee.hpp"
+#include "PBFTReferenceCommittee.hpp"
 #include "test.hpp"
 #include <iostream>
 #include <chrono>
@@ -34,7 +34,7 @@ int shuffleByzantineInterval = 0;
 void buildInitialChain(std::vector<std::string>);
 std::set<std::string> getPeersForConsensus(int);
 int getNumberOfConfimedTransactionsBGS_PBFT(const std::vector<PBFTPeer_Sharded>&);
-int sumMessagesSentBGS(const BGSReferenceCommittee&);
+int sumMessagesSentBGS(const PBFTReferenceCommittee&);
 
 void Example();
 void PBFT(std::ofstream &out,int);
@@ -341,7 +341,7 @@ void Example(){
 }
 
 void bsg(std::ofstream &csv, std::ofstream &log,int delay){
-    BGSReferenceCommittee system = BGSReferenceCommittee();
+    PBFTReferenceCommittee system = PBFTReferenceCommittee();
     system.setGroupSize(16);
     system.setToRandom();
     system.setMaxDelay(delay);
@@ -446,7 +446,7 @@ int getNumberOfConfimedTransactionsBGS_PBFT(const std::vector<PBFTPeer_Sharded> 
     return globalLegder.size();
 }
 
-int sumMessagesSentBGS(const BGSReferenceCommittee &system){
+int sumMessagesSentBGS(const PBFTReferenceCommittee &system){
     int sum = 0;
     for(int i = 0; i < system.size(); i++){
         sum += system[i]->getMessageCount();
