@@ -13,19 +13,19 @@ syncBFT_Peer_Sharded::syncBFT_Peer_Sharded(std::string id) : syncBFT_Peer(id){
     _committeeId = -1;
     _groupMembers = std::vector<Peer<syncBFTmessage>* >();
     _committeeMembers = std::vector<Peer<syncBFTmessage>* >();
-    _faultUpperBound = ((peerCount() - 1)/2) +1;
+    //_faultUpperBound = ((peerCount() - 1)/2) +1;
 }
 
-syncBFT_Peer_Sharded::syncBFT_Peer_Sharded(const syncBFT_Peer_Sharded &rhs) : syncBFT_Peer(rhs){
-    _groupId = rhs._groupId;
-    _committeeId = rhs._committeeId;
-    _groupMembers = rhs._groupMembers;
-    _committeeMembers = rhs._committeeMembers;
-    _faultUpperBound = rhs._faultUpperBound;
-}
+// syncBFT_Peer_Sharded::syncBFT_Peer_Sharded(const syncBFT_Peer_Sharded &rhs) : syncBFT_Peer(rhs){
+//     _groupId = rhs._groupId;
+//     _committeeId = rhs._committeeId;
+//     _groupMembers = rhs._groupMembers;
+//     _committeeMembers = rhs._committeeMembers;
+//     _faultUpperBound = rhs._faultUpperBound;
+// }
 
 syncBFT_Peer_Sharded& syncBFT_Peer_Sharded::operator=(const syncBFT_Peer_Sharded &rhs){
-    syncBFT_Peer::operator=(rhs);
+    //syncBFT_Peer::operator=(rhs);
     _groupId = rhs._groupId;
     _committeeId = rhs._committeeId;
     _groupMembers = rhs._groupMembers;

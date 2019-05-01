@@ -28,7 +28,7 @@ const int peerCount = 10;
 const int blockChainLength = 100;
 Blockchain *blockchain;
 int shuffleByzantineInterval = 0;
-//std::ofstream progress;
+int syncBFT_Peer::peerCount = 3;
 
 // util functions
 void buildInitialChain(std::vector<std::string>);
@@ -169,22 +169,26 @@ void PBFT(std::ofstream &out,int delay){
 }
 
 void syncBFT(std::ofstream &out,int maxDelay){
+//    srand(1);
     srand(time(nullptr));
-    int shuffleByzantineInterval = 50;
-    int shuffleByzantineCount = 1;
-    int numberOfPeers = 10;
+
+    syncBFT_Peer::changeLeader = true;
+    syncBFT_Peer::leaderIdCandidates = {};
+    syncBFT_Peer::leaderId = "";
+    syncBFT_Peer::syncBFTsystemState = 0;
 
     Network<syncBFTmessage, syncBFT_Peer> n;
+    Network<PBFT_Message, PBFT_Peer> system;
 
     n.setMaxDelay(maxDelay);
     n.setToRandom();
-    n.initNetwork(numberOfPeers);
+    n.initNetwork(syncBFT_Peer::peerCount);
 
     int consensusSize = 0;
 
     vector<string> byzantinePeers;
-    while(byzantinePeers.size()<(numberOfPeers-1)/2) {
-        int index = rand()%numberOfPeers;
+    while(byzantinePeers.size()<(syncBFT_Peer::peerCount-1)/2) {
+        int index = rand()%syncBFT_Peer::peerCount;
         if (std::find(byzantinePeers.begin(),byzantinePeers.end(),n[index]->id())!= byzantinePeers.end()){
         }else{
             n[index]->setByzantineFlag(true);
@@ -202,89 +206,65 @@ void syncBFT(std::ofstream &out,int maxDelay){
     //start with the first peer as leader
 
     bool shuffleByzantinePeers = false;
-
-    for(int i =1; i<1000; i++){
+    int shuffleByzantineInterval = 20;
+    for(int i =1; i<100; i++){
 
         if(i%shuffleByzantineInterval == 0){
             std::cerr<<"Iteration "<<i<<std::endl;
             shuffleByzantinePeers = true;
         }
 
-        if( i%5 == 0 ){
-            n.makeRequest(rand()%n.size());
-        }
         n.receive();
-
-
         n.preformComputation();
+        n.transmit();
 
-        int leadeIndex = 0;
-        for(int i = 0; i < n.size(); i++){
-            if (n[i]->isLeader()){
-                leadeIndex = i;
-            }
-        }
-        //syncBFT_Peer::syncBFTsystemState
-        if(n[leadeIndex]->getStatus() == 3){
+        if(syncBFT_Peer::syncBFTsystemState == 3){
             if(shuffleByzantinePeers){
-                n.shuffleByzantines (shuffleByzantineCount);
+                n.shuffleByzantines ((syncBFT_Peer::peerCount-1)/2);
                 shuffleByzantinePeers = false;
             }
-        }
-        //check if all peers terminated
-        bool consensus = true;
-        for(int peerId = 0; peerId<n.size(); peerId++ ) {
-            if (!n[peerId]->getTerminationFlag()) {
-                //the leader does not need to terminate
-                if (n[peerId]->id() == n[peerId]->getLeaderId()) {
-                    continue;
+            //check if all peers terminated
+            bool consensus = true;
+            for(int peerId = 0; peerId<n.size(); peerId++ ) {
+                if (!n[peerId]->getTerminationFlag()) {
+                    //the leader does not need to terminate
+                    if (n[peerId]->id() == syncBFT_Peer::getLeaderId()) {
+                        continue;
+                    }
+                    consensus = false;
+                    break;
                 }
-                consensus = false;
-                break;
             }
-        }
-        if (consensus){
-            consensusSize++;
-            out<<"++++++++++++++++++++++++++++++++++++++++++Consensus reached at iteration "<<i<<std::endl;
-            //refresh the peers
-            for(int i = 0;i<n.size();i++){
-                n[i]->refreshSyncBFT();
+            if (consensus){
+                consensusSize++;
+                std::cerr<<"++++++++++++++++++++++++++++++++++++++++++Consensus reached at iteration "<<i<<std::endl;
+                //refresh the peers
+                for(int i = 0;i<n.size();i++){
+                    n[i]->refreshSyncBFT();
 
-            }
-            //reset system-wide sync state
-            for(int i = 0; i<n.size();i++){
-                n[i]->setSyncBFTState(0);
-            }
+                }
+                //reset system-wide sync state
+                syncBFT_Peer::syncBFTsystemState = 0;
 
-            lastConsensusAt = i;
-            continue;
+                lastConsensusAt = i;
+                continue;
+            }
         }
 
         if((i-lastConsensusAt)%n.maxDelay() ==0){
-            // find leader
-            int leadeIndex = 0;
-            for(int i = 0; i < n.size(); i++){
-                if (n[i]->isLeader()){
-                    leadeIndex = i;
-                }
-            }
-
             //reset sync status of the peers after a notify step is done.
-            if(n[leadeIndex]->getStatus() == 3){
+            if(syncBFT_Peer::syncBFTsystemState==3){
                 for(int i = 0; i<n.size();i++){
                     n[i]->setSyncBFTState(0);
                     n[i]->iter++;
-                    
                 }
             }
-            for(int i = 0; i<n.size();i++){
-                n[i]->incrementSyncBFTsystemState();
-            }
-            n.transmit();
+            syncBFT_Peer::incrementSyncBFTsystemState();
         }
-
     }
-    out<<"Shuffled byzantine peers every "<<shuffleByzantineInterval<<"\tMax delay: "<<maxDelay<<"\t Consensus count: "<<n[0]->getBlockchain()->getChainSize()-1<<std::endl;
+
+    std::cerr<<"Shuffled byzantine peers every "<<shuffleByzantineInterval<<"\tMax delay: "<<maxDelay<<"\t Consensus count: "<<n[0]->getBlockchain()->getChainSize()-1<<std::endl;
+
 }
 
 void bitcoin(std::ofstream &out, int avgDelay){

@@ -111,7 +111,7 @@ protected:
     
     // support methods used for the above
     virtual void                sendCommitReply     ();
-    virtual Peer<PBFT_Message>* findPrimary         (const std::vector<Peer<PBFT_Message>*> peers);
+    virtual Peer<PBFT_Message>* findPrimary         (const std::map<std::string, Peer<PBFT_Message>*> peers);
     virtual int                 executeQuery        (const PBFT_Message&);
     std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
     virtual bool                isVailedRequest     (const PBFT_Message&)const;

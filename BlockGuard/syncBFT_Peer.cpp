@@ -6,49 +6,42 @@
 
 #include "syncBFT_Peer.hpp"
 
+
+bool syncBFT_Peer::changeLeader = true;
+vector<string> syncBFT_Peer::leaderIdCandidates = {};
+string syncBFT_Peer::leaderId;
+int syncBFT_Peer::syncBFTsystemState = 0;
+
+
 syncBFT_Peer::syncBFT_Peer(std::string id) : Peer<syncBFTmessage>(id){
-    currentRound = 0;
+    counter = 0;
     blockchain = new Blockchain(true);
-    txToConsensus = "InitialTx";
+
     acceptedState as1("_","0",{});
     acceptedStates.emplace_back (as1);
+
     terminated = false;
     valueFromLeader ="_";
     syncBFTstate = 0;
     statusMessageToSelf = nullptr;
+    byzantineFlag = false;
     notifyMessagesPacket = {};
     iter = 0;
-    syncBFTsystemState = 0;
-    changeLeader = true;
+    leaderIdCandidates.push_back(id);
 
-}
-
-syncBFT_Peer::syncBFT_Peer(const syncBFT_Peer &rhs) : Peer<syncBFTmessage>(rhs){
-    currentRound = rhs.currentRound;
-    blockchain = rhs.blockchain;
-    propo = rhs.propo;
-    acceptedStates = rhs.acceptedStates;
-    terminated = rhs.terminated;
-    valueFromLeader = rhs.valueFromLeader;
-    commitCert = rhs.commitCert;
-    syncBFTstate = rhs.syncBFTstate;
-    statusMessageToSelf = std::make_unique<syncBFTmessage> (*rhs.statusMessageToSelf);
-    notifyMessagesPacket = rhs.notifyMessagesPacket;
-    iter = rhs.iter;
-    syncBFTsystemState = rhs.syncBFTsystemState;
-    changeLeader = rhs.changeLeader;
 }
 
 void syncBFT_Peer::populateOutStream(syncBFTmessage msg){
-    for(auto & _neighbor : _neighbors) {
-        Peer<syncBFTmessage> *peer = _neighbor;
+    //for(auto & _neighbor : _neighbors) {
+    for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
+        Peer<syncBFTmessage> *peer = it->second;
         Packet<syncBFTmessage> newMessage(std::to_string(iter), peer->id(), _id);
         newMessage.setBody(msg);
         _outStream.push_back(newMessage);
     }
 }
-void syncBFT_Peer::createBlock(std::set<std::string> publishers, string blockHash){
-    blockchain->createBlock(blockchain->getChainSize(), blockchain->getLatestBlockHash(), blockHash, std::move(publishers));
+void syncBFT_Peer::createBlock(std::set<std::string> publishers){
+    blockchain->createBlock(blockchain->getChainSize(), blockchain->getLatestBlockHash(), std::to_string(blockchain->getChainSize())+"_"+id(), std::move(publishers));
 }
 void syncBFT_Peer::currentStatusSend(){
 
@@ -57,15 +50,16 @@ void syncBFT_Peer::currentStatusSend(){
     //std::cerr<<"WORKER :: Peer Id is "<<id()<<std::endl;
 
     //handle notfiy messages if any, save it.
-    if(!_inStream.empty()){
-        assert(_inStream[0].getMessage().type == "NOTIFY");
-        if(isValidNotify(_inStream[0].getMessage())){
-            notifyMessagesPacket.push_back(_inStream[0]);
+    for(auto & i : _inStream){
+        assert(i.getMessage().type == "NOTIFY");
+        if(isValidNotify(i.getMessage())){
+            notifyMessagesPacket.push_back(i);
 
-            acceptedState as1(valueFromLeader, std::to_string (iter),_inStream[0].getMessage().cc);
+            acceptedState as1(valueFromLeader, std::to_string (iter),i.getMessage().cc);
             acceptedStates.push_back (as1);
         }
         //just accept the first notify message
+        break;
     }
 
     _inStream.clear();
@@ -73,13 +67,13 @@ void syncBFT_Peer::currentStatusSend(){
 
     //all peers
     syncBFTmessage sMessage;
-    sMessage.info = "Status Message: " + std::to_string(iter) + " From " + _id;
+//    sMessage.info = "Status Message: " + std::to_string(iter) + " From " + _id;
     sMessage.peerId = _id;
     sMessage.type = "STATUS";
     sMessage.iter = std::to_string(iter);
     assert(!acceptedStates.empty());
     sMessage.message = {std::to_string(iter), "STATUS", acceptedStates.back().value,acceptedStates.back().valueAcceptedAt};
-    sMessage.cc = acceptedStates.back().commitCert;
+    sMessage.cc = acceptedStates.back().cc;
     sMessage.statusCert = "Cert_"+_id;
     Packet<syncBFTmessage> newMessage(std::to_string(iter), leaderId, _id);
     newMessage.setBody(sMessage);
@@ -88,6 +82,7 @@ void syncBFT_Peer::currentStatusSend(){
         statusMessageToSelf = std::make_unique<syncBFTmessage> (sMessage);
         setSyncBFTState(1);
     }else{
+
         _outStream.push_back(newMessage);
         setSyncBFTState(2);
     }
@@ -110,14 +105,14 @@ void syncBFT_Peer::propose(){
     //std::cerr<<"Checking for status and notify messages in a total of "<<_inStream.size()<<" messages"<<std::endl;
     for(auto & i : _inStream){
         assert(i.getMessage().type == "STATUS"||i.getMessage().type == "NOTIFY");
-        if(propo.size()>= (peerCount() - 1)/2 +1){
+        if(P.size()>= (peerCount - 1)/2 +1){
             break;
         }
         if(isValidStatus(i.getMessage())){
             if(i.getMessage().type == "STATUS"){
-                propo.status.push_back(i.getMessage().message);
+                P.status.push_back(i.getMessage().message);
             }else if(i.getMessage().type == "NOTIFY"){
-                propo.notify.push_back(i.getMessage().message);
+                P.notify.push_back(i.getMessage().message);
             }
         }
     }
@@ -127,7 +122,7 @@ void syncBFT_Peer::propose(){
     bool prevAcceptedValue = false;
     syncBFTmessage proposalMessage;
 
-    for(auto &n: propo.notify){
+    for(auto &n: P.notify){
         assert(n.size() == 3);
         //The accepted state has a value accepted at iter > 0
         if(n[0]!="0"){
@@ -135,7 +130,7 @@ void syncBFT_Peer::propose(){
         }
     }
     if(!prevAcceptedValue){
-        for(auto &s: propo.status){
+        for(auto &s: P.status){
             assert(s.size() == 4);
             if(s[3]!="0"){
                 prevAcceptedValue = true;
@@ -143,7 +138,7 @@ void syncBFT_Peer::propose(){
         }
     }
 
-    proposalMessage.info = "Propose Message: " + std::to_string(iter)  + " From "+_id;
+//    proposalMessage.info = "Propose Message: " + std::to_string(iter)  + " From "+_id;
     proposalMessage.peerId = _id;
     proposalMessage.type="PROPOSE";
     proposalMessage.iter = std::to_string(iter);
@@ -155,10 +150,9 @@ void syncBFT_Peer::propose(){
         //choose any value to propose if no value has been accepted in P
 
         //value proposed from here.
-        proposalMessage.message = {std::to_string(iter),"PROPOSE",txToConsensus};
-        proposalMessage.P = propo;
-        proposalMessage.value = txToConsensus;
-        valueFromLeader = txToConsensus;
+        proposalMessage.message = {std::to_string(iter),"PROPOSE","VALUE"};
+        proposalMessage.P = P;
+        proposalMessage.value = "VALUE";
 
     }else{
         //Some values were Previously accepted
@@ -167,7 +161,7 @@ void syncBFT_Peer::propose(){
         int index = 0;
 
         string highIterVal;
-        for(auto &n: propo.notify){
+        for(auto &n: P.notify){
             assert(n.size() == 3);
             if(n[0]!="0") {
                 if (std::stoi(n[0]) >= highIter){
@@ -177,7 +171,7 @@ void syncBFT_Peer::propose(){
 
             }
         }
-        for(auto &s: propo.status){
+        for(auto &s: P.status){
             assert(s.size() == 4);
             if(s[3]!="0"){
                 if(std::stoi(s[3])>=highIter){
@@ -188,8 +182,8 @@ void syncBFT_Peer::propose(){
         }
 
         proposalMessage.message = {std::to_string(iter),"PROPOSE", highIterVal};
-        proposalMessage.P = propo;
-        proposalMessage.value = highIterVal;
+        proposalMessage.P = P;
+        proposalMessage.value = "VALUE";
 
     }
 
@@ -224,7 +218,9 @@ void syncBFT_Peer::commitFromLeader(){
     if(isByzantine ()){
         valueFromLeader = "CONFLICTING_VALUE";
     }
-
+    else
+        valueFromLeader = "VALUE";
+//    commitMessage.info = "Forward Propose Message/ Commit message: " + std::to_string(iter)  + " From "+_id;
     commitMessage.type = "FORWARD_PROPOSAL_AND_COMMIT";
     commitMessage.value = valueFromLeader;
     commitMessage.peerId = _id;
@@ -240,7 +236,8 @@ void syncBFT_Peer::commit(){
     syncBFTmessage messageToForward;
     syncBFTmessage virtualProposal;
 
-    //WORKING ALL: Forwarding if valid and committing
+    //std::cerr<<"WORKING ALL: Forwarding if valid and committing"<<std::endl;
+    bool virtualProposalFound = false;
     //check for notify message from the leader
     _inStream.insert(_inStream.end(), notifyMessagesPacket.begin(), notifyMessagesPacket.end());
     for(int i = 0; i< _inStream.size();i++){
@@ -249,10 +246,10 @@ void syncBFT_Peer::commit(){
             virtualProposal = _inStream[i].getMessage();
             if(_inStream[i].getMessage().value == acceptedStates.back().value){
                 valueFromLeader = _inStream[i].getMessage().value;
-                //VIRTUAL PROPOSAL FOUND
+                //std::cerr<<"VIRTUAL PROPOSAL FOUND"<<std::endl;
                 syncBFTmessage virtualProposalMessage = virtualProposal;
                 virtualProposalMessage.P.clear ();
-                virtualProposalMessage.info = "Forward Propose Message/ Commit message: " + std::to_string(iter)  + " From "+_id;
+//                virtualProposalMessage.info = "Forward Propose Message/ Commit message: " + std::to_string(iter)  + " From "+_id;
                 virtualProposalMessage.type = "FORWARD_PROPOSAL_AND_COMMIT";
                 virtualProposalMessage.value = valueFromLeader;
                 virtualProposalMessage.message = {std::to_string(iter),"COMMIT",valueFromLeader};
@@ -264,17 +261,15 @@ void syncBFT_Peer::commit(){
     }
     //viewing content of _inStream
 
-    //Notify message not found, no virtual proposal
-    ////////////////////////////////////////////////////////////////////////
-    assert(_inStream.size()==1); // fails due to status messages in _inStream
-    ////////////////////////////////////////////////////////////////////////
+    //std::cerr<<"Notify message not found, no virtual proposal"<<std::endl;
+    assert(_inStream.size()==1);
     assert(_inStream[0].getMessage().type=="PROPOSE");
     if(isValidProposal(_inStream[0].getMessage())){
         //std::cerr<<"The proposal from the leader is valid"<<std::endl;
         valueFromLeader = (_inStream[0].getMessage().value);
         messageToForward = (_inStream[0].getMessage());
     } else{
-        //The proposal from the leader is not valid: NOTHING TO DO
+        //std::cerr<<"The proposal from the leader is not valid: NOTHING TO DO"<<std::endl;
         valueFromLeader = ("_");
     }
 
@@ -284,7 +279,7 @@ void syncBFT_Peer::commit(){
 
         //Forward the proposal as well as commit message
         messageToForward.P.clear ();
-        messageToForward.info = "Forward Propose Message/ Commit message: " + std::to_string(iter)  + " From "+_id;
+//        messageToForward.info = "Forward Propose Message/ Commit message: " + std::to_string(iter)  + " From "+_id;
         messageToForward.type = "FORWARD_PROPOSAL_AND_COMMIT";
         messageToForward.value = valueFromLeader;
         messageToForward.message = {std::to_string(iter),"COMMIT",valueFromLeader};
@@ -294,8 +289,6 @@ void syncBFT_Peer::commit(){
 
     }
 
-    ///////////////////////////////////////////
-    // check state movment
     setSyncBFTState(3);
 
 
@@ -335,7 +328,7 @@ void syncBFT_Peer::notify(){
     //if replica receives f+1 valid commit requests
     for (auto const& pair : valueToCommitCount)
     {
-        if (pair.second >= (peerCount() - 1)/2 +1){
+        if (pair.second >= (peerCount - 1)/2 +1){
             committed = true;
         }
     }
@@ -344,12 +337,12 @@ void syncBFT_Peer::notify(){
         for(auto & i : _inStream){
             if(i.getMessage().type=="FORWARD_PROPOSAL_AND_COMMIT"){
                 if(i.getMessage().value==valueFromLeader){
-                    commitCert.commit.push_back((i.getMessage().message));
+                    cc.commit.push_back((i.getMessage().message));
                 }
             }
         }
 
-        acceptedState as1(valueFromLeader, std::to_string (iter),commitCert);
+        acceptedState as1(valueFromLeader, std::to_string (iter),cc);
         acceptedStates.push_back(as1);
     }
     //std::cerr<<"The commit certificate size is "<<std::endl;
@@ -359,12 +352,12 @@ void syncBFT_Peer::notify(){
 
     if(committed){
         syncBFTmessage bcMessage;
-        bcMessage.info = "Notify Message: " + std::to_string(iter)  + " From "+_id;
+//        bcMessage.info = "Notify Message: " + std::to_string(iter)  + " From "+_id;
         bcMessage.peerId = _id;
         bcMessage.type="NOTIFY";
         bcMessage.message = {std::to_string(iter), "NOTIFY",valueFromLeader};
         bcMessage.cc.clear ();
-        bcMessage.cc = commitCert;
+        bcMessage.cc = cc;
         bcMessage.iter = std::to_string(iter);
         bcMessage.value = valueFromLeader;
 
@@ -375,7 +368,7 @@ void syncBFT_Peer::notify(){
             terminated = true;
 
         //write to blockchain
-        createBlock({"All"}, valueFromLeader);
+        createBlock({"All"});
 
 //		std::cerr<<"BLOCKCHAIN SIZE IS "<<blockchain->getChainSize()<<std::endl;
     }else{
@@ -441,39 +434,23 @@ void syncBFT_Peer::run(){
 }
 
 void syncBFT_Peer::preformComputation(){
-    if(txToConsensus.empty() && !txQueue.empty() ){
-        txToConsensus = txQueue.front();
-        txQueue.pop();
-    }
-    if(!txToConsensus.empty()){
-        run();
-    }
-    currentRound++;
 
-}
+    run();
+    counter++;
 
-vector<string> syncBFT_Peer::leaderIdCandidates()const{
-    vector<string> candidates = vector<string>();
-    for(int i = 0; i < _neighbors.size(); i++){
-        candidates.push_back(_neighbors[i]->id());
-    }
-    candidates.push_back(_id);
-    std::sort(candidates.begin(), candidates.end());
-    return candidates;
 }
 
 bool syncBFT_Peer::leaderChange(){
-    vector<string> candidates = leaderIdCandidates();
-    if(leaderId == ""){
-        leaderId = candidates.front();
+    if(leaderId.empty()){
+        leaderId = leaderIdCandidates.front();
 
     }else
     {
-        auto it = std::find(candidates.begin(),candidates.end(),leaderId);
-        assert(it!=candidates.end());
-        std::rotate(it, it+1, candidates.end());
-        assert(leaderId!=candidates.front());
-        leaderId = candidates.front();
+        auto it = std::find(leaderIdCandidates.begin(),leaderIdCandidates.end(),leaderId);
+        assert(it!=leaderIdCandidates.end());
+        std::rotate(it, it+1, leaderIdCandidates.end());
+        assert(leaderId!=leaderIdCandidates.front());
+        leaderId = leaderIdCandidates.front();
 
     }
     changeLeader = false;
@@ -482,7 +459,7 @@ bool syncBFT_Peer::leaderChange(){
 
 void syncBFT_Peer::refreshSyncBFT(){
     iter = 0;
-    propo.clear();
+    P.clear();
 
     acceptedStates.clear();
     acceptedState as1("_","0", {});
@@ -493,17 +470,19 @@ void syncBFT_Peer::refreshSyncBFT(){
     syncBFTstate = 0;
     _inStream.clear();
     _outStream.clear();
-
+    notifyMessagesPacket.clear();
+    cc.clear();
+    P.clear();
+    statusMessageToSelf = nullptr;
     for(auto & _channel : _channels){
         _channel.second.clear();
 
     }
-    txToConsensus.clear();
 }
 
 int syncBFT_Peer::incrementSyncBFTsystemState(){
     if(syncBFTsystemState == 3) {
-        //changeLeader = true;
+        changeLeader = true;
         syncBFTsystemState=0;
     }
     else
@@ -511,54 +490,3 @@ int syncBFT_Peer::incrementSyncBFTsystemState(){
     return syncBFTsystemState;
 }
 
-void syncBFT_Peer::makeRequest(){
-    txQueue.push("Tx_"+id()+"_");
-}
-
-syncBFT_Peer& syncBFT_Peer::operator=(const syncBFT_Peer &rhs){
-    Peer<syncBFTmessage>::operator=(rhs);
-    currentRound = rhs.currentRound;
-    blockchain = rhs.blockchain;
-    propo = rhs.propo;
-    acceptedStates = rhs.acceptedStates;
-    terminated = rhs.terminated;
-    valueFromLeader = rhs.valueFromLeader;
-    commitCert = rhs.commitCert;
-    syncBFTstate = rhs.syncBFTstate;
-    statusMessageToSelf = std::make_unique<syncBFTmessage> (*rhs.statusMessageToSelf);
-    notifyMessagesPacket = rhs.notifyMessagesPacket;
-    iter = rhs.iter;
-    syncBFTsystemState = rhs.syncBFTsystemState;
-    changeLeader = rhs.changeLeader;
-    
-    return *this;
-}
-
-std::ostream& syncBFT_Peer::printTo(std::ostream &out)const{
-    
-    Peer<syncBFTmessage>::printTo(out);
-    out<< std::left;
-    
-    out<< "\t"<< "Settings:"<< std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< "Change Leader"<< std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< std::boolalpha<<  changeLeader<< std::endl;
-    
-    std::string state = "";
-    switch (syncBFTsystemState) {
-        case 0:state = "0";
-        case 4:state = "Current Status Send";break;
-        case 1:state = "Propose";break;
-        case 2:state = "Commit";break;
-        case 3:state = "Notify";break;
-            
-    }
-    out<< "\t"<< "Current State:"<< std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< "Round"<< std::setw(LOG_WIDTH)<< "Current State"<< std::setw(LOG_WIDTH)<< "txToConsensus"<< std::setw(LOG_WIDTH)<< "Leader ID"<< std::setw(LOG_WIDTH)<< "Value From Leader"<< std::setw(LOG_WIDTH)<< "Terminated"<< std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< currentRound<< std::setw(LOG_WIDTH)<< state<< std::setw(LOG_WIDTH)<< txToConsensus<< std::setw(LOG_WIDTH)<< leaderId<< std::setw(LOG_WIDTH)<< valueFromLeader<< std::setw(LOG_WIDTH)<< std::boolalpha<< terminated<< std::endl;
-    
-    out<< "\t"<< std::setw(LOG_WIDTH)<< "Number of Accepted States"<< std::setw(LOG_WIDTH)<< "txQueue Size"<< std::setw(LOG_WIDTH)<< "Number Of Notify Packet"<< std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< acceptedStates.size()<< std::setw(LOG_WIDTH)<< txQueue.size()<< std::setw(LOG_WIDTH)<< notifyMessagesPacket.size()<< std::endl <<std::endl;
-    
-    
-    return out;
-}

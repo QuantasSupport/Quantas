@@ -32,12 +32,12 @@ void ExamplePeer::preformComputation(){
     newMessage.setBody(message);
     _outStream.push_back(newMessage);
     
-    for (int i = 0; i < _neighbors.size(); i++ )
+    for (auto it = _neighbors.begin(); it != _neighbors.end(); it++ )
     {
         ExampleMessage message;
         message.message = "Message: " + std::to_string(counter)  + " Hello From ";
         message.aPeerId = _id;
-        Packet<ExampleMessage> newMessage(std::to_string(counter), _neighbors[i]->id(),_id);
+        Packet<ExampleMessage> newMessage(std::to_string(counter), it->first,_id);
         newMessage.setBody(message);
         _outStream.push_back(newMessage);
     }

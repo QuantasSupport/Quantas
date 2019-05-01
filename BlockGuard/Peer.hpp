@@ -35,7 +35,7 @@ protected:
     typedef std::string                     peerId;
     std::map<peerId,aChannel>               _channels;// list of chanels between this peer and others
     std::map<peerId,int>                    _channelDelays;// list of channels and there delays
-    std::vector<Peer<message>* >            _neighbors; // peers this peer has a link to
+    std::map<std::string, Peer<message>* >  _neighbors; // peers this peer has a link to
     std::vector<Packet<message> >           _inStream;// messages that have arrived at this peer
     std::vector<Packet<message> >           _outStream;// messages waiting to be sent by this peer
     
@@ -114,7 +114,7 @@ Peer<message>::Peer(){
     _id = "NO ID";
     _inStream = std::vector<Packet<message> >();
     _outStream = std::vector<Packet<message> >();
-    _neighbors = std::vector<Peer<message>* >();
+    _neighbors = std::map<std::string, Peer<message>* >();
     _channelDelays = std::map<peerId,int>();
     _channels = std::map<peerId,aChannel>();
     _log = &std::cout;
@@ -130,7 +130,7 @@ Peer<message>::Peer(std::string id){
     _id = id;
     _inStream = std::vector<Packet<message> >();
     _outStream = std::vector<Packet<message> >();
-    _neighbors = std::vector<Peer<message>* >();
+    _neighbors = std::map<std::string, Peer<message>* >();
     _channelDelays = std::map<peerId,int>();
     _channels = std::map<peerId,aChannel>();
     _log = &std::cout;
@@ -164,11 +164,9 @@ void Peer<message>::addNeighbor(Peer<message> &newNeighbor, int delay){
     if(edgeDelay < 1){
         edgeDelay = 1;
     }
-    _neighbors.push_back(&newNeighbor);
-    
+    _neighbors[newNeighbor.id()] = &newNeighbor;
     _channelDelays[newNeighbor.id()] = edgeDelay;
     _channels[newNeighbor.id()] = std::vector<Packet<message> >();
-    std::sort (_neighbors.begin(), _neighbors.end());
 }
 
 // called on recever
@@ -176,13 +174,6 @@ template <class message>
 void Peer<message>::send(Packet<message> outMessage){
     _channels.at(outMessage.sourceId()).push_back(outMessage);
 }
-
-template <class message>
-struct comparePeerPtrToStringId {
-    bool operator()( const Peer<message>**& rhs, const std::string& lhs) {
-        return lhs < rhs->id();
-    }
-};
 
 // called on sender
 template <class message>
@@ -199,24 +190,18 @@ void Peer<message>::transmit(){
             _inStream.push_back(outMessage); 
         }
 
-        // there is no good find in log time for sorted vectors in the stl so we use lower bound see http://www.cplusplus.com/reference/algorithm/lower_bound/
         std::string targetId = outMessage.targetId();
-        auto target = std::lower_bound(_neighbors.begin(),_neighbors.end(), targetId, comparePeerPtrToStringId<message>() ); // iterator for target peer
-        
-        // if we found the target peer
-        if(target->id() == targetId){
-            int maxDelay = _channelDelays.at(targetId);
-            outMessage.setDelay(maxDelay);
-            target->send(outMessage);
-            _numberOfMessagesSent++;
-        }
+        int maxDelay = _channelDelays.at(targetId);
+        outMessage.setDelay(maxDelay);
+        _neighbors[targetId]->send(outMessage);
+        _numberOfMessagesSent++;
     }
 }
 
 template <class message>
 void Peer<message>::receive(){
-    for(int i = 0; i < _neighbors.size(); i++){
-        std::string neighborID = _neighbors[i]->id();
+    for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
+        std::string neighborID = it->first;
         if(!_channels.at(neighborID).empty()){
             if(_channels.at(neighborID).front().hasArrived()){
                 _inStream.push_back(_channels.at(neighborID).front());
@@ -231,10 +216,8 @@ void Peer<message>::receive(){
 
 template <class message>
 bool Peer<message>::isNeighbor(std::string id)const{
-    for(int i = 0; i < _neighbors.size(); i++){
-        if(id == _neighbors[i]->id()){
-            return true;
-        }
+    if(_neighbors.find(id) != _neighbors.end()){
+        return true;
     }
     return false;
 }
@@ -242,8 +225,8 @@ bool Peer<message>::isNeighbor(std::string id)const{
 template <class message>
 std::vector<std::string> Peer<message>::neighbors()const{
     std::vector<std::string> neighborIds = std::vector<std::string>();
-    for(int i = 0; i < _neighbors.size(); i++){
-        neighborIds.push_back(_neighbors[i]->id());
+    for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
+        neighborIds.push_back(it->first);
     }
     return neighborIds;
 }
@@ -282,8 +265,8 @@ std::ostream& Peer<message>::printTo(std::ostream &out)const{
     out<< "\t"<< std::setw(LOG_WIDTH)<< _inStream.size()<< std::setw(LOG_WIDTH)<< _outStream.size()<<std::setw(LOG_WIDTH)<< _numberOfMessagesSent<< std::setw(LOG_WIDTH)<<std::setw(LOG_WIDTH)<< std::boolalpha<<  _byzantine<<std::endl<<std::endl;
     if(_printNeighborhood){
         out<< "\t"<< std::setw(LOG_WIDTH)<< "Neighbor ID"<< std::setw(LOG_WIDTH)<< "Delay"<< std::setw(LOG_WIDTH)<< "Messages In Channel"<< std::endl;
-        for(int i = 0; i <  _neighbors.size(); i++){
-            std::string neighborId = _neighbors[i]->id();
+        for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
+            std::string neighborId = it->first;
             out<< "\t"<< std::setw(LOG_WIDTH)<< neighborId<< std::setw(LOG_WIDTH)<< getDelayToNeighbor(neighborId)<< std::setw(LOG_WIDTH)<<  _channels.at(neighborId).size()<< std::endl;
         }
     }

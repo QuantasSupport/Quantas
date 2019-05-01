@@ -35,9 +35,10 @@ void bCoin_Peer::sendBlock(){
     bCMessage.length = blockchain->getChainSize();
     std::cerr<<bCMessage.length<<std::endl;
 
-    for(auto & _neighbor : _neighbors) {
-        Peer<bCoinMessage> *peer = _neighbor;
-        Packet<bCoinMessage> newMessage("", peer->id(), _id);
+    std::vector<std::string> listOfTargets = neighbors();
+    for(int i = 0; i < listOfTargets.size(); i++) {
+        std::string targetId = listOfTargets[i];
+        Packet<bCoinMessage> newMessage("", targetId, _id);
         newMessage.setBody(bCMessage);
         _outStream.push_back(newMessage);
     }
@@ -70,7 +71,8 @@ void bCoin_Peer::receiveBlock() {
 
     if(maxLengthIndex != -1){
         //Select the longest chain
-        for(auto &n: _neighbors){
+        for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
+            auto n = it->second;
             if(n->id() == _inStream[maxLengthIndex].getMessage().peerId){
                 bCoin_Peer* asdf= dynamic_cast<bCoin_Peer *>(n);
                 setBlockchain(*(asdf)->getBlockchain());

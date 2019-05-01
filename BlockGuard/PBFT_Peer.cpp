@@ -269,11 +269,12 @@ void PBFT_Peer::sendCommitReply(){
     _outStream.push_back(replayPck);
 }
 
-Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::vector<Peer<PBFT_Message> *> neighbors){
+Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::map<std::string, Peer<PBFT_Message> *> neighbors){
     
     std::vector<std::string> peerIds = std::vector<std::string>();
-    for(int i = 0; i < neighbors.size(); i++){
-        peerIds.push_back(neighbors[i]->id());
+    for (auto it =_neighbors.begin(); it != _neighbors.end(); ++it){
+        Peer<PBFT_Message>* neighbor = it->second;
+        peerIds.push_back(neighbor->id());
     }
     peerIds.push_back(_id);
     
@@ -282,13 +283,9 @@ Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::vector<Peer<PBFT_Message> 
     
     if(primaryId == _id){
         return this;
+    }else{
+        return _neighbors[primaryId];
     }
-    for(int i = 0; i < neighbors.size(); i++){
-        if(primaryId == neighbors[i]->id()){
-            return neighbors[i];
-        }
-    }
-    return nullptr;
 }
 
 int PBFT_Peer::executeQuery(const PBFT_Message &query){
@@ -312,9 +309,9 @@ bool PBFT_Peer::isVailedRequest(const PBFT_Message &query)const{
     if(query.view != _currentView){
         return false;
     }
-//    if(query.sequenceNumber <= _ledger.size()){
-//        return false;
-//    }
+   if(query.sequenceNumber <= _ledger.size()){
+       return false;
+   }
     if(query.phase != PRE_PREPARE){
         return false;
     }
@@ -322,8 +319,8 @@ bool PBFT_Peer::isVailedRequest(const PBFT_Message &query)const{
 }
 
 void PBFT_Peer::braodcast(const PBFT_Message &msg){
-    for(int i = 0; i < _neighbors.size(); i++){
-        std::string neighborId = _neighbors[i]->id();
+    for (auto it =_neighbors.begin(); it != _neighbors.end(); ++it){
+        std::string neighborId = it->first;
         Packet<PBFT_Message> pck(makePckId());
         pck.setSource(_id);
         pck.setTarget(neighborId);
@@ -450,9 +447,6 @@ std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     out<< "\t"<< std::setw(LOG_WIDTH)<< _requestLog.size()<< std::setw(LOG_WIDTH)<< _prePrepareLog.size()<< std::setw(LOG_WIDTH)<< _prepareLog.size()<< std::setw(LOG_WIDTH)<< _commitLog.size()<< std::setw(LOG_WIDTH)<< _ledger.size()<< std::endl;
     
     //out<< "\t"<< std::setw(LOG_WIDTH)<< "inStream Messages"<< std::setw(LOG_WIDTH)<< "outStream Messages"<< std::endl;
-    
-    
-    
     
     return out;
 }

@@ -18,8 +18,8 @@ protected:
     int                                                        _groupId;
     int                                                        _committeeId;
     
-    std::vector<Peer<PBFT_Message>* >                          _groupMembers;
-    std::vector<Peer<PBFT_Message>* >                          _committeeMembers;
+    std::map<std::string, Peer<PBFT_Message>* >                _groupMembers;
+    std::map<std::string, Peer<PBFT_Message>* >                _committeeMembers;
     
     int                     faultyPeers             ()const override                                {return ceil((_committeeMembers.size() + 1) * _faultUpperBound);};
     void                    braodcast               (const PBFT_Message&) override; 
@@ -32,8 +32,8 @@ public:
     //setters
     void                    setGroup                (int id)                                        {_groupId = id;};
     void                    setCommittee            (int id)                                        {_committeeId = id;};
-    void                    addGroupMember          (PBFTPeer_Sharded &newMember)                   {_groupMembers.push_back(&newMember);};
-    void                    addcommitteeMember      (PBFTPeer_Sharded &newMember)                   {_committeeMembers.push_back(&newMember);};
+    void                    addGroupMember          (PBFTPeer_Sharded &newMember)                   {_groupMembers[newMember.id()] = &newMember;};
+    void                    addcommitteeMember      (PBFTPeer_Sharded &newMember)                   {_committeeMembers[newMember.id()] = &newMember;};
    
     // mutators
     void                    clearCommittee          ()                                              {_committeeMembers.clear(); _committeeId = -1;}
