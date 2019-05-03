@@ -27,7 +27,7 @@ PBFTPeer_Sharded::PBFTPeer_Sharded(const PBFTPeer_Sharded &rhs) : PBFT_Peer(rhs)
 }
 
 void PBFTPeer_Sharded::braodcast(const PBFT_Message &msg){
-    for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
+    for (auto it=_committeeMembers.begin(); it!=_committeeMembers.end(); ++it){
         std::string neighborId = it->first;
         Packet<PBFT_Message> pck(makePckId());
         pck.setSource(_id);
@@ -87,10 +87,18 @@ std::ostream& PBFTPeer_Sharded::printTo(std::ostream &out)const{
     while(groupMembersIds.size() > committeeMembersIds.size()){
         committeeMembersIds.push_back("");
     }
-    
-    out<< "\t"<< std::setw(LOG_WIDTH)<< "Group Members"<< std::setw(LOG_WIDTH)<< "Committee Members"<< std::endl;
+
+    if(_printComitte || _printGroup){
+        out<< "\t"<< std::setw(LOG_WIDTH)<< "Group Members"<< std::setw(LOG_WIDTH)<< "Committee Members"<< std::endl;
+    }
     for(int i = 0; i < committeeMembersIds.size(); i++){
-        out<< "\t"<< std::setw(LOG_WIDTH)<< groupMembersIds[i]<< std::setw(LOG_WIDTH)<< committeeMembersIds[i]<< std::endl;
+        if(_printComitte && _printGroup){
+            out<< "\t"<< std::setw(LOG_WIDTH)<< groupMembersIds[i]<< std::setw(LOG_WIDTH)<< committeeMembersIds[i]<< std::endl;
+        }else if(_printComitte){
+            out<< "\t"<< std::setw(LOG_WIDTH)<< ""<< std::setw(LOG_WIDTH)<< committeeMembersIds[i]<< std::endl;
+        }else if(_printGroup){
+            out<< "\t"<< std::setw(LOG_WIDTH)<< groupMembersIds[i]<< std::setw(LOG_WIDTH)<< ""<< std::endl;
+        }
     }
     
     return out;

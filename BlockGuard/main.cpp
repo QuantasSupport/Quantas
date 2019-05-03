@@ -330,8 +330,12 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
-    for(int i =-1; i < 50; i++){
-        //if(i%2 == 0 ){system.makeRequest();}
+    // init round
+    system.receive();
+    system.preformComputation();
+    system.transmit();
+    system.log();
+    for(int i =0; i < 10; i++){
         system.makeRequest();
         numberOfRequests++;
         system.receive();

@@ -272,7 +272,7 @@ void PBFT_Peer::sendCommitReply(){
 Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::map<std::string, Peer<PBFT_Message> *> neighbors){
     
     std::vector<std::string> peerIds = std::vector<std::string>();
-    for (auto it =_neighbors.begin(); it != _neighbors.end(); ++it){
+    for (auto it =neighbors.begin(); it != neighbors.end(); ++it){
         Peer<PBFT_Message>* neighbor = it->second;
         peerIds.push_back(neighbor->id());
     }
@@ -309,9 +309,6 @@ bool PBFT_Peer::isVailedRequest(const PBFT_Message &query)const{
     if(query.view != _currentView){
         return false;
     }
-   if(query.sequenceNumber <= _ledger.size()){
-       return false;
-   }
     if(query.phase != PRE_PREPARE){
         return false;
     }

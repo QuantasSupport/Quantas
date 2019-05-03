@@ -51,7 +51,6 @@ void PBFTReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int
         }
     }
     typedef std::vector<PBFTPeer_Sharded*> aGroup;
-    assert(group.size() == _groupSize);
     _freeGroups.push_back(std::pair<int,aGroup>(id,group));
     _groupIds.push_back(id);
 }
@@ -125,6 +124,7 @@ typedef std::vector<PBFTPeer_Sharded*> aGroup;
 void PBFTReferenceCommittee::makeRequest(){
     _requestQueue.push_back(generateRequest());
     int groupsNeeded = std::ceil(_requestQueue.front().securityLevel);
+    groupsNeeded = 1;
     updateBusyGroup();
     
     // return if there is not enough free groups to make the committee
@@ -162,8 +162,7 @@ void PBFTReferenceCommittee::updateBusyGroup(){
         aGroup group= getGroup(id);
         bool stillBusy = false;
         for(int i = 0; i < group.size(); i++){
-            // if peer is not busy and there are no queued requests
-            if(group[i]->getPhase() != IDEAL && group[i]->getRequestLog().size() == 0){
+            if(group[i]->getPhase() != IDEAL){
                 stillBusy = true;
             }
         }
