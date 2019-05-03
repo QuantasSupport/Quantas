@@ -15,12 +15,16 @@
 class PBFTPeer_Sharded : public PBFT_Peer{
 protected:
     
+    // state vars
     int                                                        _groupId;
     int                                                        _committeeId;
-    
     std::map<std::string, Peer<PBFT_Message>* >                _groupMembers;
     std::map<std::string, Peer<PBFT_Message>* >                _committeeMembers;
     
+    // logging vars
+    bool                                                        _printComitte;
+    bool                                                        _printGroup;
+
     int                     faultyPeers             ()const override                                {return ceil((_committeeMembers.size() + 1) * _faultUpperBound);};
     void                    braodcast               (const PBFT_Message&) override; 
     
@@ -35,6 +39,11 @@ public:
     void                    addGroupMember          (PBFTPeer_Sharded &newMember)                   {_groupMembers[newMember.id()] = &newMember;};
     void                    addcommitteeMember      (PBFTPeer_Sharded &newMember)                   {_committeeMembers[newMember.id()] = &newMember;};
    
+    void                    printGroupOn            ()                                              {_printGroup = true;};
+    void                    printGroupOff           ()                                              {_printGroup = false;};
+    void                    printCommitteeOn        ()                                              {_printComitte = true;};
+    void                    printCommitteeOff       ()                                              {_printComitte = false;};
+
     // mutators
     void                    clearCommittee          ()                                              {_committeeMembers.clear(); _committeeId = -1;}
     void                    clearGroup              ()                                              {_groupMembers.clear(); _groupId = -1;}

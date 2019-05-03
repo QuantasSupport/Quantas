@@ -51,6 +51,7 @@ void PBFTReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int
         }
     }
     typedef std::vector<PBFTPeer_Sharded*> aGroup;
+    assert(group.size() == _groupSize);
     _freeGroups.push_back(std::pair<int,aGroup>(id,group));
     _groupIds.push_back(id);
 }
@@ -161,7 +162,8 @@ void PBFTReferenceCommittee::updateBusyGroup(){
         aGroup group= getGroup(id);
         bool stillBusy = false;
         for(int i = 0; i < group.size(); i++){
-            if(group[i]->getPhase() != IDEAL){
+            // if peer is not busy and there are no queued requests
+            if(group[i]->getPhase() != IDEAL && group[i]->getRequestLog().size() == 0){
                 stillBusy = true;
             }
         }

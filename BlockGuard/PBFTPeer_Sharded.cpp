@@ -13,6 +13,8 @@ PBFTPeer_Sharded::PBFTPeer_Sharded(std::string id) : PBFT_Peer(id) {
     _committeeId = -1;
     _groupMembers = std::map<std::string, Peer<PBFT_Message>* >();
     _committeeMembers = std::map<std::string, Peer<PBFT_Message>* >();
+    _printComitte = false;
+    _printGroup = false;
 }
 
 PBFTPeer_Sharded::PBFTPeer_Sharded(const PBFTPeer_Sharded &rhs) : PBFT_Peer(rhs){
@@ -20,6 +22,8 @@ PBFTPeer_Sharded::PBFTPeer_Sharded(const PBFTPeer_Sharded &rhs) : PBFT_Peer(rhs)
     _committeeId = rhs._committeeId;
     _groupMembers = rhs._groupMembers;
     _committeeMembers = rhs._committeeMembers;
+    _printComitte = rhs._printComitte;
+    _printGroup = rhs._printGroup;
 }
 
 void PBFTPeer_Sharded::braodcast(const PBFT_Message &msg){
@@ -55,6 +59,8 @@ PBFTPeer_Sharded& PBFTPeer_Sharded::operator= (const PBFTPeer_Sharded &rhs){
     _committeeId = rhs._committeeId;
     _groupMembers = rhs._groupMembers;
     _committeeMembers = rhs._committeeMembers;
+    _printComitte = rhs._printComitte;
+    _printGroup = rhs._printGroup;
     
     return *this;
 }
@@ -66,12 +72,12 @@ std::ostream& PBFTPeer_Sharded::printTo(std::ostream &out)const{
     out<< "\t"<< std::setw(LOG_WIDTH)<< _groupId<< std::setw(LOG_WIDTH)<< _committeeId<< std::setw(LOG_WIDTH)<< _groupMembers.size() + 1<< std::setw(LOG_WIDTH)<< _committeeMembers.size() + 1<< std::endl<< std::endl;
     
     std::vector<std::string> groupMembersIds = std::vector<std::string>();
-    for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
+    for (auto it=_groupMembers.begin(); it!=_groupMembers.end(); ++it){
         groupMembersIds.push_back(it->first);
     }
     
     std::vector<std::string> committeeMembersIds = std::vector<std::string>();
-    for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
+    for (auto it=_committeeMembers.begin(); it!=_committeeMembers.end(); ++it){
         committeeMembersIds.push_back(it->first);
     }
     
