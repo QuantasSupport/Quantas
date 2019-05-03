@@ -117,6 +117,7 @@ protected:
     virtual bool                isVailedRequest     (const PBFT_Message&)const;
     virtual void                braodcast           (const PBFT_Message&);
     void                        cleanLogs           (); // clears logs for all transactions in _ledger
+    void                        sendRequest         (PBFT_Message); // sends request to leader or adds request to queue if peer is the leader
     
 public:
     PBFT_Peer                                       (std::string id);

@@ -383,6 +383,17 @@ void PBFT_Peer::makeRequest(){
     }
 }
 
+void PBFT_Peer::sendRequest(PBFT_Message request){
+    if(_id != _primary->id()){
+        // create packet for request
+        Packet<PBFT_Message> pck(makePckId());
+        pck.setSource(_id);
+        pck.setTarget(_primary->id());
+        pck.setBody(request);
+        _outStream.push_back(pck);
+    }
+}
+
 void PBFT_Peer::makeRequest(int squenceNumber){
     if(_primary == nullptr){
         *_log<< "ERROR: makeRequest called with no primary"<< std::endl;
@@ -412,15 +423,12 @@ void PBFT_Peer::makeRequest(int squenceNumber){
     request.sequenceNumber = squenceNumber;
     request.result = 0;
     
-    if(_id != _primary->id()){
-        // create packet for request
-        Packet<PBFT_Message> pck(makePckId());
-        pck.setSource(_id);
-        pck.setTarget(_primary->id());
-        pck.setBody(request);
-        _outStream.push_back(pck);
+    // if this is primary then dont send to primary
+    // if this is busy then dont send to primary
+    if(_currentPhase != IDEAL && id() != _primary->id()){
+        sendRequest(request);
     }else{
-        _requestLog.push_back(request);
+        _requestLog.push_back(request); // this is either the primary or is free to send a new request
     }
 }
 
