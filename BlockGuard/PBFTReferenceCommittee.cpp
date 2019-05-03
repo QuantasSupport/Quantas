@@ -44,7 +44,6 @@ void PBFTReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int
     for(int i = 0; i < group.size(); i++){
         for(int j = 0; j < group.size(); j++){
             if(group[i]->id() != group[j]->id()){
-                //assert(group[i]->getPhase() == IDEAL);
                 group[i]->addGroupMember(*group[j]);
                 group[i]->setGroup(id);
             }
@@ -124,7 +123,6 @@ typedef std::vector<PBFTPeer_Sharded*> aGroup;
 void PBFTReferenceCommittee::makeRequest(){
     _requestQueue.push_back(generateRequest());
     int groupsNeeded = std::ceil(_requestQueue.front().securityLevel);
-    groupsNeeded = 1;
     updateBusyGroup();
     
     // return if there is not enough free groups to make the committee
