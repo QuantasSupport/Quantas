@@ -18,7 +18,6 @@
 #include "bCoin_Peer.hpp"
 #include "PBFTPeer_Sharded.hpp"
 #include "PBFTReferenceCommittee.hpp"
-#include "test.hpp"
 #include <iostream>
 #include <chrono>
 #include <random>
@@ -51,14 +50,8 @@ int main(int argc, const char * argv[]) {
 
     std::string algorithm = argv[1];
     std::string filePath = argv[2];
-    std::string testOption;
-    if(argc == 4){
-        testOption = argv[3];
-    }
 
-    if(algorithm == "test"){
-        RunTest(filePath,testOption);
-    }else if(algorithm == "example"){
+    if(algorithm == "example"){
         Example();
     }
     else if (algorithm== "pbft"){

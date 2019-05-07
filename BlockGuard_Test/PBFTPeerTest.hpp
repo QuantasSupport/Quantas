@@ -14,7 +14,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include "PBFT_Peer.hpp"
+#include "../BlockGuard/PBFT_Peer.hpp"
 
 void RunPBFT_Tests          (std::string filepath); // run all PBFT tests
 void constructors           (std::ostream &log);// test basic peer constructors
