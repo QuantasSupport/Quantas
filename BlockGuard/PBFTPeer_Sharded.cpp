@@ -37,6 +37,22 @@ void PBFTPeer_Sharded::braodcast(const PBFT_Message &msg){
     }
 }
 
+std::vector<std::string> PBFTPeer_Sharded::getGroupMembers()const{
+    std::vector<std::string> groupIds = std::vector<std::string>();
+    for (auto it=_committeeMembers.begin(); it!=_groupMembers.end(); ++it){
+        groupIds.push_back(it->first);
+    }
+    return groupIds;
+};
+
+std::vector<std::string> PBFTPeer_Sharded::getCommitteeMembers()const{
+    std::vector<std::string> committeeIds = std::vector<std::string>();
+    for (auto it=_committeeMembers.begin(); it!=_committeeMembers.end(); ++it){
+        committeeIds.push_back(it->first);
+    }
+    return committeeIds;
+};
+
 void PBFTPeer_Sharded::preformComputation(){
     if(_primary == nullptr){
         _primary = findPrimary(_committeeMembers);
@@ -49,8 +65,6 @@ void PBFTPeer_Sharded::preformComputation(){
     waitCommit();
     _currentRound++;
 }
-
-
 
 PBFTPeer_Sharded& PBFTPeer_Sharded::operator= (const PBFTPeer_Sharded &rhs){
     PBFT_Peer::operator=(rhs);

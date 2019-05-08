@@ -22,10 +22,9 @@ protected:
     std::map<std::string, Peer<PBFT_Message>* >                _committeeMembers;
     
     // logging vars
-    bool                                                        _printComitte;
-    bool                                                        _printGroup;
+    bool                                                       _printComitte;
+    bool                                                       _printGroup;
 
-    int                     faultyPeers             ()const override                                {return ceil((_committeeMembers.size() + 1) * _faultUpperBound);};
     void                    braodcast               (const PBFT_Message&) override; 
     
 public:
@@ -34,28 +33,35 @@ public:
     ~PBFTPeer_Sharded                               ()                                              {};
     
     //setters
-    void                    setGroup                (int id)                                        {_groupId = id;};
-    void                    setCommittee            (int id)                                        {_committeeId = id;};
-    void                    addGroupMember          (PBFTPeer_Sharded &newMember)                   {_groupMembers[newMember.id()] = &newMember;};
-    void                    addcommitteeMember      (PBFTPeer_Sharded &newMember)                   {_committeeMembers[newMember.id()] = &newMember;};
+    void                        setGroup                (int id)                                        {_groupId = id;clearGroup();};
+    void                        setCommittee            (int id)                                        {_committeeId = id;clearCommittee();};
+    void                        addGroupMember          (PBFTPeer_Sharded &newMember)                   {_groupMembers[newMember.id()] = &newMember;};
+    void                        addCommitteeMember      (PBFTPeer_Sharded &newMember)                   {_committeeMembers[newMember.id()] = &newMember;};
    
-    void                    printGroupOn            ()                                              {_printGroup = true;};
-    void                    printGroupOff           ()                                              {_printGroup = false;};
-    void                    printCommitteeOn        ()                                              {_printComitte = true;};
-    void                    printCommitteeOff       ()                                              {_printComitte = false;};
+    void                        printGroupOn            ()                                              {_printGroup = true;};
+    void                        printGroupOff           ()                                              {_printGroup = false;};
+    void                        printCommitteeOn        ()                                              {_printComitte = true;};
+    void                        printCommitteeOff       ()                                              {_printComitte = false;};
 
     // mutators
-    void                    clearCommittee          ()                                              {_committeeMembers.clear(); _committeeId = -1;}
-    void                    clearGroup              ()                                              {_groupMembers.clear(); _groupId = -1;}
-    void                    initPrimary             () override                                     {_primary = findPrimary(_committeeMembers);};
+    void                        clearCommittee          ()                                              {_committeeMembers.clear(); _committeeId = -1;}
+    void                        clearGroup              ()                                              {_groupMembers.clear(); _groupId = -1;}
+    void                        initPrimary             () override                                     {_primary = findPrimary(_committeeMembers);};
     
-    void                    preformComputation      () override;
+    // getters
+    int                         faultyPeers             ()const override                                {return ceil((_committeeMembers.size() + 1) * _faultUpperBound);};
+    int                         getGroup                ()const                                         {return _groupId;};
+    int                         getCommittee            ()const                                         {return _committeeId;};
+    std::vector<std::string>    getGroupMembers         ()const;
+    std::vector<std::string>    getCommitteeMembers     ()const;
+
+    void                        preformComputation      () override;
     
-    std::ostream&           printTo                 (std::ostream&)const;
-    void                    log                     ()const                                         {printTo(*_log);};
+    std::ostream&               printTo                 (std::ostream&)const;
+    void                        log                     ()const                                         {printTo(*_log);};
     
-    PBFTPeer_Sharded&       operator=               (const PBFTPeer_Sharded&);
-    friend std::ostream&    operator<<              (std::ostream &o, const PBFTPeer_Sharded &p)    {p.printTo(o); return o;};
+    PBFTPeer_Sharded&           operator=               (const PBFTPeer_Sharded&);
+    friend std::ostream&        operator<<              (std::ostream &o, const PBFTPeer_Sharded &p)    {p.printTo(o); return o;};
 };
 
 #endif /* PBFTPeer_Sharded_hpp */

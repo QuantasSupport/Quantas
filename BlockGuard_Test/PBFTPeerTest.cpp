@@ -1631,6 +1631,10 @@ void multiRequest(std::ostream &log){
     assert(totalRequestsMade                        == a.getRequestLog().size() +  a.getLedger().size() + 1);
     assert(b.getLedger().size()                     == 2001);
     assert(c.getLedger().size()                     == 2001);
+    assert(a.getMessageCount()                       == 6682006);
+    //number of confirmed transactions * (prepare messages + commit messages + Number of request made (10000/3))
+    assert(a.getMessageCount()                       == 6682006);
+    assert(a.getMessageCount()                       == 6682006);
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"multiRequest Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 
 }

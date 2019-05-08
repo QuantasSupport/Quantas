@@ -9,6 +9,7 @@
 // run tests over classes
 
 #include "PBFTPeerTest.hpp"
+#include "PBFTPeer_Sharded_Test.hpp"
 
 #include <string>
 
@@ -22,8 +23,11 @@ int main(int argc, const char * argv[]){
 
     if(testOption == "all"){
         RunPBFT_Tests(filePath);
+        RunPBFTPeerShardedTest(filePath);
     }else if(testOption == "pbft"){
         RunPBFT_Tests(filePath);
+    }else if (testOption == "pbft_s"){
+        RunPBFTPeerShardedTest(filePath);
     }
 
     return 0;
