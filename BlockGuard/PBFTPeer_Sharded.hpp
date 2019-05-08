@@ -33,8 +33,8 @@ public:
     ~PBFTPeer_Sharded                               ()                                              {};
     
     //setters
-    void                        setGroup                (int id)                                        {_groupId = id;clearGroup();};
-    void                        setCommittee            (int id)                                        {_committeeId = id;clearCommittee();};
+    void                        setGroup                (int id)                                        {clearGroup();_groupId = id;};
+    void                        setCommittee            (int id)                                        {clearCommittee();_committeeId = id;};
     void                        addGroupMember          (PBFTPeer_Sharded &newMember)                   {_groupMembers[newMember.id()] = &newMember;};
     void                        addCommitteeMember      (PBFTPeer_Sharded &newMember)                   {_committeeMembers[newMember.id()] = &newMember;};
    

@@ -203,7 +203,7 @@ void PBFTReferenceCommittee::makeCommittee(std::vector<std::pair<int,aGroup> >  
         for(int otherPeer = 0; otherPeer < committeeMembers.size(); otherPeer++){
             committeeMembers[peer]->setCommittee(_nextCommitteeId);
             if(!(committeeMembers[peer]->id() == committeeMembers[otherPeer]->id())){
-                committeeMembers[peer]->addcommitteeMember(*committeeMembers[otherPeer]);
+                committeeMembers[peer]->addCommitteeMember(*committeeMembers[otherPeer]);
             }
         }
     }

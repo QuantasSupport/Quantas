@@ -15,8 +15,8 @@ void RunPBFTPeerShardedTest(std::string filepath){
     if (log.fail() ){
         std::cerr << "Error: could not open file at: "<< filepath << std::endl;
     }
-    constructors(log);
-    testSettersMutators(log);
+    constructorsPBFT_s(log);
+    testSettersMutatorsPBFT_s(log);
     testGroups(log);
     testCommittee(log);
     oneRequestOneCommittee(log);
@@ -24,7 +24,7 @@ void RunPBFTPeerShardedTest(std::string filepath){
     ///////////////
     // MultiRequestMultiCommittee();
 }
-void constructors(std::ostream &log){
+void constructorsPBFT_s(std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"constructors"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 
     PBFTPeer_Sharded a = PBFTPeer_Sharded("A");
@@ -90,7 +90,7 @@ void constructors(std::ostream &log){
     assert(b.getLedger().size()         == 0);
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"constructors Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
-void testSettersMutators(std::ostream &log){
+void testSettersMutatorsPBFT_s(std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testSettersMutators"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 
     //////////////////////////////////////////////////////////////

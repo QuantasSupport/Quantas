@@ -39,7 +39,7 @@ void PBFTPeer_Sharded::braodcast(const PBFT_Message &msg){
 
 std::vector<std::string> PBFTPeer_Sharded::getGroupMembers()const{
     std::vector<std::string> groupIds = std::vector<std::string>();
-    for (auto it=_committeeMembers.begin(); it!=_groupMembers.end(); ++it){
+    for (auto it=_groupMembers.begin(); it!=_groupMembers.end(); ++it){
         groupIds.push_back(it->first);
     }
     return groupIds;

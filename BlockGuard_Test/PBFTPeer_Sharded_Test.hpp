@@ -23,8 +23,8 @@ void oneRequestMultiCommittee   (std::ostream &log);
 void MultiRequestMultiCommittee (std::ostream &log);
 
 // These are copies of the test from PBFT Peer as of 5/7
-void constructors               (std::ostream &log);// test basic peer constructors
-void testSettersMutators        (std::ostream &log);// test setters and test Mutators
+void constructorsPBFT_s         (std::ostream &log);// test basic peer constructorsPBFT_s
+void testSettersMutatorsPBFT_s  (std::ostream &log);// test setters and test Mutators
 
 // test for group and committee assignment
 void testGroups                 (std::ostream &log);// test that peers can be added and removed from a group

@@ -387,11 +387,15 @@ void requestFromLeader(std::ostream &log){
     assert(a.getPrePrepareLog()[0].round            == 0);
     assert(a.getPrePrepareLog()[0].phase            == PRE_PREPARE);
     assert(a.getPrePrepareLog()[0].result           == 0);
-    
+
     a.transmit();
     b.transmit();
     c.transmit();
     
+    assert(a.getMessageCount()                      == 2);
+    assert(b.getMessageCount()                      == 0);
+    assert(c.getMessageCount()                      == 0);
+
     /////////////////////////////////////////////////////////////////////
     //      round two Prepare
     
@@ -463,7 +467,12 @@ void requestFromLeader(std::ostream &log){
     a.transmit();
     b.transmit();
     c.transmit();
+    assert(a.getMessageCount()                      == 2);
     
+    assert(b.getMessageCount()                      == 2);
+    assert(c.getMessageCount()                      == 2);
+
+
     /////////////////////////////////////////////////////////////////////
     //      round three commit
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!"<<"Round Three"<< std::setw(LOG_WIDTH)<< std::right<<"!"<<"###############################"<< std::endl;            
@@ -574,6 +583,10 @@ void requestFromLeader(std::ostream &log){
     b.transmit();
     c.transmit();
     
+    assert(a.getMessageCount()                      == 4);
+    assert(b.getMessageCount()                      == 4);
+    assert(c.getMessageCount()                      == 4);
+
     /////////////////////////////////////////////////////////////////////
     //      round four commited and logs cleaned leger increased
     
@@ -1583,11 +1596,10 @@ void multiRequest(std::ostream &log){
     assert(a.getRequestLog()[3].round               == 5);
     assert(a.getRequestLog()[3].phase               == IDEAL);
     assert(a.getRequestLog()[3].result              == 0);
-
-
+    
     /////////////////////////////////////////////////////////////////////
     // make sure all request are committed
-
+    
     int totalRequestsMade = 7; // prev made 7 request
     int requester = 'a';
     for(int i = 0; i < 10000; i++){
@@ -1631,10 +1643,7 @@ void multiRequest(std::ostream &log){
     assert(totalRequestsMade                        == a.getRequestLog().size() +  a.getLedger().size() + 1);
     assert(b.getLedger().size()                     == 2001);
     assert(c.getLedger().size()                     == 2001);
-    assert(a.getMessageCount()                       == 6682006);
-    //number of confirmed transactions * (prepare messages + commit messages + Number of request made (10000/3))
-    assert(a.getMessageCount()                       == 6682006);
-    assert(a.getMessageCount()                       == 6682006);
+    
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"multiRequest Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 
 }
