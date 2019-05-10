@@ -2,7 +2,7 @@ clean:
 	rm -f BlockGuard/*.gch
 	rm -f BlockGuard/*.tmp
 	rm -f BlockGuard/*.o
-	rm -f a.out
+	rm -f *.out
 	rm -f -r *.dSYM
 	rm -f *.o
 	rm -f BlockGuard_Test/*.gch
@@ -14,14 +14,14 @@ clean:
 build:
 	clang++ -std=c++14 BlockGuard/*.cpp --debug -o ./BlockGuard.out
 
-test: PBFT_Peer_Test PBFTPeer_Sharded_Test PBFTReferenceCommittee_Test
+test: PBFT_Peer PBFTPeer_Sharded PBFTReferenceCommittee
 	clang++ -std=c++14 BlockGuard_Test/*.cpp BlockGuard_Test/*.o --debug -o ./BlockGuard_Test.out
 
-PBFT_Peer_Test: 
+PBFT_Peer: 
 	clang++ -std=c++14 BlockGuard/PBFT_Peer.cpp -c --debug -o ./BlockGuard_Test/PBFT_Peer.o
 
-PBFTPeer_Sharded_Test:
+PBFTPeer_Sharded:
 	clang++ -std=c++14 BlockGuard/PBFTPeer_Sharded.cpp -c --debug -o ./BlockGuard_Test/PBFTPeer_Sharded.o
 
-PBFTReferenceCommittee_Test:
+PBFTReferenceCommittee:
 	clang++ -std=c++14 BlockGuard/PBFTReferenceCommittee.cpp -c --debug -o ./BlockGuard_Test/PBFTReferenceCommittee.o

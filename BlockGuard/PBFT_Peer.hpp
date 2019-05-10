@@ -136,7 +136,7 @@ public:
     virtual int                 faultyPeers         ()const                                         {return ceil((_neighbors.size() + 1) * _faultUpperBound);};
     int                         getRound            ()const                                         {return _currentRound;};
     std::string                 getPrimary          ()const                                         {return _primary == nullptr ? NO_PRIMARY : _primary->id();}
-    
+    double                      getFaultTolerance   ()const                                         {return _faultUpperBound;};
     // setters
     void                        setFaultTolerance   (double f)                                      {_faultUpperBound = f;};
  

@@ -33,7 +33,10 @@ struct transactionRequest{
     int id;
 };
 
+////////////////////////
+// typedef fore group
 typedef std::vector<PBFTPeer_Sharded*> aGroup;
+
 class PBFTReferenceCommittee{
 protected:
     int                                                             _currentRound;
@@ -44,11 +47,13 @@ protected:
     std::vector<int>                                                _groupIds;
     std::vector<std::pair<int,aGroup> >                             _busyGroups;
     std::vector<std::pair<int,aGroup> >                             _freeGroups;
-    std::vector<transactionRequest>                                         _requestQueue;
+    std::vector<transactionRequest>                                 _requestQueue;
     
+    // logging, metrics and untils
     std::ostream                                                    *_log;
     std::default_random_engine                                      _randomGenerator;
-    
+    std::vector<int>                                                _currentCommittees;
+
     // util functions
     transactionRequest                  generateRequest         ();
     void                                makeGroup               (std::vector<PBFTPeer_Sharded*>,int);
@@ -56,7 +61,7 @@ protected:
     void                                makeCommittee           (std::vector<std::pair<int,aGroup> >);
     void                                initCommittee           (std::vector<std::pair<int,aGroup> >);
     void                                updateBusyGroup         ();
-
+    
 public:
 PBFTReferenceCommittee                                          ();
 PBFTReferenceCommittee                                          (const PBFTReferenceCommittee&);
@@ -74,7 +79,10 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     aGroup                              getGroup                (int)const;
     std::vector<int>                    getGroupIds             ()const                                                     {return _groupIds;};
     std::vector<PBFTPeer_Sharded>       getPeers                ()const;
-    
+    std::vector<std::pair<int,aGroup> > getBusyGroups           ()const                                                     {return _busyGroups;};
+    std::vector<std::pair<int,aGroup> > getFreeGroups           ()const                                                     {return _freeGroups;};
+    std::vector<int>                    getCurrentCommittees    ()const                                                     {return _currentCommittees;};
+
     // mutators
     void                                initNetwork             (int);
     void                                makeRequest             ();

@@ -9,6 +9,7 @@
 #include <random>
 #include <chrono>
 #include <ctime>
+#include <algorithm>
 #include "PBFTReferenceCommittee.hpp"
 
 PBFTReferenceCommittee::PBFTReferenceCommittee(){
@@ -158,13 +159,16 @@ typedef std::vector<PBFTPeer_Sharded*> aGroup;
 void PBFTReferenceCommittee::updateBusyGroup(){
     for(int id = 0; id < _groupIds.size(); id++){
         aGroup group= getGroup(id);
+        int committeeID = group[0]->getCommittee();
         bool stillBusy = false;
         for(int i = 0; i < group.size(); i++){
+            assert(group[i]->getCommittee() == committeeID);
             if(group[i]->getPhase() != IDEAL){
                 stillBusy = true;
             }
         }
         if(!stillBusy){
+            std::remove(_currentCommittees.begin(),_currentCommittees.end(), committeeID);
             for(int i =0; i < _busyGroups.size(); i++){
                 if(_busyGroups[i].first == id){
                     _busyGroups.erase(_busyGroups.begin() + i);
@@ -207,6 +211,7 @@ void PBFTReferenceCommittee::makeCommittee(std::vector<std::pair<int,aGroup> >  
             }
         }
     }
+    _currentCommittees.push_back(_nextCommitteeId);
     _nextCommitteeId++;
 }
 
