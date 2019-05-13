@@ -43,9 +43,9 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(const PBFTReferenceCommittee &rhs
 void PBFTReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int id){
     for(int i = 0; i < group.size(); i++){
         for(int j = 0; j < group.size(); j++){
+            group[i]->setGroup(id);
             if(group[i]->id() != group[j]->id()){
                 group[i]->addGroupMember(*group[j]);
-                group[i]->setGroup(id);
             }
         }
     }
@@ -68,8 +68,6 @@ void PBFTReferenceCommittee::initNetwork(int numberOfPeers){
     std::vector<PBFTPeer_Sharded*> group = std::vector<PBFTPeer_Sharded*>();
     
     for(int i = 0; i < _peers.size(); i++){
-        
-        _peers[i]->setGroup(groupId);
         group.push_back(_peers[i]);
         
         if(group.size() == _groupSize){

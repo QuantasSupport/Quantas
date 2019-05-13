@@ -29,10 +29,10 @@ void testRefComGroups (std::ostream &log){
     PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
     refCom.setLog(log);
     refCom.setMaxDelay(1);
-    refCom.setFaultTolerance(0.3);
     refCom.setToRandom();
     refCom.setGroupSize(1);
     refCom.initNetwork(1024);
+    refCom.setFaultTolerance(0.3);
     refCom.log();
 
     assert(refCom.numberOfGroups()              == 1024);
@@ -44,22 +44,34 @@ void testRefComGroups (std::ostream &log){
         assert(peer->getGroup()                     == i);// group id starts from 0
         assert(peer->getFaultTolerance()            == 0.3);
         assert(peer->getCommittee()                 == -1); // not in a committee
-        assert(peer->getGroupMembers()[0]           == peer->id());
-        assert(peer->getGroupMembers().size()       == 1);
+        assert(peer->getGroupMembers().size()       == 0); // self is not included in list og group memebers
         assert(peer->getCommitteeMembers().size()   == 0);
     }
 
     // test that a group with more then one peer do not overlap
     refCom = PBFTReferenceCommittee();
+    refCom.initNetwork(1024);
     refCom.setLog(log);
     refCom.setMaxDelay(1);
     refCom.setFaultTolerance(0.3);
     refCom.setToRandom();
     refCom.setGroupSize(16); // 64 groups
-    refCom.initNetwork(1024);
     refCom.log();
 
-    // check eachh group and make sure there memebers do not overlap
+    // test each group to make sure it was formed correctly
+    for(int id = 0; id < refCom.getGroupIds().size(); id++){
+        std::vector<PBFTPeer_Sharded*> group = refCom.getGroup(id);
+        assert(group.size() == 16);
+        for(int peer = 0; peer < group.size(); peer++){
+            assert(group[peer]->getGroup()                     == id);// group id starts from 0
+            assert(group[peer]->getFaultTolerance()            == 0.3);
+            assert(group[peer]->getCommittee()                 == -1); // not in a committee
+            assert(group[peer]->getGroupMembers().size()       == 15); // self is not included in list og group memebers
+            assert(group[peer]->getCommitteeMembers().size()   == 0);
+        }
+    }
+
+    // check each group and make sure there memebers do not overlap
     std::vector<std::string> seenPeers = std::vector<std::string>();
     for(int id = 0; id < refCom.getGroupIds().size(); id++){
         std::vector<PBFTPeer_Sharded*> group = refCom.getGroup(id);
@@ -101,10 +113,10 @@ void testRefComCommittee (std::ostream &log){
     PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
     refCom.setLog(log);
     refCom.setMaxDelay(1);
-    refCom.setFaultTolerance(0.3);
     refCom.setToRandom();
     refCom.setGroupSize(16);
     refCom.initNetwork(1024);
+    refCom.setFaultTolerance(0.3);
     refCom.log();
 
     // check and make sure security levels are correct
@@ -313,10 +325,10 @@ void testGlobalLedger(std::ostream &log){
     PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
     refCom.setLog(log);
     refCom.setMaxDelay(1);
-    refCom.setFaultTolerance(0.3);
     refCom.setToRandom();
     refCom.setGroupSize(16);
     refCom.initNetwork(1024);
+    refCom.setFaultTolerance(0.3);
     refCom.log();
 
     refCom.makeRequest();

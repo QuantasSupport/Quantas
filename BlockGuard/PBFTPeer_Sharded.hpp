@@ -25,12 +25,12 @@ protected:
     bool                                                       _printComitte;
     bool                                                       _printGroup;
 
-    void                    braodcast               (const PBFT_Message&) override; 
+    void                        braodcast               (const PBFT_Message&) override; 
     
 public:
-    PBFTPeer_Sharded                                (std::string);
-    PBFTPeer_Sharded                                (const PBFTPeer_Sharded&);
-    ~PBFTPeer_Sharded                               ()                                              {};
+    PBFTPeer_Sharded                                    (std::string);
+    PBFTPeer_Sharded                                    (const PBFTPeer_Sharded&);
+    ~PBFTPeer_Sharded                                   ()                                              {};
     
     //setters
     void                        setGroup                (int id)                                        {clearGroup();_groupId = id;};
