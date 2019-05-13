@@ -91,8 +91,7 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     // mutators
     void                                initNetwork             (int);
     void                                makeRequest             ();
-    // queue request makes a new request but does not servie it, just adds it to the queue
-    void                                queueRequest            ()                                      { _requestQueue.push_back(generateRequest());};
+    void                                queueRequest            ()                                      { _requestQueue.push_back(generateRequest());};  
     
     // pass-through to Network class
     void                                receive                 ()                                      {_peers.receive();};
@@ -109,6 +108,7 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     // logging and debugging
     std::ostream&                       printTo                 (std::ostream&)const;
     void                                log                     ()const                                 {printTo(*_log);};
+    std::vector<PBFT_Message>           getGlobalLedger         ()const;
     
     // operators
     PBFTReferenceCommittee&             operator=               (const PBFTReferenceCommittee&);

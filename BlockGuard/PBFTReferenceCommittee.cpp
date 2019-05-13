@@ -262,6 +262,19 @@ std::vector<PBFTPeer_Sharded> PBFTReferenceCommittee::getPeers()const{
     return peers;
 }
 
+std::vector<PBFT_Message> PBFTReferenceCommittee::getGlobalLedger()const{
+    std::vector<PBFT_Message> globalLegder = _peers[0]->getLedger();
+    for(int i = 0; i < _peers.size(); i++){
+        std::vector<PBFT_Message> localLegder = _peers[i]->getLedger();
+        for(int j = 0; j < localLegder.size(); j++){
+            if(std::find(globalLegder.begin(), globalLegder.end(), localLegder[j]) == globalLegder.end()){
+                globalLegder.push_back(localLegder[j]);
+            }
+        }
+    }
+    return globalLegder;
+}
+
 PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCommittee &rhs){
     _currentRound = rhs._currentRound;
     _groupSize = rhs._groupSize;
@@ -290,4 +303,3 @@ std::ostream& PBFTReferenceCommittee::printTo(std::ostream& out)const{
     
     return out;
 }
-

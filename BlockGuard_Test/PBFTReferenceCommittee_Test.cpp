@@ -20,8 +20,8 @@ void RunPBFTRefComTest (std::string filepath){
     }
 
     testRefComGroups(log);
-    testRefComRequest(log);
     testRefComCommittee(log);
+    testGlobalLedger(log);
 }
 void testRefComGroups (std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testRefComGroups"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
@@ -87,16 +87,13 @@ void testRefComGroups (std::ostream &log){
         refCom.receive();
         refCom.preformComputation();
         refCom.transmit();
+        refCom.log();
+
         for(int peer = 0; peer < refCom.size(); peer++){
             assert(refCom[peer]->getGroup() == peerToGroup[refCom[peer]->id()]);
         }
     }
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testRefComGroups Done"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
-}
-void testRefComRequest (std::ostream &log){
-    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testRefComRequest"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
-    
-    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testRefComRequest Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
 void testRefComCommittee (std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testRefComCommittee"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
@@ -125,6 +122,7 @@ void testRefComCommittee (std::ostream &log){
     double securityLevel = refCom.getRequestQueue().front().securityLevel;
 
     refCom.makeRequest(); // this will also add a new request to the queue but only one request can be sent per round
+    refCom.log();
     
     // checking busy and free groups to make sure that the right number of groups are taken by the committee
     assert(refCom.getBusyGroups().size()            == securityLevel);
@@ -149,6 +147,8 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
+    refCom.log();
+
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
@@ -165,6 +165,8 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
+    refCom.log();
+
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
@@ -179,6 +181,8 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
+    refCom.log();
+
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
@@ -193,6 +197,8 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
+    refCom.log();
+
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
@@ -211,6 +217,7 @@ void testRefComCommittee (std::ostream &log){
     securityLevel = refCom.getRequestQueue().front().securityLevel;
 
     refCom.makeRequest(); // this will also add a new request to the queue but only one request can be sent per round
+    refCom.log();
     
     // checking busy and free groups to make sure that the right number of groups are taken by the committee
     assert(refCom.getBusyGroups().size()            == securityLevel);
@@ -235,6 +242,8 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
+    refCom.log();
+
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
@@ -251,6 +260,8 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
+    refCom.log();
+
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
@@ -265,6 +276,8 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
+    refCom.log();
+
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
@@ -279,6 +292,8 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
+    refCom.log();
+
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
@@ -286,8 +301,68 @@ void testRefComCommittee (std::ostream &log){
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == -1); // make sure they are no longer in committee
             assert((*peer)->getPhase() == IDEAL); // make sure every peer is done
+            assert((*peer)->getLedger().size() == 1); // make sure every peer comited the request
         }
     }
 
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testRefComCommittee complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+}
+void testGlobalLedger(std::ostream &log){
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testGlobalLedger"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    // this is the standard set up 1024 peer 64 groups 1/3 fault tolerance 
+    PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(1);
+    refCom.setFaultTolerance(0.3);
+    refCom.setToRandom();
+    refCom.setGroupSize(16);
+    refCom.initNetwork(1024);
+    refCom.log();
+
+    refCom.makeRequest();
+    assert(refCom.getRequestQueue().size() == 0); // make sure quest has been serverd
+    // request should be done in 5 rounds
+    for(int round = 0; round < 5; round++ ){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+    refCom.log();
+    assert(refCom.getGlobalLedger().size() == 1); // make sure trasnaction was counted as confirmed by the sytem
+
+    refCom.makeRequest();
+    refCom.makeRequest();
+    for(int round = 0; round < 10; round++ ){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+
+    refCom.log();
+    assert(refCom.getGlobalLedger().size() == 3); // two more transactions should be counted
+
+    refCom.makeRequest();
+    refCom.makeRequest();
+    refCom.makeRequest();
+    for(int round = 0; round < 15; round++ ){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+
+    refCom.log();
+    assert(refCom.getGlobalLedger().size() == 6); // three more transactions should be counted
+
+    for(int round = 0; round < 100; round++ ){
+        refCom.makeRequest();
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+
+    refCom.log();
+    assert(refCom.getGlobalLedger().size() >= 26); // min number of transactions confirmed should be 26
+    assert(refCom.getGlobalLedger().size() <= 106); // max number of transactions confirmed should be 106
+
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testGlobalLedger complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }

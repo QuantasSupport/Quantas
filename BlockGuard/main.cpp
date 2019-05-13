@@ -401,29 +401,6 @@ std::set<std::string> getPeersForConsensus(int securityLevel) {
     return peersForConsensus;
 }
 
-bool match(std::vector<PBFT_Message> ledger, PBFT_Message aMessage){
-    for(int i = 0; i < ledger.size(); i++){
-        if(ledger[i] == aMessage){
-            return true;
-        }
-    }
-    return false;
-}
-
-int getNumberOfConfimedTransactionsBGS_PBFT(const std::vector<PBFTPeer_Sharded> &peers){
-    std::vector<PBFT_Message> globalLegder = peers[0].getLedger();
-    for(int i = 0; i < peers.size(); i++){
-        std::vector<PBFT_Message> localLegder = peers[i].getLedger();
-        for(int j = 0; j < localLegder.size(); j++){
-            if(!match(globalLegder,localLegder[j])){
-                globalLegder.push_back(localLegder[j]);
-            }
-        }
-    }
-    
-    return globalLegder.size();
-}
-
 int sumMessagesSentBGS(const PBFTReferenceCommittee &system){
     int sum = 0;
     for(int i = 0; i < system.size(); i++){
