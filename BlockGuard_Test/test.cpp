@@ -10,6 +10,7 @@
 
 #include "PBFTPeerTest.hpp"
 #include "PBFTPeer_Sharded_Test.hpp"
+#include "PBFTReferenceCommittee_Test.hpp"
 
 #include <string>
 
@@ -26,8 +27,10 @@ int main(int argc, const char * argv[]){
         RunPBFTPeerShardedTest(filePath);
     }else if(testOption == "pbft"){
         RunPBFT_Tests(filePath);
-    }else if (testOption == "pbft_s"){
+    }else if (testOption == "s_pbft"){
         RunPBFTPeerShardedTest(filePath);
+    }else if(testOption == "ref_com_pbft"){
+        RunPBFTRefComTest(filePath);
     }
 
     return 0;
