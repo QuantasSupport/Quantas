@@ -20,7 +20,9 @@ void RunPBFTRefComTest              (std::string filepath); // run all PBFT test
 
 // test for group and committee assignment and maintance 
 void testRefComGroups               (std::ostream &log);// test that groups are made correclty and groups and peers have a many to one relationship
-void testRefComRequest              (std::ostream &log);// test that committees are formed correctly and peers are released from committees when consusnes if done
-void testRefComCommittee            (std::ostream &log);// test that one committee is formed for a transaction
+void testRefComRequest              (std::ostream &log);// test that all request are serverd
+void testRefComCommittee            (std::ostream &log);// test that one committee is formed for a transaction 
+                                                        //      committees are formed correctly and peers are 
+                                                        //      released from committees when consusnes if done
 
 #endif /* PBFTReferenceCommittee_Test_hpp */
