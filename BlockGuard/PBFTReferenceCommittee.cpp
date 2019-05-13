@@ -16,9 +16,8 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(){
     _currentRound = 0;
     _groupSize = -1;
     _peers = Network<PBFT_Message, PBFTPeer_Sharded>();
-    typedef std::vector<PBFTPeer_Sharded*> aGroup;
-    _busyGroups = std::vector<std::pair<int,aGroup> >();
-    _freeGroups = std::vector<std::pair<int,aGroup> >();
+    _busyGroups = std::vector<int>();
+    _freeGroups = std::vector<int>();
     _groupIds = std::vector<int>();
     _nextCommitteeId = 0;
     _nextSquenceNumber = 0;
@@ -50,13 +49,13 @@ void PBFTReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int
             }
         }
     }
-    typedef std::vector<PBFTPeer_Sharded*> aGroup;
-    _freeGroups.push_back(std::pair<int,aGroup>(id,group));
+    _freeGroups.push_back(id);
     _groupIds.push_back(id);
 }
 
 void PBFTReferenceCommittee::initNetwork(int numberOfPeers){
     
+    // 5 is high (all groups )1 is low (4 groups for 1024 peers)
     SECURITY_LEVEL_5 = numberOfPeers/_groupSize;
     SECURITY_LEVEL_4 = SECURITY_LEVEL_5/2;
     SECURITY_LEVEL_3 = SECURITY_LEVEL_4/2;
@@ -120,9 +119,8 @@ transactionRequest PBFTReferenceCommittee::generateRequest(){
     return _requestQueue.front();
 }
 
-typedef std::vector<PBFTPeer_Sharded*> aGroup;
 void PBFTReferenceCommittee::makeRequest(){
-    _requestQueue.push_back(generateRequest());
+    queueRequest();
     int groupsNeeded = std::ceil(_requestQueue.front().securityLevel);
     updateBusyGroup();
     
@@ -132,11 +130,11 @@ void PBFTReferenceCommittee::makeRequest(){
     }
     _requestQueue.erase(_requestQueue.begin());
     
-    std::vector<std::pair<int,aGroup> > groupsInCommittee = std::vector<std::pair<int,aGroup> >();
+    std::vector<int> groupsInCommittee = std::vector<int>();
     while(groupsInCommittee.size() < groupsNeeded){
-        std::pair<int,aGroup> group = _freeGroups.back();
-        _busyGroups.push_back(group);
-        groupsInCommittee.push_back(group);
+        int groupId = _freeGroups.back();
+        _busyGroups.push_back(groupId);
+        groupsInCommittee.push_back(groupId);
         _freeGroups.pop_back();
     }
     
@@ -144,9 +142,10 @@ void PBFTReferenceCommittee::makeRequest(){
     initCommittee(groupsInCommittee);
     
     for(int i = 0; i < groupsInCommittee.size(); i++){
-        for(int j = 0; j < groupsInCommittee.front().second.size(); j++){
-            if(groupsInCommittee[i].second[j]->isPrimary()){
-                groupsInCommittee[i].second[j]->makeRequest(_nextSquenceNumber);
+        aGroup group = getGroup(groupsInCommittee[i]);
+        for(int j = 0; j < group.size(); j++){
+            if(group[j]->isPrimary()){
+                group[j]->makeRequest(_nextSquenceNumber);
                 _nextSquenceNumber++;
                 return;
             }
@@ -155,7 +154,6 @@ void PBFTReferenceCommittee::makeRequest(){
     
 }
 
-typedef std::vector<PBFTPeer_Sharded*> aGroup;
 void PBFTReferenceCommittee::updateBusyGroup(){
     for(int id = 0; id < _groupIds.size(); id++){
         aGroup group= getGroup(id);
@@ -170,18 +168,40 @@ void PBFTReferenceCommittee::updateBusyGroup(){
         if(!stillBusy){
             std::remove(_currentCommittees.begin(),_currentCommittees.end(), committeeID);
             for(int i =0; i < _busyGroups.size(); i++){
-                if(_busyGroups[i].first == id){
+                if(_busyGroups[i] == id){
                     _busyGroups.erase(_busyGroups.begin() + i);
-                    _freeGroups.push_back(std::pair<int, aGroup>(id,group));
+                    _freeGroups.push_back(id);
                 }
             }
         }
     }
 }
 
-void PBFTReferenceCommittee::initCommittee(std::vector<std::pair<int, aGroup> > groupsInCommittee){
-    for(int group = 0; group < groupsInCommittee.size(); group++){
-        aGroup groupInCommittee = groupsInCommittee[group].second;
+std::vector<aGroup> PBFTReferenceCommittee::getCommittee(int committeeId)const{
+    std::vector<aGroup> committee = std::vector<aGroup>();
+
+    // need to find every group that belongs to committee id
+    for(auto id = _groupIds.begin(); id != _groupIds.end(); id++){ 
+        aGroup group = getGroup(*id);
+        // check each group member to see if they belong to that group
+        bool inCommittee = true;
+        for(auto peer = group.begin(); peer != group.end(); peer++){
+            if((*peer)->getCommittee() != committeeId){
+                inCommittee = false;
+                break;
+            }
+        }
+        if(inCommittee){
+            committee.push_back(group);
+        }
+    }
+
+    return committee;
+}
+
+void PBFTReferenceCommittee::initCommittee(std::vector<int> groupsInCommittee){
+    for(auto groupId = groupsInCommittee.begin(); groupId != groupsInCommittee.end(); groupId++){
+        aGroup groupInCommittee = getGroup(*groupId);
         for(int peerIndex = 0; peerIndex < groupInCommittee.size(); peerIndex++){
             groupInCommittee[peerIndex]->clearPrimary();
             groupInCommittee[peerIndex]->initPrimary();
@@ -190,12 +210,11 @@ void PBFTReferenceCommittee::initCommittee(std::vector<std::pair<int, aGroup> > 
 }
 
 
-typedef std::vector<PBFTPeer_Sharded*> aGroup;
-void PBFTReferenceCommittee::makeCommittee(std::vector<std::pair<int,aGroup> >  groupsForCommittee){
+void PBFTReferenceCommittee::makeCommittee(std::vector<int> groupsForCommittee){
     // gets list of all committee members
     std::vector<PBFTPeer_Sharded*> committeeMembers =  std::vector<PBFTPeer_Sharded*>();
-    for(int groupIndex = 0; groupIndex < groupsForCommittee.size(); groupIndex++){
-        aGroup groupInCommitte = groupsForCommittee[groupIndex].second;
+    for(auto groupId = groupsForCommittee.begin(); groupId != groupsForCommittee.end(); groupId++){
+        aGroup groupInCommitte = getGroup(*groupId);
         for(int peerIndex = 0; peerIndex < groupInCommitte.size(); peerIndex++){
             committeeMembers.push_back(groupInCommitte[peerIndex]);
         }
@@ -221,16 +240,15 @@ void PBFTReferenceCommittee::setFaultTolerance(double f){
     }
 }
 
-typedef std::vector<PBFTPeer_Sharded*> aGroup;
 aGroup PBFTReferenceCommittee::getGroup(int id)const{
     for(int i = 0; i < _freeGroups.size(); i++){
-        if(_freeGroups[i].first == id){
-            return _freeGroups[i].second;
+        if(_freeGroups[i] == id){
+            return getGroup(_freeGroups[i]);
         }
     }
     for(int i = 0; i < _busyGroups.size(); i++){
-        if(_busyGroups[i].first == id){
-            return _busyGroups[i].second;
+        if(_busyGroups[i] == id){
+            return getGroup(_freeGroups[i]);
         }
     }
     return aGroup();

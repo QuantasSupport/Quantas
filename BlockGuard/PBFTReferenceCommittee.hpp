@@ -21,7 +21,9 @@
 #include <assert.h>
 #include <cassert>
 
-
+// secrity level is the number of groups needed for a committee
+// 5 is high (all groups )1 is low (4 groups for 1024 peers)
+// initialization in initNetwork
 static double SECURITY_LEVEL_5;
 static double SECURITY_LEVEL_4;
 static double SECURITY_LEVEL_3;
@@ -45,8 +47,8 @@ protected:
     int                                                             _nextSquenceNumber;
     Network<PBFT_Message, PBFTPeer_Sharded>                         _peers;
     std::vector<int>                                                _groupIds;
-    std::vector<std::pair<int,aGroup> >                             _busyGroups;
-    std::vector<std::pair<int,aGroup> >                             _freeGroups;
+    std::vector<int>                                                _busyGroups;
+    std::vector<int>                                                _freeGroups;
     std::vector<transactionRequest>                                 _requestQueue;
     
     // logging, metrics and untils
@@ -58,56 +60,62 @@ protected:
     transactionRequest                  generateRequest         ();
     void                                makeGroup               (std::vector<PBFTPeer_Sharded*>,int);
     double                              pickSecrityLevel        ();
-    void                                makeCommittee           (std::vector<std::pair<int,aGroup> >);
-    void                                initCommittee           (std::vector<std::pair<int,aGroup> >);
+    void                                makeCommittee           (std::vector<int>);
+    void                                initCommittee           (std::vector<int>);
     void                                updateBusyGroup         ();
     
 public:
 PBFTReferenceCommittee                                          ();
 PBFTReferenceCommittee                                          (const PBFTReferenceCommittee&);
-~PBFTReferenceCommittee                                         ()                                                          {};
+~PBFTReferenceCommittee                                         ()                                      {};
     
     // setters
-    void                                setGroupSize            (int g)                                                     {_groupSize = g;};
+    void                                setGroupSize            (int g)                                 {_groupSize = g;};
     void                                setFaultTolerance       (double);
-    void                                setLog                  (std::ostream &o)                                           {_log = &o; _peers.setLog(o);}
+    void                                setLog                  (std::ostream &o)                       {_log = &o; _peers.setLog(o);}
     
     // getters
-    int                                 getGroupSize            ()const                                                     {return _groupSize;};
-    int                                 numberOfGroups          ()const                                                     {return (int)_groupIds.size();};
-    int                                 size                    ()const                                                     {return _peers.size();}
+    int                                 getGroupSize            ()const                                 {return _groupSize;};
+    int                                 numberOfGroups          ()const                                 {return (int)_groupIds.size();};
+    int                                 size                    ()const                                 {return _peers.size();}
+    int                                 getNextSquenceNumber    ()const                                 {return _nextSquenceNumber;};
+    int                                 getNestCommitteeId      ()const                                 {return _nextCommitteeId;};
     aGroup                              getGroup                (int)const;
-    std::vector<int>                    getGroupIds             ()const                                                     {return _groupIds;};
+    std::vector<int>                    getGroupIds             ()const                                 {return _groupIds;};
     std::vector<PBFTPeer_Sharded>       getPeers                ()const;
-    std::vector<std::pair<int,aGroup> > getBusyGroups           ()const                                                     {return _busyGroups;};
-    std::vector<std::pair<int,aGroup> > getFreeGroups           ()const                                                     {return _freeGroups;};
-    std::vector<int>                    getCurrentCommittees    ()const                                                     {return _currentCommittees;};
-
+    std::vector<int>                    getBusyGroups           ()const                                 {return _busyGroups;};
+    std::vector<int>                    getFreeGroups           ()const                                 {return _freeGroups;};
+    std::vector<int>                    getCurrentCommittees    ()const                                 {return _currentCommittees;};
+    std::vector<transactionRequest>     getRequestQueue         ()const                                 {return _requestQueue;}
+    std::vector<aGroup>                 getCommittee            (int committeeId)const;
     // mutators
     void                                initNetwork             (int);
     void                                makeRequest             ();
+    // queue request makes a new request but does not servie it, just adds it to the queue
+    void                                queueRequest            ()                                      { _requestQueue.push_back(generateRequest());};
     
     // pass-through to Network class
-    void                                receive                 ()                                                          {_peers.receive();};
-    void                                preformComputation      ()                                                          {_peers.preformComputation(); _currentRound++;};
-    void                                transmit                ()                                                          {_peers.transmit();};
-    void                                setMaxDelay             (int d)                                                     {_peers.setMaxDelay(d);};
-    void                                setAvgDelay             (int d)                                                     {_peers.setAvgDelay(d);};
-    void                                setMinDelay             (int d)                                                     {_peers.setMinDelay(d);};
-    void                                setToPoisson            ()                                                          {_peers.setToPoisson();};
-    void                                setToOne                ()                                                          {_peers.setToOne();};
-    void                                setToRandom             ()                                                          {_peers.setToRandom();};
+    void                                receive                 ()                                      {_peers.receive();};
+    void                                preformComputation      ()                                      {updateBusyGroup();_peers.preformComputation(); _currentRound++;};
+    void                                transmit                ()                                      {_peers.transmit();};
+    void                                setMaxDelay             (int d)                                 {_peers.setMaxDelay(d);};
+    void                                setAvgDelay             (int d)                                 {_peers.setAvgDelay(d);};
+    void                                setMinDelay             (int d)                                 {_peers.setMinDelay(d);};
+    void                                setToPoisson            ()                                      {_peers.setToPoisson();};
+    void                                setToOne                ()                                      {_peers.setToOne();};
+    void                                setToRandom             ()                                      {_peers.setToRandom();};
     
     
     // logging and debugging
     std::ostream&                       printTo                 (std::ostream&)const;
-    void                                log                     ()const                                                     {printTo(*_log);};
+    void                                log                     ()const                                 {printTo(*_log);};
     
     // operators
     PBFTReferenceCommittee&             operator=               (const PBFTReferenceCommittee&);
-    PBFTPeer_Sharded*                   operator[]              (int i)                                                     {return _peers[i];};
-    const PBFTPeer_Sharded*             operator[]              (int i)const                                                {return _peers[i];};
-    friend std::ostream&                operator<<              (std::ostream &out, const PBFTReferenceCommittee&system)    {return system.printTo(out);};
+    PBFTPeer_Sharded*                   operator[]              (int i)                                 {return _peers[i];};
+    const PBFTPeer_Sharded*             operator[]              (int i)const                            {return _peers[i];};
+    friend std::ostream&                operator<<              (std::ostream &out, // continued on next line
+                                                                const PBFTReferenceCommittee&system)    {return system.printTo(out);};
 
 };
 
