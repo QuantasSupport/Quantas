@@ -51,7 +51,8 @@ protected:
     std::vector<int>                                                _busyGroups;
     std::vector<int>                                                _freeGroups;
     std::vector<transactionRequest>                                 _requestQueue;
-    
+    std::map<int,aGroup>                                            _groups;
+
     // logging, metrics and untils
     std::ostream                                                    *_log;
     std::default_random_engine                                      _randomGenerator;
@@ -64,7 +65,6 @@ protected:
     void                                makeCommittee           (std::vector<int>);
     void                                initCommittee           (std::vector<int>);
     void                                updateBusyGroup         ();
-    
 public:
 PBFTReferenceCommittee                                          ();
 PBFTReferenceCommittee                                          (const PBFTReferenceCommittee&);

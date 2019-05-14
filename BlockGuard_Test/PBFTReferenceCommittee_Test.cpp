@@ -15,8 +15,8 @@ void RunPBFTRefComTest (std::string filepath){
         std::cerr << "Error: could not open file at: "<< filepath << std::endl;
     }
 
-    testRefComGroups(log);
-    testRefComCommittee(log);
+   // testRefComGroups(log);
+    //testRefComCommittee(log);
     testGlobalLedger(log);
 }
 void testRefComGroups (std::ostream &log){
@@ -29,7 +29,6 @@ void testRefComGroups (std::ostream &log){
     refCom.setGroupSize(1);
     refCom.setFaultTolerance(0.3);
     refCom.initNetwork(1024);
-    refCom.log();
 
     assert(refCom.numberOfGroups()              == 1024);
     assert(refCom.getBusyGroups().size()        == 0);
@@ -52,7 +51,6 @@ void testRefComGroups (std::ostream &log){
     refCom.setToRandom();
     refCom.setGroupSize(16); // 64 groups
     refCom.initNetwork(1024);
-    refCom.log();
 
     // test each group to make sure it was formed correctly
     for(int id = 0; id < refCom.getGroupIds().size(); id++){
@@ -96,7 +94,6 @@ void testRefComGroups (std::ostream &log){
         refCom.receive();
         refCom.preformComputation();
         refCom.transmit();
-        refCom.log();
 
         for(int peer = 0; peer < refCom.size(); peer++){
             assert(refCom[peer]->getGroup() == peerToGroup[refCom[peer]->id()]);
@@ -227,7 +224,6 @@ void testRefComCommittee (std::ostream &log){
     refCom.initNetwork(1024);
     refCom.setMaxSecurityLevel(2);
     refCom.setMinSecurityLevel(2);
-    refCom.log();
 
     assert(refCom.getBusyGroups().size()            == 0);
     assert(refCom.getFreeGroups().size()            == 64);
@@ -237,7 +233,6 @@ void testRefComCommittee (std::ostream &log){
     assert(refCom.getCurrentCommittees().size()     == 0);
 
     securityLevel = refCom.getRequestQueue().front().securityLevel;
-    refCom.log();
 
     refCom.makeRequest(); // this will also add a new request to the queue but only one request can be sent per round
     assert(refCom.getRequestQueue().size()          == 1);
@@ -267,7 +262,6 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
-    refCom.log();
 
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
@@ -285,7 +279,6 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
-    refCom.log();
 
     assert(refCom.getCurrentCommittees().size()     == 1);
     assert(refCom.getRequestQueue().size()          == 1);
@@ -303,7 +296,6 @@ void testRefComCommittee (std::ostream &log){
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
-    refCom.log();
 
     assert(refCom.getCurrentCommittees().size()     == 1);
     assert(refCom.getRequestQueue().size()          == 1);
@@ -317,108 +309,15 @@ void testRefComCommittee (std::ostream &log){
         }
     }
 
-    // committee should be disolved
     refCom.receive();
     refCom.preformComputation();
     refCom.transmit();
-    refCom.log();
-
-    assert(refCom.getCurrentCommittees().size()     == 1);
-    assert(refCom.getRequestQueue().size()          == 1);
-    for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
-        aGroup group = refCom.getGroup(*groupId);
-        // make sure group properties are maintained
-        assert(group.size() == 16);
-        for(auto peer = group.begin(); peer != group.end(); peer++){
-            assert((*peer)->getCommittee() == -1); // make sure they are no longer in committee
-            assert((*peer)->getPhase() == IDEAL); // make sure every peer is done
-        }
-    }
-    ////////////////////////
-    // repeat to make sure committees do not interfere with each other
-
-    refCom.queueRequest();
-    assert(refCom.getRequestQueue().size()          == 2);
-    assert(refCom.getNextCommitteeId()              == 1);
-    securityLevel = refCom.getRequestQueue().front().securityLevel;
-
-    refCom.makeRequest(); // this will also add a new request to the queue but only one request can be sent per round
-    refCom.log();
     
-    // checking busy and free groups to make sure that the right number of groups are taken by the committee
-    assert(refCom.getBusyGroups().size()            == securityLevel);
-    assert(refCom.getFreeGroups().size()            == refCom.numberOfGroups() - securityLevel);
-    assert(refCom.getCurrentCommittees().size()     == 1);
-
-    // check to make sure committee was made correctly
-    committeeId = refCom.getCurrentCommittees().front();
-    committee = refCom.getCommittee(committeeId);
-    committeeGroups = refCom.getBusyGroups();
-    // loop though busy groups and make sure each is in this committee
-    for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
-        aGroup group = refCom.getGroup(*groupId);
-        // make sure group properties are maintained
-        assert(group.size() == 16);
-        for(auto peer = group.begin(); peer != group.end(); peer++){
-            assert((*peer)->getCommittee() == committeeId);
-        }
-    }
-
-    // run a round and recheck
-    refCom.receive();
-    refCom.preformComputation();
-    refCom.transmit();
-    refCom.log();
-
-    for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
-        aGroup group = refCom.getGroup(*groupId);
-        // make sure group properties are maintained
-        assert(group.size() == 16);
-        for(auto peer = group.begin(); peer != group.end(); peer++){
-            assert((*peer)->getCommittee() == committeeId);
-            if((*peer)->getPrimary() == (*peer)->id()){
-                assert((*peer)->getPhase() == PREPARE_WAIT); // make sure primary got request
-            }
-        }
-    }
-
-    // next round
-    refCom.receive();
-    refCom.preformComputation();
-    refCom.transmit();
-    refCom.log();
-
-    for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
-        aGroup group = refCom.getGroup(*groupId);
-        // make sure group properties are maintained
-        assert(group.size() == 16);
-        for(auto peer = group.begin(); peer != group.end(); peer++){
-            assert((*peer)->getCommittee() == committeeId);
-            assert((*peer)->getPhase() == PREPARE_WAIT); // make sure every peer got request
-        }
-    }
-
-    // commit round
-    refCom.receive();
-    refCom.preformComputation();
-    refCom.transmit();
-    refCom.log();
-
-    for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
-        aGroup group = refCom.getGroup(*groupId);
-        // make sure group properties are maintained
-        assert(group.size() == 16);
-        for(auto peer = group.begin(); peer != group.end(); peer++){
-            assert((*peer)->getCommittee() == committeeId);
-            assert((*peer)->getPhase() == COMMIT_WAIT); // make sure every peer is ready to commit
-        }
-    }
-
     // committee should be disolved
-    refCom.receive();
-    refCom.preformComputation();
-    refCom.transmit();
-    refCom.log();
+    assert(refCom.getCurrentCommittees().size()     == 0);
+    assert(refCom.getRequestQueue().size()          == 1);
+    assert(refCom.getBusyGroups().size()            == 0);
+    assert(refCom.getFreeGroups().size()            == 64);
 
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
@@ -430,19 +329,112 @@ void testRefComCommittee (std::ostream &log){
             assert((*peer)->getLedger().size() == 1); // make sure every peer comited the request
         }
     }
+    ////////////////////////
+    // repeat to make sure committees do not interfere with each other
+
+    refCom.queueRequest();
+    assert(refCom.getRequestQueue().size()          == 2);
+    assert(refCom.getNextCommitteeId()              == 1);
+    securityLevel = refCom.getRequestQueue().front().securityLevel;
+
+    refCom.makeRequest(); // this will also add a new request to the queue but only one request can be sent per round
+    
+    // checking busy and free groups to make sure that the right number of groups are taken by the committee
+    assert(refCom.getBusyGroups().size()            == securityLevel);
+    assert(refCom.getFreeGroups().size()            == refCom.numberOfGroups() - securityLevel);
+    assert(refCom.getCurrentCommittees().size()     == 1);
+
+    // check to make sure committee was made correctly
+    committeeId = refCom.getCurrentCommittees().front();
+    committee = refCom.getCommittee(committeeId);
+    committeeGroups = refCom.getBusyGroups();
+    // loop though busy groups and make sure each is in this committee
+    for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
+        aGroup group = refCom.getGroup(*groupId);
+        // make sure group properties are maintained
+        assert(group.size() == 16);
+        for(auto peer = group.begin(); peer != group.end(); peer++){
+            assert((*peer)->getCommittee() == committeeId);
+        }
+    }
+
+    // run a round and recheck
+    refCom.receive();
+    refCom.preformComputation();
+    refCom.transmit();
+
+    for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
+        aGroup group = refCom.getGroup(*groupId);
+        // make sure group properties are maintained
+        assert(group.size() == 16);
+        for(auto peer = group.begin(); peer != group.end(); peer++){
+            assert((*peer)->getCommittee() == committeeId);
+            if((*peer)->getPrimary() == (*peer)->id()){
+                assert((*peer)->getPhase() == PREPARE_WAIT); // make sure primary got request
+            }
+        }
+    }
+
+    // next round
+    refCom.receive();
+    refCom.preformComputation();
+    refCom.transmit();
+
+    for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
+        aGroup group = refCom.getGroup(*groupId);
+        // make sure group properties are maintained
+        assert(group.size() == 16);
+        for(auto peer = group.begin(); peer != group.end(); peer++){
+            assert((*peer)->getCommittee() == committeeId);
+            assert((*peer)->getPhase() == PREPARE_WAIT); // make sure every peer got request
+        }
+    }
+
+    // commit round
+    refCom.receive();
+    refCom.preformComputation();
+    refCom.transmit();
+
+    for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
+        aGroup group = refCom.getGroup(*groupId);
+        // make sure group properties are maintained
+        assert(group.size() == 16);
+        for(auto peer = group.begin(); peer != group.end(); peer++){
+            assert((*peer)->getCommittee() == committeeId);
+            assert((*peer)->getPhase() == COMMIT_WAIT); // make sure every peer is ready to commit
+        }
+    }
+
+    // committee should be disolved
+    refCom.receive();
+    refCom.preformComputation();
+    refCom.transmit();
+
+    for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
+        aGroup group = refCom.getGroup(*groupId);
+        // make sure group properties are maintained
+        assert(group.size() == 16);
+        for(auto peer = group.begin(); peer != group.end(); peer++){
+            assert((*peer)->getCommittee() == -1); // make sure they are no longer in committee
+            assert((*peer)->getPhase() == IDEAL); // make sure every peer is done
+            assert((*peer)->getLedger().size() == 2); // make sure every peer comited the request
+        }
+    }
 
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testRefComCommittee complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
 void testGlobalLedger(std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testGlobalLedger"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
-    // this is the standard set up 1024 peer 64 groups 1/3 fault tolerance 
+    ///////////////////////////////////////////////////
+    // small set of peers to debug
+    // this is the standard set up 32 peer 16 groups 1/3 fault tolerance 
     PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
     refCom.setLog(log);
     refCom.setMaxDelay(1);
     refCom.setToRandom();
-    refCom.setGroupSize(16);
-    refCom.setFaultTolerance(0.3);
-    refCom.initNetwork(1024);
+    refCom.setGroupSize(2);
+    refCom.setFaultTolerance(1);
+    refCom.initNetwork(32);
     refCom.log();
 
     refCom.makeRequest();
@@ -458,6 +450,7 @@ void testGlobalLedger(std::ostream &log){
 
     refCom.makeRequest();
     refCom.makeRequest();
+    assert(refCom.getRequestQueue().size() == 0); // make sure quest has been serverd
     for(int round = 0; round < 10; round++ ){
         refCom.receive();
         refCom.preformComputation();
@@ -487,6 +480,57 @@ void testGlobalLedger(std::ostream &log){
     }
 
     refCom.log();
+    assert(refCom.getGlobalLedger().size() >= 26); // min number of transactions confirmed should be 26
+    assert(refCom.getGlobalLedger().size() <= 106); // max number of transactions confirmed should be 106
+
+    ///////////////////////////////////////////////////
+    // this is the standard set up 1024 peer 64 groups 1/3 fault tolerance 
+    refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(1);
+    refCom.setToRandom();
+    refCom.setGroupSize(16);
+    refCom.setFaultTolerance(0.3);
+    refCom.initNetwork(1024);
+
+    refCom.makeRequest();
+    assert(refCom.getRequestQueue().size() == 0); // make sure quest has been serverd
+    // request should be done in 5 rounds
+    for(int round = 0; round < 5; round++ ){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+    assert(refCom.getGlobalLedger().size() == 1); // make sure trasnaction was counted as confirmed by the sytem
+
+    refCom.makeRequest();
+    refCom.makeRequest();
+    for(int round = 0; round < 10; round++ ){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+
+    assert(refCom.getGlobalLedger().size() == 3); // two more transactions should be counted
+
+    refCom.makeRequest();
+    refCom.makeRequest();
+    refCom.makeRequest();
+    for(int round = 0; round < 15; round++ ){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+
+    assert(refCom.getGlobalLedger().size() == 6); // three more transactions should be counted
+
+    for(int round = 0; round < 100; round++ ){
+        refCom.makeRequest();
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+
     assert(refCom.getGlobalLedger().size() >= 26); // min number of transactions confirmed should be 26
     assert(refCom.getGlobalLedger().size() <= 106); // max number of transactions confirmed should be 106
 

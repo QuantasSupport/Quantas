@@ -67,8 +67,7 @@ struct PBFT_Message{
                 type == rhs.type &&
                 operation == rhs.operation &&
                 operands == rhs.operands &&
-                result == rhs.result &&
-                round == rhs.round
+                result == rhs.result 
                );
     }
 };

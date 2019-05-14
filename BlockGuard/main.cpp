@@ -338,7 +338,7 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
         std::cout<< '.'<< std::flush;
     }
 
-    int max = getNumberOfConfimedTransactionsBGS_PBFT(system.getPeers());
+    int max = system.getGlobalLedger().size();
     int totalMessages = sumMessagesSentBGS(system);
     
     csv<< "Max Ledger:,"<< max<< std::endl;

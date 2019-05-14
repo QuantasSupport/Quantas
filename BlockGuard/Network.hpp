@@ -101,6 +101,10 @@ Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
         return;
     }
     
+    for(int i = 0; i < _peers.size(); i++){
+        delete _peers[i];
+    }
+
     _peers = std::vector<Peer<type_msg>*>();
     for(int i = 0; i < rhs._peers.size(); i++){
         _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
@@ -257,6 +261,10 @@ Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Netwo
         return *this;
     }
     
+    for(int i = 0; i < _peers.size(); i++){
+        delete _peers[i];
+    }
+
     _peers = std::vector<Peer<type_msg>*>();
     for(int i = 0; i < rhs._peers.size(); i++){
         _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));

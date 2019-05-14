@@ -10,6 +10,7 @@
 #include <chrono>
 #include <ctime>
 #include <algorithm>
+#include <set>
 #include "PBFTReferenceCommittee.hpp"
 
 PBFTReferenceCommittee::PBFTReferenceCommittee(){
@@ -22,6 +23,7 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(){
     _nextCommitteeId = 0;
     _nextSquenceNumber = 0;
     _requestQueue = std::vector<transactionRequest>();
+    _groups = std::map<int,aGroup>();
     _faultTolerance = 1;
     _currentCommittees = std::vector<int>();
     _log = nullptr;
@@ -40,6 +42,7 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(const PBFTReferenceCommittee &rhs
     _nextCommitteeId = rhs._nextCommitteeId;
     _nextSquenceNumber = rhs._nextSquenceNumber;
     _requestQueue = rhs._requestQueue;
+    _groups = rhs._groups;
     _faultTolerance = rhs._faultTolerance;
     _currentCommittees = rhs._currentCommittees;
     _log = rhs._log;
@@ -59,6 +62,7 @@ void PBFTReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int
     }
     _freeGroups.push_back(id);
     _groupIds.push_back(id);
+    _groups[id] = group;
 }
 
 void PBFTReferenceCommittee::initNetwork(int numberOfPeers){
@@ -161,28 +165,36 @@ void PBFTReferenceCommittee::makeRequest(){
 }
 
 void PBFTReferenceCommittee::updateBusyGroup(){
-    for(int id = 0; id < _groupIds.size(); id++){
-        aGroup group= getGroup(id);
-        int committeeID = group[0]->getCommittee();
+    std::vector<int> aliveCommittees = std::vector<int>(); // if a group is still bust we need the committee it belongs to
+    // check each busy group to see if they are still busy
+    auto id = _busyGroups.begin(); 
+    while(id != _busyGroups.end()){
+        aGroup group= getGroup(*id);
         bool stillBusy = false;
         for(int i = 0; i < group.size(); i++){
+            // if the group is still busy it will still have a committee id and thus we need to track it
             if(group[i]->getCommittee() != -1){
                 stillBusy = true;
+                // find works in n^2 time and lower bound is log(n) is sorted
+                auto found = std::lower_bound(aliveCommittees.begin(),aliveCommittees.end(),group[i]->getCommittee());
+                if( found == aliveCommittees.end()){
+                    aliveCommittees.push_back(group[i]->getCommittee());
+                    std::sort(aliveCommittees.begin(),aliveCommittees.end()); // sort for next check
+                }
+                break; // no need to check rest of group
             }
         }
+        // if the group is not still alive then we need to move its group id to free and remove from busy
         if(!stillBusy){
-            for(auto peer = group.begin(); peer != group.end(); peer++){
-                (*peer)->clearCommittee();
-            }
-            std::remove(_currentCommittees.begin(),_currentCommittees.end(), committeeID);
-            for(int i =0; i < _busyGroups.size(); i++){
-                if(_busyGroups[i] == id){
-                    _busyGroups.erase(_busyGroups.begin() + i);
-                    _freeGroups.push_back(id);
-                }
-            }
+            _freeGroups.push_back(*id);
+            _busyGroups.erase(id);
+        // else we just continue
+        }else{
+            id++;
         }
     }
+
+    _currentCommittees = aliveCommittees; // update list of currently active committees
 }
 
 std::vector<aGroup> PBFTReferenceCommittee::getCommittee(int committeeId){
@@ -254,17 +266,7 @@ void PBFTReferenceCommittee::setFaultTolerance(double f){
 }
 
 aGroup PBFTReferenceCommittee::getGroup(int id){
-    aGroup group = aGroup();
-    
-    for(int i =0; i < _peers.size(); i++){
-        if(_peers[i]->getGroup() == id){
-            group.push_back(_peers[i]);
-        }
-    }
-
-    assert(group.size() == _groupSize);
-
-    return group;
+    return _groups[id];
 }
 
 std::vector<PBFTPeer_Sharded> PBFTReferenceCommittee::getPeers()const{
@@ -276,12 +278,18 @@ std::vector<PBFTPeer_Sharded> PBFTReferenceCommittee::getPeers()const{
 }
 
 std::vector<PBFT_Message> PBFTReferenceCommittee::getGlobalLedger()const{
-    std::vector<PBFT_Message> globalLegder = _peers[0]->getLedger();
+    std::vector<PBFT_Message> globalLegder;
     for(int i = 0; i < _peers.size(); i++){
-        std::vector<PBFT_Message> localLegder = _peers[i]->getLedger();
-        for(int j = 0; j < localLegder.size(); j++){
-            if(std::find(globalLegder.begin(), globalLegder.end(), localLegder[j]) == globalLegder.end()){
-                globalLegder.push_back(localLegder[j]);
+        auto localLedger = _peers[i]->getLedger();
+        for(auto transaction = localLedger.begin(); transaction != localLedger.end(); transaction++){
+            bool found = false;
+            for(auto global = globalLegder.begin(); global != globalLegder.end(); global++){
+                if(*transaction == *global){
+                    found = true;
+                }
+            }
+            if(!found){
+                globalLegder.push_back(*transaction);
             }
         }
     }
@@ -334,6 +342,7 @@ PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCom
     _nextCommitteeId = rhs._nextCommitteeId;
     _nextSquenceNumber = rhs._nextSquenceNumber;
     _requestQueue = rhs._requestQueue;
+    _groups = rhs._groups;
     _faultTolerance = rhs._faultTolerance;
     _currentCommittees = rhs._currentCommittees;
     _log = rhs._log;
