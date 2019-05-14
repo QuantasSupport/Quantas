@@ -12,10 +12,10 @@ clean:
 	clear
 
 build:
-	clang++ -std=c++14 BlockGuard/*.cpp --debug -o ./BlockGuard.out
+	clang++ -std=c++14 ./BlockGuard/*.cpp --debug -o ./BlockGuard.out
 
 test: PBFT_Peer PBFTPeer_Sharded PBFTReferenceCommittee
-	clang++ -std=c++14 BlockGuard_Test/*.cpp BlockGuard_Test/*.o --debug -o ./BlockGuard_Test/BlockGuard_Test.out
+	clang++ -std=c++14 ./BlockGuard_Test/*.cpp ./BlockGuard_Test/*.o --debug -o ./BlockGuard_Test.out
 
 PBFT_Peer: 
 	clang++ -std=c++14 BlockGuard/PBFT_Peer.cpp -c --debug -o ./BlockGuard_Test/PBFT_Peer.o

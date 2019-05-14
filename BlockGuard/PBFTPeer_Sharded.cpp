@@ -57,12 +57,18 @@ void PBFTPeer_Sharded::preformComputation(){
     if(_primary == nullptr){
         _primary = findPrimary(_committeeMembers);
     }
+    int oldLedgerSize = _ledger.size();
     collectMessages(); // sorts messages into there repective logs
     prePrepare();
     prepare();
     waitPrepare();
     commit();
     waitCommit();
+    // if ledger has grown in size then this peer has comited and is free from committee 
+    bool hasComited = _ledger.size() > oldLedgerSize;
+    if(hasComited){
+        clearCommittee();
+    }
     _currentRound++;
 }
 

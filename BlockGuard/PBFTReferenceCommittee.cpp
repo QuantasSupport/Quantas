@@ -21,7 +21,11 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(){
     _groupIds = std::vector<int>();
     _nextCommitteeId = 0;
     _nextSquenceNumber = 0;
-    
+    _requestQueue = std::vector<transactionRequest>();
+    _faultTolerance = 1;
+    _currentCommittees = std::vector<int>();
+    _log = nullptr;
+
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
 }
@@ -35,6 +39,10 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(const PBFTReferenceCommittee &rhs
     _groupIds = rhs._groupIds;
     _nextCommitteeId = rhs._nextCommitteeId;
     _nextSquenceNumber = rhs._nextSquenceNumber;
+    _requestQueue = rhs._requestQueue;
+    _faultTolerance = rhs._faultTolerance;
+    _currentCommittees = rhs._currentCommittees;
+    _log = rhs._log;
     
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
@@ -42,8 +50,8 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(const PBFTReferenceCommittee &rhs
 
 void PBFTReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int id){
     for(int i = 0; i < group.size(); i++){
+        group[i]->setGroup(id);
         for(int j = 0; j < group.size(); j++){
-            group[i]->setGroup(id);
             if(group[i]->id() != group[j]->id()){
                 group[i]->addGroupMember(*group[j]);
             }
@@ -81,7 +89,7 @@ void PBFTReferenceCommittee::initNetwork(int numberOfPeers){
     if(!group.empty()){
         makeGroup(group,groupId);
     }
-    
+    setFaultTolerance(_faultTolerance);
     return;
 }
 
@@ -158,12 +166,14 @@ void PBFTReferenceCommittee::updateBusyGroup(){
         int committeeID = group[0]->getCommittee();
         bool stillBusy = false;
         for(int i = 0; i < group.size(); i++){
-            assert(group[i]->getCommittee() == committeeID);
-            if(group[i]->getPhase() != IDEAL){
+            if(group[i]->getCommittee() != -1){
                 stillBusy = true;
             }
         }
         if(!stillBusy){
+            for(auto peer = group.begin(); peer != group.end(); peer++){
+                (*peer)->clearCommittee();
+            }
             std::remove(_currentCommittees.begin(),_currentCommittees.end(), committeeID);
             for(int i =0; i < _busyGroups.size(); i++){
                 if(_busyGroups[i] == id){
@@ -175,7 +185,7 @@ void PBFTReferenceCommittee::updateBusyGroup(){
     }
 }
 
-std::vector<aGroup> PBFTReferenceCommittee::getCommittee(int committeeId)const{
+std::vector<aGroup> PBFTReferenceCommittee::getCommittee(int committeeId){
     std::vector<aGroup> committee = std::vector<aGroup>();
 
     // need to find every group that belongs to committee id
@@ -217,12 +227,16 @@ void PBFTReferenceCommittee::makeCommittee(std::vector<int> groupsForCommittee){
             committeeMembers.push_back(groupInCommitte[peerIndex]);
         }
     }
-    
+
+    // clear old committee
+    for(int peer = 0; peer < committeeMembers.size(); peer++){
+            committeeMembers[peer]->clearCommittee();
+    }
+
     // joins them togeather
     for(int peer = 0; peer < committeeMembers.size(); peer++){
-        committeeMembers[peer]->clearCommittee();
+        committeeMembers[peer]->setCommittee(_nextCommitteeId);
         for(int otherPeer = 0; otherPeer < committeeMembers.size(); otherPeer++){
-            committeeMembers[peer]->setCommittee(_nextCommitteeId);
             if(!(committeeMembers[peer]->id() == committeeMembers[otherPeer]->id())){
                 committeeMembers[peer]->addCommitteeMember(*committeeMembers[otherPeer]);
             }
@@ -233,23 +247,24 @@ void PBFTReferenceCommittee::makeCommittee(std::vector<int> groupsForCommittee){
 }
 
 void PBFTReferenceCommittee::setFaultTolerance(double f){
+    _faultTolerance = f;
     for(int i = 0; i < _peers.size(); i++){
-        _peers[i]->setFaultTolerance(f);
+        _peers[i]->setFaultTolerance(_faultTolerance);
     }
 }
 
-aGroup PBFTReferenceCommittee::getGroup(int id)const{
-    for(int i = 0; i < _freeGroups.size(); i++){
-        if(_freeGroups[i] == id){
-            return getGroup(_freeGroups[i]);
+aGroup PBFTReferenceCommittee::getGroup(int id){
+    aGroup group = aGroup();
+    
+    for(int i =0; i < _peers.size(); i++){
+        if(_peers[i]->getGroup() == id){
+            group.push_back(_peers[i]);
         }
     }
-    for(int i = 0; i < _busyGroups.size(); i++){
-        if(_busyGroups[i] == id){
-            return getGroup(_freeGroups[i]);
-        }
-    }
-    return aGroup();
+
+    assert(group.size() == _groupSize);
+
+    return group;
 }
 
 std::vector<PBFTPeer_Sharded> PBFTReferenceCommittee::getPeers()const{
@@ -273,6 +288,42 @@ std::vector<PBFT_Message> PBFTReferenceCommittee::getGlobalLedger()const{
     return globalLegder;
 }
 
+void PBFTReferenceCommittee::setMaxSecurityLevel(int max){
+    if(SECURITY_LEVEL_5 > max){
+        SECURITY_LEVEL_5 = max;
+    }
+    if(SECURITY_LEVEL_4 > max){
+        SECURITY_LEVEL_4 = max;
+    }
+    if(SECURITY_LEVEL_3 > max){
+        SECURITY_LEVEL_3 = max;
+    }
+    if(SECURITY_LEVEL_2 > max){
+        SECURITY_LEVEL_2 = max;
+    }
+    if(SECURITY_LEVEL_1 > max){
+        SECURITY_LEVEL_1 = max;
+    }
+}
+
+void PBFTReferenceCommittee::setMinSecurityLevel(int min){
+    if(SECURITY_LEVEL_5 < min){
+        SECURITY_LEVEL_5 = min;
+    }
+    if(SECURITY_LEVEL_4 < min){
+        SECURITY_LEVEL_4 = min;
+    }
+    if(SECURITY_LEVEL_3 < min){
+        SECURITY_LEVEL_3 = min;
+    }
+    if(SECURITY_LEVEL_2 < min){
+        SECURITY_LEVEL_2 = min;
+    }
+    if(SECURITY_LEVEL_1 < min){
+        SECURITY_LEVEL_1 = min;
+    }
+}
+
 PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCommittee &rhs){
     _currentRound = rhs._currentRound;
     _groupSize = rhs._groupSize;
@@ -282,7 +333,11 @@ PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCom
     _groupIds = rhs._groupIds;
     _nextCommitteeId = rhs._nextCommitteeId;
     _nextSquenceNumber = rhs._nextSquenceNumber;
-    
+    _requestQueue = rhs._requestQueue;
+    _faultTolerance = rhs._faultTolerance;
+    _currentCommittees = rhs._currentCommittees;
+    _log = rhs._log;
+
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
     

@@ -45,6 +45,7 @@ protected:
     int                                                             _groupSize;
     int                                                             _nextCommitteeId;
     int                                                             _nextSquenceNumber;
+    double                                                          _faultTolerance;
     Network<PBFT_Message, PBFTPeer_Sharded>                         _peers;
     std::vector<int>                                                _groupIds;
     std::vector<int>                                                _busyGroups;
@@ -73,21 +74,22 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     void                                setGroupSize            (int g)                                 {_groupSize = g;};
     void                                setFaultTolerance       (double);
     void                                setLog                  (std::ostream &o)                       {_log = &o; _peers.setLog(o);}
-    
+
     // getters
     int                                 getGroupSize            ()const                                 {return _groupSize;};
     int                                 numberOfGroups          ()const                                 {return (int)_groupIds.size();};
     int                                 size                    ()const                                 {return _peers.size();}
     int                                 getNextSquenceNumber    ()const                                 {return _nextSquenceNumber;};
-    int                                 getNestCommitteeId      ()const                                 {return _nextCommitteeId;};
-    aGroup                              getGroup                (int)const;
+    int                                 getNextCommitteeId      ()const                                 {return _nextCommitteeId;};
+    aGroup                              getGroup                (int);
     std::vector<int>                    getGroupIds             ()const                                 {return _groupIds;};
     std::vector<PBFTPeer_Sharded>       getPeers                ()const;
     std::vector<int>                    getBusyGroups           ()const                                 {return _busyGroups;};
     std::vector<int>                    getFreeGroups           ()const                                 {return _freeGroups;};
     std::vector<int>                    getCurrentCommittees    ()const                                 {return _currentCommittees;};
     std::vector<transactionRequest>     getRequestQueue         ()const                                 {return _requestQueue;}
-    std::vector<aGroup>                 getCommittee            (int committeeId)const;
+    std::vector<aGroup>                 getCommittee            (int);
+    
     // mutators
     void                                initNetwork             (int);
     void                                makeRequest             ();
@@ -95,7 +97,7 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     
     // pass-through to Network class
     void                                receive                 ()                                      {_peers.receive();};
-    void                                preformComputation      ()                                      {updateBusyGroup();_peers.preformComputation(); _currentRound++;};
+    void                                preformComputation      ()                                      {_peers.preformComputation();updateBusyGroup(); _currentRound++;};
     void                                transmit                ()                                      {_peers.transmit();};
     void                                setMaxDelay             (int d)                                 {_peers.setMaxDelay(d);};
     void                                setAvgDelay             (int d)                                 {_peers.setAvgDelay(d);};
@@ -109,6 +111,8 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     std::ostream&                       printTo                 (std::ostream&)const;
     void                                log                     ()const                                 {printTo(*_log);};
     std::vector<PBFT_Message>           getGlobalLedger         ()const;
+    void                                setMaxSecurityLevel     (int); // used to fix max security as number of groups for debugging
+    void                                setMinSecurityLevel     (int); // used to fix min security as number of groups for debugging
     
     // operators
     PBFTReferenceCommittee&             operator=               (const PBFTReferenceCommittee&);
