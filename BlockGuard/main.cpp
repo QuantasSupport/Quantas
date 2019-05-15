@@ -327,14 +327,12 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     system.receive();
     system.preformComputation();
     system.transmit();
-    system.log();
     for(int i =0; i < 1000; i++){
         system.makeRequest();
         numberOfRequests++;
         system.receive();
         system.preformComputation();
         system.transmit();
-        system.log();
         std::cout<< '.'<< std::flush;
     }
 
