@@ -96,7 +96,7 @@ int main(int argc, const char * argv[]) {
             }
             //progress.open(filePath + "/progress.txt");
             //progress<< "Delay:"+std::to_string(delay)<< std::endl;
-            for(int run = 0; run < 10; run++){
+            for(int run = 0; run < 1; run++){
                 //progress<< "run:"<<run<<std::endl;
                 bsg(csv,log,delay);
             }
