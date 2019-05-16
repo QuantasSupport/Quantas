@@ -90,17 +90,19 @@ int main(int argc, const char * argv[]) {
             if ( log.fail() ){
                 std::cerr << "Error: could not open file" << std::endl;
             }
-            csv.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file" << std::endl;
-            }
+
             //progress.open(filePath + "/progress.txt");
             //progress<< "Delay:"+std::to_string(delay)<< std::endl;
             for(int run = 0; run < 1; run++){
+                std::string file = filePath + "/BGS_Delay"+std::to_string(delay) + "_" + std::to_string(run) + ".csv";
+                csv.open(file);
+                    if ( csv.fail() ){
+                    std::cerr << "Error: could not open file: "<< file << std::endl;
+                }
                 //progress<< "run:"<<run<<std::endl;
                 bsg(csv,log,delay);
+                out.close();
             }
-            out.close();
             if(delay == 1){
                 delay = 0;
             }
