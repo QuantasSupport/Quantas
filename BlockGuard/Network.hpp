@@ -89,8 +89,8 @@ Network<type_msg,peer_type>::Network(){
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
     _avgDelay = 0;
-    _maxDelay = std::numeric_limits<int>::max();
-    _minDelay = std::numeric_limits<int>::min();
+    _maxDelay = 1;
+    _minDelay = 1;
     _distribution = RANDOM;
     _log = &std::cout;
 }
@@ -183,7 +183,7 @@ void Network<type_msg,peer_type>::addEdges(Peer<type_msg> *peer){
             if(!_peers[i]->isNeighbor(peer->id())){
                 int delay = getDelay();
                 // guard agenst 0 and negative numbers
-                while(delay < 1 && delay > _maxDelay && delay < _minDelay){
+                while(delay < 1 || delay > _maxDelay || delay < _minDelay){
                     delay = getDelay();
                 }
                 peer->addNeighbor(*_peers[i], delay);

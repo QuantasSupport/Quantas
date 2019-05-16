@@ -83,7 +83,7 @@ int main(int argc, const char * argv[]) {
     }else if (algorithm == "bgs") {
         std::cout<< "BGS"<<std::endl;
         std::ofstream out;
-        for(int delay = 1; delay < 50; delay = delay + 10){
+        for(int delay = 10; delay < 50; delay = delay + 10){
             std::ofstream csv;
             std::ofstream log;
             log.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".log");
@@ -327,7 +327,7 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     system.receive();
     system.preformComputation();
     system.transmit();
-    for(int i =0; i < 1000; i++){
+    for(int i =0; i < 1; i++){
         system.makeRequest();
         numberOfRequests++;
         system.receive();
@@ -336,6 +336,7 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
         std::cout<< 'p'<< std::flush;  
         system.transmit();
         std::cout<< 't'<< std::flush;
+        system.log();
 
         if(i%100 == 0){
                 int max = system.getGlobalLedger().size();

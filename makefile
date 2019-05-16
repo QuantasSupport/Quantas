@@ -25,3 +25,13 @@ PBFTPeer_Sharded:
 
 PBFTReferenceCommittee:
 	clang++ -std=c++14 BlockGuard/PBFTReferenceCommittee.cpp -c --debug -o ./BlockGuard_Test/PBFTReferenceCommittee.o
+
+collect:
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results1 ~/Desktop/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results2 ~/Desktop/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results3 ~/Desktop/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results4 ~/Desktop/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results5 ~/Desktop/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results6 ~/Desktop/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results7 ~/Desktop/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results8 ~/Desktop/
