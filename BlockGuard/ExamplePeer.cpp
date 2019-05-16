@@ -18,6 +18,10 @@ ExamplePeer::~ExamplePeer(){
     
 }
 
+ExamplePeer::ExamplePeer(const ExamplePeer &rhs) : Peer<ExampleMessage>(rhs){
+    counter = rhs.counter;
+}
+
 ExamplePeer::ExamplePeer(std::string id) : Peer(id){
     counter =0;
 }

@@ -187,13 +187,13 @@ void Peer<message>::transmit(){
         // if sent to self loop back next round
         if(_id == outMessage.targetId()){
             outMessage.setDelay(1);
-            _inStream.push_back(outMessage); 
+            _inStream.push_back(outMessage);
+        }else{
+            std::string targetId = outMessage.targetId();
+            int maxDelay = _channelDelays.at(targetId);
+            outMessage.setDelay(maxDelay);
+            _neighbors[targetId]->send(outMessage);
         }
-
-        std::string targetId = outMessage.targetId();
-        int maxDelay = _channelDelays.at(targetId);
-        outMessage.setDelay(maxDelay);
-        _neighbors[targetId]->send(outMessage);
         _numberOfMessagesSent++;
     }
 }
