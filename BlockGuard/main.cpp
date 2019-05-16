@@ -319,7 +319,7 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     system.setToRandom();
     system.setMaxDelay(delay);
     system.setLog(log);
-    system.initNetwork(128);
+    system.initNetwork(256);
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
@@ -327,7 +327,7 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     system.receive();
     system.preformComputation();
     system.transmit();
-    for(int i =0; i < 1; i++){
+    for(int i =0; i < 1000; i++){
         system.makeRequest();
         numberOfRequests++;
         system.receive();
@@ -336,17 +336,17 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
         std::cout<< 'p'<< std::flush;  
         system.transmit();
         std::cout<< 't'<< std::flush;
-        system.log();
 
         if(i%100 == 0){
                 int max = system.getGlobalLedger().size();
                 int totalMessages = sumMessagesSentBGS(system);
-                
-                csv<< "Max Ledger:,"<< max<< std::endl;
-                csv<< "Total Messages:,"<< totalMessages<< std::endl;
-                csv<< "Total Request:,"<< numberOfRequests<<std::endl;
+                csv<< "Total Request:,"<< numberOfRequests<<",Max Ledger:,"<< max<<",Total Messages:,"<< totalMessages<<std::endl;
         }
     }
+    int max = system.getGlobalLedger().size();
+    int totalMessages = sumMessagesSentBGS(system);
+    
+    csv<< "Total Request:,"<< numberOfRequests<<",Max Ledger:,"<< max<<",Total Messages:,"<< totalMessages<<std::endl;
 }
 
 //
