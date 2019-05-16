@@ -83,7 +83,7 @@ int main(int argc, const char * argv[]) {
     }else if (algorithm == "bgs") {
         std::cout<< "BGS"<<std::endl;
         std::ofstream out;
-        for(int delay = 10; delay < 50; delay = delay + 10){
+        for(int delay = 1; delay < 50; delay = delay + 10){
             std::ofstream csv;
             std::ofstream log;
             log.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".log");
