@@ -155,6 +155,7 @@ void PBFT_Peer::prePrepare(){
     request.phase = PRE_PREPARE;
     request.type = REPLY;
     request.creator_id = _id;
+    request.byzantine = _byzantine;
     _currentPhase = PREPARE_WAIT;
     _currentRequest = request;
     _currentRequestResult = executeQuery(request);
@@ -187,6 +188,7 @@ void PBFT_Peer::prepare(){
     prepareMsg.type = REPLY;
     prepareMsg.round = _currentRound;
     prepareMsg.phase = PREPARE;
+    prepareMsg.byzantine = _byzantine;
     _prepareLog.push_back(prepareMsg);
     braodcast(prepareMsg);
     _currentPhase = PREPARE_WAIT;
@@ -223,6 +225,7 @@ void PBFT_Peer::commit(){
     commitMsg.type = REPLY;
     commitMsg.result = _currentRequestResult;
     commitMsg.round = _currentRound;
+    commitMsg.byzantine = _byzantine;
     _commitLog.push_back(commitMsg);
     braodcast(commitMsg);
     _currentPhase = COMMIT_WAIT;
@@ -242,31 +245,39 @@ void PBFT_Peer::waitCommit(){
             numberOfCommitMsg++;
         }
     }
-    if(numberOfCommitMsg >= (faultyPeers())){
-        // sendCommitReply();
-        PBFT_Message commit = _currentRequest;
-        commit.result = _currentRequestResult;
-        commit.round = _currentRound;
-        _ledger.push_back(commit);
-        _currentPhase = IDEAL; // complete distributed-consensus
-        _currentRequestResult = 0;
-        _currentRequest = PBFT_Message();
-        cleanLogs();
+    // if we have enough commit messages
+    if(numberOfCommitMsg >= (faultyPeers()))
+        // if the current request was not purposed by a byzantine leader then commit
+        if(!_currentRequest.byzantine){
+            PBFT_Message commit = _currentRequest;
+            commit.result = _currentRequestResult;
+            commit.round = _currentRound;
+            _ledger.push_back(commit);
+            _currentPhase = IDEAL; // complete distributed-consensus
+            _currentRequestResult = 0;
+            _currentRequest = PBFT_Message();
+            cleanLogs();
+
+        }
+        // else if it was we need to either view change or commit a defeated transaction
+        /* need to do the dfeated part and update the recored counter]
+        else if(_currentRequest.byzantine){
+            _currentView++;
+            _primary = nullptr;
+            _primary = findPrimary(_neighbors);
+            _currentPhase = IDEAL;
+            if(_id == _primary->id()){
+                PBFT_Message request = _currentRequest;
+                request.phase = IDEAL;
+                request.type = REQUEST;
+                request.view = _currentView;
+                request.byzantine = _byzantine;
+                _requestLog.push_back(request);
+            }
+            cleanLogs();
+        }
     }
     
-}
-
-void PBFT_Peer::sendCommitReply(){
-    PBFT_Message reply = _currentRequest;
-    reply.round = _currentRound;
-    reply.result = _currentRequestResult;
-    reply.type = REPLY;
-    reply.phase = COMMIT;
-    Packet<PBFT_Message> replayPck(makePckId());
-    replayPck.setSource(_id);
-    replayPck.setTarget(reply.client_id);
-    replayPck.setBody(reply);
-    _outStream.push_back(replayPck);
 }
 
 Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::map<std::string, Peer<PBFT_Message> *> neighbors){
@@ -367,6 +378,7 @@ void PBFT_Peer::makeRequest(){
     request.phase = IDEAL;
     request.sequenceNumber = -1;
     request.result = 0;
+    request.byzantine = _byzantine;
     
     if(_id != _primary->id()){
         // create packet for request
