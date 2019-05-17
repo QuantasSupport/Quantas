@@ -88,32 +88,27 @@ int main(int argc, const char * argv[]) {
         }
     }else if (algorithm == "bgs") {
         std::cout<< "BGS"<<std::endl;
-        std::ofstream out;
         for(int delay = 1; delay < 50; delay = delay + 10){
             std::ofstream csv;
             std::ofstream log;
-            log.open(filePath + "/BGS_Delay"+std::to_string(delay) + ".log");
-            if ( log.fail() ){
-                std::cerr << "Error: could not open file" << std::endl;
-            }
-
-            //progress.open(filePath + "/progress.txt");
-            //progress<< "Delay:"+std::to_string(delay)<< std::endl;
-            for(int run = 0; run < 1; run++){
-                std::string file = filePath + "/BGS_Delay"+std::to_string(delay) + "_" + std::to_string(run) + ".csv";
-                csv.open(file);
-                    if ( csv.fail() ){
-                    std::cerr << "Error: could not open file: "<< file << std::endl;
+            for(int run = 0; run < 16; run++){
+                std::string file = filePath + "BGS_Delay"+std::to_string(delay) + "_" + std::to_string(run);
+                csv.open(file + ".csv");
+                if ( csv.fail() ){
+                    std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
                 }
-                //progress<< "run:"<<run<<std::endl;
+                log.open(file + ".log");
+                if ( log.fail() ){
+                    std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
+                }
                 bsg(csv,log,delay);
-                out.close();
+                log.close();
+                csv.close();
             }
             if(delay == 1){
                 delay = 0;
             }
         }
-        out.close();
     }else if (algorithm == "bitcoin") {
         std::ofstream out;
         bitcoin(out, 1);
@@ -123,7 +118,6 @@ int main(int argc, const char * argv[]) {
 }
 
 void Example(std::ofstream &logFile){
-    // we assume the system is always an 
     Network<ExampleMessage,ExamplePeer> system;
     system.setLog(logFile); // set the system to write log to file logFile
     system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays) 
@@ -358,10 +352,6 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
-    // init round
-    system.receive();
-    system.preformComputation();
-    system.transmit();
     for(int i =0; i < 1000; i++){
         system.makeRequest();
         numberOfRequests++;
