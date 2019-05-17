@@ -235,7 +235,6 @@ void PBFT_Peer::waitCommit(){
     if(_currentPhase != COMMIT_WAIT){
         return;
     }
-    
     int numberOfCommitMsg = 0;
     for(int i = 0; i < _commitLog.size(); i++){
         if(_commitLog[i].sequenceNumber == _currentRequest.sequenceNumber
@@ -246,38 +245,65 @@ void PBFT_Peer::waitCommit(){
         }
     }
     // if we have enough commit messages
-    if(numberOfCommitMsg >= (faultyPeers()))
-        // if the current request was not purposed by a byzantine leader then commit
-        if(!_currentRequest.byzantine){
-            PBFT_Message commit = _currentRequest;
-            commit.result = _currentRequestResult;
-            commit.round = _currentRound;
-            _ledger.push_back(commit);
-            _currentPhase = IDEAL; // complete distributed-consensus
-            _currentRequestResult = 0;
-            _currentRequest = PBFT_Message();
-            cleanLogs();
+    if(numberOfCommitMsg >= (faultyPeers()+1)){
+        commitRequest();
+    }
+}
 
+void  PBFT_Peer::commitRequest(){
+    PBFT_Message commit = _currentRequest;
+    commit.result = _currentRequestResult;
+    commit.round = _currentRound;
+
+    // if the current request was not purposed by a byzantine leader then commit
+    if(!_currentRequest.byzantine){
+        commit.defeated = false;
+        _ledger.push_back(commit);
+    }
+    // else if it was we need to either view change or commit a defeated transaction
+    else{
+        // count the number of byzantine commits >= 1/3 then we will commit a defeated transaction 
+        int numberOfByzantineCommits = 0;
+        for(auto commit = _commitLog.begin(); commit != _commitLog.end(); commit++){
+            if(commit->sequenceNumber == _currentRequest.sequenceNumber
+                    && commit->view == _currentView
+                    && commit->result == _currentRequestResult){
+                        if(commit->byzantine){
+                            numberOfByzantineCommits++; 
+                        }
+                    }
         }
-        // else if it was we need to either view change or commit a defeated transaction
-        /* need to do the dfeated part and update the recored counter]
-        else if(_currentRequest.byzantine){
-            _currentView++;
-            _primary = nullptr;
-            _primary = findPrimary(_neighbors);
-            _currentPhase = IDEAL;
-            if(_id == _primary->id()){
-                PBFT_Message request = _currentRequest;
-                request.phase = IDEAL;
-                request.type = REQUEST;
-                request.view = _currentView;
-                request.byzantine = _byzantine;
-                _requestLog.push_back(request);
-            }
-            cleanLogs();
+        // commit a defeated transaction
+        if(numberOfByzantineCommits >= faultyPeers()){
+            commit.defeated = true;
+            _ledger.push_back(commit);
+        }else{ 
+           viewChange(); 
         }
     }
-    
+    _currentPhase = IDEAL; // complete distributed-consensus
+    _currentRequestResult = 0;
+    _currentRequest = PBFT_Message();
+    cleanLogs();
+}
+
+void PBFT_Peer::viewChange(){
+    _currentView++;
+    _primary = findPrimary(_neighbors);
+    PBFT_Message request;
+    request = _currentRequest;
+    request.view = _currentView;
+    request.sequenceNumber = -1;
+    request.byzantine = _byzantine;
+    if(_primary->id() == _id){
+        _requestLog.push_back(request);
+    }else{
+        Packet<PBFT_Message> pck(makePckId());
+        pck.setSource(_id);
+        pck.setTarget(_primary->id());
+        pck.setBody(request);
+        _outStream.push_back(pck);
+    }
 }
 
 Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::map<std::string, Peer<PBFT_Message> *> neighbors){
