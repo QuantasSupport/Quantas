@@ -45,6 +45,7 @@ int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
     if(argc < 3){
         std::cerr << "Error: need algorithm and output path" << std::endl;
+        return 0;
     }
 
 
