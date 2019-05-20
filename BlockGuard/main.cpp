@@ -88,7 +88,7 @@ int main(int argc, const char * argv[]) {
         }
     }else if (algorithm == "bgs") {
         std::cout<< "BGS"<<std::endl;
-        for(int delay = 1; delay < 50; delay = delay + 10){
+        for(int delay = 1; delay < 10; delay = delay++){
             std::ofstream csv;
             std::ofstream log;
             for(int run = 0; run < 16; run++){
@@ -107,6 +107,24 @@ int main(int argc, const char * argv[]) {
             }
             if(delay == 1){
                 delay = 0;
+            }
+        }
+        for(int delay = 20; delay < 50; delay = delay + 10){
+            std::ofstream csv;
+            std::ofstream log;
+            for(int run = 0; run < 16; run++){
+                std::string file = filePath + "BGS_Delay"+std::to_string(delay) + "_" + std::to_string(run);
+                csv.open(file + ".csv");
+                if ( csv.fail() ){
+                    std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
+                }
+                log.open(file + ".log");
+                if ( log.fail() ){
+                    std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
+                }
+                bsg(csv,log,delay);
+                log.close();
+                csv.close();
             }
         }
     }else if (algorithm == "bitcoin") {
@@ -353,6 +371,8 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
 
     int numberOfRequests = 0;
     for(int i =0; i < 1000; i++){
+        system.makeRequest();
+        system.makeRequest();
         system.makeRequest();
         numberOfRequests++;
         system.receive();
