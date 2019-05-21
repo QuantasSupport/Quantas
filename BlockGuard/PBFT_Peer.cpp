@@ -428,7 +428,7 @@ void PBFT_Peer::makeRequest(){
     request.result = 0;
     request.byzantine = _byzantine;
     
-    if(_id != _primary->id() && _currentPhase == IDEAL){
+    if(_id != _primary->id()){
         sendRequest(request);
     }else{
         _requestLog.push_back(request);

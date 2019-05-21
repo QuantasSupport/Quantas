@@ -1939,15 +1939,15 @@ void viewChange(std::ostream &log){
     assert(c.getCommitLog().size()      == 0);
 
     assert(a.getPrepareLog().size()     == 0);
-    assert(b.getPrepareLog().size()     == 0);
+    assert(b.getPrepareLog().size()     == 1);// the recycled request
     assert(c.getPrepareLog().size()     == 0);
 
     assert(a.getPrePrepareLog().size()  == 0);
-    assert(b.getPrePrepareLog().size()  == 0);
+    assert(b.getPrePrepareLog().size()  == 1);// the recycled request
     assert(c.getPrePrepareLog().size()  == 0);
 
     assert(a.getRequestLog().size()     == 0);
-    assert(b.getRequestLog().size()     == 1);// the recycled request
+    assert(b.getRequestLog().size()     == 0);
     assert(c.getRequestLog().size()     == 0);
 
     for(int i = 0; i < 5; i++){
@@ -2104,9 +2104,9 @@ void viewChange(std::ostream &log){
     assert(b.isPrimary()                == true);
     assert(c.isPrimary()                == false);
 
-    assert(a.getLedger().size()         == 3);
-    assert(b.getLedger().size()         == 3);
-    assert(c.getLedger().size()         == 3);
+    assert(a.getLedger().size()         == 4);
+    assert(b.getLedger().size()         == 4);
+    assert(c.getLedger().size()         == 4);
 
     assert(a.getCommitLog().size()      == 0);
     assert(b.getCommitLog().size()      == 0);
