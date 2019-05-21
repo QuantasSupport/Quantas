@@ -68,11 +68,11 @@ void PBFTReferenceCommittee::makeGroup(std::vector<PBFTPeer_Sharded*> group, int
 void PBFTReferenceCommittee::initNetwork(int numberOfPeers){
     
     // 5 is high (all groups )1 is low (4 groups for 1024 peers)
-    SECURITY_LEVEL_5 = numberOfPeers/_groupSize;
-    SECURITY_LEVEL_4 = SECURITY_LEVEL_5/2;
-    SECURITY_LEVEL_3 = SECURITY_LEVEL_4/2;
-    SECURITY_LEVEL_2 = SECURITY_LEVEL_3/2;
-    SECURITY_LEVEL_1 = SECURITY_LEVEL_2/2;
+    _securityLevel5 = numberOfPeers/_groupSize;
+    _securityLevel4 = _securityLevel5/2;
+    _securityLevel3 = _securityLevel4/2;
+    _securityLevel2 = _securityLevel3/2;
+    _securityLevel1 = _securityLevel2/2;
     
     _peers.initNetwork(numberOfPeers);
     
@@ -108,29 +108,36 @@ double PBFTReferenceCommittee::pickSecrityLevel(){
     }
     
     switch (trails) {
-        case 0: return SECURITY_LEVEL_1; break;
-        case 1: return SECURITY_LEVEL_2; break;
-        case 2: return SECURITY_LEVEL_3; break;
-        case 3: return SECURITY_LEVEL_4; break;
-        case 4: return SECURITY_LEVEL_5; break;
+        case 0: return _securityLevel1; break;
+        case 1: return _securityLevel2; break;
+        case 2: return _securityLevel3; break;
+        case 3: return _securityLevel4; break;
+        case 4: return _securityLevel5; break;
 
-        default: return SECURITY_LEVEL_1; break;
+        default: return _securityLevel5; break;
     }
 }
 
 transactionRequest PBFTReferenceCommittee::generateRequest(){
-    if(_requestQueue.empty()){
-        transactionRequest request;
-        request.securityLevel = pickSecrityLevel();
-        request.id = _currentRound;
-        
-        return request;
-    }
-    return _requestQueue.front();
+    transactionRequest request;
+    request.securityLevel = pickSecrityLevel();
+    request.id = _currentRound;
+    
+    return request;
 }
 
-void PBFTReferenceCommittee::makeRequest(){
-    queueRequest();
+transactionRequest PBFTReferenceCommittee::generateRequest(int securityLevel){
+    transactionRequest request;
+    request.securityLevel = securityLevel;
+    request.id = _currentRound;
+    
+    return request;
+}
+
+void PBFTReferenceCommittee::serveRequest(){
+    if(_requestQueue.empty()){
+        return;
+    }
     int groupsNeeded = std::ceil(_requestQueue.front().securityLevel);
     updateBusyGroup();
     
@@ -297,38 +304,38 @@ std::vector<PBFT_Message> PBFTReferenceCommittee::getGlobalLedger()const{
 }
 
 void PBFTReferenceCommittee::setMaxSecurityLevel(int max){
-    if(SECURITY_LEVEL_5 > max){
-        SECURITY_LEVEL_5 = max;
+    if(_securityLevel5 > max){
+        _securityLevel5 = max;
     }
-    if(SECURITY_LEVEL_4 > max){
-        SECURITY_LEVEL_4 = max;
+    if(_securityLevel4 > max){
+        _securityLevel4 = max;
     }
-    if(SECURITY_LEVEL_3 > max){
-        SECURITY_LEVEL_3 = max;
+    if(_securityLevel3 > max){
+        _securityLevel3 = max;
     }
-    if(SECURITY_LEVEL_2 > max){
-        SECURITY_LEVEL_2 = max;
+    if(_securityLevel2 > max){
+        _securityLevel2 = max;
     }
-    if(SECURITY_LEVEL_1 > max){
-        SECURITY_LEVEL_1 = max;
+    if(_securityLevel1 > max){
+        _securityLevel1 = max;
     }
 }
 
 void PBFTReferenceCommittee::setMinSecurityLevel(int min){
-    if(SECURITY_LEVEL_5 < min){
-        SECURITY_LEVEL_5 = min;
+    if(_securityLevel5 < min){
+        _securityLevel5 = min;
     }
-    if(SECURITY_LEVEL_4 < min){
-        SECURITY_LEVEL_4 = min;
+    if(_securityLevel4 < min){
+        _securityLevel4 = min;
     }
-    if(SECURITY_LEVEL_3 < min){
-        SECURITY_LEVEL_3 = min;
+    if(_securityLevel3 < min){
+        _securityLevel3 = min;
     }
-    if(SECURITY_LEVEL_2 < min){
-        SECURITY_LEVEL_2 = min;
+    if(_securityLevel2 < min){
+        _securityLevel2 = min;
     }
-    if(SECURITY_LEVEL_1 < min){
-        SECURITY_LEVEL_1 = min;
+    if(_securityLevel1 < min){
+        _securityLevel1 = min;
     }
 }
 
