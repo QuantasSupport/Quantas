@@ -134,7 +134,7 @@ void PBFT_Peer::cleanLogs(){
             }
         }
     }
-    
+
 }
 
 void PBFT_Peer::prePrepare(){
@@ -245,7 +245,7 @@ void PBFT_Peer::waitCommit(){
         }
     }
     // if we have enough commit messages
-    if(numberOfCommitMsg >= (faultyPeers()+1)){
+    if(numberOfCommitMsg >= (faultyPeers())){
         commitRequest();
     }
 }
@@ -297,13 +297,35 @@ void PBFT_Peer::viewChange(){
     request.byzantine = _byzantine;
     if(_primary->id() == _id){
         _requestLog.push_back(request);
-    }else{
-        Packet<PBFT_Message> pck(makePckId());
-        pck.setSource(_id);
-        pck.setTarget(_primary->id());
-        pck.setBody(request);
-        _outStream.push_back(pck);
     }
+
+    int oldTransaction = _currentRequest.sequenceNumber;
+    int i = 0;
+    while(i < _prePrepareLog.size()){
+        if(_prePrepareLog[i].sequenceNumber == oldTransaction){
+            _prePrepareLog.erase(_prePrepareLog.begin() + i);
+        }else{
+            i++;
+        }
+    }
+    i = 0;
+    while(i < _prepareLog.size()){
+        if(_prepareLog[i].sequenceNumber == oldTransaction){
+            _prepareLog.erase(_prepareLog.begin() + i);
+        }else{
+            i++;
+        }
+    }
+    i = 0;
+    while(i < _commitLog.size()){
+        if(_commitLog[i].sequenceNumber == oldTransaction){
+            _commitLog.erase(_commitLog.begin() + i);
+        }else{
+            i++;
+        }
+    }
+
+    _currentRequest = PBFT_Message();
 }
 
 Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::map<std::string, Peer<PBFT_Message> *> neighbors){
@@ -406,13 +428,8 @@ void PBFT_Peer::makeRequest(){
     request.result = 0;
     request.byzantine = _byzantine;
     
-    if(_id != _primary->id()){
-        // create packet for request
-        Packet<PBFT_Message> pck(makePckId());
-        pck.setSource(_id);
-        pck.setTarget(_primary->id());
-        pck.setBody(request);
-        _outStream.push_back(pck);
+    if(_id != _primary->id() && _currentPhase == IDEAL){
+        sendRequest(request);
     }else{
         _requestLog.push_back(request);
     }
