@@ -89,45 +89,34 @@ int main(int argc, const char * argv[]) {
         }
     }else if (algorithm == "bgs") {
         std::cout<< "BGS"<<std::endl;
+        std::ofstream csv;
+        std::ofstream log;
+        std::string file = filePath + "BGS";
+        csv.open(file + ".csv");
+        if ( csv.fail() ){
+            std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
+        }
+        log.open(file + ".log");
+        if ( log.fail() ){
+            std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
+        }
         for(int delay = 1; delay < 10; delay = delay++){
-            std::ofstream csv;
-            std::ofstream log;
-            for(int run = 0; run < 16; run++){
-                std::string file = filePath + "BGS_Delay"+std::to_string(delay) + "_" + std::to_string(run);
-                csv.open(file + ".csv");
-                if ( csv.fail() ){
-                    std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
-                }
-                log.open(file + ".log");
-                if ( log.fail() ){
-                    std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
-                }
+            csv<< "Delay,"<< std::to_string(delay)<< std::endl;
+            for(int run = 0; run < 2; run++){
                 bsg(csv,log,delay);
-                log.close();
-                csv.close();
             }
             if(delay == 1){
                 delay = 0;
             }
         }
         for(int delay = 20; delay < 50; delay = delay + 10){
-            std::ofstream csv;
-            std::ofstream log;
-            for(int run = 0; run < 16; run++){
-                std::string file = filePath + "BGS_Delay"+std::to_string(delay) + "_" + std::to_string(run);
-                csv.open(file + ".csv");
-                if ( csv.fail() ){
-                    std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
-                }
-                log.open(file + ".log");
-                if ( log.fail() ){
-                    std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
-                }
+            csv<< "Delay,"<< std::to_string(delay);
+            for(int run = 0; run < 2; run++){
                 bsg(csv,log,delay);
-                log.close();
-                csv.close();
             }
         }
+        log.close();
+        csv.close();
     }else if (algorithm == "bitcoin") {
         std::ofstream out;
         bitcoin(out, 1);
@@ -363,11 +352,11 @@ void bitcoin(std::ofstream &out, int avgDelay){
 
 void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     PBFTReferenceCommittee system = PBFTReferenceCommittee();
-    system.setGroupSize(8);
+    system.setGroupSize(4);
     system.setToRandom();
     system.setMaxDelay(delay);
     system.setLog(log);
-    system.initNetwork(256);
+    system.initNetwork(128);
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
