@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <vector>
 #include <map>
+#include <list>
 #include <string>
 #include <iostream>
 #include <iomanip>
@@ -31,7 +32,7 @@ protected:
     bool                                    _byzantine;
     
     // type abbreviations
-    typedef std::vector<Packet<message> >   aChannel;
+    typedef std::list<Packet<message> >     aChannel;
     typedef std::string                     peerId;
     std::map<peerId,aChannel>               _channels;// list of chanels between this peer and others
     std::map<peerId,int>                    _channelDelays;// list of channels and there delays
@@ -109,7 +110,6 @@ public:
 
 template <class message>
 Peer<message>::Peer(){
-    typedef std::vector<Packet<message> > aChannel;
     typedef std::string peerId;
     _id = "NO ID";
     _inStream = std::vector<Packet<message> >();
@@ -125,7 +125,6 @@ Peer<message>::Peer(){
 
 template <class message>
 Peer<message>::Peer(std::string id){
-    typedef std::vector<Packet<message> > aChannel;
     typedef std::string peerId;
     _id = id;
     _inStream = std::vector<Packet<message> >();
@@ -166,7 +165,7 @@ void Peer<message>::addNeighbor(Peer<message> &newNeighbor, int delay){
     }
     _neighbors[newNeighbor.id()] = &newNeighbor;
     _channelDelays[newNeighbor.id()] = edgeDelay;
-    _channels[newNeighbor.id()] = std::vector<Packet<message> >();
+    _channels[newNeighbor.id()] = std::list<Packet<message> >();
 }
 
 // called on recever
@@ -205,7 +204,7 @@ void Peer<message>::receive(){
         if(!_channels.at(neighborID).empty()){
             if(_channels.at(neighborID).front().hasArrived()){
                 _inStream.push_back(_channels.at(neighborID).front());
-                _channels.at(neighborID).erase(_channels.at(neighborID).begin());
+                _channels.at(neighborID).pop_front();
             }else{
                 _channels.at(neighborID).front().moveForward();
             }
