@@ -25,6 +25,7 @@ int main(int argc, const char * argv[]){
     if(testOption == "all"){
         RunPBFT_Tests(filePath);
         RunPBFTPeerShardedTest(filePath);
+        RunPBFTRefComTest(filePath);
     }else if(testOption == "pbft"){
         RunPBFT_Tests(filePath);
     }else if (testOption == "s_pbft"){
