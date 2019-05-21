@@ -21,15 +21,6 @@
 #include <assert.h>
 #include <cassert>
 
-// secrity level is the number of groups needed for a committee
-// 5 is high (all groups )1 is low (4 groups for 1024 peers)
-// initialization in initNetwork
-static double SECURITY_LEVEL_5;
-static double SECURITY_LEVEL_4;
-static double SECURITY_LEVEL_3;
-static double SECURITY_LEVEL_2;
-static double SECURITY_LEVEL_1;
-
 struct transactionRequest{
     double securityLevel;
     int id;
@@ -41,6 +32,16 @@ typedef std::vector<PBFTPeer_Sharded*> aGroup;
 
 class PBFTReferenceCommittee{
 protected:
+
+    // secrity level is the number of groups needed for a committee
+    // 5 is high (all groups )1 is low (4 groups for 1024 peers)
+    // initialization in initNetwork
+    double _securityLevel5;
+    double _securityLevel4;
+    double _securityLevel3;
+    double _securityLevel2;
+    double _securityLevel1;
+
     int                                                             _currentRound;
     int                                                             _groupSize;
     int                                                             _nextCommitteeId;
@@ -60,11 +61,13 @@ protected:
 
     // util functions
     transactionRequest                  generateRequest         ();
+    transactionRequest                  generateRequest         (int); // generate a request of a specific security level
     void                                makeGroup               (std::vector<PBFTPeer_Sharded*>,int);
     double                              pickSecrityLevel        ();
     void                                makeCommittee           (std::vector<int>);
     void                                initCommittee           (std::vector<int>);
     void                                updateBusyGroup         ();
+
 public:
 PBFTReferenceCommittee                                          ();
 PBFTReferenceCommittee                                          (const PBFTReferenceCommittee&);
@@ -81,6 +84,12 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     int                                 size                    ()const                                 {return _peers.size();}
     int                                 getNextSquenceNumber    ()const                                 {return _nextSquenceNumber;};
     int                                 getNextCommitteeId      ()const                                 {return _nextCommitteeId;};
+    double                              securityLevel5          ()const                                 {return _securityLevel5;}
+    double                              securityLevel4          ()const                                 {return _securityLevel4;}
+    double                              securityLevel3          ()const                                 {return _securityLevel3;}
+    double                              securityLevel2          ()const                                 {return _securityLevel2;}
+    double                              securityLevel1          ()const                                 {return _securityLevel1;}
+
     aGroup                              getGroup                (int);
     std::vector<int>                    getGroupIds             ()const                                 {return _groupIds;};
     std::vector<PBFTPeer_Sharded>       getPeers                ()const;
@@ -92,8 +101,12 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     
     // mutators
     void                                initNetwork             (int);
-    void                                makeRequest             ();
-    void                                queueRequest            ()                                      { _requestQueue.push_back(generateRequest());};  
+    void                                serveRequest            ();
+    void                                makeRequest             ()                                      {queueRequest();serveRequest();};
+    void                                makeRequest             (int securityLevel)                     {queueRequest(securityLevel);serveRequest();};
+    void                                queueRequest            ()                                      {_requestQueue.push_back(generateRequest());}; 
+    void                                queueRequest            (int securityLevel)                     {_requestQueue.push_back(generateRequest(securityLevel));};
+    void                                clearQueue              ()                                      {_requestQueue.clear();}  
     
     // pass-through to Network class
     void                                receive                 ()                                      {_peers.receive();};

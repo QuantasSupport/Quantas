@@ -18,10 +18,15 @@
 
 void RunPBFTRefComTest              (std::string filepath); // run all PBFT tests
 
+// test init (system setup)
+void testInit                       (std::ostream &log);
+
 // test for group and committee assignment and maintance 
 void testRefComGroups               (std::ostream &log); // test that groups are made correclty and groups and peers have a many to one relationship
 void testRefComCommittee            (std::ostream &log); // test that one committee is formed for a transaction 
                                                          //      committees are formed correctly and peers are 
                                                          //      released from committees when consusnes if done
+// test other things
 void testGlobalLedger               (std::ostream &log); // test to make sure global ledger is calculated correctly
+void testSimultaneousRequest        (std::ostream &log); // test making more then one request a round
 #endif /* PBFTReferenceCommittee_Test_hpp */

@@ -8,17 +8,51 @@
 
 #include "PBFTReferenceCommittee_Test.hpp"
 
+//////////////////////////////////////////////////////////////////////
+// this is the standard set up for number of peers, group size and fault tolerance 
+static const int    GROUP_SIZE  = 8; // 32 groups for 256 peers
+static const int    PEERS       = 256; 
+static const double FAULT       = 0.3;
+
+
 void RunPBFTRefComTest (std::string filepath){
     std::ofstream log;
     log.open(filepath + "/PBFTRefCom.log");
     if (log.fail() ){
         std::cerr << "Error: could not open file at: "<< filepath << std::endl;
     }
-
-   // testRefComGroups(log);
-    //testRefComCommittee(log);
+    testInit(log);
+    testRefComGroups(log);
+    testRefComCommittee(log);
     testGlobalLedger(log);
+    testSimultaneousRequest(log);
 }
+
+void testInit(std::ostream &log){
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testInit"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    
+    PBFTReferenceCommittee refCom = PBFTReferenceCommittee();    
+    refCom.setLog(log);
+    refCom.setToRandom();
+    refCom.setGroupSize(8);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(256);
+
+    assert(refCom.securityLevel5()          == 32);
+    assert(refCom.securityLevel4()          == 16);
+    assert(refCom.securityLevel3()          == 8);
+    assert(refCom.securityLevel2()          == 4);
+    assert(refCom.securityLevel1()          == 2);
+
+    assert(refCom.getGroupSize()            == 8);
+    assert(refCom.numberOfGroups()          == 32);
+    assert(refCom.size()                    == 256);
+    assert(refCom.getNextSquenceNumber()    == 0);
+    assert(refCom.getNextCommitteeId()      == 0);
+
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testInit Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+}
+
 void testRefComGroups (std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testRefComGroups"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
     // test that group size of one make equal number of peers as there are in the system
@@ -27,17 +61,17 @@ void testRefComGroups (std::ostream &log){
     refCom.setMaxDelay(1);
     refCom.setToRandom();
     refCom.setGroupSize(1);
-    refCom.setFaultTolerance(0.3);
-    refCom.initNetwork(1024);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(PEERS);
 
-    assert(refCom.numberOfGroups()              == 1024);
+    assert(refCom.numberOfGroups()              == PEERS);
     assert(refCom.getBusyGroups().size()        == 0);
-    assert(refCom.getFreeGroups().size()        == 1024);
+    assert(refCom.getFreeGroups().size()        == PEERS);
 
     for(int i = 0; i < refCom.size(); i++){
         PBFTPeer_Sharded* peer = refCom[i];
         assert(peer->getGroup()                     == i);// group id starts from 0
-        assert(peer->getFaultTolerance()            == 0.3);
+        assert(peer->getFaultTolerance()            == FAULT);
         assert(peer->getCommittee()                 == -1); // not in a committee
         assert(peer->getGroupMembers().size()       == 0); // self is not included in list og group memebers
         assert(peer->getCommitteeMembers().size()   == 0);
@@ -47,20 +81,20 @@ void testRefComGroups (std::ostream &log){
     refCom = PBFTReferenceCommittee();
     refCom.setLog(log);
     refCom.setMaxDelay(1);
-    refCom.setFaultTolerance(0.3);
+    refCom.setFaultTolerance(FAULT);
     refCom.setToRandom();
-    refCom.setGroupSize(16); // 64 groups
-    refCom.initNetwork(1024);
+    refCom.setGroupSize(GROUP_SIZE); // 64 groups
+    refCom.initNetwork(PEERS);
 
     // test each group to make sure it was formed correctly
     for(int id = 0; id < refCom.getGroupIds().size(); id++){
         std::vector<PBFTPeer_Sharded*> group = refCom.getGroup(id);
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(int peer = 0; peer < group.size(); peer++){
             assert(group[peer]->getGroup()                     == id);// group id starts from 0
-            assert(group[peer]->getFaultTolerance()            == 0.3);
+            assert(group[peer]->getFaultTolerance()            == FAULT);
             assert(group[peer]->getCommittee()                 == -1); // not in a committee
-            assert(group[peer]->getGroupMembers().size()       == 15); // self is not included in list og group memebers
+            assert(group[peer]->getGroupMembers().size()       == GROUP_SIZE-1); // self is not included in list og group memebers
             assert(group[peer]->getCommitteeMembers().size()   == 0);
         }
     }
@@ -214,19 +248,19 @@ void testRefComCommittee (std::ostream &log){
     }
 
     //////////////////////////////////////////////////////////////////////
-    // this is the standard set up 1024 peer 64 groups 1/3 fault tolerance 
+    // this is the standard set up 
     refCom = PBFTReferenceCommittee();
     refCom.setLog(log);
     refCom.setMaxDelay(1);
     refCom.setToRandom();
-    refCom.setGroupSize(16);
-    refCom.setFaultTolerance(0.3);
-    refCom.initNetwork(1024);
+    refCom.setGroupSize(GROUP_SIZE);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(PEERS);
     refCom.setMaxSecurityLevel(2);
     refCom.setMinSecurityLevel(2);
 
     assert(refCom.getBusyGroups().size()            == 0);
-    assert(refCom.getFreeGroups().size()            == 64);
+    assert(refCom.getFreeGroups().size()            == PEERS/GROUP_SIZE);
 
     refCom.queueRequest();
     assert(refCom.getRequestQueue().size()          == 1);
@@ -252,7 +286,7 @@ void testRefComCommittee (std::ostream &log){
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == committeeId);
         }
@@ -266,7 +300,7 @@ void testRefComCommittee (std::ostream &log){
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == committeeId);
             if((*peer)->getPrimary() == (*peer)->id()){
@@ -285,7 +319,7 @@ void testRefComCommittee (std::ostream &log){
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == committeeId);
             assert((*peer)->getPhase() == PREPARE_WAIT); // make sure every peer got request
@@ -302,7 +336,7 @@ void testRefComCommittee (std::ostream &log){
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == committeeId);
             assert((*peer)->getPhase() == COMMIT_WAIT); // make sure every peer is ready to commit
@@ -317,12 +351,12 @@ void testRefComCommittee (std::ostream &log){
     assert(refCom.getCurrentCommittees().size()     == 0);
     assert(refCom.getRequestQueue().size()          == 1);
     assert(refCom.getBusyGroups().size()            == 0);
-    assert(refCom.getFreeGroups().size()            == 64);
+    assert(refCom.getFreeGroups().size()            == PEERS/GROUP_SIZE);
 
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == -1); // make sure they are no longer in committee
             assert((*peer)->getPhase() == IDEAL); // make sure every peer is done
@@ -352,7 +386,7 @@ void testRefComCommittee (std::ostream &log){
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == committeeId);
         }
@@ -366,7 +400,7 @@ void testRefComCommittee (std::ostream &log){
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == committeeId);
             if((*peer)->getPrimary() == (*peer)->id()){
@@ -383,7 +417,7 @@ void testRefComCommittee (std::ostream &log){
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == committeeId);
             assert((*peer)->getPhase() == PREPARE_WAIT); // make sure every peer got request
@@ -398,7 +432,7 @@ void testRefComCommittee (std::ostream &log){
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == committeeId);
             assert((*peer)->getPhase() == COMMIT_WAIT); // make sure every peer is ready to commit
@@ -413,7 +447,7 @@ void testRefComCommittee (std::ostream &log){
     for(auto groupId = committeeGroups.begin(); groupId != committeeGroups.end(); groupId++){
         aGroup group = refCom.getGroup(*groupId);
         // make sure group properties are maintained
-        assert(group.size() == 16);
+        assert(group.size() == GROUP_SIZE);
         for(auto peer = group.begin(); peer != group.end(); peer++){
             assert((*peer)->getCommittee() == -1); // make sure they are no longer in committee
             assert((*peer)->getPhase() == IDEAL); // make sure every peer is done
@@ -484,14 +518,14 @@ void testGlobalLedger(std::ostream &log){
     assert(refCom.getGlobalLedger().size() <= 106); // max number of transactions confirmed should be 106
 
     ///////////////////////////////////////////////////
-    // this is the standard set up 1024 peer 64 groups 1/3 fault tolerance 
+    // this is the standard set up
     refCom = PBFTReferenceCommittee();
     refCom.setLog(log);
     refCom.setMaxDelay(1);
     refCom.setToRandom();
-    refCom.setGroupSize(16);
-    refCom.setFaultTolerance(0.3);
-    refCom.initNetwork(1024);
+    refCom.setGroupSize(GROUP_SIZE);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(PEERS);
 
     refCom.makeRequest();
     assert(refCom.getRequestQueue().size() == 0); // make sure quest has been serverd
@@ -535,4 +569,50 @@ void testGlobalLedger(std::ostream &log){
     assert(refCom.getGlobalLedger().size() <= 106); // max number of transactions confirmed should be 106
 
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testGlobalLedger complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+}
+
+void testSimultaneousRequest(std::ostream &log){
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testSimultaneousRequest"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+
+    PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(1);
+    refCom.setToRandom();
+    refCom.setGroupSize(8);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(256);
+    refCom.log();
+
+    // quick test for queue request with a Specific security level
+    refCom.queueRequest(refCom.securityLevel5());
+    refCom.queueRequest(refCom.securityLevel4());
+    refCom.queueRequest(refCom.securityLevel3());
+    refCom.queueRequest(refCom.securityLevel2());
+    refCom.queueRequest(refCom.securityLevel1());
+
+    assert(refCom.getRequestQueue()[0].securityLevel == refCom.securityLevel5());
+    assert(refCom.getRequestQueue()[1].securityLevel == refCom.securityLevel4());
+    assert(refCom.getRequestQueue()[2].securityLevel == refCom.securityLevel3());
+    assert(refCom.getRequestQueue()[3].securityLevel == refCom.securityLevel2());
+    assert(refCom.getRequestQueue()[4].securityLevel == refCom.securityLevel1());
+
+    refCom.clearQueue();
+
+    // 16 committees can go simultaneous and it takes 5 rounds for a cmmittee to process a transaction thus 32 in 10 rounds 
+    //  add 16 every round 32 should go though 16 should be processing and 112 should be queued: total 16*10 = 160
+    for(int i = 0; i < 10; i++){
+        for(int i = 0; i < 16; i++){
+            refCom.makeRequest(refCom.securityLevel1());
+        }
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+
+    assert(refCom.getGlobalLedger().size()          == 32);
+    assert(refCom.getBusyGroups().size()            == 32);
+    assert(refCom.getFreeGroups().size()            == 0);
+    assert(refCom.getRequestQueue().size()          == 112);
+
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testSimultaneousRequest Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
