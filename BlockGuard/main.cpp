@@ -352,11 +352,11 @@ void bitcoin(std::ofstream &out, int avgDelay){
 
 void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     PBFTReferenceCommittee system = PBFTReferenceCommittee();
-    system.setGroupSize(4);
+    system.setGroupSize(8);
     system.setToRandom();
     system.setMaxDelay(delay);
     system.setLog(log);
-    system.initNetwork(128);
+    system.initNetwork(256);
     system.setFaultTolerance(0.3);
 
     int numberOfRequests = 0;
