@@ -100,7 +100,7 @@ int main(int argc, const char * argv[]) {
         if ( log.fail() ){
             std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
         }
-        for(int delay = 1; delay < 10; delay = delay++){
+        for(int delay = 1; delay < 10; delay++){
             csv<< "Delay,"<< std::to_string(delay)<< std::endl;
             for(int run = 0; run < 2; run++){
                 bsg(csv,log,delay);
