@@ -105,11 +105,8 @@ int main(int argc, const char * argv[]) {
             for(int run = 0; run < 2; run++){
                 bsg(csv,log,delay);
             }
-            if(delay == 1){
-                delay = 0;
-            }
         }
-        for(int delay = 20; delay < 50; delay = delay + 10){
+        for(int delay = 10; delay < 50; delay = delay + 10){
             csv<< "Delay,"<< std::to_string(delay);
             for(int run = 0; run < 2; run++){
                 bsg(csv,log,delay);
