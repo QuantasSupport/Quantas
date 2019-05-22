@@ -355,13 +355,18 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     system.setLog(log);
     system.initNetwork(256);
     system.setFaultTolerance(0.3);
+    system.makeByzantines(ceil(256*0.3));
 
     int numberOfRequests = 0;
     for(int i =0; i < 1000; i++){
-        system.makeRequest();
-        system.makeRequest();
-        system.makeRequest();
-        numberOfRequests++;
+        system.makeRequest();numberOfRequests++;
+        system.makeRequest();numberOfRequests++;
+        system.makeRequest();numberOfRequests++;
+
+        if(i%5 == 0){
+            system.shuffleByzantines(ceil(256*0.3));
+        }
+
         system.receive();
         std::cout<< 'r'<< std::flush;
         system.preformComputation();
