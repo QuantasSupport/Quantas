@@ -16,7 +16,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
-#include <algorithm>    // std::std::lower_bound, std::sort
+#include <algorithm>
 #include "Packet.hpp"
 
 // var used for column width in loggin
