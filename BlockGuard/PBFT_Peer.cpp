@@ -253,33 +253,29 @@ void PBFT_Peer::waitCommit(){
 void  PBFT_Peer::commitRequest(){
     PBFT_Message commit = _currentRequest;
     commit.result = _currentRequestResult;
-    commit.round = _currentRound;
-
-    // if the current request was not purposed by a byzantine leader then commit
-    if(!_currentRequest.byzantine){
+    commit.round = _currentRound;    
+    // count the number of byzantine commits 
+    // >= 1/3 then we will commit a defeated transaction
+    // < 1/3 and an honest primary will commit
+    // < 1/3 and byzantine primary will view change
+    int numberOfByzantineCommits = 0;
+    for(auto commitMsg = _commitLog.begin(); commitMsg != _commitLog.end(); commitMsg++){
+        if(commitMsg->sequenceNumber == _currentRequest.sequenceNumber
+                && commitMsg->view == _currentView
+                && commitMsg->result == _currentRequestResult){
+                    if(commitMsg->byzantine){
+                        numberOfByzantineCommits++; 
+                    }
+                }
+    }
+    if(numberOfByzantineCommits >= faultyPeers()){
+        commit.defeated = true;
+        _ledger.push_back(commit);
+    }else if(!_currentRequest.byzantine){
         commit.defeated = false;
         _ledger.push_back(commit);
-    }
-    // else if it was we need to either view change or commit a defeated transaction
-    else{
-        // count the number of byzantine commits >= 1/3 then we will commit a defeated transaction 
-        int numberOfByzantineCommits = 0;
-        for(auto commit = _commitLog.begin(); commit != _commitLog.end(); commit++){
-            if(commit->sequenceNumber == _currentRequest.sequenceNumber
-                    && commit->view == _currentView
-                    && commit->result == _currentRequestResult){
-                        if(commit->byzantine){
-                            numberOfByzantineCommits++; 
-                        }
-                    }
-        }
-        // commit a defeated transaction
-        if(numberOfByzantineCommits >= faultyPeers()){
-            commit.defeated = true;
-            _ledger.push_back(commit);
-        }else{ 
-           viewChange(); 
-        }
+    }else{ 
+        viewChange(); 
     }
     _currentPhase = IDEAL; // complete distributed-consensus
     _currentRequestResult = 0;
