@@ -64,8 +64,8 @@ public:
     int                                 avgDelay            ()const                                         {return _avgDelay;};
     int                                 minDelay            ()const                                         {return _minDelay;};
     std::string                         distribution        ()const                                         {return _distribution;};
-    std::vector<Peer<type_msg>*>        getByzantine        ()const;
-    std::vector<Peer<type_msg>*>        getCorrect          ()const;
+    std::vector<peer_type*>             getByzantine        ()const;
+    std::vector<peer_type*>             getCorrect          ()const;
 
 
     //mutators
@@ -247,21 +247,21 @@ void Network<type_msg,peer_type>::transmit(){
 }
 
 template<class type_msg, class peer_type>
-std::vector<Peer<type_msg>*> Network<type_msg,peer_type>::getByzantine()const{
+std::vector<peer_type*> Network<type_msg,peer_type>::getByzantine()const{
     std::vector<Peer<type_msg>*> byzantinePeers = std::vector<Peer<type_msg>*>();
     for(auto peer = _peers.begin(); peer != _peers.end(); peer++){
         if(peer.isByzantine()){
-            byzantinePeers.push_back(peer)
+            byzantinePeers.push_back(dynamic_cast<peer_type*>peer)
         }
     }
 }
 
 template<class type_msg, class peer_type>
-std::vector<Peer<type_msg>*> Network<type_msg,peer_type>::getCorrect()const{
+std::vector<peer_type*> Network<type_msg,peer_type>::getCorrect()const{
     std::vector<Peer<type_msg>*> correctPeers = std::vector<Peer<type_msg>*>();
     for(auto peer = _peers.begin(); peer != _peers.end(); peer++){
         if(!peer.isByzantine()){
-            correctPeers.push_back(peer)
+            correctPeers.push_back(dynamic_cast<peer_type*>peer)
         }
     }   
 }

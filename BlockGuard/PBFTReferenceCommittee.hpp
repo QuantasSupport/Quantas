@@ -119,6 +119,10 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     void                                setToOne                ()                                      {_peers.setToOne();};
     void                                setToRandom             ()                                      {_peers.setToRandom();};
     void                                shuffleByzantines       (int n)                                 {_peers.shuffleByzantines(n);};
+    std::vector<PBFTPeer_Sharded*>      getByzantine            ()const                                 {return _peers.getByzantine();};
+    std::vector<PBFTPeer_Sharded*>      getCorrect              ()const                                 {return _peers.getCorrect();};
+    void                                makeByzantines          (int n)                                 {_peers.makeByzantines(n);};
+    void                                makeCorrect             (int n)                                 {_peers.makeCorrect(n);};
     
     // logging and debugging
     std::ostream&                       printTo                 (std::ostream&)const;
