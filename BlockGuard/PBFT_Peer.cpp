@@ -134,7 +134,7 @@ void PBFT_Peer::cleanLogs(){
             }
         }
     }
-    
+
 }
 
 void PBFT_Peer::prePrepare(){
@@ -155,6 +155,7 @@ void PBFT_Peer::prePrepare(){
     request.phase = PRE_PREPARE;
     request.type = REPLY;
     request.creator_id = _id;
+    request.byzantine = _byzantine;
     _currentPhase = PREPARE_WAIT;
     _currentRequest = request;
     _currentRequestResult = executeQuery(request);
@@ -187,6 +188,7 @@ void PBFT_Peer::prepare(){
     prepareMsg.type = REPLY;
     prepareMsg.round = _currentRound;
     prepareMsg.phase = PREPARE;
+    prepareMsg.byzantine = _byzantine;
     _prepareLog.push_back(prepareMsg);
     braodcast(prepareMsg);
     _currentPhase = PREPARE_WAIT;
@@ -223,6 +225,7 @@ void PBFT_Peer::commit(){
     commitMsg.type = REPLY;
     commitMsg.result = _currentRequestResult;
     commitMsg.round = _currentRound;
+    commitMsg.byzantine = _byzantine;
     _commitLog.push_back(commitMsg);
     braodcast(commitMsg);
     _currentPhase = COMMIT_WAIT;
@@ -232,7 +235,6 @@ void PBFT_Peer::waitCommit(){
     if(_currentPhase != COMMIT_WAIT){
         return;
     }
-    
     int numberOfCommitMsg = 0;
     for(int i = 0; i < _commitLog.size(); i++){
         if(_commitLog[i].sequenceNumber == _currentRequest.sequenceNumber
@@ -242,31 +244,84 @@ void PBFT_Peer::waitCommit(){
             numberOfCommitMsg++;
         }
     }
+    // if we have enough commit messages
     if(numberOfCommitMsg >= (faultyPeers())){
-        // sendCommitReply();
-        PBFT_Message commit = _currentRequest;
-        commit.result = _currentRequestResult;
-        commit.round = _currentRound;
-        _ledger.push_back(commit);
-        _currentPhase = IDEAL; // complete distributed-consensus
-        _currentRequestResult = 0;
-        _currentRequest = PBFT_Message();
-        cleanLogs();
+        commitRequest();
     }
-    
 }
 
-void PBFT_Peer::sendCommitReply(){
-    PBFT_Message reply = _currentRequest;
-    reply.round = _currentRound;
-    reply.result = _currentRequestResult;
-    reply.type = REPLY;
-    reply.phase = COMMIT;
-    Packet<PBFT_Message> replayPck(makePckId());
-    replayPck.setSource(_id);
-    replayPck.setTarget(reply.client_id);
-    replayPck.setBody(reply);
-    _outStream.push_back(replayPck);
+void  PBFT_Peer::commitRequest(){
+    PBFT_Message commit = _currentRequest;
+    commit.result = _currentRequestResult;
+    commit.round = _currentRound;    
+    // count the number of byzantine commits 
+    // >= 1/3 then we will commit a defeated transaction
+    // < 1/3 and an honest primary will commit
+    // < 1/3 and byzantine primary will view change
+    int numberOfByzantineCommits = 0;
+    for(auto commitMsg = _commitLog.begin(); commitMsg != _commitLog.end(); commitMsg++){
+        if(commitMsg->sequenceNumber == _currentRequest.sequenceNumber
+                && commitMsg->view == _currentView
+                && commitMsg->result == _currentRequestResult){
+                    if(commitMsg->byzantine){
+                        numberOfByzantineCommits++; 
+                    }
+                }
+    }
+    if(numberOfByzantineCommits >= faultyPeers()){
+        commit.defeated = true;
+        _ledger.push_back(commit);
+    }else if(!_currentRequest.byzantine){
+        commit.defeated = false;
+        _ledger.push_back(commit);
+    }else{ 
+        viewChange(); 
+    }
+    _currentPhase = IDEAL; // complete distributed-consensus
+    _currentRequestResult = 0;
+    _currentRequest = PBFT_Message();
+    cleanLogs();
+}
+
+void PBFT_Peer::viewChange(){
+    _currentView++;
+    _primary = findPrimary(_neighbors);
+    PBFT_Message request;
+    request = _currentRequest;
+    request.view = _currentView;
+    request.sequenceNumber = -1;
+    request.byzantine = _byzantine;
+    if(_primary->id() == _id){
+        _requestLog.push_back(request);
+    }
+
+    int oldTransaction = _currentRequest.sequenceNumber;
+    int i = 0;
+    while(i < _prePrepareLog.size()){
+        if(_prePrepareLog[i].sequenceNumber == oldTransaction){
+            _prePrepareLog.erase(_prePrepareLog.begin() + i);
+        }else{
+            i++;
+        }
+    }
+    i = 0;
+    while(i < _prepareLog.size()){
+        if(_prepareLog[i].sequenceNumber == oldTransaction){
+            _prepareLog.erase(_prepareLog.begin() + i);
+        }else{
+            i++;
+        }
+    }
+    i = 0;
+    while(i < _commitLog.size()){
+        if(_commitLog[i].sequenceNumber == oldTransaction){
+            _commitLog.erase(_commitLog.begin() + i);
+        }else{
+            i++;
+        }
+    }
+
+    _currentRequest = PBFT_Message();
 }
 
 Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::map<std::string, Peer<PBFT_Message> *> neighbors){
@@ -367,14 +422,10 @@ void PBFT_Peer::makeRequest(){
     request.phase = IDEAL;
     request.sequenceNumber = -1;
     request.result = 0;
+    request.byzantine = _byzantine;
     
     if(_id != _primary->id()){
-        // create packet for request
-        Packet<PBFT_Message> pck(makePckId());
-        pck.setSource(_id);
-        pck.setTarget(_primary->id());
-        pck.setBody(request);
-        _outStream.push_back(pck);
+        sendRequest(request);
     }else{
         _requestLog.push_back(request);
     }

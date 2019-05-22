@@ -21,8 +21,10 @@ void RunPBFT_Tests(std::string pathToFile){
     multiRequest(log);
     ////////////////////
     // need to log request when spaming them every round so channels are not backed up
-    //slowLeaderConnection(log); 
-    //slowPeerConnection(log);
+    // slowLeaderConnection(log); 
+    // slowPeerConnection(log);
+    viewChange(log);
+    byzantineCommit(log);
 }
 
 void constructors(std::ostream &log){
@@ -1794,4 +1796,532 @@ void slowPeerConnection(std::ostream &log){
     assert(b.getLedger().size() == 1024); // these too can confirm with out C so all transactions are committed
     assert(c.getLedger().size() == 64); // c has slow connection so it's leger is behind
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"slowLeaderConnection Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+}
+
+void viewChange(std::ostream &log){
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"viewChange Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    
+    ////////////////////////////////////////////////////////
+    // byzantine non-leader
+
+    PBFT_Peer a = PBFT_Peer("A");
+    PBFT_Peer b = PBFT_Peer("B");
+    PBFT_Peer c = PBFT_Peer("C");
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 1);
+    b.addNeighbor(c, 1);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.setFaultTolerance(1);
+    b.setFaultTolerance(1);
+    c.setFaultTolerance(1);
+    
+    b.makeByzantine();
+
+    a.init();
+    b.init();
+    c.init();
+
+    // begin consensus
+    // make sure that other byzantine peers that are below 1/3 do not force a view change
+    a.makeRequest();
+    for(int i = 0; i < 5; i++){
+        a.log();
+        b.log();
+        c.log();
+
+        a.receive();
+        b.receive();
+        c.receive();
+
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+
+    assert(a.isPrimary()                == true);
+    assert(b.isPrimary()                == false);
+    assert(c.isPrimary()                == false);
+
+    assert(a.getLedger().size()         == 1);
+    assert(b.getLedger().size()         == 1);
+    assert(c.getLedger().size()         == 1);
+
+    assert(a.getCommitLog().size()      == 0);
+    assert(b.getCommitLog().size()      == 0);
+    assert(c.getCommitLog().size()      == 0);
+
+    assert(a.getPrepareLog().size()     == 0);
+    assert(b.getPrepareLog().size()     == 0);
+    assert(c.getPrepareLog().size()     == 0);
+
+    assert(a.getPrePrepareLog().size()  == 0);
+    assert(b.getPrePrepareLog().size()  == 0);
+    assert(c.getPrePrepareLog().size()  == 0);
+
+    assert(a.getRequestLog().size()     == 0);
+    assert(b.getRequestLog().size()     == 0);
+    assert(c.getRequestLog().size()     == 0);
+
+    ////////////////////////////////////////////////////////
+    // byzantine leader
+
+    a = PBFT_Peer("A");
+    b = PBFT_Peer("B");
+    c = PBFT_Peer("C");
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 1);
+    b.addNeighbor(c, 1);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.setFaultTolerance(1);
+    b.setFaultTolerance(1);
+    c.setFaultTolerance(1);
+    
+    a.makeByzantine();
+
+    a.init();
+    b.init();
+    c.init();
+
+
+    // begin consensus
+    a.makeRequest();
+    for(int i = 0; i < 5; i++){
+        a.log();
+        b.log();
+        c.log();
+
+        a.receive();
+        b.receive();
+        c.receive();
+
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+
+    // view change should have happend here so we check
+    assert(a.isPrimary()                == false);
+    assert(b.isPrimary()                == true);
+    assert(c.isPrimary()                == false);
+
+    assert(a.getLedger().size()         == 0);
+    assert(b.getLedger().size()         == 0);
+    assert(c.getLedger().size()         == 0);
+
+    assert(a.getCommitLog().size()      == 0);
+    assert(b.getCommitLog().size()      == 0);
+    assert(c.getCommitLog().size()      == 0);
+
+    assert(a.getPrepareLog().size()     == 0);
+    assert(b.getPrepareLog().size()     == 1);// the recycled request
+    assert(c.getPrepareLog().size()     == 0);
+
+    assert(a.getPrePrepareLog().size()  == 0);
+    assert(b.getPrePrepareLog().size()  == 1);// the recycled request
+    assert(c.getPrePrepareLog().size()  == 0);
+
+    assert(a.getRequestLog().size()     == 0);
+    assert(b.getRequestLog().size()     == 0);
+    assert(c.getRequestLog().size()     == 0);
+
+    for(int i = 0; i < 5; i++){
+        a.log();
+        b.log();
+        c.log();
+
+        a.receive();
+        b.receive();
+        c.receive();
+
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+
+    // now that B was leader trnasaction should commit
+    assert(a.isPrimary()                == false);
+    assert(b.isPrimary()                == true);
+    assert(c.isPrimary()                == false);
+
+    assert(a.getLedger().size()         == 1);
+    assert(b.getLedger().size()         == 1);
+    assert(c.getLedger().size()         == 1);
+
+    assert(a.getLedger()[0].defeated    == false);
+    assert(b.getLedger()[0].defeated    == false);
+    assert(c.getLedger()[0].defeated    == false);
+
+    assert(a.getCommitLog().size()      == 0);
+    assert(b.getCommitLog().size()      == 0);
+    assert(c.getCommitLog().size()      == 0);
+
+    assert(a.getPrepareLog().size()     == 0);
+    assert(b.getPrepareLog().size()     == 0);
+    assert(c.getPrepareLog().size()     == 0);
+
+    assert(a.getPrePrepareLog().size()  == 0);
+    assert(b.getPrePrepareLog().size()  == 0);
+    assert(c.getPrePrepareLog().size()  == 0);
+
+    assert(a.getRequestLog().size()     == 0);
+    assert(b.getRequestLog().size()     == 0);
+    assert(c.getRequestLog().size()     == 0);
+
+    ////////////////////////////////////////////////////////
+    // future consensuses should not be effected by view change
+
+    a.makeRequest();
+    for(int i = 0; i < 5; i++){
+        a.log();
+        b.log();
+        c.log();
+
+        a.receive();
+        b.receive();
+        c.receive();
+
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+
+    assert(a.isPrimary()                == false);
+    assert(b.isPrimary()                == true);
+    assert(c.isPrimary()                == false);
+
+    assert(a.getLedger().size()         == 2);
+    assert(b.getLedger().size()         == 2);
+    assert(c.getLedger().size()         == 2);
+
+    assert(a.getLedger()[0].defeated    == false);
+    assert(b.getLedger()[0].defeated    == false);
+    assert(c.getLedger()[0].defeated    == false);
+    assert(a.getLedger()[1].defeated    == false);
+    assert(b.getLedger()[1].defeated    == false);
+    assert(c.getLedger()[1].defeated    == false);
+
+    assert(a.getCommitLog().size()      == 0);
+    assert(b.getCommitLog().size()      == 0);
+    assert(c.getCommitLog().size()      == 0);
+
+    assert(a.getPrepareLog().size()     == 0);
+    assert(b.getPrepareLog().size()     == 0);
+    assert(c.getPrepareLog().size()     == 0);
+
+    assert(a.getPrePrepareLog().size()  == 0);
+    assert(b.getPrePrepareLog().size()  == 0);
+    assert(c.getPrePrepareLog().size()  == 0);
+
+    assert(a.getRequestLog().size()     == 0);
+    assert(b.getRequestLog().size()     == 0);
+    assert(c.getRequestLog().size()     == 0);
+
+    b.makeRequest();
+    for(int i = 0; i < 5; i++){
+        a.log();
+        b.log();
+        c.log();
+
+        a.receive();
+        b.receive();
+        c.receive();
+
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+
+    assert(a.isPrimary()                == false);
+    assert(b.isPrimary()                == true);
+    assert(c.isPrimary()                == false);
+
+    assert(a.getLedger().size()         == 3);
+    assert(b.getLedger().size()         == 3);
+    assert(c.getLedger().size()         == 3);
+
+    assert(a.getLedger()[0].defeated    == false);
+    assert(b.getLedger()[0].defeated    == false);
+    assert(c.getLedger()[0].defeated    == false);
+    assert(a.getLedger()[1].defeated    == false);
+    assert(b.getLedger()[1].defeated    == false);
+    assert(c.getLedger()[1].defeated    == false);
+    assert(a.getLedger()[2].defeated    == false);
+    assert(b.getLedger()[2].defeated    == false);
+    assert(c.getLedger()[2].defeated    == false);
+
+    assert(a.getCommitLog().size()      == 0);
+    assert(b.getCommitLog().size()      == 0);
+    assert(c.getCommitLog().size()      == 0);
+
+    assert(a.getPrepareLog().size()     == 0);
+    assert(b.getPrepareLog().size()     == 0);
+    assert(c.getPrepareLog().size()     == 0);
+
+    assert(a.getPrePrepareLog().size()  == 0);
+    assert(b.getPrePrepareLog().size()  == 0);
+    assert(c.getPrePrepareLog().size()  == 0);
+
+    assert(a.getRequestLog().size()     == 0);
+    assert(b.getRequestLog().size()     == 0);
+    assert(c.getRequestLog().size()     == 0);
+
+    c.makeRequest();
+    for(int i = 0; i < 5; i++){
+        a.log();
+        b.log();
+        c.log();
+
+        a.receive();
+        b.receive();
+        c.receive();
+
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+
+    assert(a.isPrimary()                == false);
+    assert(b.isPrimary()                == true);
+    assert(c.isPrimary()                == false);
+
+    assert(a.getLedger().size()         == 4);
+    assert(b.getLedger().size()         == 4);
+    assert(c.getLedger().size()         == 4);
+
+    assert(a.getLedger()[0].defeated    == false);
+    assert(b.getLedger()[0].defeated    == false);
+    assert(c.getLedger()[0].defeated    == false);
+    assert(a.getLedger()[1].defeated    == false);
+    assert(b.getLedger()[1].defeated    == false);
+    assert(c.getLedger()[1].defeated    == false);
+    assert(a.getLedger()[2].defeated    == false);
+    assert(b.getLedger()[2].defeated    == false);
+    assert(c.getLedger()[2].defeated    == false);
+    assert(a.getLedger()[3].defeated    == false);
+    assert(b.getLedger()[3].defeated    == false);
+    assert(c.getLedger()[3].defeated    == false);
+
+    assert(a.getCommitLog().size()      == 0);
+    assert(b.getCommitLog().size()      == 0);
+    assert(c.getCommitLog().size()      == 0);
+
+    assert(a.getPrepareLog().size()     == 0);
+    assert(b.getPrepareLog().size()     == 0);
+    assert(c.getPrepareLog().size()     == 0);
+
+    assert(a.getPrePrepareLog().size()  == 0);
+    assert(b.getPrePrepareLog().size()  == 0);
+    assert(c.getPrePrepareLog().size()  == 0);
+
+    assert(a.getRequestLog().size()     == 0);
+    assert(b.getRequestLog().size()     == 0);
+    assert(c.getRequestLog().size()     == 0);
+
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"viewChange Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+}
+
+void byzantineCommit(std::ostream &log){
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"byzantineCommit Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    
+    ////////////////////////////////////////////////////////
+    // transaction by non-byzantine leader should be defeated 
+
+    PBFT_Peer a = PBFT_Peer("A");
+    PBFT_Peer b = PBFT_Peer("B");
+    PBFT_Peer c = PBFT_Peer("C");
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 1);
+    b.addNeighbor(c, 1);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.setFaultTolerance(0.5);// 0.5 so two peers need to be byzantine to do anything
+    b.setFaultTolerance(0.5);
+    c.setFaultTolerance(0.5);
+    
+    b.makeByzantine();
+    c.makeByzantine();
+
+    a.init();
+    b.init();
+    c.init();
+
+    // begin consensus
+    // make sure that other byzantine peers that are below 1/3 do not force a view change
+    a.makeRequest();
+    for(int i = 0; i < 5; i++){
+        a.log();
+        b.log();
+        c.log();
+
+        a.receive();
+        b.receive();
+        c.receive();
+
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+
+    assert(a.isPrimary()                == true);
+    assert(b.isPrimary()                == false);
+    assert(c.isPrimary()                == false);
+
+    assert(a.getLedger().size()         == 1);
+    assert(b.getLedger().size()         == 1);
+    assert(c.getLedger().size()         == 1);
+
+    assert(a.getLedger()[0].defeated    == true);
+    assert(b.getLedger()[0].defeated    == true);
+    assert(c.getLedger()[0].defeated    == true);
+
+    assert(a.getCommitLog().size()      == 0);
+    assert(b.getCommitLog().size()      == 0);
+    assert(c.getCommitLog().size()      == 0);
+
+    assert(a.getPrepareLog().size()     == 0);
+    assert(b.getPrepareLog().size()     == 0);
+    assert(c.getPrepareLog().size()     == 0);
+
+    assert(a.getPrePrepareLog().size()  == 0);
+    assert(b.getPrePrepareLog().size()  == 0);
+    assert(c.getPrePrepareLog().size()  == 0);
+
+    assert(a.getRequestLog().size()     == 0);
+    assert(b.getRequestLog().size()     == 0);
+    assert(c.getRequestLog().size()     == 0);
+
+    ////////////////////////////////////////////////////////////////////////
+    // transaction by a byzantine leader and < 1/3 peers should be defeated 
+    a = PBFT_Peer("A");
+    b = PBFT_Peer("B");
+    c = PBFT_Peer("C");
+
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 1);
+    b.addNeighbor(c, 1);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.setFaultTolerance(0.5);
+    b.setFaultTolerance(0.5);
+    c.setFaultTolerance(0.5);
+    
+    a.makeByzantine();
+    b.makeByzantine();
+
+    a.init();
+    b.init();
+    c.init();
+
+    // begin consensus
+    // make sure that other byzantine peers that are below 1/3 do not force a view change
+    a.makeRequest();
+    for(int i = 0; i < 5; i++){
+        a.log();
+        b.log();
+        c.log();
+
+        a.receive();
+        b.receive();
+        c.receive();
+
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+
+    assert(a.isPrimary()                == true);
+    assert(b.isPrimary()                == false);
+    assert(c.isPrimary()                == false);
+
+    assert(a.getLedger().size()         == 1);
+    assert(b.getLedger().size()         == 1);
+    assert(c.getLedger().size()         == 1);
+
+    assert(a.getLedger()[0].defeated    == true);
+    assert(b.getLedger()[0].defeated    == true);
+    assert(c.getLedger()[0].defeated    == true);
+
+    assert(a.getCommitLog().size()      == 0);
+    assert(b.getCommitLog().size()      == 0);
+    assert(c.getCommitLog().size()      == 0);
+
+    assert(a.getPrepareLog().size()     == 0);
+    assert(b.getPrepareLog().size()     == 0);
+    assert(c.getPrepareLog().size()     == 0);
+
+    assert(a.getPrePrepareLog().size()  == 0);
+    assert(b.getPrePrepareLog().size()  == 0);
+    assert(c.getPrePrepareLog().size()  == 0);
+
+    assert(a.getRequestLog().size()     == 0);
+    assert(b.getRequestLog().size()     == 0);
+    assert(c.getRequestLog().size()     == 0);
+
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"byzantineCommit Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }

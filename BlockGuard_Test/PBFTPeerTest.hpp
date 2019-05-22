@@ -26,6 +26,8 @@ void requestFromPeer        (std::ostream &log);// test request from peer can ma
 void multiRequest           (std::ostream &log);// test multiple request are queued and are commited 
 void slowLeaderConnection   (std::ostream &log);// test when leader has slow connection to network
 void slowPeerConnection     (std::ostream &log);// test when peer has slow connection to network
+void viewChange             (std::ostream &log);// test that peers do a view change if the leader is byzantine
+void byzantineCommit        (std::ostream &log);// test that if the leader is byzantine and (1/3)+1 peers are also byzantine then transaction is committed 
 
 
 #endif /* PBFTPeerTest_hpp */

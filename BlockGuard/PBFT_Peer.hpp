@@ -28,9 +28,9 @@ static const std::string REPLY   = "REPLY";
 static const std::string IDEAL         = "IDEAL";
 static const std::string PRE_PREPARE   = "PRE-PREPARE";
 static const std::string PREPARE       = "PREPARE";
-static const std::string PREPARE_WAIT  = "PREPARE_WAIT"; // waiting foir messages
+static const std::string PREPARE_WAIT  = "PREPARE_WAIT"; // waiting for messages
 static const std::string COMMIT        = "COMMIT";
-static const std::string COMMIT_WAIT   = "COMMIT_WAIT"; // waiting foir messages
+static const std::string COMMIT_WAIT   = "COMMIT_WAIT"; // waiting for messages
 
 static const std::string NO_PRIMARY    = "NO PRIMARY";
 
@@ -52,22 +52,43 @@ struct PBFT_Message{
     std::pair<int,int>  operands;
     int                 result;
     int                 round; // used instead of timestamp
-    
+
     //////////////////////////////////////////
     // phases info
     std::string         phase;
     int                 sequenceNumber;
     
+    //////////////////////////////////////////
+    // status info
+    bool                byzantine;
+    bool                defeated;
+
+    PBFT_Message(){
+        client_id       = "";
+        creator_id      = "";
+        view            = -1;
+        type            = "";
+        operation       = ' ';
+        result          = -1;
+        round           = -1;
+        phase           = "";
+        sequenceNumber  = -1;
+        byzantine       = false;
+        defeated        = false;
+    }
+
     bool operator==(const PBFT_Message& rhs)
     {
         return(
-                client_id == rhs.client_id &&
-                creator_id == rhs.creator_id &&
-                view == rhs.view &&
-                type == rhs.type &&
-                operation == rhs.operation &&
-                operands == rhs.operands &&
-                result == rhs.result 
+                client_id   == rhs.client_id    &&
+                creator_id  == rhs.creator_id   &&
+                view        == rhs.view         &&
+                type        == rhs.type         &&
+                operation   == rhs.operation    &&
+                operands    == rhs.operands     &&
+                result      == rhs.result       &&
+                byzantine   == rhs.byzantine    &&
+                defeated    == rhs.defeated
                );
     }
 };
@@ -101,7 +122,6 @@ protected:
     
     // main methods used in preformComputation
     void                        collectMessages     ();             // sorts messages from _inStream into there respective logs
-    
     void                        prePrepare          ();             // phase 1 pre-prepare
     void                        prepare             ();             // phase 2 prepare
     void                        waitPrepare         ();             // wait for 1/3F + 1 prepare msgs
@@ -109,7 +129,7 @@ protected:
     void                        waitCommit          ();             // wait for 1/3F + 1 commit msgs ends distributed-consensus
     
     // support methods used for the above
-    virtual void                sendCommitReply     ();
+    void                        commitRequest       ();
     virtual Peer<PBFT_Message>* findPrimary         (const std::map<std::string, Peer<PBFT_Message>*> peers);
     virtual int                 executeQuery        (const PBFT_Message&);
     std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
@@ -136,6 +156,7 @@ public:
     int                         getRound            ()const                                         {return _currentRound;};
     std::string                 getPrimary          ()const                                         {return _primary == nullptr ? NO_PRIMARY : _primary->id();}
     double                      getFaultTolerance   ()const                                         {return _faultUpperBound;};
+    
     // setters
     void                        setFaultTolerance   (double f)                                      {_faultUpperBound = f;};
  
@@ -143,7 +164,8 @@ public:
     void                        clearPrimary        ()                                              {_primary = nullptr;}
     void                        init                ()                                              {initPrimary();};
     virtual void                initPrimary         ()                                              {_primary = findPrimary(_neighbors);};
-    
+    void                        viewChange          ();
+
     // debug/logging
     std::ostream&               printTo             (std::ostream&)const;
     void                        log                 ()const                                         {printTo(*_log);};
