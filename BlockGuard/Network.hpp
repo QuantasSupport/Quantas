@@ -248,35 +248,37 @@ void Network<type_msg,peer_type>::transmit(){
 
 template<class type_msg, class peer_type>
 std::vector<peer_type*> Network<type_msg,peer_type>::getByzantine()const{
-    std::vector<Peer<type_msg>*> byzantinePeers = std::vector<Peer<type_msg>*>();
-    for(auto peer = _peers.begin(); peer != _peers.end(); peer++){
-        if(peer.isByzantine()){
-            byzantinePeers.push_back(dynamic_cast<peer_type*>peer)
+    std::vector<peer_type*> byzantinePeers = std::vector<peer_type*>();
+    for(int i = 0; i < _peers.size(); i++){
+        if(_peers[i]->isByzantine()){
+            byzantinePeers.push_back(dynamic_cast<peer_type*>(_peers[i]));
         }
     }
+    return byzantinePeers;
 }
 
 template<class type_msg, class peer_type>
 std::vector<peer_type*> Network<type_msg,peer_type>::getCorrect()const{
-    std::vector<Peer<type_msg>*> correctPeers = std::vector<Peer<type_msg>*>();
-    for(auto peer = _peers.begin(); peer != _peers.end(); peer++){
-        if(!peer.isByzantine()){
-            correctPeers.push_back(dynamic_cast<peer_type*>peer)
+    std::vector<peer_type*> correctPeers = std::vector<peer_type*>();
+    for(int i = 0; i < _peers.size(); i++){
+        if(!_peers[i]->isByzantine()){
+            correctPeers.push_back(dynamic_cast<peer_type*>(_peers[i]));
         }
-    }   
+    }
+    return correctPeers;   
 }
 
 template<class type_msg, class peer_type>
 void Network<type_msg,peer_type>::makeByzantines(int numberOfPeers){
     int numberOfByzantinesAdded = 0;
-    auto peer = _peers.begin();
-    while(numberOfByzantinesAdded < numberOfPeers && peer != _peers.end()){
-        if(!peer.isByzantine()){
-            peer.makeByzantine();
+    int i = 0;
+    while(numberOfByzantinesAdded < numberOfPeers && i < _peers.size()){
+        if(!_peers[i]->isByzantine()){
+            _peers[i]->makeByzantine();
             numberOfByzantinesAdded++;
-            peer++
+            i++;
         }else{
-            peer++
+            i++;
         }
     }
     shuffleByzantines(numberOfPeers);     
@@ -285,14 +287,14 @@ void Network<type_msg,peer_type>::makeByzantines(int numberOfPeers){
 template<class type_msg, class peer_type>
 void  Network<type_msg,peer_type>::makeCorrect(int numberOfPeers){
     int numberOfCorrectAdded = 0;
-    auto peer = _peers.begin();
-    while(numberOfCorrectAdded < numberOfPeers && peer != _peers.end()){
-        if(peer.isByzantine()){
-            peer.makeCorrect();
+    int i = 0;
+    while(numberOfCorrectAdded < numberOfPeers && i < _peers.size()){
+        if(_peers[i]->isByzantine()){
+            _peers[i]->makeCorrect();
             numberOfCorrectAdded++;
-            peer++
+            i++;
         }else{
-            peer++
+            i++;
         }
     }
     shuffleByzantines(numberOfPeers);    
