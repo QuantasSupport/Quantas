@@ -64,7 +64,10 @@ public:
     int                                 avgDelay            ()const                                         {return _avgDelay;};
     int                                 minDelay            ()const                                         {return _minDelay;};
     std::string                         distribution        ()const                                         {return _distribution;};
-    
+    std::vector<Peer<type_msg>*>        getByzantine        ()const;
+    std::vector<Peer<type_msg>*>        getCorrect          ()const;
+
+
     //mutators
     void                                receive             ();
     void                                preformComputation  ();
@@ -72,6 +75,9 @@ public:
     void                                makeRequest         (int i)                                         {_peers[i]->makeRequest();};
     
     void                                shuffleByzantines   (int);
+    void                                makeByzantines      (int);
+    void                                makeCorrect         (int);
+
     // logging and debugging
     std::ostream&                       printTo             (std::ostream&)const;
     void                                log                 ()const                                         {printTo(*_log);};
@@ -238,6 +244,58 @@ void Network<type_msg,peer_type>::transmit(){
     for(int i = 0; i < _peers.size(); i++){
         _peers[i]->transmit();
     }
+}
+
+template<class type_msg, class peer_type>
+std::vector<Peer<type_msg>*> Network<type_msg,peer_type>::getByzantine()const{
+    std::vector<Peer<type_msg>*> byzantinePeers = std::vector<Peer<type_msg>*>();
+    for(auto peer = _peers.begin(); peer != _peers.end(); peer++){
+        if(peer.isByzantine()){
+            byzantinePeers.push_back(peer)
+        }
+    }
+}
+
+template<class type_msg, class peer_type>
+std::vector<Peer<type_msg>*> Network<type_msg,peer_type>::getCorrect()const{
+    std::vector<Peer<type_msg>*> correctPeers = std::vector<Peer<type_msg>*>();
+    for(auto peer = _peers.begin(); peer != _peers.end(); peer++){
+        if(!peer.isByzantine()){
+            correctPeers.push_back(peer)
+        }
+    }   
+}
+
+template<class type_msg, class peer_type>
+void Network<type_msg,peer_type>::makeByzantines(int numberOfPeers){
+    int numberOfByzantinesAdded = 0;
+    auto peer = _peers.begin();
+    while(numberOfByzantinesAdded < numberOfPeers && peer != _peers.end()){
+        if(!peer.isByzantine()){
+            peer.makeByzantine();
+            numberOfByzantinesAdded++;
+            peer++
+        }else{
+            peer++
+        }
+    }
+    shuffleByzantines(numberOfPeers);     
+}
+
+template<class type_msg, class peer_type>
+void  Network<type_msg,peer_type>::makeCorrect(int numberOfPeers){
+    int numberOfCorrectAdded = 0;
+    auto peer = _peers.begin();
+    while(numberOfCorrectAdded < numberOfPeers && peer != _peers.end()){
+        if(peer.isByzantine()){
+            peer.makeCorrect();
+            numberOfCorrectAdded++;
+            peer++
+        }else{
+            peer++
+        }
+    }
+    shuffleByzantines(numberOfPeers);    
 }
 
 template<class type_msg, class peer_type>
