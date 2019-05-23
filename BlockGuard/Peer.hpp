@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <vector>
 #include <map>
-#include <list>
+#include <deque>
 #include <string>
 #include <iostream>
 #include <iomanip>
@@ -32,13 +32,13 @@ protected:
     bool                                    _byzantine;
     
     // type abbreviations
-    typedef std::list<Packet<message> >     aChannel;
+    typedef std::deque<Packet<message> >    aChannel;
     typedef std::string                     peerId;
     std::map<peerId,aChannel>               _channels;// list of chanels between this peer and others
     std::map<peerId,int>                    _channelDelays;// list of channels and there delays
     std::map<std::string, Peer<message>* >  _neighbors; // peers this peer has a link to
-    std::vector<Packet<message> >           _inStream;// messages that have arrived at this peer
-    std::vector<Packet<message> >           _outStream;// messages waiting to be sent by this peer
+    std::deque<Packet<message> >            _inStream;// messages that have arrived at this peer
+    std::deque<Packet<message> >            _outStream;// messages waiting to be sent by this peer
     
     // metrics
     int                                     _numberOfMessagesSent;
@@ -110,10 +110,9 @@ public:
 
 template <class message>
 Peer<message>::Peer(){
-    typedef std::string peerId;
     _id = "NO ID";
-    _inStream = std::vector<Packet<message> >();
-    _outStream = std::vector<Packet<message> >();
+    _inStream = std::deque<Packet<message> >();
+    _outStream = std::deque<Packet<message> >();
     _neighbors = std::map<std::string, Peer<message>* >();
     _channelDelays = std::map<peerId,int>();
     _channels = std::map<peerId,aChannel>();
@@ -125,10 +124,9 @@ Peer<message>::Peer(){
 
 template <class message>
 Peer<message>::Peer(std::string id){
-    typedef std::string peerId;
     _id = id;
-    _inStream = std::vector<Packet<message> >();
-    _outStream = std::vector<Packet<message> >();
+    _inStream = std::deque<Packet<message> >();
+    _outStream = std::deque<Packet<message> >();
     _neighbors = std::map<std::string, Peer<message>* >();
     _channelDelays = std::map<peerId,int>();
     _channels = std::map<peerId,aChannel>();
@@ -165,7 +163,7 @@ void Peer<message>::addNeighbor(Peer<message> &newNeighbor, int delay){
     }
     _neighbors[newNeighbor.id()] = &newNeighbor;
     _channelDelays[newNeighbor.id()] = edgeDelay;
-    _channels[newNeighbor.id()] = std::list<Packet<message> >();
+    _channels[newNeighbor.id()] = std::deque<Packet<message> >();
 }
 
 // called on recever
@@ -180,8 +178,8 @@ void Peer<message>::transmit(){
     // send all messages to there destantion peer channels  
     while(!_outStream.empty()){
         
-        Packet<message> outMessage = _outStream[0];
-        _outStream.erase(_outStream.begin());
+        Packet<message> outMessage = _outStream.front();
+        _outStream.pop_front();
         
         // if sent to self loop back next round
         if(_id == outMessage.targetId()){
@@ -193,7 +191,7 @@ void Peer<message>::transmit(){
             outMessage.setDelay(maxDelay);
             _neighbors[targetId]->send(outMessage);
         }
-        _numberOfMessagesSent++;
+        ++_numberOfMessagesSent;
     }
 }
 
