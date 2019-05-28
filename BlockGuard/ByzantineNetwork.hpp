@@ -38,6 +38,9 @@ public:
     void                                makeByzantines      (int);
     void                                makeCorrect         (int);
 
+    // overrides
+    void                                initNetwork         (int);
+
     // logging and debugging
     std::ostream&                       printTo             (std::ostream&)const;
     void                                log                 ()const                                             {printTo(*_log);};
@@ -48,8 +51,6 @@ public:
 
 };
 
-#endif /* ByzantineNetwork_hpp */
-
 template<class type_msg, class peer_type>
 ByzantineNetwork<type_msg,peer_type>::ByzantineNetwork() : Network<type_msg,peer_type>(){
     _numberOfByzantines = 0;
@@ -58,7 +59,7 @@ ByzantineNetwork<type_msg,peer_type>::ByzantineNetwork() : Network<type_msg,peer
 
 template<class type_msg, class peer_type>
 ByzantineNetwork<type_msg,peer_type>::ByzantineNetwork(const ByzantineNetwork &rhs) : Network<type_msg,peer_type>(rhs){
-    if(this == rhs){
+    if(this == &rhs){
         return;
     }
 
@@ -93,7 +94,6 @@ std::vector<peer_type*> ByzantineNetwork<type_msg,peer_type>::getByzantine()cons
             byzantinePeers.push_back(dynamic_cast<peer_type*>(Network<type_msg,peer_type>::_peers[i]));
         }
     }
-    assert(byzantinePeers.size() == _numberOfByzantines);
     return byzantinePeers;
 }
 
@@ -105,16 +105,17 @@ std::vector<peer_type*> ByzantineNetwork<type_msg,peer_type>::getCorrect()const{
             correctPeers.push_back(dynamic_cast<peer_type*>(Network<type_msg,peer_type>::_peers[i]));
         }
     }
-    assert(correctPeers.size() == _numberOfCorrect);
     return correctPeers;   
 }
 
 template<class type_msg, class peer_type>
 void ByzantineNetwork<type_msg,peer_type>::makeByzantines(int numberOfPeers){
-    if(numberOfPeers > Network<type_msg,peer_type>::_peers.size()){
+    if(numberOfPeers + _numberOfByzantines > Network<type_msg,peer_type>::_peers.size()){
         _numberOfByzantines = Network<type_msg,peer_type>::_peers.size();
+        _numberOfCorrect = 0;
     }else{
-        _numberOfByzantines = numberOfPeers;
+        _numberOfByzantines += numberOfPeers;
+        _numberOfCorrect = _numberOfCorrect - numberOfPeers;
     }
     int i = 0;
     while(getByzantine().size() < _numberOfByzantines){
@@ -130,10 +131,12 @@ void ByzantineNetwork<type_msg,peer_type>::makeByzantines(int numberOfPeers){
 
 template<class type_msg, class peer_type>
 void ByzantineNetwork<type_msg,peer_type>::makeCorrect(int numberOfPeers){
-    if(numberOfPeers > Network<type_msg,peer_type>::_peers.size()){
+    if(numberOfPeers + _numberOfCorrect > Network<type_msg,peer_type>::_peers.size()){
         _numberOfCorrect = Network<type_msg,peer_type>::_peers.size();
+        _numberOfByzantines = 0;
     }else{
-        _numberOfCorrect = numberOfPeers;
+        _numberOfCorrect += numberOfPeers;
+        _numberOfByzantines = _numberOfByzantines - numberOfPeers;
     }
     int numberOfCorrectAdded = 0;
     int i = 0;
@@ -149,7 +152,19 @@ void ByzantineNetwork<type_msg,peer_type>::makeCorrect(int numberOfPeers){
 }
 
 template<class type_msg, class peer_type>
+void ByzantineNetwork<type_msg,peer_type>::initNetwork(int numberOfPeers){
+    Network<type_msg,peer_type>::initNetwork(numberOfPeers);
+    _numberOfCorrect = numberOfPeers;
+    _numberOfByzantines = 0;
+}
+
+template<class type_msg, class peer_type>
 void ByzantineNetwork<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
+    // if the network is 100% correct or Byzantines shuffling does nothing
+    if(_numberOfByzantines == 0 || _numberOfCorrect == 0){
+        return;
+    }
+
     int shuffled = 0;
     //find list of byzantineFlag peers
     std::vector<int> byzantineIndex;
@@ -198,3 +213,5 @@ std::ostream& ByzantineNetwork<type_msg,peer_type>::printTo(std::ostream &out)co
     
     return out;
 }
+
+#endif /* ByzantineNetwork_hpp */
