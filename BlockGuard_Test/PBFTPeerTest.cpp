@@ -42,6 +42,7 @@ void constructors(std::ostream &log){
     assert(a.isPrimary()                == false);
     assert(a.getPrimary()               == NO_PRIMARY);
     assert(a.faultyPeers()              == 0);
+    assert(a.isByzantine()              == false);
     
     // logs
     assert(a.getRequestLog().size()     == 0);
@@ -62,6 +63,7 @@ void constructors(std::ostream &log){
     assert(a.isPrimary()                == false);
     assert(a.getPrimary()               == NO_PRIMARY);
     assert(a.faultyPeers()              == 1);
+    assert(a.isByzantine()              == false);
     
     // logs
     assert(a.getRequestLog().size()     == 0);
@@ -83,6 +85,7 @@ void constructors(std::ostream &log){
     assert(b.isPrimary()                == false);
     assert(a.getPrimary()               == NO_PRIMARY);
     assert(b.faultyPeers()              == 1);
+    assert(a.isByzantine()              == false);
     
     // logs
     assert(b.getRequestLog().size()     == 0);

@@ -86,9 +86,7 @@ struct PBFT_Message{
                 type        == rhs.type         &&
                 operation   == rhs.operation    &&
                 operands    == rhs.operands     &&
-                result      == rhs.result       &&
-                byzantine   == rhs.byzantine    &&
-                defeated    == rhs.defeated
+                result      == rhs.result      
                );
     }
 };
@@ -129,7 +127,7 @@ protected:
     void                        waitCommit          ();             // wait for 1/3F + 1 commit msgs ends distributed-consensus
     
     // support methods used for the above
-    void                        commitRequest       ();
+    virtual void                commitRequest       ();
     virtual Peer<PBFT_Message>* findPrimary         (const std::map<std::string, Peer<PBFT_Message>*> peers);
     virtual int                 executeQuery        (const PBFT_Message&);
     std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
@@ -164,7 +162,7 @@ public:
     void                        clearPrimary        ()                                              {_primary = nullptr;}
     void                        init                ()                                              {initPrimary();};
     virtual void                initPrimary         ()                                              {_primary = findPrimary(_neighbors);};
-    void                        viewChange          ();
+    void                        viewChange          (std::map<std::string, Peer<PBFT_Message>* >);
 
     // debug/logging
     std::ostream&               printTo             (std::ostream&)const;

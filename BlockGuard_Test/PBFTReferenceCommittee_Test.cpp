@@ -26,6 +26,8 @@ void RunPBFTRefComTest (std::string filepath){
     testRefComCommittee(log);
     testGlobalLedger(log);
     testSimultaneousRequest(log);
+    testByzantineConfirmationRate(log);
+    testShuffle(log);
 }
 
 void testInit(std::ostream &log){
@@ -471,8 +473,8 @@ void testGlobalLedger(std::ostream &log){
     refCom.initNetwork(32);
     refCom.log();
 
-    refCom.makeRequest();
-    assert(refCom.getRequestQueue().size() == 0); // make sure quest has been serverd
+    refCom.makeRequest(refCom.securityLevel1());
+    assert(refCom.getRequestQueue().size() == 0); // make sure transaction has been serverd
     // request should be done in 5 rounds
     for(int round = 0; round < 5; round++ ){
         refCom.receive();
@@ -482,9 +484,9 @@ void testGlobalLedger(std::ostream &log){
     refCom.log();
     assert(refCom.getGlobalLedger().size() == 1); // make sure trasnaction was counted as confirmed by the sytem
 
-    refCom.makeRequest();
-    refCom.makeRequest();
-    assert(refCom.getRequestQueue().size() == 0); // make sure quest has been serverd
+    refCom.makeRequest(refCom.securityLevel1());
+    refCom.makeRequest(refCom.securityLevel1());
+    assert(refCom.getRequestQueue().size() == 0); // make sure transaction has been serverd
     for(int round = 0; round < 10; round++ ){
         refCom.receive();
         refCom.preformComputation();
@@ -494,9 +496,9 @@ void testGlobalLedger(std::ostream &log){
     refCom.log();
     assert(refCom.getGlobalLedger().size() == 3); // two more transactions should be counted
 
-    refCom.makeRequest();
-    refCom.makeRequest();
-    refCom.makeRequest();
+    refCom.makeRequest(refCom.securityLevel1());
+    refCom.makeRequest(refCom.securityLevel1());
+    refCom.makeRequest(refCom.securityLevel1());
     for(int round = 0; round < 15; round++ ){
         refCom.receive();
         refCom.preformComputation();
@@ -527,7 +529,7 @@ void testGlobalLedger(std::ostream &log){
     refCom.setFaultTolerance(FAULT);
     refCom.initNetwork(PEERS);
 
-    refCom.makeRequest();
+    refCom.makeRequest(refCom.securityLevel1());
     assert(refCom.getRequestQueue().size() == 0); // make sure quest has been serverd
     // request should be done in 5 rounds
     for(int round = 0; round < 5; round++ ){
@@ -537,8 +539,8 @@ void testGlobalLedger(std::ostream &log){
     }
     assert(refCom.getGlobalLedger().size() == 1); // make sure trasnaction was counted as confirmed by the sytem
 
-    refCom.makeRequest();
-    refCom.makeRequest();
+    refCom.makeRequest(refCom.securityLevel1());
+    refCom.makeRequest(refCom.securityLevel1());
     for(int round = 0; round < 10; round++ ){
         refCom.receive();
         refCom.preformComputation();
@@ -547,9 +549,9 @@ void testGlobalLedger(std::ostream &log){
 
     assert(refCom.getGlobalLedger().size() == 3); // two more transactions should be counted
 
-    refCom.makeRequest();
-    refCom.makeRequest();
-    refCom.makeRequest();
+    refCom.makeRequest(refCom.securityLevel1());
+    refCom.makeRequest(refCom.securityLevel1());
+    refCom.makeRequest(refCom.securityLevel1());
     for(int round = 0; round < 15; round++ ){
         refCom.receive();
         refCom.preformComputation();
@@ -615,4 +617,304 @@ void testSimultaneousRequest(std::ostream &log){
     assert(refCom.getRequestQueue().size()          == 112);
 
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testSimultaneousRequest Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+}
+
+void testByzantineConfirmationRate(std::ostream &log){
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineConfirmationRate Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    
+    PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(1);
+    refCom.setToRandom();
+    refCom.setGroupSize(GROUP_SIZE);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(PEERS);
+    refCom.log();
+
+    // number of groups by 1/2 becouse a committee needs at least two groups
+    // this should make the make number of groups the system can half at one time
+    int numberOfRequests = refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    // make 1/2 of the primarys Byzantine peers
+    for(int i = 0; i < refCom.getCurrentCommittees().size()/2; i++){
+        std::vector<aGroup> groupsInCom = refCom.getCommittee(refCom.getCurrentCommittees()[i]);
+        for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
+            for(auto peer = group->begin(); peer != group->end(); peer++){
+                if((*peer)->isPrimary()){
+                    (*peer)->makeByzantine();
+                    break;
+                }
+            }
+        }
+    }
+
+    // run for 5 rounds 1/2 of numberOfRequests should be in the ledger the rest should have been set back (had a view change)
+    log << "-- run for 5 rounds 1/2 of numberOfRequests should be in the ledger the rest should have been set back (had a view change) --"<< std::endl;
+    for(int i = 0; i < 5; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests/2);
+    assert(refCom.getCurrentCommittees().size() == numberOfRequests/2); // make sure the committees that did not commit and are view changeing are still alive
+
+
+    // run for another 5 rounds and all trnasactions should be approved (makes sure non of the transactions are lost)
+    log << "-- run for another 5 rounds and all trnasactions should be approved --"<< std::endl;
+    for(int i = 0; i < 5; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests);
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure all committees are dead
+
+
+    // make the same number of request now that non of the primarys are Byzantine there should be no set back
+    int newRequests = refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+
+    log << "-- make the same number of request now that non of the primarys are Byzantine there should be no set back --"<< std::endl;
+    for(int i = 0; i < 5; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests + newRequests);
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure all committees are dead
+
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineConfirmationRate Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+}
+
+void testShuffle(std::ostream &log){
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineShuffle"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(1);
+    refCom.setToRandom();
+    refCom.setGroupSize(GROUP_SIZE);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(PEERS);
+    refCom.log();
+
+    refCom.makeByzantines(PEERS*FAULT); // make enough Byzantine peers to "break" the system
+    int byzantine = 0;
+    int correct = 0;
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            byzantine++;
+        }else{
+            correct++;
+        }
+    }
+
+    assert(byzantine                        == int(PEERS*FAULT));
+    assert(correct                          == PEERS - byzantine);
+    assert(refCom.getByzantine().size()     == byzantine);
+    assert(refCom.getCorrect().size()       == correct);
+
+
+    refCom.makeCorrect((PEERS*FAULT)-1); // make all but one correct 
+    byzantine = 0;
+    correct = 0;
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            byzantine++;
+        }else{
+            correct++;
+        }
+    }
+
+    assert(byzantine                        == 1);
+    assert(correct                          == PEERS - 1);
+    assert(refCom.getByzantine().size()     == byzantine);
+    assert(refCom.getCorrect().size()       == correct);
+
+    refCom.makeCorrect(1); // make last one correct
+    byzantine = 0;
+    correct = 0;
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            byzantine++;
+        }else{
+            correct++;
+        }
+    }
+
+    assert(byzantine                        == 0);
+    assert(correct                          == PEERS);
+    assert(refCom.getByzantine().empty()    == true);
+    assert(refCom.getCorrect().size()       == correct);
+
+    // refresh system for new tests
+    refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(1);
+    refCom.setToRandom();
+    refCom.setGroupSize(GROUP_SIZE);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(PEERS);
+    refCom.log();
+
+    refCom.makeByzantines(PEERS*0.25); // make 25% of the peers Byzantine
+    byzantine = 0;
+    correct = 0;
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            byzantine++;
+        }else{
+            correct++;
+        }
+    }
+
+    assert(byzantine                        == (int)PEERS*0.25);
+    assert(correct                          == PEERS - byzantine);
+    assert(refCom.getByzantine().size()     == byzantine);
+    assert(refCom.getCorrect().size()       == correct);
+
+    refCom.shuffleByzantines(PEERS*0.25); // now shuffle them
+    byzantine = 0;
+    correct = 0;
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            byzantine++;
+        }else{
+            correct++;
+        }
+    }
+    // make sure then number has not changed
+    assert(byzantine                        == (int)PEERS*0.25);
+    assert(correct                          == PEERS - byzantine);
+    assert(refCom.getByzantine().size()     == byzantine);
+    assert(refCom.getCorrect().size()       == correct);
+
+    // now do this a bunch of times to make sure it holds
+    for(int i = 0; i < 25; i++){
+        refCom.shuffleByzantines(PEERS*0.25); // now shuffle them
+        byzantine = 0;
+        correct = 0;
+        for(int i = 0; i < refCom.size(); i++){
+            if(refCom[i]->isByzantine()){
+                byzantine++;
+            }else{
+                correct++;
+            }
+        }
+        // make sure then number has not changed
+        assert(byzantine                        == (int)PEERS*0.25);
+        assert(correct                          == PEERS - byzantine);
+        assert(refCom.getByzantine().size()     == byzantine);
+        assert(refCom.getCorrect().size()       == correct);
+    }
+
+    // number of groups by 1/2 becouse a committee needs at least two groups
+    // this should make the make number of groups the system can half at one time
+    int numberOfRequests = refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+
+    // now count Byzantine primarys (this will be then number of view changes)
+    byzantine = 0;
+    correct = 0;
+    for(auto id = refCom.getCurrentCommittees().begin(); id != refCom.getCurrentCommittees().end(); id++){
+        std::vector<aGroup> groupsInCom = refCom.getCommittee(*id);
+        for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
+            for(auto peer = group->begin(); peer != group->end(); peer++ ){
+                if((*peer)->isPrimary()){
+                    if((*peer)->isByzantine()){
+                        byzantine++;
+                    }else{
+                        correct++;
+                    }
+                }else{
+                    // is not a primary so we dont care
+                }
+            }
+        }
+    }
+
+    for(int i = 0; i < 5; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests - byzantine); // make sure all committees with non-Byzantine leader commited
+    assert(refCom.getCurrentCommittees().size() == numberOfRequests - refCom.getGlobalLedger().size()); // make sure the committees that did not commit and are view changeing are still alive
+    
+    refCom.shuffleByzantines(PEERS*0.25);
+    // recount Byzantine primarys (this will be then number of view changes)
+    byzantine = 0;
+    correct = 0;
+    for(auto id = refCom.getCurrentCommittees().begin(); id != refCom.getCurrentCommittees().end(); id++){
+        std::vector<aGroup> groupsInCom = refCom.getCommittee(*id);
+        for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
+            for(auto peer = group->begin(); peer != group->end(); peer++ ){
+                if((*peer)->isPrimary()){
+                    if((*peer)->isByzantine()){
+                        byzantine++;
+                    }else{
+                        correct++;
+                    }
+                }else{
+                    // is not a primary so we dont care
+                }
+            }
+        }
+    }
+    for(int i = 0; i < 5; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+    }
+
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests - byzantine); // make sure all committees with non-Byzantine leader commited
+    assert(refCom.getCurrentCommittees().size() == numberOfRequests - refCom.getGlobalLedger().size()); // make sure the committees that did not commit and are view changeing are still alive
+    
+    // do this until all request are filled
+    while (numberOfRequests - refCom.getGlobalLedger().size() != 0){
+        refCom.shuffleByzantines(PEERS*0.25);
+        // recount Byzantine primarys (this will be then number of view changes)
+        byzantine = 0;
+        correct = 0;
+        for(auto id = refCom.getCurrentCommittees().begin(); id != refCom.getCurrentCommittees().end(); id++){
+            std::vector<aGroup> groupsInCom = refCom.getCommittee(*id);
+            for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
+                for(auto peer = group->begin(); peer != group->end(); peer++ ){
+                    if((*peer)->isPrimary()){
+                        if((*peer)->isByzantine()){
+                            byzantine++;
+                        }else{
+                            correct++;
+                        }
+                    }else{
+                        // is not a primary so we dont care
+                    }
+                }
+            }
+        }
+        for(int i = 0; i < 5; i++){
+            refCom.receive();
+            refCom.preformComputation();
+            refCom.transmit();
+        }
+
+        assert(refCom.getGlobalLedger().size()      == numberOfRequests - byzantine); // make sure all committees with non-Byzantine leader commited
+        assert(refCom.getCurrentCommittees().size() == numberOfRequests - refCom.getGlobalLedger().size()); // make sure the committees that did not commit and are view changeing are still alive
+        
+    }
+
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineShuffle Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }

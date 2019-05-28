@@ -37,6 +37,39 @@ void PBFTPeer_Sharded::braodcast(const PBFT_Message &msg){
     }
 }
 
+void PBFTPeer_Sharded::commitRequest(){
+    PBFT_Message commit = _currentRequest;
+    commit.result = _currentRequestResult;
+    commit.round = _currentRound;    
+    // count the number of byzantine commits 
+    // >= 1/3 then we will commit a defeated transaction
+    // < 1/3 and an honest primary will commit
+    // < 1/3 and byzantine primary will view change
+    int numberOfByzantineCommits = 0;
+    for(auto commitMsg = _commitLog.begin(); commitMsg != _commitLog.end(); commitMsg++){
+        if(commitMsg->sequenceNumber == _currentRequest.sequenceNumber
+                && commitMsg->view == _currentView
+                && commitMsg->result == _currentRequestResult){
+                    if(commitMsg->byzantine){
+                        numberOfByzantineCommits++; 
+                    }
+                }
+    }
+    if(numberOfByzantineCommits < faultyPeers() && !_currentRequest.byzantine){
+        commit.defeated = false;
+        _ledger.push_back(commit);
+    }else if(numberOfByzantineCommits >= faultyPeers() && _currentRequest.byzantine){
+        commit.defeated = true;
+        _ledger.push_back(commit);
+    }else{ 
+        viewChange(_committeeMembers); 
+    }
+    _currentPhase = IDEAL; // complete distributed-consensus
+    _currentRequestResult = 0;
+    _currentRequest = PBFT_Message();
+    cleanLogs();
+}
+
 std::vector<std::string> PBFTPeer_Sharded::getGroupMembers()const{
     std::vector<std::string> groupIds = std::vector<std::string>();
     for (auto it=_groupMembers.begin(); it!=_groupMembers.end(); ++it){
