@@ -1,5 +1,5 @@
 //
-//  ByzantineNetwork_Test.cpp
+//  ByzantineNetwork_Test.hpp
 //  BlockGuard
 //
 //  Created by Kendric Hood on 5/23/19.
@@ -13,14 +13,8 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include "../BlockGuard/PBFTPeer_Sharded.hpp"
+#include "../BlockGuard/ExamplePeer.hpp"
 #include "../BlockGuard/ByzantineNetwork.hpp"
-
-//////////////////////////////////////////////////////////////////////
-// this is the standard set up for number of peers, group size and fault tolerance 
-static const int    GROUP_SIZE  = 8; // 32 groups for 256 peers
-static const int    PEERS       = 256; 
-static const double FAULT       = 0.3;
 
 void RunByzantineNetworkTest    (std::string filepath);
 
