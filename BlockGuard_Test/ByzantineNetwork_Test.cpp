@@ -7,6 +7,7 @@
 //
 
 #include "ByzantineNetwork_Test.hpp"
+#include "../BlockGuard/ExamplePeer.hpp"
 
 static const int PEERS = 10; 
 
@@ -35,11 +36,13 @@ void testMakeByzantine(std::ostream &log){
     bNetwork.makeByzantines(PEERS*0.1);// 10 percent
     assert(bNetwork.getByzantine().size()   == PEERS*0.1);
     assert(bNetwork.getCorrect().size()     == PEERS*0.9);
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    std::vector<ExamplePeer*> byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    std::vector<ExamplePeer*> correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -47,11 +50,13 @@ void testMakeByzantine(std::ostream &log){
     bNetwork.makeByzantines(PEERS*0.1);// another 10 percent
     assert(bNetwork.getByzantine().size()   == PEERS*0.2);
     assert(bNetwork.getCorrect().size()     == PEERS*0.8);
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -59,11 +64,13 @@ void testMakeByzantine(std::ostream &log){
     bNetwork.makeByzantines(PEERS*0.2);// add 20 percent
     assert(bNetwork.getByzantine().size()   == PEERS*0.4);
     assert(bNetwork.getCorrect().size()     == PEERS*0.6);
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -71,11 +78,13 @@ void testMakeByzantine(std::ostream &log){
     bNetwork.makeByzantines(PEERS*0.6);//the rest of the network
     assert(bNetwork.getByzantine().size()   == PEERS);
     assert(bNetwork.getCorrect().size()     == 0);
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -92,11 +101,13 @@ void testMakeByzantine(std::ostream &log){
     bNetwork.makeCorrect(PEERS*0.1);// 10 percent
     assert(bNetwork.getCorrect().size()     == PEERS*0.1);
     assert(bNetwork.getByzantine().size()   == PEERS*0.9);
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -104,11 +115,13 @@ void testMakeByzantine(std::ostream &log){
     bNetwork.makeCorrect(PEERS*0.1);// another 10 percent
     assert(bNetwork.getCorrect().size()     == PEERS*0.2);
     assert(bNetwork.getByzantine().size()   == PEERS*0.8);
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -116,11 +129,13 @@ void testMakeByzantine(std::ostream &log){
     bNetwork.makeCorrect(PEERS*0.2);// add 20 percent
     assert(bNetwork.getCorrect().size()     == PEERS*0.4);
     assert(bNetwork.getByzantine().size()   == PEERS*0.6);
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -128,11 +143,13 @@ void testMakeByzantine(std::ostream &log){
     bNetwork.makeCorrect(PEERS*0.6);//the rest of the network
     assert(bNetwork.getCorrect().size()     == PEERS);
     assert(bNetwork.getByzantine().size()   == 0);
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -154,11 +171,13 @@ void testByzantineShuffle(std::ostream &log){
     assert(bNetwork.getByzantine().size()   == PEERS*0.3);
     assert(bNetwork.getCorrect().size()     == PEERS*0.7);
 
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    std::vector<ExamplePeer*> byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    std::vector<ExamplePeer*> correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -167,11 +186,13 @@ void testByzantineShuffle(std::ostream &log){
     assert(bNetwork.getByzantine().size()   == PEERS*0.3);
     assert(bNetwork.getCorrect().size()     == PEERS*0.7);
 
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -180,11 +201,13 @@ void testByzantineShuffle(std::ostream &log){
     assert(bNetwork.getByzantine().size()   == PEERS*0.3);
     assert(bNetwork.getCorrect().size()     == PEERS*0.7);
 
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
+    byzantinePeers = bNetwork.getByzantine();
+    for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
         assert((*peer)->isByzantine()   == true);
         assert((*peer)->getCounter()    == 50);
     }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
+    correctPeers = bNetwork.getCorrect();
+    for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
         assert((*peer)->isByzantine()   == false);
         assert((*peer)->getCounter()    == 50);
     }
@@ -218,8 +241,8 @@ void testByzantineShuffle(std::ostream &log){
     // check to make sure that nothing changes over repaeating this process
     for(int i = 0; i < 100; i++){
 
-        for(int i = 0; i < bNetwork.size(); i++){
-            bNetwork[i]->setCounter(i);
+        for(int peer = 0; peer < bNetwork.size(); peer++){
+            bNetwork[peer]->setCounter(i);
         }
 
         std::vector<std::string> before_correct = std::vector<std::string>();
@@ -245,14 +268,16 @@ void testByzantineShuffle(std::ostream &log){
         }
         assert(before_byzantine != after_byzantine);
         assert(before_correct != after_correct);
-    for(auto peer = bNetwork.getByzantine().begin(); peer != bNetwork.getByzantine().end(); peer++){
-        assert((*peer)->isByzantine()   == true);
-        assert((*peer)->getCounter()    == i);
-    }
-    for(auto peer = bNetwork.getCorrect().begin(); peer != bNetwork.getCorrect().end(); peer++){
-        assert((*peer)->isByzantine()   == false);
-        assert((*peer)->getCounter()    == i);
-    }
+        byzantinePeers = bNetwork.getByzantine();
+        for(auto peer = byzantinePeers.begin(); peer != byzantinePeers.end(); peer++){
+            assert((*peer)->isByzantine()   == true);
+            assert((*peer)->getCounter()    == i);
+        }
+        correctPeers = bNetwork.getCorrect();
+        for(auto peer = correctPeers.begin(); peer != correctPeers.end(); peer++){
+            assert((*peer)->isByzantine()   == false);
+            assert((*peer)->getCounter()    == i);
+        }
     }
 
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineShuffle correct"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;

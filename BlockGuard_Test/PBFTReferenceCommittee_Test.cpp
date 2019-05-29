@@ -819,7 +819,7 @@ void testShuffle(std::ostream &log){
     }
 
     // number of groups by 1/2 becouse a committee needs at least two groups
-    // this should make the make number of groups the system can half at one time
+    // this should make the make be the nunmber of groups the system can have at one time
     int numberOfRequests = refCom.getGroupIds().size()/2;
     for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
         refCom.makeRequest(refCom.securityLevel1());
@@ -828,7 +828,8 @@ void testShuffle(std::ostream &log){
     // now count Byzantine primarys (this will be then number of view changes)
     byzantine = 0;
     correct = 0;
-    for(auto id = refCom.getCurrentCommittees().begin(); id != refCom.getCurrentCommittees().end(); id++){
+    std::vector<int> ids = refCom.getCurrentCommittees();
+    for(auto id = ids.begin(); id != ids.end(); id++){
         std::vector<aGroup> groupsInCom = refCom.getCommittee(*id);
         for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
             for(auto peer = group->begin(); peer != group->end(); peer++ ){
@@ -839,7 +840,8 @@ void testShuffle(std::ostream &log){
                         correct++;
                     }
                 }else{
-                    // is not a primary so we dont care
+                    // is not a primary so we make it honest to prevent defeated transactions (need to make this predictable)
+                    (*peer)->makeCorrect();
                 }
             }
         }
@@ -850,15 +852,16 @@ void testShuffle(std::ostream &log){
         refCom.preformComputation();
         refCom.transmit();
     }
-
+    
     assert(refCom.getGlobalLedger().size()      == numberOfRequests - byzantine); // make sure all committees with non-Byzantine leader commited
     assert(refCom.getCurrentCommittees().size() == numberOfRequests - refCom.getGlobalLedger().size()); // make sure the committees that did not commit and are view changeing are still alive
     
-    refCom.shuffleByzantines(PEERS*0.25);
-    // recount Byzantine primarys (this will be then number of view changes)
+    refCom.shuffleByzantines(refCom.getByzantine().size());
+    // recount Byzantine primarys (this will be the number of view changes)
     byzantine = 0;
     correct = 0;
-    for(auto id = refCom.getCurrentCommittees().begin(); id != refCom.getCurrentCommittees().end(); id++){
+    ids = refCom.getCurrentCommittees();
+    for(auto id = ids.begin(); id != ids.end(); id++){
         std::vector<aGroup> groupsInCom = refCom.getCommittee(*id);
         for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
             for(auto peer = group->begin(); peer != group->end(); peer++ ){
@@ -889,7 +892,8 @@ void testShuffle(std::ostream &log){
         // recount Byzantine primarys (this will be then number of view changes)
         byzantine = 0;
         correct = 0;
-        for(auto id = refCom.getCurrentCommittees().begin(); id != refCom.getCurrentCommittees().end(); id++){
+        std::vector<int> ids = refCom.getCurrentCommittees();
+        for(auto id = ids.begin(); id != ids.end(); id++){
             std::vector<aGroup> groupsInCom = refCom.getCommittee(*id);
             for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
                 for(auto peer = group->begin(); peer != group->end(); peer++ ){

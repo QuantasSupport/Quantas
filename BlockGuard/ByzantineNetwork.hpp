@@ -126,7 +126,7 @@ void ByzantineNetwork<type_msg,peer_type>::makeByzantines(int numberOfPeers){
             i++;
         }
     }
-    shuffleByzantines(numberOfPeers);     
+    shuffleByzantines(_numberOfByzantines);     
 }
 
 template<class type_msg, class peer_type>
@@ -138,7 +138,6 @@ void ByzantineNetwork<type_msg,peer_type>::makeCorrect(int numberOfPeers){
         _numberOfCorrect += numberOfPeers;
         _numberOfByzantines = _numberOfByzantines - numberOfPeers;
     }
-    int numberOfCorrectAdded = 0;
     int i = 0;
     while(getCorrect().size() < _numberOfCorrect){
         if(Network<type_msg,peer_type>::_peers[i]->isByzantine()){
@@ -148,7 +147,7 @@ void ByzantineNetwork<type_msg,peer_type>::makeCorrect(int numberOfPeers){
             i++;
         }
     }
-    shuffleByzantines(numberOfPeers);    
+    shuffleByzantines(_numberOfCorrect);
 }
 
 template<class type_msg, class peer_type>
@@ -170,7 +169,7 @@ void ByzantineNetwork<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
     std::vector<int> byzantineIndex;
     std::vector<int> nonByzantineIndex;
 
-    for(int i = 0; i<Network<type_msg,peer_type>::_peers.size();i++){
+    for(int i = 0; i < Network<type_msg,peer_type>::_peers.size(); i++){
         if(Network<type_msg,peer_type>::_peers[i]->isByzantine()){
             byzantineIndex.push_back (i);
         }else if(!Network<type_msg,peer_type>::_peers[i]->isByzantine()){
@@ -182,7 +181,12 @@ void ByzantineNetwork<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
     if(byzantineIndex.empty()){
         return;
     }
-
+    
+    // if shuffleCount is higher then the current number of byzantine peers we just shuffle the ones we have
+    if(_numberOfByzantines < shuffleCount){
+        shuffleCount = _numberOfByzantines;
+    }
+    
     while (shuffled<shuffleCount){
         //find list of byzantineFlag peers
         int byzantineShuffleIndex = static_cast<int>(rand() % byzantineIndex.size());

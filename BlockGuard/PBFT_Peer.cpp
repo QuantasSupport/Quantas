@@ -293,7 +293,6 @@ void PBFT_Peer::commitRequest(){
 }
 
 void PBFT_Peer::viewChange(std::map<std::string, Peer<PBFT_Message>* > potentialPrimary){
-    std::cout<< "viewChange";
     _currentView++;
     _primary = findPrimary(potentialPrimary);
     PBFT_Message request;
