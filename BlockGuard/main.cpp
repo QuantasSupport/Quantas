@@ -353,11 +353,11 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     std::cout<< std::endl<< "########################### bsg ###########################"<< std::endl;
 
     PBFTReferenceCommittee system = PBFTReferenceCommittee();
-    system.setGroupSize(2);
+    system.setGroupSize(8);
     system.setToRandom();
     system.setMaxDelay(delay);
     system.setLog(log);
-    system.initNetwork(32);
+    system.initNetwork(256);
     system.setFaultTolerance(0.3);
    // system.makeByzantines(ceil(32*0.3));
 
