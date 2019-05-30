@@ -411,6 +411,7 @@ void PBFT_Peer::makeRequest(){
     
     // create request
     PBFT_Message request;
+    request.submission_round = _currentRound;
     request.client_id = _id;
     request.creator_id = _id;
     request.view = _currentView;
@@ -459,6 +460,7 @@ void PBFT_Peer::makeRequest(int squenceNumber){
     
     // create request
     PBFT_Message request;
+    request.submission_round = _currentRound;
     request.client_id = _id;
     request.creator_id = _id;
     request.view = _currentView;

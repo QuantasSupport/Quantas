@@ -25,7 +25,7 @@ void RunPBFTPeerShardedTest(std::string filepath){
     // MultiRequestMultiCommittee();
     testViewChange(log);
     testByzantine(log);
-
+    waitingTimeSharded(log);
 }
 void constructorsPBFT_s(std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"constructors"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
@@ -1497,6 +1497,157 @@ void testByzantine(std::ostream &log){
     assert(c.getRequestLog().size()         == 0);
     
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantine Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+}
+
+void waitingTimeSharded(std::ostream &log){
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"waitingTime"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    
+    ////////////////////////////////////////////////////////
+    // no view change
+    
+    PBFTPeer_Sharded a = PBFTPeer_Sharded("A");
+    PBFTPeer_Sharded b = PBFTPeer_Sharded("B");
+    PBFTPeer_Sharded c = PBFTPeer_Sharded("C");
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 1);
+    b.addNeighbor(c, 1);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.setFaultTolerance(1);
+    b.setFaultTolerance(1);
+    c.setFaultTolerance(1);
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
+    a.makeRequest();
+    
+    for(int i = 0; i < 5; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.getLedger().size()                 == 1);
+    assert(b.getLedger().size()                 == 1);
+    assert(c.getLedger().size()                 == 1);
+    
+    assert(a.getLedger()[0].submission_round    == 0);
+    assert(b.getLedger()[0].submission_round    == 0);
+    assert(c.getLedger()[0].submission_round    == 0);
+    
+    assert(a.getLedger()[0].round               == 3); // rounds start from 0
+    assert(b.getLedger()[0].round               == 3);
+    assert(c.getLedger()[0].round               == 3);
+    
+    ////////////////////////////////////////////////////////
+    // with view change
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 1);
+    b.addNeighbor(c, 1);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.setFaultTolerance(1);
+    b.setFaultTolerance(1);
+    c.setFaultTolerance(1);
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
+    a.makeByzantine();
+    a.makeRequest();
+    
+    for(int i = 0; i < 10; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.getLedger().size()                 == 1);
+    assert(b.getLedger().size()                 == 1);
+    assert(c.getLedger().size()                 == 1);
+    
+    assert(a.getLedger()[0].submission_round    == 0);
+    assert(b.getLedger()[0].submission_round    == 0);
+    assert(c.getLedger()[0].submission_round    == 0);
+    
+    assert(a.getLedger()[0].round               == 7);
+    assert(b.getLedger()[0].round               == 7);
+    assert(c.getLedger()[0].round               == 7);
+    
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"waitingTime Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
 
 

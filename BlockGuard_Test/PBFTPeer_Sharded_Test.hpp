@@ -31,4 +31,5 @@ void testGroups                 (std::ostream &log);// test that peers can be ad
 void testCommittee              (std::ostream &log);// test that peers can be added and removed from a committee
 void testViewChange             (std::ostream &log);// test that transaction are commited correctly and that they include committee size
 void testByzantine              (std::ostream &log);// test defeated transsactions
+void waitingTimeSharded         (std::ostream &log);// test that the time from submittion to confirmation is accurate
 #endif /* PBFTPeer_Sharded_Test_hpp */

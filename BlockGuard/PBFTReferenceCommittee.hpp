@@ -108,6 +108,8 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     void                                queueRequest            ()                                      {_requestQueue.push_back(generateRequest());}; 
     void                                queueRequest            (int securityLevel)                     {_requestQueue.push_back(generateRequest(securityLevel));};
     void                                clearQueue              ()                                      {_requestQueue.clear();}  
+    void                                setMaxSecurityLevel     (int); // used to fix max security as number of groups for debugging
+    void                                setMinSecurityLevel     (int); // used to fix min security as number of groups for debugging
     
     // pass-through to ByzantineNetwork class
     void                                receive                 ()                                      {_peers.receive();};
@@ -130,9 +132,8 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     std::ostream&                       printTo                 (std::ostream&)const;
     void                                log                     ()const                                 {printTo(*_log);};
 
+    // metrics
     std::vector<ledgerEntery>           getGlobalLedger         ()const;
-    void                                setMaxSecurityLevel     (int); // used to fix max security as number of groups for debugging
-    void                                setMinSecurityLevel     (int); // used to fix min security as number of groups for debugging
     
     // operators
     PBFTReferenceCommittee&             operator=               (const PBFTReferenceCommittee&);

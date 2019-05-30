@@ -42,6 +42,7 @@ struct PBFT_Message{
     //////////////////////////////////////////
     // request info
     
+    unsigned int        submission_round;
     // the client is the peer that submited the request
     std::string         client_id;
     // this is the peer that created the message
@@ -64,6 +65,7 @@ struct PBFT_Message{
     bool                defeated;
 
     PBFT_Message(){
+        submission_round= 0;
         client_id       = "";
         creator_id      = "";
         view            = -1;
@@ -80,13 +82,14 @@ struct PBFT_Message{
     bool operator==(const PBFT_Message& rhs)
     {
         return(
-                client_id   == rhs.client_id    &&
-                creator_id  == rhs.creator_id   &&
-                view        == rhs.view         &&
-                type        == rhs.type         &&
-                operation   == rhs.operation    &&
-                operands    == rhs.operands     &&
-                result      == rhs.result      
+                submission_round== rhs.submission_round &&
+                client_id       == rhs.client_id        &&
+                creator_id      == rhs.creator_id       &&
+                view            == rhs.view             &&
+                type            == rhs.type             &&
+                operation       == rhs.operation        &&
+                operands        == rhs.operands         &&
+                result          == rhs.result
                );
     }
 };
@@ -172,7 +175,7 @@ public:
     void                        preformComputation  ();
     void                        makeRequest         ();// starts distributed-consensus
     void                        makeRequest         (int);// starts distributed-consensus with a squence number
-
+    
     // operators
     PBFT_Peer&                  operator=           (const PBFT_Peer &);
     friend std::ostream&        operator<<          (std::ostream &o, const PBFT_Peer &p)           {p.printTo(o); return o;};
