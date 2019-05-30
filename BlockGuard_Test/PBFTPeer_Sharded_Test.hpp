@@ -29,6 +29,6 @@ void testSettersMutatorsPBFT_s  (std::ostream &log);// test setters and test Mut
 // test for group and committee assignment
 void testGroups                 (std::ostream &log);// test that peers can be added and removed from a group
 void testCommittee              (std::ostream &log);// test that peers can be added and removed from a committee
-void testCommit                 (std::ostream &log);// test that transaction are commited correctly and that they include committee size
-void testByzantine              (std::ostream &log);// test that view changes happen correctly and that defeated transactions are commited
+void testViewChange             (std::ostream &log);// test that transaction are commited correctly and that they include committee size
+void testByzantine              (std::ostream &log);// test defeated transsactions
 #endif /* PBFTPeer_Sharded_Test_hpp */

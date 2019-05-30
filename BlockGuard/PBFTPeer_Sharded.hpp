@@ -20,6 +20,7 @@ protected:
     int                                                        _committeeId;
     std::map<std::string, Peer<PBFT_Message>* >                _groupMembers;
     std::map<std::string, Peer<PBFT_Message>* >                _committeeMembers;
+    std::vector<int>                                           _committeeSizes;
     
     // logging vars
     bool                                                       _printComitte;
@@ -46,10 +47,10 @@ public:
     void                        printCommitteeOff       ()                                              {_printComitte = false;};
 
     // mutators
-    void                        clearCommittee          ()                                              {_committeeMembers.clear(); _committeeId = -1;}
+    void                        clearCommittee          ()                                              {_committeeMembers.clear(); _committeeId = -1; _currentView = 0;}
     void                        clearGroup              ()                                              {_groupMembers.clear(); _groupId = -1;}
     void                        initPrimary             () override                                     {_primary = findPrimary(_committeeMembers);};
-    
+    void                        preformComputation      () override;
     
     // getters
     int                         faultyPeers             ()const override                                {return ceil((_committeeMembers.size() + 1) * _faultUpperBound);};
@@ -57,8 +58,7 @@ public:
     int                         getCommittee            ()const                                         {return _committeeId;};
     std::vector<std::string>    getGroupMembers         ()const;
     std::vector<std::string>    getCommitteeMembers     ()const;
-
-    void                        preformComputation      () override;
+    std::vector<int>            getCommitteeSizes       ()const                                         {return _committeeSizes;};
     
     std::ostream&               printTo                 (std::ostream&)const;
     void                        log                     ()const                                         {printTo(*_log);};

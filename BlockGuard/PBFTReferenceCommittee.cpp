@@ -284,19 +284,20 @@ std::vector<PBFTPeer_Sharded> PBFTReferenceCommittee::getPeers()const{
     return peers;
 }
 
-std::vector<PBFT_Message> PBFTReferenceCommittee::getGlobalLedger()const{
-    std::vector<PBFT_Message> globalLegder;
+std::vector<ledgerEntery> PBFTReferenceCommittee::getGlobalLedger()const{
+    std::vector<ledgerEntery> globalLegder;
     for(int i = 0; i < _peers.size(); i++){
         auto localLedger = _peers[i]->getLedger();
         for(auto transaction = localLedger.begin(); transaction != localLedger.end(); transaction++){
             bool found = false;
             for(auto global = globalLegder.begin(); global != globalLegder.end(); global++){
-                if(*transaction == *global){
+                if(*transaction == global->first){
                     found = true;
                 }
             }
             if(!found){
-                globalLegder.push_back(*transaction);
+                int sizeIndez = std::distance(localLedger.begin(),transaction);
+                globalLegder.push_back(ledgerEntery(*transaction,_peers[i]->getCommitteeSizes()[sizeIndez]));
             }
         }
     }

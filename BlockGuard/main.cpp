@@ -39,7 +39,7 @@ void Example(std::ofstream &logFile);
 void PBFT(std::ofstream &out,int);
 void syncBFT(std::ofstream &,int );
 void bitcoin(std::ofstream &,int );
-void bsg(std::ofstream &csv, std::ofstream &log,int);
+void PBFT_Sharded(std::ofstream &csv, std::ofstream &log,int);
 
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
@@ -87,11 +87,11 @@ int main(int argc, const char * argv[]) {
             }
 
         }
-    }else if (algorithm == "bgs") {
-        std::cout<< "BGS"<<std::endl;
+    }else if (algorithm == "pbft_s") {
+        std::cout<< "pbft_s"<<std::endl;
         std::ofstream csv;
         std::ofstream log;
-        std::string file = filePath + "BGS";
+        std::string file = filePath + "pbft_s";
         csv.open(file + ".csv");
         if ( csv.fail() ){
             std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
@@ -105,7 +105,7 @@ int main(int argc, const char * argv[]) {
             csv<< "Total Request:,"<<"Max Ledger:,"<<"Total Messages:"<<std::endl;
 
             for(int run = 0; run < 10; run++){
-                bsg(csv,log,delay);
+                PBFT_Sharded(csv,log,delay);
             }
         }
         // for(int delay = 10; delay < 50; delay = delay + 10){
@@ -349,7 +349,7 @@ void bitcoin(std::ofstream &out, int avgDelay){
 }
 
 
-void bsg(std::ofstream &csv, std::ofstream &log,int delay){
+void PBFT_Sharded(std::ofstream &csv, std::ofstream &log,int delay){
     std::cout<< std::endl<< "########################### bsg ###########################"<< std::endl;
 
     PBFTReferenceCommittee system = PBFTReferenceCommittee();

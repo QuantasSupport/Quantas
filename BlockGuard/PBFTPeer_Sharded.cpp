@@ -15,6 +15,7 @@ PBFTPeer_Sharded::PBFTPeer_Sharded(std::string id) : PBFT_Peer(id) {
     _committeeMembers = std::map<std::string, Peer<PBFT_Message>* >();
     _printComitte = false;
     _printGroup = false;
+    _committeeSizes = std::vector<int>();
 }
 
 PBFTPeer_Sharded::PBFTPeer_Sharded(const PBFTPeer_Sharded &rhs) : PBFT_Peer(rhs){
@@ -24,6 +25,7 @@ PBFTPeer_Sharded::PBFTPeer_Sharded(const PBFTPeer_Sharded &rhs) : PBFT_Peer(rhs)
     _committeeMembers = rhs._committeeMembers;
     _printComitte = rhs._printComitte;
     _printGroup = rhs._printGroup;
+    _committeeSizes = rhs._committeeSizes;
 }
 
 void PBFTPeer_Sharded::braodcast(const PBFT_Message &msg){
@@ -40,7 +42,7 @@ void PBFTPeer_Sharded::braodcast(const PBFT_Message &msg){
 void PBFTPeer_Sharded::commitRequest(){
     PBFT_Message commit = _currentRequest;
     commit.result = _currentRequestResult;
-    commit.round = _currentRound;    
+    commit.round = _currentRound;
     // count the number of byzantine commits 
     // >= 1/3 then we will commit a defeated transaction
     // < 1/3 and an honest primary will commit
@@ -58,9 +60,13 @@ void PBFTPeer_Sharded::commitRequest(){
     if(numberOfByzantineCommits < faultyPeers() && !_currentRequest.byzantine){
         commit.defeated = false;
         _ledger.push_back(commit);
-    }else if(numberOfByzantineCommits >= faultyPeers() && _currentRequest.byzantine){
+        _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
+        clearCommittee();
+    }else if(numberOfByzantineCommits >= faultyPeers()){
         commit.defeated = true;
         _ledger.push_back(commit);
+        _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
+        clearCommittee();
     }else{ 
         viewChange(_committeeMembers); 
     }
@@ -90,18 +96,12 @@ void PBFTPeer_Sharded::preformComputation(){
     if(_primary == nullptr){
         _primary = findPrimary(_committeeMembers);
     }
-    int oldLedgerSize = _ledger.size();
     collectMessages(); // sorts messages into there repective logs
     prePrepare();
     prepare();
     waitPrepare();
     commit();
     waitCommit();
-    // if ledger has grown in size then this peer has comited and is free from committee 
-    bool hasComited = _ledger.size() > oldLedgerSize;
-    if(hasComited){
-        clearCommittee();
-    }
     _currentRound++;
 }
 
@@ -114,6 +114,7 @@ PBFTPeer_Sharded& PBFTPeer_Sharded::operator= (const PBFTPeer_Sharded &rhs){
     _committeeMembers = rhs._committeeMembers;
     _printComitte = rhs._printComitte;
     _printGroup = rhs._printGroup;
+    _committeeSizes = rhs._committeeSizes;
     
     return *this;
 }

@@ -27,8 +27,9 @@ struct transactionRequest{
 };
 
 ////////////////////////
-// typedef fore group
+// typedef for group and transaction
 typedef std::vector<PBFTPeer_Sharded*> aGroup;
+typedef std::pair<PBFT_Message,int> ledgerEntery; // includes committee size as the int
 
 class PBFTReferenceCommittee{
 protected:
@@ -128,7 +129,8 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     // logging and debugging
     std::ostream&                       printTo                 (std::ostream&)const;
     void                                log                     ()const                                 {printTo(*_log);};
-    std::vector<PBFT_Message>           getGlobalLedger         ()const;
+
+    std::vector<ledgerEntery>           getGlobalLedger         ()const;
     void                                setMaxSecurityLevel     (int); // used to fix max security as number of groups for debugging
     void                                setMinSecurityLevel     (int); // used to fix min security as number of groups for debugging
     

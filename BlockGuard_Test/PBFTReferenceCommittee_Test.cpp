@@ -683,8 +683,8 @@ void testByzantineConfirmationRate(std::ostream &log){
         refCom.makeRequest(refCom.securityLevel1());
     }
 
-    log << "-- make the same number of request now that non of the primarys are Byzantine there should be no set back --"<< std::endl;
-    for(int i = 0; i < 5; i++){
+    log << "-- make the same number of request there should be at least as many set backs as views are reset when a new committee is formed --"<< std::endl;
+    for(int i = 0; i < 10; i++){
         refCom.receive();
         refCom.preformComputation();
         refCom.transmit();
