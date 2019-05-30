@@ -44,6 +44,11 @@ PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
 }
 
 PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
+    
+    if(this == &rhs){
+        return;
+    }
+    
     _requestLog = rhs._requestLog;
     _prePrepareLog = rhs._prePrepareLog;
     _prepareLog = rhs._prepareLog;
@@ -62,6 +67,10 @@ PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
 
 PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
     
+    if(this == &rhs){
+        return *this;
+    }
+
     Peer<PBFT_Message>::operator=(rhs);
     
     _requestLog = rhs._requestLog;
@@ -250,7 +259,7 @@ void PBFT_Peer::waitCommit(){
     }
 }
 
-void  PBFT_Peer::commitRequest(){
+void PBFT_Peer::commitRequest(){
     PBFT_Message commit = _currentRequest;
     commit.result = _currentRequestResult;
     commit.round = _currentRound;    
@@ -268,14 +277,14 @@ void  PBFT_Peer::commitRequest(){
                     }
                 }
     }
-    if(numberOfByzantineCommits >= faultyPeers()){
-        commit.defeated = true;
-        _ledger.push_back(commit);
-    }else if(!_currentRequest.byzantine){
+    if(numberOfByzantineCommits < faultyPeers() && !_currentRequest.byzantine){
         commit.defeated = false;
         _ledger.push_back(commit);
+    }else if(numberOfByzantineCommits >= faultyPeers()){
+        commit.defeated = true;
+        _ledger.push_back(commit);
     }else{ 
-        viewChange(); 
+        viewChange(_neighbors); 
     }
     _currentPhase = IDEAL; // complete distributed-consensus
     _currentRequestResult = 0;
@@ -283,9 +292,9 @@ void  PBFT_Peer::commitRequest(){
     cleanLogs();
 }
 
-void PBFT_Peer::viewChange(){
+void PBFT_Peer::viewChange(std::map<std::string, Peer<PBFT_Message>* > potentialPrimary){
     _currentView++;
-    _primary = findPrimary(_neighbors);
+    _primary = findPrimary(potentialPrimary);
     PBFT_Message request;
     request = _currentRequest;
     request.view = _currentView;
@@ -501,8 +510,6 @@ std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Request Log"<< std::setw(LOG_WIDTH)<< "Pre-Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Commit Log Size"<< std::setw(LOG_WIDTH)<< "Ledger Size"<<  std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< _requestLog.size()<< std::setw(LOG_WIDTH)<< _prePrepareLog.size()<< std::setw(LOG_WIDTH)<< _prepareLog.size()<< std::setw(LOG_WIDTH)<< _commitLog.size()<< std::setw(LOG_WIDTH)<< _ledger.size()<< std::endl;
-    
-    //out<< "\t"<< std::setw(LOG_WIDTH)<< "inStream Messages"<< std::setw(LOG_WIDTH)<< "outStream Messages"<< std::endl;
     
     return out;
 }

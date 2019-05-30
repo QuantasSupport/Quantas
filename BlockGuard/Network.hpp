@@ -64,14 +64,14 @@ public:
     int                                 avgDelay            ()const                                         {return _avgDelay;};
     int                                 minDelay            ()const                                         {return _minDelay;};
     std::string                         distribution        ()const                                         {return _distribution;};
-    
+
+
     //mutators
     void                                receive             ();
     void                                preformComputation  ();
     void                                transmit            ();
     void                                makeRequest         (int i)                                         {_peers[i]->makeRequest();};
-    
-    void                                shuffleByzantines   (int);
+
     // logging and debugging
     std::ostream&                       printTo             (std::ostream&)const;
     void                                log                 ()const                                         {printTo(*_log);};
@@ -288,35 +288,6 @@ peer_type* Network<type_msg,peer_type>::operator[](int i){
 template<class type_msg, class peer_type>
 const peer_type* Network<type_msg,peer_type>::operator[](int i)const{
     return dynamic_cast<peer_type*>(_peers[i]);
-}
-
-template<class type_msg, class peer_type>
-void Network<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
-    int shuffled = 0;
-    //find list of byzantineFlag peers
-    std::vector<int> byzantineIndex;
-    std::vector<int> nonByzantineIndex;
-
-    for(int i = 0; i<_peers.size();i++){
-        if(_peers[i]->isByzantine()){
-            byzantineIndex.push_back (i);
-        }else if(!_peers[i]->isByzantine()){
-            nonByzantineIndex.push_back (i);
-        }
-    }
-
-    while (shuffled<shuffleCount){
-        //find list of byzantineFlag peers
-        int byzantineShuffleIndex = static_cast<int>(rand() % byzantineIndex.size());
-        int nonByzantineShuffleIndex = static_cast<int>(rand() % nonByzantineIndex.size());
-        _peers[byzantineIndex[byzantineShuffleIndex]]->setByzantineFlag(false);
-        _peers[nonByzantineIndex[nonByzantineShuffleIndex]]->setByzantineFlag(true);
-        byzantineIndex.erase(byzantineIndex.begin ()+byzantineShuffleIndex);
-        nonByzantineIndex.erase(nonByzantineIndex.begin ()+nonByzantineShuffleIndex);
-        shuffled++;
-    }
-
-
 }
 
 #endif /* Network_hpp */

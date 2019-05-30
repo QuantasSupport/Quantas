@@ -16,7 +16,7 @@
 PBFTReferenceCommittee::PBFTReferenceCommittee(){
     _currentRound = 0;
     _groupSize = -1;
-    _peers = Network<PBFT_Message, PBFTPeer_Sharded>();
+    _peers = ByzantineNetwork<PBFT_Message, PBFTPeer_Sharded>();
     _busyGroups = std::vector<int>();
     _freeGroups = std::vector<int>();
     _groupIds = std::vector<int>();

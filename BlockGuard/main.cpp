@@ -100,18 +100,20 @@ int main(int argc, const char * argv[]) {
         if ( log.fail() ){
             std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
         }
-        for(int delay = 1; delay < 10; delay++){
+        for(int delay = 1; delay < 2; delay++){
             csv<< "Delay,"<< std::to_string(delay)<< std::endl;
-            for(int run = 0; run < 2; run++){
+            csv<< "Total Request:,"<<"Max Ledger:,"<<"Total Messages:"<<std::endl;
+
+            for(int run = 0; run < 10; run++){
                 bsg(csv,log,delay);
             }
         }
-        for(int delay = 10; delay < 50; delay = delay + 10){
-            csv<< "Delay,"<< std::to_string(delay);
-            for(int run = 0; run < 2; run++){
-                bsg(csv,log,delay);
-            }
-        }
+        // for(int delay = 10; delay < 50; delay = delay + 10){
+        //     csv<< "Delay,"<< std::to_string(delay);
+        //     for(int run = 0; run < 2; run++){
+        //         bsg(csv,log,delay);
+        //     }
+        // }
         log.close();
         csv.close();
     }else if (algorithm == "bitcoin") {
@@ -123,7 +125,7 @@ int main(int argc, const char * argv[]) {
 }
 
 void Example(std::ofstream &logFile){
-    Network<ExampleMessage,ExamplePeer> system;
+    ByzantineNetwork<ExampleMessage,ExamplePeer> system;
     system.setLog(logFile); // set the system to write log to file logFile
     system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays) 
     system.setMaxDelay(3); // set the max weight an edge can have to 3 (system will now pick randomly between [1, 3])
@@ -142,7 +144,7 @@ void Example(std::ofstream &logFile){
         logFile<< "-- ENDING ROUND "<< i<< " --"<<  std::endl; // log the end of a round
     }
 
-    system = Network<ExampleMessage,ExamplePeer>(); // clear old setup by creating a fresh object
+    system = ByzantineNetwork<ExampleMessage,ExamplePeer>(); // clear old setup by creating a fresh object
     system.setLog(std::cout); // set the system to write log to terminal 
     system.setToRandom(); 
     system.setMaxDelay(10);
@@ -175,7 +177,7 @@ void Example(std::ofstream &logFile){
 }
 
 void PBFT(std::ofstream &out,int delay){
-    Network<PBFT_Message, PBFT_Peer> system;
+    ByzantineNetwork<PBFT_Message, PBFT_Peer> system;
     system.setLog(out);
     system.setToRandom();
     system.setMaxDelay(delay);
@@ -230,8 +232,8 @@ void syncBFT(std::ofstream &out,int maxDelay){
     syncBFT_Peer::leaderId = "";
     syncBFT_Peer::syncBFTsystemState = 0;
 
-    Network<syncBFTmessage, syncBFT_Peer> n;
-    Network<PBFT_Message, PBFT_Peer> system;
+    ByzantineNetwork<syncBFTmessage, syncBFT_Peer> n;
+    ByzantineNetwork<PBFT_Message, PBFT_Peer> system;
 
     n.setMaxDelay(maxDelay);
     n.setToRandom();
@@ -321,7 +323,7 @@ void syncBFT(std::ofstream &out,int maxDelay){
 }
 
 void bitcoin(std::ofstream &out, int avgDelay){
-    Network<bCoinMessage, bCoin_Peer> n;
+    ByzantineNetwork<bCoinMessage, bCoin_Peer> n;
     n.setToPoisson();
     n.setAvgDelay(avgDelay);
     n.setLog(std::cout);
@@ -348,6 +350,8 @@ void bitcoin(std::ofstream &out, int avgDelay){
 
 
 void bsg(std::ofstream &csv, std::ofstream &log,int delay){
+    std::cout<< std::endl<< "########################### bsg ###########################"<< std::endl;
+
     PBFTReferenceCommittee system = PBFTReferenceCommittee();
     system.setGroupSize(8);
     system.setToRandom();
@@ -355,30 +359,36 @@ void bsg(std::ofstream &csv, std::ofstream &log,int delay){
     system.setLog(log);
     system.initNetwork(256);
     system.setFaultTolerance(0.3);
+    system.makeByzantines(ceil(256*0.3));
 
     int numberOfRequests = 0;
     for(int i =0; i < 1000; i++){
-        system.makeRequest();
-        system.makeRequest();
-        system.makeRequest();
-        numberOfRequests++;
+        system.makeRequest();numberOfRequests++;
+        system.makeRequest();numberOfRequests++;
+        system.makeRequest();numberOfRequests++;
+
+         if(i%5 == 0){
+             system.shuffleByzantines(ceil(256*0.3));
+         }
+
         system.receive();
         std::cout<< 'r'<< std::flush;
         system.preformComputation();
         std::cout<< 'p'<< std::flush;  
         system.transmit();
         std::cout<< 't'<< std::flush;
+        system.log();
 
         if(i%100 == 0){
                 int max = system.getGlobalLedger().size();
                 int totalMessages = sumMessagesSentBGS(system);
-                csv<< "Total Request:,"<< numberOfRequests<<",Max Ledger:,"<< max<<",Total Messages:,"<< totalMessages<<std::endl;
+                csv<< numberOfRequests<< ","<< max<<","<< totalMessages<<std::endl;
         }
     }
     int max = system.getGlobalLedger().size();
     int totalMessages = sumMessagesSentBGS(system);
     
-    csv<< "Total Request:,"<< numberOfRequests<<",Max Ledger:,"<< max<<",Total Messages:,"<< totalMessages<<std::endl;
+    csv<< numberOfRequests<< ","<< max<<","<< totalMessages<<std::endl;
 }
 
 //

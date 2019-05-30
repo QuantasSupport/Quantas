@@ -25,6 +25,8 @@ protected:
     bool                                                       _printComitte;
     bool                                                       _printGroup;
 
+    // methods from PBFT peer that need to be adjusted for sharding
+    void                        commitRequest           () override;
     void                        braodcast               (const PBFT_Message&) override; 
     
 public:
@@ -47,6 +49,7 @@ public:
     void                        clearCommittee          ()                                              {_committeeMembers.clear(); _committeeId = -1;}
     void                        clearGroup              ()                                              {_groupMembers.clear(); _groupId = -1;}
     void                        initPrimary             () override                                     {_primary = findPrimary(_committeeMembers);};
+    
     
     // getters
     int                         faultyPeers             ()const override                                {return ceil((_committeeMembers.size() + 1) * _faultUpperBound);};

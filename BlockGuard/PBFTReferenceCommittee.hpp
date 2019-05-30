@@ -13,7 +13,7 @@
 #ifndef PBFTReferenceCommittee_hpp
 #define PBFTReferenceCommittee_hpp
 
-#include "Network.hpp"
+#include "ByzantineNetwork.hpp"
 #include "PBFTPeer_Sharded.hpp"
 #include <iostream>
 #include <random>
@@ -47,7 +47,7 @@ protected:
     int                                                             _nextCommitteeId;
     int                                                             _nextSquenceNumber;
     double                                                          _faultTolerance;
-    Network<PBFT_Message, PBFTPeer_Sharded>                         _peers;
+    ByzantineNetwork<PBFT_Message, PBFTPeer_Sharded>                _peers;
     std::vector<int>                                                _groupIds;
     std::vector<int>                                                _busyGroups;
     std::vector<int>                                                _freeGroups;
@@ -108,7 +108,7 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     void                                queueRequest            (int securityLevel)                     {_requestQueue.push_back(generateRequest(securityLevel));};
     void                                clearQueue              ()                                      {_requestQueue.clear();}  
     
-    // pass-through to Network class
+    // pass-through to ByzantineNetwork class
     void                                receive                 ()                                      {_peers.receive();};
     void                                preformComputation      ()                                      {_peers.preformComputation();updateBusyGroup(); _currentRound++;};
     void                                transmit                ()                                      {_peers.transmit();};
@@ -119,7 +119,12 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     void                                setToOne                ()                                      {_peers.setToOne();};
     void                                setToRandom             ()                                      {_peers.setToRandom();};
     void                                shuffleByzantines       (int n)                                 {_peers.shuffleByzantines(n);};
-    
+    std::vector<PBFTPeer_Sharded*>      getByzantine            ()const                                 {return _peers.getByzantine();};
+    std::vector<PBFTPeer_Sharded*>      getCorrect              ()const                                 {return _peers.getCorrect();};
+    void                                makeByzantines          (int n)                                 {_peers.makeByzantines(n);};
+    void                                makeCorrect             (int n)                                 {_peers.makeCorrect(n);};
+
+
     // logging and debugging
     std::ostream&                       printTo                 (std::ostream&)const;
     void                                log                     ()const                                 {printTo(*_log);};
