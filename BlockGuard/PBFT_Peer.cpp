@@ -10,11 +10,11 @@
 #include "PBFT_Peer.hpp"
 
 PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
-    _requestLog = std::vector<PBFT_Message>();
-    _prePrepareLog = std::vector<PBFT_Message>();
-    _prepareLog = std::vector<PBFT_Message>();
-    _commitLog = std::vector<PBFT_Message>();
-    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::list<PBFT_Message>();
+    _prePrepareLog = std::list<PBFT_Message>();
+    _prepareLog = std::list<PBFT_Message>();
+    _commitLog = std::list<PBFT_Message>();
+    _ledger = std::list<PBFT_Message>();
     
     _faultUpperBound = 0;
     _currentRound = 0;
@@ -27,11 +27,11 @@ PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
 }
 
 PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
-    _requestLog = std::vector<PBFT_Message>();
-    _prePrepareLog = std::vector<PBFT_Message>();
-    _prepareLog = std::vector<PBFT_Message>();
-    _commitLog = std::vector<PBFT_Message>();
-    _ledger = std::vector<PBFT_Message>();
+    _requestLog = std::list<PBFT_Message>();
+    _prePrepareLog = std::list<PBFT_Message>();
+    _prepareLog = std::list<PBFT_Message>();
+    _commitLog = std::list<PBFT_Message>();
+    _ledger = std::list<PBFT_Message>();
     
     _faultUpperBound = fault;
     _currentRound = 0;
@@ -115,35 +115,34 @@ void PBFT_Peer::collectMessages(){
     }
 }
 
-void PBFT_Peer::cleanLogs(){
-    for(int confirmedTransaction = 0; confirmedTransaction < _ledger.size(); confirmedTransaction++){
-        int oldTransaction = _ledger[confirmedTransaction].sequenceNumber;
-        int i = 0;
-        while(i < _prePrepareLog.size()){
-            if(_prePrepareLog[i].sequenceNumber == oldTransaction){
-                _prePrepareLog.erase(_prePrepareLog.begin() + i);
-            }else{
-                i++;
-            }
-        }
-        i = 0;
-        while(i < _prepareLog.size()){
-            if(_prepareLog[i].sequenceNumber == oldTransaction){
-                _prepareLog.erase(_prepareLog.begin() + i);
-            }else{
-                i++;
-            }
-        }
-        i = 0;
-        while(i < _commitLog.size()){
-            if(_commitLog[i].sequenceNumber == oldTransaction){
-                _commitLog.erase(_commitLog.begin() + i);
-            }else{
-                i++;
-            }
+void PBFT_Peer::cleanLogs(int sequenceNumber){
+    int oldTransaction = sequenceNumber;
+    auto entry = _prePrepareLog.begin();
+    while(entry != _prePrepareLog.end()){
+        if(entry->sequenceNumber == oldTransaction){
+            _prePrepareLog.erase(entry++);
+        }else{
+            entry++;
         }
     }
-
+    
+    entry = _prepareLog.begin();
+    while(entry != _prepareLog.end()){
+        if(entry->sequenceNumber == oldTransaction){
+            _prepareLog.erase(entry++);
+        }else{
+            entry++;
+        }
+    }
+    
+    entry = _commitLog.begin();
+    while(entry != _commitLog.end()){
+        if(entry->sequenceNumber == oldTransaction){
+            _commitLog.erase(entry++);
+        }else{
+            entry++;
+        }
+    }
 }
 
 void PBFT_Peer::prePrepare(){
@@ -210,9 +209,9 @@ void PBFT_Peer::waitPrepare(){
     }
     
     int numberOfPrepareMsg = 0;
-    for(int i = 0; i < _prepareLog.size(); i++){
-        if(_prepareLog[i].sequenceNumber == _currentRequest.sequenceNumber
-           && _prepareLog[i].view == _currentView){
+    for(auto entry = _prepareLog.begin(); entry != _prepareLog.end(); entry++){
+        if(entry->sequenceNumber == _currentRequest.sequenceNumber
+           && entry->view == _currentView){
             numberOfPrepareMsg++;
         }
     }
@@ -245,10 +244,10 @@ void PBFT_Peer::waitCommit(){
         return;
     }
     int numberOfCommitMsg = 0;
-    for(int i = 0; i < _commitLog.size(); i++){
-        if(_commitLog[i].sequenceNumber == _currentRequest.sequenceNumber
-           && _commitLog[i].view == _currentView
-           && _commitLog[i].result == _currentRequestResult){
+    for(auto entry = _commitLog.begin(); entry != _commitLog.end(); entry++){
+        if(entry->sequenceNumber == _currentRequest.sequenceNumber
+           && entry->view == _currentView
+           && entry->result == _currentRequestResult){
             
             numberOfCommitMsg++;
         }
@@ -289,7 +288,9 @@ void PBFT_Peer::commitRequest(){
     _currentPhase = IDEAL; // complete distributed-consensus
     _currentRequestResult = 0;
     _currentRequest = PBFT_Message();
-    cleanLogs();
+    for(auto confirmedTransaction = _ledger.begin(); confirmedTransaction != _ledger.end(); confirmedTransaction++){
+        cleanLogs(confirmedTransaction->sequenceNumber);
+    }
 }
 
 void PBFT_Peer::viewChange(std::map<std::string, Peer<PBFT_Message>* > potentialPrimary){
@@ -304,31 +305,7 @@ void PBFT_Peer::viewChange(std::map<std::string, Peer<PBFT_Message>* > potential
         _requestLog.push_back(request);
     }
 
-    int oldTransaction = _currentRequest.sequenceNumber;
-    int i = 0;
-    while(i < _prePrepareLog.size()){
-        if(_prePrepareLog[i].sequenceNumber == oldTransaction){
-            _prePrepareLog.erase(_prePrepareLog.begin() + i);
-        }else{
-            i++;
-        }
-    }
-    i = 0;
-    while(i < _prepareLog.size()){
-        if(_prepareLog[i].sequenceNumber == oldTransaction){
-            _prepareLog.erase(_prepareLog.begin() + i);
-        }else{
-            i++;
-        }
-    }
-    i = 0;
-    while(i < _commitLog.size()){
-        if(_commitLog[i].sequenceNumber == oldTransaction){
-            _commitLog.erase(_commitLog.begin() + i);
-        }else{
-            i++;
-        }
-    }
+    cleanLogs(_currentRequest.sequenceNumber);
 
     _currentRequest = PBFT_Message();
 }

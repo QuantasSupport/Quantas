@@ -73,7 +73,9 @@ void PBFTPeer_Sharded::commitRequest(){
     _currentPhase = IDEAL; // complete distributed-consensus
     _currentRequestResult = 0;
     _currentRequest = PBFT_Message();
-    cleanLogs();
+    for(auto entry = _ledger.begin(); entry != _ledger.end(); entry++){
+        cleanLogs(entry->sequenceNumber);
+    }
 }
 
 std::vector<std::string> PBFTPeer_Sharded::getGroupMembers()const{

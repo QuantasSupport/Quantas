@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <cassert>
+#include <list>
 #include "Peer.hpp"
 
 
@@ -101,11 +102,11 @@ class PBFT_Peer : public Peer<PBFT_Message>{
 protected:
     
     // tracking varables
-    std::vector<PBFT_Message>       _requestLog;
-    std::vector<PBFT_Message>       _prePrepareLog;
-    std::vector<PBFT_Message>       _prepareLog;
-    std::vector<PBFT_Message>       _commitLog;
-    std::vector<PBFT_Message>       _ledger;
+    std::list<PBFT_Message>         _requestLog;
+    std::list<PBFT_Message>         _prePrepareLog;
+    std::list<PBFT_Message>         _prepareLog;
+    std::list<PBFT_Message>         _commitLog;
+    std::list<PBFT_Message>         _ledger;
     
     double                          _faultUpperBound;
     int                             _currentRound; // this is the peers clock
@@ -136,7 +137,7 @@ protected:
     std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
     virtual bool                isVailedRequest     (const PBFT_Message&)const;
     virtual void                braodcast           (const PBFT_Message&);
-    void                        cleanLogs           (); // clears logs for all transactions in _ledger
+    void                        cleanLogs           (int); // clears logs for all transactions in _ledger
     void                        sendRequest         (PBFT_Message); // sends request to leader or adds request to queue if peer is the leader
     
 public:
@@ -146,11 +147,11 @@ public:
     ~PBFT_Peer                                      ()                                              {};
     
     // getters
-    std::vector<PBFT_Message>   getRequestLog       ()const                                         {return _requestLog;};
-    std::vector<PBFT_Message>   getPrePrepareLog    ()const                                         {return _prePrepareLog;};
-    std::vector<PBFT_Message>   getPrepareLog       ()const                                         {return _prepareLog;};
-    std::vector<PBFT_Message>   getCommitLog        ()const                                         {return _commitLog;};
-    std::vector<PBFT_Message>   getLedger           ()const                                         {return _ledger;};
+    std::vector<PBFT_Message>   getRequestLog       ()const                                         {return std::vector<PBFT_Message>{ std::begin(_requestLog), std::end(_requestLog) };};
+    std::vector<PBFT_Message>   getPrePrepareLog    ()const                                         {return std::vector<PBFT_Message>{ std::begin(_prePrepareLog), std::end(_prePrepareLog) };};
+    std::vector<PBFT_Message>   getPrepareLog       ()const                                         {return std::vector<PBFT_Message>{ std::begin(_prepareLog), std::end(_prepareLog) };};
+    std::vector<PBFT_Message>   getCommitLog        ()const                                         {return std::vector<PBFT_Message>{ std::begin(_commitLog), std::end(_commitLog) };};
+    std::vector<PBFT_Message>   getLedger           ()const                                         {return std::vector<PBFT_Message>{ std::begin(_ledger), std::end(_ledger) };};
     std::string                 getPhase            ()const                                         {return _currentPhase;};
     bool                        isPrimary           ()const                                         {return _primary == nullptr ? false : _id == _primary->id();};
     virtual int                 faultyPeers         ()const                                         {return ceil((_neighbors.size() + 1) * _faultUpperBound);};
