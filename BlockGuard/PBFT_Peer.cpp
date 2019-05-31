@@ -195,7 +195,7 @@ void PBFT_Peer::prepare(){
     prepareMsg.creator_id = _id;
     prepareMsg.view = _currentView;
     prepareMsg.type = REPLY;
-    prepareMsg.round = _currentRound;
+    prepareMsg.commit_round = _currentRound;
     prepareMsg.phase = PREPARE;
     prepareMsg.byzantine = _byzantine;
     _prepareLog.push_back(prepareMsg);
@@ -233,7 +233,7 @@ void PBFT_Peer::commit(){
     commitMsg.creator_id = _id;
     commitMsg.type = REPLY;
     commitMsg.result = _currentRequestResult;
-    commitMsg.round = _currentRound;
+    commitMsg.commit_round = _currentRound;
     commitMsg.byzantine = _byzantine;
     _commitLog.push_back(commitMsg);
     braodcast(commitMsg);
@@ -262,7 +262,7 @@ void PBFT_Peer::waitCommit(){
 void PBFT_Peer::commitRequest(){
     PBFT_Message commit = _currentRequest;
     commit.result = _currentRequestResult;
-    commit.round = _currentRound;    
+    commit.commit_round = _currentRound;    
     // count the number of byzantine commits 
     // >= 1/3 then we will commit a defeated transaction
     // < 1/3 and an honest primary will commit
@@ -394,13 +394,13 @@ void PBFT_Peer::preformComputation(){
     if(_primary == nullptr){
         _primary = findPrimary(_neighbors);
     }
+    _currentRound++;
     collectMessages(); // sorts messages into there repective logs
     prePrepare();
     prepare();
     waitPrepare();
     commit();
     waitCommit();
-    _currentRound++;
 }
 
 void PBFT_Peer::makeRequest(){
@@ -428,7 +428,7 @@ void PBFT_Peer::makeRequest(){
     request.operands.first = (rand()%100)+1;
     request.operands.second = (rand()%100)+1;
     
-    request.round = _currentRound;
+    request.commit_round = _currentRound;
     request.phase = IDEAL;
     request.sequenceNumber = -1;
     request.result = 0;
@@ -477,7 +477,7 @@ void PBFT_Peer::makeRequest(int squenceNumber){
     request.operands.first = (rand()%100)+1;
     request.operands.second = (rand()%100)+1;
     
-    request.round = _currentRound;
+    request.commit_round = _currentRound;
     request.phase = IDEAL;
     request.sequenceNumber = squenceNumber;
     request.result = 0;

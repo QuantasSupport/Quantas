@@ -14,6 +14,7 @@
 #include "PBFTReferenceCommittee.hpp"
 
 PBFTReferenceCommittee::PBFTReferenceCommittee(){
+    _totalTransactionsSubmitted = 0;
     _currentRound = 0;
     _groupSize = -1;
     _peers = ByzantineNetwork<PBFT_Message, PBFTPeer_Sharded>();
@@ -33,6 +34,11 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(){
 }
 
 PBFTReferenceCommittee::PBFTReferenceCommittee(const PBFTReferenceCommittee &rhs){
+    _securityLevel5 = rhs._securityLevel5;
+    _securityLevel4 = rhs._securityLevel4;
+    _securityLevel3 = rhs._securityLevel3;
+    _securityLevel2 = rhs._securityLevel2;
+    _securityLevel1 = rhs._securityLevel1;
     _currentRound = rhs._currentRound;
     _groupSize = rhs._groupSize;
     _peers = rhs._peers;
@@ -46,6 +52,7 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(const PBFTReferenceCommittee &rhs
     _faultTolerance = rhs._faultTolerance;
     _currentCommittees = rhs._currentCommittees;
     _log = rhs._log;
+    _totalTransactionsSubmitted = rhs._totalTransactionsSubmitted;
     
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
@@ -341,6 +348,11 @@ void PBFTReferenceCommittee::setMinSecurityLevel(int min){
 }
 
 PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCommittee &rhs){
+    _securityLevel5 = rhs._securityLevel5;
+    _securityLevel4 = rhs._securityLevel4;
+    _securityLevel3 = rhs._securityLevel3;
+    _securityLevel2 = rhs._securityLevel2;
+    _securityLevel1 = rhs._securityLevel1;
     _currentRound = rhs._currentRound;
     _groupSize = rhs._groupSize;
     _peers = rhs._peers;
@@ -354,6 +366,7 @@ PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCom
     _faultTolerance = rhs._faultTolerance;
     _currentCommittees = rhs._currentCommittees;
     _log = rhs._log;
+    _totalTransactionsSubmitted = rhs._totalTransactionsSubmitted;
 
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
@@ -372,4 +385,9 @@ std::ostream& PBFTReferenceCommittee::printTo(std::ostream& out)const{
     _peers.printTo(out);
     
     return out;
+}
+
+// "Total Request:,Max Ledger:,Ratio Honest To Defeated,Average Waiting Time 1,Average Waiting Time 2,Average Waiting Time 3 ,Average Waiting Time 4,Average Waiting Time 5\n"
+void calculateResults(const std::vector<std::pair<PBFT_Message,int> > globalLedger){
+    
 }

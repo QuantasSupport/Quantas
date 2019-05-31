@@ -42,7 +42,7 @@ void PBFTPeer_Sharded::braodcast(const PBFT_Message &msg){
 void PBFTPeer_Sharded::commitRequest(){
     PBFT_Message commit = _currentRequest;
     commit.result = _currentRequestResult;
-    commit.round = _currentRound;
+    commit.commit_round = _currentRound;
     // count the number of byzantine commits 
     // >= 1/3 then we will commit a defeated transaction
     // < 1/3 and an honest primary will commit
@@ -96,13 +96,13 @@ void PBFTPeer_Sharded::preformComputation(){
     if(_primary == nullptr){
         _primary = findPrimary(_committeeMembers);
     }
+    _currentRound++;
     collectMessages(); // sorts messages into there repective logs
     prePrepare();
     prepare();
     waitPrepare();
     commit();
     waitCommit();
-    _currentRound++;
 }
 
 PBFTPeer_Sharded& PBFTPeer_Sharded::operator= (const PBFTPeer_Sharded &rhs){

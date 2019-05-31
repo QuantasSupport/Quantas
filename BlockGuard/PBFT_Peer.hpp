@@ -52,7 +52,7 @@ struct PBFT_Message{
     char                operation;
     std::pair<int,int>  operands;
     int                 result;
-    int                 round; // used instead of timestamp
+    int                 commit_round; // used instead of timestamp
 
     //////////////////////////////////////////
     // phases info
@@ -72,7 +72,7 @@ struct PBFT_Message{
         type            = "";
         operation       = ' ';
         result          = -1;
-        round           = -1;
+        commit_round           = -1;
         phase           = "";
         sequenceNumber  = -1;
         byzantine       = false;

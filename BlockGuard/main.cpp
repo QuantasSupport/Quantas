@@ -28,18 +28,24 @@ const int blockChainLength = 100;
 Blockchain *blockchain;
 int shuffleByzantineInterval = 0;
 int syncBFT_Peer::peerCount = 3;
+const static std::string s_pbft_header = "Total Request:,Max Ledger:,Ratio Defeated To Honest 1,Ratio Defeated To Honest 2,Ratio Defeated To Honest 3,Ratio Defeated To Honest 4,Ratio Defeated To Honest 5,Average Waiting Time 1,Average Waiting Time 2,Average Waiting Time 3 ,Average Waiting Time 4,Average Waiting Time 5, total honest 1, total honest 2, total honest 3, total honest 4, total honest 5, total defeated 1, total defeated 2, total defeated 3, total defeated 4, total defeated 5\n";
 
 // util functions
 void buildInitialChain(std::vector<std::string>);
 std::set<std::string> getPeersForConsensus(int);
 int getNumberOfConfimedTransactionsBGS_PBFT(const std::vector<PBFTPeer_Sharded>&);
 int sumMessagesSentBGS(const PBFTReferenceCommittee&);
+void calculateResults(const PBFTReferenceCommittee system,std::ofstream &csv);
+double ratioOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
+double waitTimeOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
+int totalNumberOfDefeatedCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
+int totalNumberOfCorrectCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
 
 void Example(std::ofstream &logFile);
 void PBFT(std::ofstream &out,int);
 void syncBFT(std::ofstream &,int );
 void bitcoin(std::ofstream &,int );
-void PBFT_Sharded(std::ofstream &csv, std::ofstream &log,int);
+void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int,double);
 
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
@@ -100,20 +106,31 @@ int main(int argc, const char * argv[]) {
         if ( log.fail() ){
             std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
         }
-        for(int delay = 1; delay < 2; delay++){
+            //ceil(256*0.3)
+        for(int delay = 1; delay < 10; delay++){
             csv<< "Delay,"<< std::to_string(delay)<< std::endl;
-            csv<< "Total Request:,"<<"Max Ledger:,"<<"Total Messages:"<<std::endl;
-
-            for(int run = 0; run < 10; run++){
-                PBFT_Sharded(csv,log,delay);
+            csv<< s_pbft_header;
+            double fault = 0.0;
+            while(ceil(256*fault) != 256){
+                csv<< "fault,"<< std::to_string(fault)<< std::endl;
+                for(int run = 0; run < 2; run++){
+                    Sharded_PBFT(csv,log,delay,fault);
+                }
+                fault += 0.1;
             }
         }
-        // for(int delay = 10; delay < 50; delay = delay + 10){
-        //     csv<< "Delay,"<< std::to_string(delay);
-        //     for(int run = 0; run < 2; run++){
-        //         bsg(csv,log,delay);
-        //     }
-        // }
+//        for(int delay = 10; delay < 50; delay = delay + 10){
+//             csv<< "Delay,"<< std::to_string(delay);
+//             csv<< s_pbft_header;
+//             double fault = 0.0;
+//             while(ceil(256*fault) != 256){
+//                 csv<< "fault,"<< std::to_string(fault)<< std::endl;
+//                 for(int run = 0; run < 2; run++){
+//                     Sharded_PBFT(csv,log,delay,fault);
+//                 }
+//                 fault += 0.1;
+//             }
+//         }
         log.close();
         csv.close();
     }else if (algorithm == "bitcoin") {
@@ -349,9 +366,9 @@ void bitcoin(std::ofstream &out, int avgDelay){
 }
 
 
-void PBFT_Sharded(std::ofstream &csv, std::ofstream &log,int delay){
-    std::cout<< std::endl<< "########################### bsg ###########################"<< std::endl;
-
+void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault){
+    std::cout<< std::endl<< "########################### PBFT_Sharded ###########################"<< std::endl;
+    csv<< ""<< std::endl;
     PBFTReferenceCommittee system = PBFTReferenceCommittee();
     system.setGroupSize(8);
     system.setToRandom();
@@ -359,7 +376,7 @@ void PBFT_Sharded(std::ofstream &csv, std::ofstream &log,int delay){
     system.setLog(log);
     system.initNetwork(256);
     system.setFaultTolerance(0.3);
-    system.makeByzantines(ceil(256*0.3));
+    system.makeByzantines(fault);
 
     int numberOfRequests = 0;
     for(int i =0; i < 1000; i++){
@@ -380,15 +397,10 @@ void PBFT_Sharded(std::ofstream &csv, std::ofstream &log,int delay){
         system.log();
 
         if(i%100 == 0){
-                int max = system.getGlobalLedger().size();
-                int totalMessages = sumMessagesSentBGS(system);
-                csv<< numberOfRequests<< ","<< max<<","<< totalMessages<<std::endl;
+            calculateResults(system,csv);
         }
     }
-    int max = system.getGlobalLedger().size();
-    int totalMessages = sumMessagesSentBGS(system);
-    
-    csv<< numberOfRequests<< ","<< max<<","<< totalMessages<<std::endl;
+    calculateResults(system,csv);
 }
 
 //
@@ -452,4 +464,97 @@ int sumMessagesSentBGS(const PBFTReferenceCommittee &system){
         sum += system[i]->getMessageCount();
     }
     return sum;
+}
+
+double ratioOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl){
+    double honest = 0;
+    double defeated = 0;
+    for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
+        if(entry->second == secLvl){
+            if(entry->first.defeated){
+                defeated++;
+            }else{
+                honest++;
+            }
+        }
+    }
+    if(honest == 0 && defeated == 0){
+        return 0;
+    }else if(honest == 0){
+        return 1;
+    }else{
+        return defeated/honest;
+    }
+}
+
+double waitTimeOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl){
+    double sumOfWaitingTime = 0;
+    double totalNumberOfTrnasactions = 0;
+    for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
+        if(entry->second == secLvl){
+            sumOfWaitingTime += entry->first.commit_round - entry->first.submission_round;
+            totalNumberOfTrnasactions++;
+        }
+    }
+    if(totalNumberOfTrnasactions == 0){
+        return 0;
+    }else{
+        return sumOfWaitingTime/totalNumberOfTrnasactions;
+    }
+}
+
+int totalNumberOfDefeatedCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl){
+    int total = 0;
+    for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
+        if(entry->second == secLvl){
+            if(entry->first.defeated){
+                total++;
+            }
+        }
+    }
+    return total;
+}
+
+int totalNumberOfCorrectCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl){
+    int total = 0;
+    for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
+        if(entry->second == secLvl){
+            if(!entry->first.defeated){
+                total++;
+            }
+        }
+    }
+    return total;
+}
+
+//"Total Request:,Max Ledger:,Ratio Defeated To Honest 1,Ratio Defeated To Honest 2,Ratio Defeated To Honest 3,Ratio Defeated To Honest 4,Ratio Defeated To Honest 5,Average Waiting Time 1,Average Waiting Time 2,Average Waiting Time 3 ,Average Waiting Time 4,Average Waiting Time 5, total honest 1, total honest 2, total honest 3, total honest 4, total honest 5, total defeated 1, total defeated 2, total defeated 3, total defeated 4, total defeated 5\n"
+void calculateResults(const PBFTReferenceCommittee system, std::ofstream &csv){
+    std::vector<std::pair<PBFT_Message,int> > globalLedger = system.getGlobalLedger();
+    csv<<std::to_string(system.totalSubmissions());
+    csv<< ","<< std::to_string(globalLedger.size());
+    csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel1()*system.getGroupSize()));
+    csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel2()*system.getGroupSize()));
+    csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel3()*system.getGroupSize()));
+    csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel4()*system.getGroupSize()));
+    csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel5()*system.getGroupSize()));
+    
+    csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel1()*system.getGroupSize()));
+    csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel2()*system.getGroupSize()));
+    csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel3()*system.getGroupSize()));
+    csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel4()*system.getGroupSize()));
+    csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel5()*system.getGroupSize()));
+    
+    csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel1()*system.getGroupSize()));
+    csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel2()*system.getGroupSize()));
+    csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel3()*system.getGroupSize()));
+    csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel4()*system.getGroupSize()));
+    csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel5()*system.getGroupSize()));
+    
+    csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel1()*system.getGroupSize()));
+    csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel2()*system.getGroupSize()));
+    csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel3()*system.getGroupSize()));
+    csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel4()*system.getGroupSize()));
+    csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel5()*system.getGroupSize()));
+    csv<< std::endl;
+    
 }

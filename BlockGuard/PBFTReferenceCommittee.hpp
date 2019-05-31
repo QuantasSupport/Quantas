@@ -56,6 +56,7 @@ protected:
     std::map<int,aGroup>                                            _groups;
 
     // logging, metrics and untils
+    int                                                             _totalTransactionsSubmitted;
     std::ostream                                                    *_log;
     std::default_random_engine                                      _randomGenerator;
     std::vector<int>                                                _currentCommittees;
@@ -90,7 +91,8 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     double                              securityLevel3          ()const                                 {return _securityLevel3;}
     double                              securityLevel2          ()const                                 {return _securityLevel2;}
     double                              securityLevel1          ()const                                 {return _securityLevel1;}
-
+    int                                 totalSubmissions        ()const                                 {return _totalTransactionsSubmitted;};
+    
     aGroup                              getGroup                (int);
     std::vector<int>                    getGroupIds             ()const                                 {return _groupIds;};
     std::vector<PBFTPeer_Sharded>       getPeers                ()const;
@@ -105,8 +107,8 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     void                                serveRequest            ();
     void                                makeRequest             ()                                      {queueRequest();serveRequest();};
     void                                makeRequest             (int securityLevel)                     {queueRequest(securityLevel);serveRequest();};
-    void                                queueRequest            ()                                      {_requestQueue.push_back(generateRequest());}; 
-    void                                queueRequest            (int securityLevel)                     {_requestQueue.push_back(generateRequest(securityLevel));};
+    void                                queueRequest            ()                                      {_requestQueue.push_back(generateRequest()); _totalTransactionsSubmitted++;};
+    void                                queueRequest            (int securityLevel)                     {_requestQueue.push_back(generateRequest(securityLevel)); _totalTransactionsSubmitted++;};
     void                                clearQueue              ()                                      {_requestQueue.clear();}  
     void                                setMaxSecurityLevel     (int); // used to fix max security as number of groups for debugging
     void                                setMinSecurityLevel     (int); // used to fix min security as number of groups for debugging

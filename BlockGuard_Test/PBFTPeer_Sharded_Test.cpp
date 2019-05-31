@@ -735,7 +735,7 @@ void oneRequestOneCommittee(std::ostream &log){
     assert(a.getLedger().size()                     == 1);
     assert(a.getLedger()[0].sequenceNumber          == 1);
     assert(a.getLedger()[0].type                    == REPLY);
-    assert(a.getLedger()[0].round                   == 3);
+    assert(a.getLedger()[0].commit_round                   == 3);
     assert(a.getLedger()[0].client_id               == "A");
     
     assert(b.getRequestLog().size()                 == 0);
@@ -745,7 +745,7 @@ void oneRequestOneCommittee(std::ostream &log){
     assert(b.getLedger().size()                     == 1);
     assert(b.getLedger()[0].sequenceNumber          == 1);
     assert(b.getLedger()[0].type                    == REPLY);
-    assert(b.getLedger()[0].round                   == 3);
+    assert(b.getLedger()[0].commit_round                   == 3);
     assert(b.getLedger()[0].client_id               == "A");
     
     assert(c.getRequestLog().size()                 == 0);
@@ -755,7 +755,7 @@ void oneRequestOneCommittee(std::ostream &log){
     assert(c.getLedger().size()                     == 1);
     assert(c.getLedger()[0].sequenceNumber          == 1);
     assert(c.getLedger()[0].type                    == REPLY);
-    assert(c.getLedger()[0].round                   == 3);
+    assert(c.getLedger()[0].commit_round                   == 3);
     assert(c.getLedger()[0].client_id               == "A");
     
     assert(a.getPhase()                             == IDEAL);
@@ -905,7 +905,7 @@ void oneRequestMultiCommittee(std::ostream &log){
     assert(a.getLedger().size()                     == 1);
     assert(a.getLedger()[0].sequenceNumber          == 1);
     assert(a.getLedger()[0].type                    == REPLY);
-    assert(a.getLedger()[0].round                   == 3);
+    assert(a.getLedger()[0].commit_round                   == 3);
     assert(a.getLedger()[0].client_id               == "A");
     
     assert(b.getRequestLog().size()                 == 0);
@@ -915,7 +915,7 @@ void oneRequestMultiCommittee(std::ostream &log){
     assert(b.getLedger().size()                     == 1);
     assert(b.getLedger()[0].sequenceNumber          == 1);
     assert(b.getLedger()[0].type                    == REPLY);
-    assert(b.getLedger()[0].round                   == 3);
+    assert(b.getLedger()[0].commit_round                   == 3);
     assert(b.getLedger()[0].client_id               == "A");
     
     assert(c.getRequestLog().size()                 == 0);
@@ -925,7 +925,7 @@ void oneRequestMultiCommittee(std::ostream &log){
     assert(c.getLedger().size()                     == 1);
     assert(c.getLedger()[0].sequenceNumber          == 1);
     assert(c.getLedger()[0].type                    == REPLY);
-    assert(c.getLedger()[0].round                   == 3);
+    assert(c.getLedger()[0].commit_round                   == 3);
     assert(c.getLedger()[0].client_id               == "A");
     
     assert(d.getRequestLog().size()                 == 0);
@@ -1570,9 +1570,9 @@ void waitingTimeSharded(std::ostream &log){
     assert(b.getLedger()[0].submission_round    == 0);
     assert(c.getLedger()[0].submission_round    == 0);
     
-    assert(a.getLedger()[0].round               == 3); // rounds start from 0
-    assert(b.getLedger()[0].round               == 3);
-    assert(c.getLedger()[0].round               == 3);
+    assert(a.getLedger()[0].commit_round               == 3); // rounds start from 0
+    assert(b.getLedger()[0].commit_round               == 3);
+    assert(c.getLedger()[0].commit_round               == 3);
     
     ////////////////////////////////////////////////////////
     // with view change
@@ -1643,9 +1643,9 @@ void waitingTimeSharded(std::ostream &log){
     assert(b.getLedger()[0].submission_round    == 0);
     assert(c.getLedger()[0].submission_round    == 0);
     
-    assert(a.getLedger()[0].round               == 7);
-    assert(b.getLedger()[0].round               == 7);
-    assert(c.getLedger()[0].round               == 7);
+    assert(a.getLedger()[0].commit_round               == 7);
+    assert(b.getLedger()[0].commit_round               == 7);
+    assert(c.getLedger()[0].commit_round               == 7);
     
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"waitingTime Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
