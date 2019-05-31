@@ -110,7 +110,7 @@ int main(int argc, const char * argv[]) {
         for(int delay = 1; delay < 10; delay++){
             csv<< "Delay,"<< std::to_string(delay)<< std::endl;
             csv<< s_pbft_header;
-            double fault = 0.0;
+            double fault = 0.1;
             while(ceil(256*fault) != 256){
                 csv<< "fault,"<< std::to_string(fault)<< std::endl;
                 for(int run = 0; run < 2; run++){
@@ -376,7 +376,7 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
     system.setLog(log);
     system.initNetwork(256);
     system.setFaultTolerance(0.3);
-    system.makeByzantines(fault);
+    system.makeByzantines(256*fault);
 
     int numberOfRequests = 0;
     for(int i =0; i < 1000; i++){
@@ -385,7 +385,7 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
         system.makeRequest();numberOfRequests++;
 
          if(i%5 == 0){
-             system.shuffleByzantines(ceil(256*0.3));
+             system.shuffleByzantines(256*fault);
          }
 
         system.receive();

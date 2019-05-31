@@ -30,11 +30,11 @@ PBFTReferenceCommittee:
 	clang++ -std=c++14 BlockGuard/PBFTReferenceCommittee.cpp -c --debug -o ./BlockGuard_Test/PBFTReferenceCommittee.o
 
 collect:
-	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results1 ~/Desktop/
-	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results2 ~/Desktop/
-	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results3 ~/Desktop/
-	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results4 ~/Desktop/
-	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results5 ~/Desktop/
-	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results6 ~/Desktop/
-	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results7 ~/Desktop/
-	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results8 ~/Desktop/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results1/*.csv /Users/kendrichood/Desktop/pbft_s/results1/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results2/*.csv /Users/kendrichood/Desktop/pbft_s/results2/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results3/*.csv /Users/kendrichood/Desktop/pbft_s/results3/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results4/*.csv /Users/kendrichood/Desktop/pbft_s/results4/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results5/*.csv /Users/kendrichood/Desktop/pbft_s/results5/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results6/*.csv /Users/kendrichood/Desktop/pbft_s/results6/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results7/*.csv /Users/kendrichood/Desktop/pbft_s/results7/
+	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results8/*.csv /Users/kendrichood/Desktop/pbft_s/results8/
