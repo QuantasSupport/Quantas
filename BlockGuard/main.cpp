@@ -152,11 +152,11 @@ void Example(std::ofstream &logFile){
        logFile<< "-- STARTING ROUND "<< i<< " --"<<  std::endl; // write in the log when the round started
 
         system.receive(); // do the receive phase of the round 
-        system.log(); // log the system state
+        //system.log(); // log the system state
         system.preformComputation();  // do the preform computation phase of the round 
-        system.log();
+        //system.log();
         system.transmit(); // do the transmit phase of the round 
-        system.log();
+        //system.log();
 
         logFile<< "-- ENDING ROUND "<< i<< " --"<<  std::endl; // log the end of a round
     }
@@ -394,10 +394,11 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
         std::cout<< 'p'<< std::flush;  
         system.transmit();
         std::cout<< 't'<< std::flush;
-        system.log();
+        //system.log();
 
         if(i%100 == 0){
             calculateResults(system,csv);
+            system.log();
         }
     }
     calculateResults(system,csv);
