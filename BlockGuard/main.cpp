@@ -398,7 +398,7 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
 
         if(i%100 == 0){
             calculateResults(system,csv);
-            system.log();
+            //system.log();
         }
     }
     calculateResults(system,csv);
