@@ -279,6 +279,76 @@ void testByzantineShuffle(std::ostream &log){
             assert((*peer)->getCounter()    == i);
         }
     }
+    
+    ////////////////////
+    // test shuffling peers with a 50/50 slpit of byzantine vs correct
+    //
+    
+    bNetwork = ByzantineNetwork<ExampleMessage, ExamplePeer>();
+    bNetwork.initNetwork(PEERS);
+    bNetwork.makeByzantines(PEERS*0.5);
+    
+    for(int i = 0; i < 100; i++){
+        bNetwork.shuffleByzantines(PEERS*0.5);
+        int correct = 0;
+        int byzantine = 0;
+        for(int p = 0; p < bNetwork.size(); p++){
+            if(bNetwork[p]->isByzantine()){
+                byzantine++;
+            }else{
+                correct++;
+            }
+        }
+        assert(correct      == PEERS*0.5);
+        assert(byzantine    == PEERS*0.5);
+    }
 
+    ////////////////////
+    // test shuffling peers with a more byzantine then correct
+    //
+    
+    bNetwork = ByzantineNetwork<ExampleMessage, ExamplePeer>();
+    bNetwork.initNetwork(PEERS);
+    bNetwork.makeByzantines(PEERS*0.9);
+    
+    for(int i = 0; i < 100; i++){
+        bNetwork.shuffleByzantines(PEERS*0.9);
+        int correct = 0;
+        int byzantine = 0;
+        for(int p = 0; p < bNetwork.size(); p++){
+            if(bNetwork[p]->isByzantine()){
+                byzantine++;
+            }else{
+                correct++;
+            }
+        }
+        assert(correct      == PEERS*0.1);
+        assert(byzantine    == PEERS*0.9);
+    }
+    
+    ////////////////////
+    // test shuffling peers with more correct then byzantine
+    //
+    
+    bNetwork = ByzantineNetwork<ExampleMessage, ExamplePeer>();
+    bNetwork.initNetwork(PEERS);
+    bNetwork.makeByzantines(PEERS*0.1);
+    
+    for(int i = 0; i < 100; i++){
+        bNetwork.shuffleByzantines(PEERS*0.1);
+        int correct = 0;
+        int byzantine = 0;
+        for(int p = 0; p < bNetwork.size(); p++){
+            if(bNetwork[p]->isByzantine()){
+                byzantine++;
+            }else{
+                correct++;
+            }
+        }
+        assert(correct      == PEERS*0.9);
+        assert(byzantine    == PEERS*0.1);
+    }
+    
+    
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineShuffle correct"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }

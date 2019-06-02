@@ -20,7 +20,7 @@ protected:
 
     // logging
     std::ostream                                                    *_log;
-
+    
 public:
     ByzantineNetwork                    ();
     ByzantineNetwork                    (const ByzantineNetwork<type_msg,peer_type>&);
@@ -163,12 +163,12 @@ void ByzantineNetwork<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
     if(_numberOfByzantines == 0 || _numberOfCorrect == 0){
         return;
     }
-
+    
     int shuffled = 0;
     //find list of byzantineFlag peers
     std::vector<int> byzantineIndex;
     std::vector<int> nonByzantineIndex;
-
+    
     for(int i = 0; i < Network<type_msg,peer_type>::_peers.size(); i++){
         if(Network<type_msg,peer_type>::_peers[i]->isByzantine()){
             byzantineIndex.push_back (i);
@@ -176,17 +176,19 @@ void ByzantineNetwork<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
             nonByzantineIndex.push_back (i);
         }
     }
-
+    
     // if there are no byzantine peers just return
     if(byzantineIndex.empty()){
         return;
     }
     
-    // if shuffleCount is higher then the current number of byzantine peers we just shuffle the ones we have
+    // if correct to Byzantine is not a 50/50 split we need to shufle only the lower number
     if(_numberOfByzantines < shuffleCount){
         shuffleCount = _numberOfByzantines;
+    }else if(_numberOfCorrect < shuffleCount){
+        shuffleCount = _numberOfCorrect;
     }
-    
+
     while (shuffled<shuffleCount){
         //find list of byzantineFlag peers
         int byzantineShuffleIndex = static_cast<int>(rand() % byzantineIndex.size());
