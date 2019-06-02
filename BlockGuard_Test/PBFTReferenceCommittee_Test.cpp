@@ -872,7 +872,8 @@ void testShuffle(std::ostream &log){
                         correct++;
                     }
                 }else{
-                    // is not a primary so we dont care
+                    // is not a primary so we make it honest to prevent defeated transactions (need to make this predictable)
+                    (*peer)->makeCorrect();
                 }
             }
         }
@@ -882,7 +883,7 @@ void testShuffle(std::ostream &log){
         refCom.preformComputation();
         refCom.transmit();
     }
-
+    
     assert(refCom.getGlobalLedger().size()      == numberOfRequests - byzantine); // make sure all committees with non-Byzantine leader commited
     assert(refCom.getCurrentCommittees().size() == numberOfRequests - refCom.getGlobalLedger().size()); // make sure the committees that did not commit and are view changeing are still alive
     

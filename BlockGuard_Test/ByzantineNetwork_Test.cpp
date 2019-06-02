@@ -349,6 +349,52 @@ void testByzantineShuffle(std::ostream &log){
         assert(byzantine    == PEERS*0.1);
     }
     
+    ////////////////////
+    // test trying to shuffling more byzantine peers then there are
+    //
+    
+    bNetwork = ByzantineNetwork<ExampleMessage, ExamplePeer>();
+    bNetwork.initNetwork(PEERS);
+    bNetwork.makeByzantines(PEERS*0.1);
+    
+    for(int i = 0; i < 100; i++){
+        bNetwork.shuffleByzantines(PEERS);
+        int correct = 0;
+        int byzantine = 0;
+        for(int p = 0; p < bNetwork.size(); p++){
+            if(bNetwork[p]->isByzantine()){
+                byzantine++;
+            }else{
+                correct++;
+            }
+        }
+        assert(correct      == PEERS*0.9);
+        assert(byzantine    == PEERS*0.1);
+    }
+    
+    ////////////////////
+    // test trying to shuffling with no Byzantine peers
+    //
+    
+    bNetwork = ByzantineNetwork<ExampleMessage, ExamplePeer>();
+    bNetwork.initNetwork(PEERS);
+    
+    for(int i = 0; i < 100; i++){
+        bNetwork.shuffleByzantines(PEERS);
+        int correct = 0;
+        int byzantine = 0;
+        for(int p = 0; p < bNetwork.size(); p++){
+            if(bNetwork[p]->isByzantine()){
+                byzantine++;
+            }else{
+                correct++;
+            }
+        }
+        assert(correct      == PEERS);
+        assert(byzantine    == 0);
+    }
+    
+    
     
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineShuffle correct"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
