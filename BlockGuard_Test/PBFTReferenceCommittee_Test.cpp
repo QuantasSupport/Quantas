@@ -10,8 +10,8 @@
 
 //////////////////////////////////////////////////////////////////////
 // this is the standard set up for number of peers, group size and fault tolerance 
-static const int    GROUP_SIZE  = 8; // 32 groups for 256 peers
-static const int    PEERS       = 256; 
+static const int    GROUP_SIZE  = 4; // 32 groups for 256 peers
+static const int    PEERS       = 128;
 static const double FAULT       = 0.3;
 
 
@@ -21,13 +21,14 @@ void RunPBFTRefComTest (std::string filepath){
     if (log.fail() ){
         std::cerr << "Error: could not open file at: "<< filepath << std::endl;
     }
-    testInit(log);
-    testRefComGroups(log);
-    testRefComCommittee(log);
-    testGlobalLedger(log);
-    testSimultaneousRequest(log);
-    testByzantineConfirmationRate(log);
-    testShuffle(log);
+//    testInit(log);
+//    testRefComGroups(log);
+//    testRefComCommittee(log);
+//    testGlobalLedger(log);
+//    testSimultaneousRequest(log);
+//    testByzantineConfirmationRate(log);
+//    testShuffle(log);
+    testByzantineVsDelay(log);
 }
 
 void testInit(std::ostream &log){
@@ -459,6 +460,7 @@ void testRefComCommittee (std::ostream &log){
 
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testRefComCommittee complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
+
 void testGlobalLedger(std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testGlobalLedger"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
     ///////////////////////////////////////////////////
@@ -567,6 +569,7 @@ void testGlobalLedger(std::ostream &log){
         refCom.transmit();
     }
 
+    // range becouse this uses the geometric distribution
     assert(refCom.getGlobalLedger().size() >= 26); // min number of transactions confirmed should be 26
     assert(refCom.getGlobalLedger().size() <= 106); // max number of transactions confirmed should be 106
 
@@ -818,108 +821,402 @@ void testShuffle(std::ostream &log){
         assert(refCom.getCorrect().size()       == correct);
     }
 
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineShuffle Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+}
+
+void testByzantineVsDelay(std::ostream &log){
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineVsDelay"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    /////////////////////////////////////////////
+    // Delay 1
+    //
+    
+    int Delay = 1;
+    PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(Delay);
+    refCom.setToRandom();
+    refCom.setGroupSize(2);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(64);
+    refCom.makeByzantines(64*0.25); // make 25% of the peers Byzantine
+    refCom.log();
+
+    
     // number of groups by 1/2 becouse a committee needs at least two groups
     // this should make the make be the nunmber of groups the system can have at one time
     int numberOfRequests = refCom.getGroupIds().size()/2;
     for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
         refCom.makeRequest(refCom.securityLevel1());
     }
-
-    // now count Byzantine primarys (this will be then number of view changes)
-    byzantine = 0;
-    correct = 0;
-    std::vector<int> ids = refCom.getCurrentCommittees();
-    for(auto id = ids.begin(); id != ids.end(); id++){
-        std::vector<aGroup> groupsInCom = refCom.getCommittee(*id);
-        for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
-            for(auto peer = group->begin(); peer != group->end(); peer++ ){
-                if((*peer)->isPrimary()){
-                    if((*peer)->isByzantine()){
-                        byzantine++;
-                    }else{
-                        correct++;
-                    }
-                }else{
-                    // is not a primary so we make it honest to prevent defeated transactions (need to make this predictable)
-                    (*peer)->makeCorrect();
-                }
-            }
-        }
-    }
-
-    for(int i = 0; i < 5; i++){
+    
+    // 5 phases for PBFT * whatever the delay is * the total number of byz peers (max number of view changes)
+    int maxRoundsToConfirmTrans = (5*Delay)*(64*0.25);
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
         refCom.receive();
         refCom.preformComputation();
         refCom.transmit();
+        refCom.log();
     }
     
-    assert(refCom.getGlobalLedger().size()      == numberOfRequests - byzantine); // make sure all committees with non-Byzantine leader commited
-    assert(refCom.getCurrentCommittees().size() == numberOfRequests - refCom.getGlobalLedger().size()); // make sure the committees that did not commit and are view changeing are still alive
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
     
-    refCom.shuffleByzantines(refCom.getByzantine().size());
-    // recount Byzantine primarys (this will be the number of view changes)
-    byzantine = 0;
-    correct = 0;
-    ids = refCom.getCurrentCommittees();
-    for(auto id = ids.begin(); id != ids.end(); id++){
-        std::vector<aGroup> groupsInCom = refCom.getCommittee(*id);
-        for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
-            for(auto peer = group->begin(); peer != group->end(); peer++ ){
-                if((*peer)->isPrimary()){
-                    if((*peer)->isByzantine()){
-                        byzantine++;
-                    }else{
-                        correct++;
-                    }
-                }else{
-                    // is not a primary so we make it honest to prevent defeated transactions (need to make this predictable)
-                    (*peer)->makeCorrect();
-                }
-            }
-        }
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
     }
-    for(int i = 0; i < 5; i++){
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
         refCom.receive();
         refCom.preformComputation();
         refCom.transmit();
+        refCom.log();
     }
     
-    assert(refCom.getGlobalLedger().size()      == numberOfRequests - byzantine); // make sure all committees with non-Byzantine leader commited
-    assert(refCom.getCurrentCommittees().size() == numberOfRequests - refCom.getGlobalLedger().size()); // make sure the committees that did not commit and are view changeing are still alive
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
     
-    // do this until all request are filled
-    while (numberOfRequests - refCom.getGlobalLedger().size() != 0){
-        refCom.shuffleByzantines(PEERS*0.25);
-        // recount Byzantine primarys (this will be then number of view changes)
-        byzantine = 0;
-        correct = 0;
-        std::vector<int> ids = refCom.getCurrentCommittees();
-        for(auto id = ids.begin(); id != ids.end(); id++){
-            std::vector<aGroup> groupsInCom = refCom.getCommittee(*id);
-            for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
-                for(auto peer = group->begin(); peer != group->end(); peer++ ){
-                    if((*peer)->isPrimary()){
-                        if((*peer)->isByzantine()){
-                            byzantine++;
-                        }else{
-                            correct++;
-                        }
-                    }else{
-                        // is not a primary so we dont care
-                    }
-                }
-            }
-        }
-        for(int i = 0; i < 5; i++){
-            refCom.receive();
-            refCom.preformComputation();
-            refCom.transmit();
-        }
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    /////////////////////////////////////////////
+    // Delay 2
+    //
+    Delay = 2;
+    refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(Delay);
+    refCom.setMinDelay(Delay);
+    refCom.setToRandom();
+    refCom.setGroupSize(2);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(64);
+    refCom.makeByzantines(64*0.25); // make 25% of the peers Byzantine
+    refCom.log();
+    
+    
+    // number of groups by 1/2 becouse a committee needs at least two groups
+    // this should make the make be the nunmber of groups the system can have at one time
+    numberOfRequests = refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    // 5 phases for PBFT * whatever the delay is * the total number of byz peers (max number of view changes)
+    maxRoundsToConfirmTrans = (5*Delay)*(64*0.25);
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
 
-        assert(refCom.getGlobalLedger().size()      == numberOfRequests - byzantine); // make sure all committees with non-Byzantine leader commited
-        assert(refCom.getCurrentCommittees().size() == numberOfRequests - refCom.getGlobalLedger().size()); // make sure the committees that did not commit and are view changeing are still alive
-        
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    /////////////////////////////////////////////
+    // Delay 4
+    //
+    Delay = 4;
+    refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(Delay);
+    refCom.setMinDelay(Delay);
+    refCom.setToRandom();
+    refCom.setGroupSize(2);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(64);
+    refCom.makeByzantines(64*0.25); // make 25% of the peers Byzantine
+    refCom.log();
+    
+    
+    // number of groups by 1/2 becouse a committee needs at least two groups
+    // this should make the make be the nunmber of groups the system can have at one time
+    numberOfRequests = refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    // 5 phases for PBFT * whatever the delay is * the total number of byz peers (max number of view changes)
+    maxRoundsToConfirmTrans = (5*Delay)*(64*0.25);
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    /////////////////////////////////////////////
+    // Delay 8
+    //
+    Delay = 8;
+    refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(Delay);
+    refCom.setMinDelay(Delay);
+    refCom.setToRandom();
+    refCom.setGroupSize(2);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(64);
+    refCom.makeByzantines(64*0.25); // make 25% of the peers Byzantine
+    refCom.log();
+    
+    
+    // number of groups by 1/2 becouse a committee needs at least two groups
+    // this should make the make be the nunmber of groups the system can have at one time
+    numberOfRequests = refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    // 5 phases for PBFT * whatever the delay is * the total number of byz peers (max number of view changes)
+    maxRoundsToConfirmTrans = (5*Delay)*(64*0.25);
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    /////////////////////////////////////////////
+    // Delay 16
+    //
+    Delay = 16;
+    refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(Delay);
+    refCom.setMinDelay(Delay);
+    refCom.setToRandom();
+    refCom.setGroupSize(2);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(64);
+    refCom.makeByzantines(64*0.25); // make 25% of the peers Byzantineas
+    refCom.log();
+    
+    
+    // number of groups by 1/2 becouse a committee needs at least two groups
+    // this should make the make be the nunmber of groups the system can have at one time
+    numberOfRequests = refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    // 5 phases for PBFT * whatever the delay is * the total number of byz peers (max number of view changes)
+    maxRoundsToConfirmTrans = (5*Delay)*(64*0.25);
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    // again
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
     }
 
-    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineShuffle Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    // and again
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    /////////////////////////////////////////////
+    // Delay 32 with shuffle
+    //
+    Delay = 32;
+    refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setMaxDelay(Delay);
+    refCom.setMinDelay(Delay);
+    refCom.setToRandom();
+    refCom.setGroupSize(2);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(64);
+    refCom.makeByzantines(64*0.25); // make 25% of the peers Byzantine
+    refCom.log();
+    
+    
+    // number of groups by 1/2 becouse a committee needs at least two groups
+    // this should make the make be the nunmber of groups the system can have at one time
+    numberOfRequests = refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    // 5 phases for PBFT * whatever the delay is * the total number of byz peers (max number of view changes)
+    maxRoundsToConfirmTrans = (5*Delay)*(64*0.25);
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    numberOfRequests += refCom.getGroupIds().size()/2;
+    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
+        refCom.makeRequest(refCom.securityLevel1());
+    }
+    
+    for(int i = 0; i < maxRoundsToConfirmTrans; i++){
+        refCom.receive();
+        refCom.preformComputation();
+        refCom.transmit();
+        refCom.log();
+    }
+    
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests); // make sure all committees commited
+    assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
+    
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineVsDelay Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }

@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string>
 #include <ctime>
+#include <random>
 
 //
 //Base Message Class
@@ -23,13 +24,14 @@ private:
     Packet(){};
     
 protected:
-    std::string     _id; // message id
-    std::string     _targetId; // traget node id
-    std::string     _sourceId; // source node id
+    std::string                 _id; // message id
+    std::string                 _targetId; // traget node id
+    std::string                 _sourceId; // source node id
+    std::default_random_engine  _randomGenerator;
     
-    content         _body;
+    content                     _body;
     
-    int             _delay; // delay of the message
+    int                         _delay; // delay of the message
     
 public:
     Packet                      (std::string id);
@@ -40,7 +42,7 @@ public:
     // setters
     void        setSource       (std::string s){_sourceId = s;};
     void        setTarget       (std::string t){_targetId = t;};
-    void        setDelay        (int delayBound){_delay = rand()%delayBound;};
+    void        setDelay        (int delayMax, int delayMin = 0);
     void        setBody         (const content c){_body = c;};
     
     // getters
@@ -92,6 +94,12 @@ Packet<content>::Packet(const Packet<content>& rhs){
 template<class content>
 Packet<content>::~Packet(){
     // no memory allocated so nothing to do
+}
+
+template <class content>
+void Packet<content>::setDelay(int maxDelay, int minDelay){
+    std::uniform_int_distribution<int> uniformDist(minDelay,maxDelay);
+    _delay = uniformDist(_randomGenerator);
 }
 
 template<class content>
