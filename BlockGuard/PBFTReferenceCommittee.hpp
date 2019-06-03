@@ -60,6 +60,7 @@ protected:
     std::ostream                                                    *_log;
     std::default_random_engine                                      _randomGenerator;
     std::vector<int>                                                _currentCommittees;
+    bool                                                            _printNetwork;
 
     // util functions
     transactionRequest                  generateRequest         ();
@@ -93,14 +94,14 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     double                              securityLevel1          ()const                                 {return _securityLevel1;}
     int                                 totalSubmissions        ()const                                 {return _totalTransactionsSubmitted;};
     
-    aGroup                              getGroup                (int);
+    aGroup                              getGroup                (int)const;
     std::vector<int>                    getGroupIds             ()const                                 {return _groupIds;};
     std::vector<PBFTPeer_Sharded>       getPeers                ()const;
     std::vector<int>                    getBusyGroups           ()const                                 {return _busyGroups;};
     std::vector<int>                    getFreeGroups           ()const                                 {return _freeGroups;};
     std::vector<int>                    getCurrentCommittees    ()const                                 {return _currentCommittees;};
     std::vector<transactionRequest>     getRequestQueue         ()const                                 {return _requestQueue;}
-    std::vector<aGroup>                 getCommittee            (int);
+    std::vector<aGroup>                 getCommittee            (int)const;
     
     // mutators
     void                                initNetwork             (int);
@@ -112,6 +113,8 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     void                                clearQueue              ()                                      {_requestQueue.clear();}  
     void                                setMaxSecurityLevel     (int); // used to fix max security as number of groups for debugging
     void                                setMinSecurityLevel     (int); // used to fix min security as number of groups for debugging
+    void                                printNetworkOn          ()                                      {_printNetwork = true;};
+    void                                printNetworkOff         ()                                      {_printNetwork = false;};
     
     // pass-through to ByzantineNetwork class
     void                                receive                 ()                                      {_peers.receive();};

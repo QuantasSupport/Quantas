@@ -21,13 +21,13 @@ void RunPBFTRefComTest (std::string filepath){
     if (log.fail() ){
         std::cerr << "Error: could not open file at: "<< filepath << std::endl;
     }
-//    testInit(log);
-//    testRefComGroups(log);
-//    testRefComCommittee(log);
-//    testGlobalLedger(log);
-//    testSimultaneousRequest(log);
-//    testByzantineConfirmationRate(log);
-//    testShuffle(log);
+    testInit(log);
+    testRefComGroups(log);
+    testRefComCommittee(log);
+    testGlobalLedger(log);
+    testSimultaneousRequest(log);
+    testByzantineConfirmationRate(log);
+    testShuffle(log);
     testByzantineVsDelay(log);
 }
 

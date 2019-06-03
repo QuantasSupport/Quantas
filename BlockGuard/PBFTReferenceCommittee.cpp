@@ -28,6 +28,7 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(){
     _faultTolerance = 1;
     _currentCommittees = std::vector<int>();
     _log = nullptr;
+    _printNetwork = false;
 
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
@@ -53,6 +54,7 @@ PBFTReferenceCommittee::PBFTReferenceCommittee(const PBFTReferenceCommittee &rhs
     _currentCommittees = rhs._currentCommittees;
     _log = rhs._log;
     _totalTransactionsSubmitted = rhs._totalTransactionsSubmitted;
+    _printNetwork = rhs._printNetwork;
     
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
@@ -211,7 +213,7 @@ void PBFTReferenceCommittee::updateBusyGroup(){
     _currentCommittees = aliveCommittees; // update list of currently active committees
 }
 
-std::vector<aGroup> PBFTReferenceCommittee::getCommittee(int committeeId){
+std::vector<aGroup> PBFTReferenceCommittee::getCommittee(int committeeId)const{
     std::vector<aGroup> committee = std::vector<aGroup>();
 
     // need to find every group that belongs to committee id
@@ -279,8 +281,8 @@ void PBFTReferenceCommittee::setFaultTolerance(double f){
     }
 }
 
-aGroup PBFTReferenceCommittee::getGroup(int id){
-    return _groups[id];
+aGroup PBFTReferenceCommittee::getGroup(int id)const{
+    return _groups.at(id);
 }
 
 std::vector<PBFTPeer_Sharded> PBFTReferenceCommittee::getPeers()const{
@@ -367,6 +369,7 @@ PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCom
     _currentCommittees = rhs._currentCommittees;
     _log = rhs._log;
     _totalTransactionsSubmitted = rhs._totalTransactionsSubmitted;
+    _printNetwork = rhs._printNetwork;
 
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
@@ -379,11 +382,25 @@ std::ostream& PBFTReferenceCommittee::printTo(std::ostream& out)const{
     out<< std::left;
     out<< '\t'<< std::setw(LOG_WIDTH)<< "Current Round"<< std::setw(LOG_WIDTH)<< "Group Size"<< std::setw(LOG_WIDTH)<< "Number Of Groups"<< std::setw(LOG_WIDTH)<< "Number Of Free Groups"<< std::setw(LOG_WIDTH)<< "Number Of Busy Groups"<< std::setw(LOG_WIDTH)<< std::endl;
     out<< '\t'<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _groupSize<< std::setw(LOG_WIDTH)<< _groupIds.size()<< std::setw(LOG_WIDTH)<< _freeGroups.size()<< std::setw(LOG_WIDTH)<< _busyGroups.size()<< std::setw(LOG_WIDTH)<< std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<< "Current Committees"<< std::endl;
+    for(auto c = _currentCommittees.begin(); c != _currentCommittees.end(); c++){
+        std::vector<aGroup> committee = getCommittee(*c);
+        out<< '\t'<< std::setw(LOG_WIDTH)<< "Committee ID:"<<*c << std::setw(LOG_WIDTH)<< "Current Committees Sizes:"<< committee.size()<< std::endl;
+        out<< '\t'<< std::setw(LOG_WIDTH)<< "Peer:"<<*c << std::setw(LOG_WIDTH)<< "Phase:"<< committee.size()<< std::endl;
+        for(auto g = committee.begin(); g != committee.end(); g++){
+            
+        }
+       
+    }
+    
+    
     out<< '\t'<< std::setw(LOG_WIDTH)<< "Request Queue Size"<< std::setw(LOG_WIDTH)<< "Next Committee Id"<< std::endl;
     out<< '\t'<< std::setw(LOG_WIDTH)<< _requestQueue.size()<< std::setw(LOG_WIDTH)<< _nextCommitteeId<< std::endl;
     
-    _peers.printTo(out);
-    
+    if(_printNetwork){
+        _peers.printTo(out);
+    }
+
     return out;
 }
 

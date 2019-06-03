@@ -107,7 +107,7 @@ int main(int argc, const char * argv[]) {
             std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
         }
             //ceil(256*0.3)
-        for(int delay = 1; delay < 10; delay++){
+        for(int delay = 5; delay < 10; delay++){
             csv<< "Delay,"<< std::to_string(delay)<< std::endl;
             csv<< s_pbft_header;
             double fault = 0.1;
@@ -379,6 +379,7 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
     system.makeByzantines(256*fault);
 
     int numberOfRequests = 0;
+    int test = -1;
     for(int i =0; i < 1000; i++){
         system.makeRequest();numberOfRequests++;
         system.makeRequest();numberOfRequests++;
@@ -399,6 +400,10 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
         if(i%100 == 0){
             calculateResults(system,csv);
             system.log();
+            auto tmp = system.getCurrentCommittees();
+            auto tmp2 = system.getCommittee(system.getCurrentCommittees()[0]);
+            assert(test != system.getGlobalLedger().size());
+            test = system.getGlobalLedger().size();
         }
     }
     calculateResults(system,csv);
