@@ -395,14 +395,15 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
         std::cout<< 'p'<< std::flush;  
         system.transmit();
         std::cout<< 't'<< std::flush;
-        //system.log();
+        system.log();
 
         if(i%100 == 0){
             calculateResults(system,csv);
-            system.log();
-            auto tmp = system.getCurrentCommittees();
-            auto tmp2 = system.getCommittee(system.getCurrentCommittees()[0]);
-            assert(test != system.getGlobalLedger().size());
+            if(test == system.getGlobalLedger().size()){
+                system.printNetworkOn();
+                system.log();
+                assert(test != system.getGlobalLedger().size());
+            }
             test = system.getGlobalLedger().size();
         }
     }

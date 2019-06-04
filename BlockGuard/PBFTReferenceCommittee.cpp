@@ -191,7 +191,7 @@ void PBFTReferenceCommittee::updateBusyGroup(){
             // if the group is still busy it will still have a committee id and thus we need to track it
             if(group[i]->getCommittee() != -1){
                 stillBusy = true;
-                // find works in n^2 time and lower bound is log(n) is sorted
+                // find works in n^2 time and lower bound is log(n) if sorted
                 auto found = std::lower_bound(aliveCommittees.begin(),aliveCommittees.end(),group[i]->getCommittee());
                 if( found == aliveCommittees.end()){
                     aliveCommittees.push_back(group[i]->getCommittee());
@@ -219,12 +219,11 @@ std::vector<aGroup> PBFTReferenceCommittee::getCommittee(int committeeId)const{
     // need to find every group that belongs to committee id
     for(auto id = _groupIds.begin(); id != _groupIds.end(); id++){ 
         aGroup group = getGroup(*id);
-        // check each group member to see if they belong to that group
+        // check each group member to see if they belong to that committee still
         bool inCommittee = true;
         for(auto peer = group.begin(); peer != group.end(); peer++){
             if((*peer)->getCommittee() != committeeId){
                 inCommittee = false;
-                break;
             }
         }
         if(inCommittee){
@@ -380,23 +379,27 @@ PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCom
 std::ostream& PBFTReferenceCommittee::printTo(std::ostream& out)const{
     out<< "-- REFERENCE COMMITTEE SETUP --"<< std::endl<< std::endl;
     out<< std::left;
-    out<< '\t'<< std::setw(LOG_WIDTH)<< "Current Round"<< std::setw(LOG_WIDTH)<< "Group Size"<< std::setw(LOG_WIDTH)<< "Number Of Groups"<< std::setw(LOG_WIDTH)<< "Number Of Free Groups"<< std::setw(LOG_WIDTH)<< "Number Of Busy Groups"<< std::setw(LOG_WIDTH)<< std::endl;
-    out<< '\t'<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _groupSize<< std::setw(LOG_WIDTH)<< _groupIds.size()<< std::setw(LOG_WIDTH)<< _freeGroups.size()<< std::setw(LOG_WIDTH)<< _busyGroups.size()<< std::setw(LOG_WIDTH)<< std::endl;
-    out<< '\t'<< std::setw(LOG_WIDTH)<< "Current Committees"<< std::endl;
-    for(auto c = _currentCommittees.begin(); c != _currentCommittees.end(); c++){
-        std::vector<aGroup> committee = getCommittee(*c);
-        out<< '\t'<< std::setw(LOG_WIDTH)<< "Committee ID:"<<*c << std::setw(LOG_WIDTH)<< "Current Committees Sizes:"<< committee.size()<< std::endl;
-        out<< '\t'<< std::setw(LOG_WIDTH)<< "Peer:"<<*c << std::setw(LOG_WIDTH)<< "Phase:"<< committee.size()<< std::endl;
-        for(auto g = committee.begin(); g != committee.end(); g++){
-            
+    out<< '\t'<< std::setw(LOG_WIDTH)<< "Current Round" << std::setw(LOG_WIDTH) << "Group Size" << std::setw(LOG_WIDTH) << "Number Of Groups"   << std::setw(LOG_WIDTH) << "Number Of Free Groups"  << std::setw(LOG_WIDTH) << "Number Of Busy Groups" << std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<< _currentRound   << std::setw(LOG_WIDTH) << _groupSize   << std::setw(LOG_WIDTH) << _groupIds.size()     << std::setw(LOG_WIDTH) << _freeGroups.size()       << std::setw(LOG_WIDTH) << _busyGroups.size()<< std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<<  "Request Queue Size"   << std::setw(LOG_WIDTH)<< "Next Committee Id"   << std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<< _requestQueue.size()    << std::setw(LOG_WIDTH)<< _nextCommitteeId      << std::endl;
+    out<<std::endl;
+    out<< '\t'<<"Current Committees:"<< std::endl;
+    for(auto id = _currentCommittees.begin(); id != _currentCommittees.end(); id++){
+        std::vector<aGroup> committee = getCommittee(*id);
+        out<< '\t'<< std::setw(LOG_WIDTH)<< "Committee ID:" + std::to_string(*id) << std::setw(LOG_WIDTH)<< "Current Committees Sizes:" + std::to_string(committee.size())<< std::endl;
+        out<< '\t'<< std::setw(LOG_WIDTH)<< "Peer:"<< std::setw(LOG_WIDTH)<< "Current Phase:"<< std::setw(LOG_WIDTH)<< "Last Commit:"<< std::setw(LOG_WIDTH)<< "Current Committee"<< std::endl;
+        for(auto group = committee.begin(); group != committee.end(); group++){
+            for(auto peer = group->begin(); peer != group->end(); peer++ ){
+                if((*peer)->getLedger().size() != 0){
+                    out<< '\t'<< std::setw(LOG_WIDTH)<< (*peer)->id()<< std::setw(LOG_WIDTH)<< (*peer)->getPhase()<< std::setw(LOG_WIDTH)<< (*peer)->getLedger().end()->commit_round<< std::setw(LOG_WIDTH)<< (*peer)->getCommittee()<<std::endl;
+                }else{
+                    out<< '\t'<< std::setw(LOG_WIDTH)<< (*peer)->id()<< std::setw(LOG_WIDTH)<< (*peer)->getPhase()<< std::setw(LOG_WIDTH)<< "None"<< std::setw(LOG_WIDTH)<< (*peer)->getCommittee()<<std::endl;
+                }
+            }
         }
-       
     }
-    
-    
-    out<< '\t'<< std::setw(LOG_WIDTH)<< "Request Queue Size"<< std::setw(LOG_WIDTH)<< "Next Committee Id"<< std::endl;
-    out<< '\t'<< std::setw(LOG_WIDTH)<< _requestQueue.size()<< std::setw(LOG_WIDTH)<< _nextCommitteeId<< std::endl;
-    
+
     if(_printNetwork){
         _peers.printTo(out);
     }

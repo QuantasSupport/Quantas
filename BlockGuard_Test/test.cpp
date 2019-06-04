@@ -28,6 +28,7 @@ int main(int argc, const char * argv[]){
         RunPBFTPeerShardedTest(filePath);
         RunPBFTRefComTest(filePath);
         RunByzantineNetworkTest(filePath);
+        runNetworkTests(filePath);
     }else if(testOption == "pbft"){
         RunPBFT_Tests(filePath);
     }else if (testOption == "s_pbft"){
@@ -36,6 +37,8 @@ int main(int argc, const char * argv[]){
         RunPBFTRefComTest(filePath);
     }else if(testOption == "b_network"){
         RunByzantineNetworkTest(filePath);
+    }else if(testOption == "network"){
+        runNetworkTests(filePath);
     }
 
     return 0;

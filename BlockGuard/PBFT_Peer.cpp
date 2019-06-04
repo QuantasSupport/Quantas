@@ -253,7 +253,7 @@ void PBFT_Peer::waitCommit(){
         }
     }
     // if we have enough commit messages
-    if(numberOfCommitMsg >= (faultyPeers())){
+    if(numberOfCommitMsg > (2*faultyPeers())+1){
         commitRequest();
     }
 }

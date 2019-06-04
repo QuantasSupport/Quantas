@@ -88,7 +88,7 @@ Network<type_msg,peer_type>::Network(){
     _peers = std::vector<Peer<type_msg>*>();
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
-    _avgDelay = 0;
+    _avgDelay = 1;
     _maxDelay = 1;
     _minDelay = 1;
     _distribution = RANDOM;
