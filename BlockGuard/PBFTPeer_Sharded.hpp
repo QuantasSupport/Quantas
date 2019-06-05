@@ -51,9 +51,11 @@ public:
     void                        clearGroup              ()                                              {_groupMembers.clear(); _groupId = -1;}
     void                        initPrimary             () override                                     {_primary = findPrimary(_committeeMembers);};
     void                        preformComputation      () override;
+    virtual void                makeCorrect             () override                                     {if(_committeeId == -1){_byzantine = false;}};
+    virtual void                makeByzantine           () override                                     {if(_committeeId == -1){_byzantine = true;}};
     
     // getters
-    int                         faultyPeers             ()const override                                {return ceil((_committeeMembers.size() + 1) * _faultUpperBound);};
+    int                         faultyPeers             ()const override                                {return ceil(double(_committeeMembers.size() + 1) * _faultUpperBound);};
     int                         getGroup                ()const                                         {return _groupId;};
     int                         getCommittee            ()const                                         {return _committeeId;};
     std::vector<std::string>    getGroupMembers         ()const;

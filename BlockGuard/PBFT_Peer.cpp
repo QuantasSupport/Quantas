@@ -253,7 +253,7 @@ void PBFT_Peer::waitCommit(){
         }
     }
     // if we have enough commit messages
-    if(numberOfCommitMsg > (2*faultyPeers())+1){
+    if(numberOfCommitMsg >= faultyPeers() + 1){
         commitRequest();
     }
 }
@@ -266,36 +266,41 @@ void PBFT_Peer::commitRequest(){
     // >= 1/3 then we will commit a defeated transaction
     // < 1/3 and an honest primary will commit
     // < 1/3 and byzantine primary will view change
+    int numberOfCommits = 0;
     int numberOfByzantineCommits = 0;
     for(auto commitMsg = _commitLog.begin(); commitMsg != _commitLog.end(); commitMsg++){
         if(commitMsg->sequenceNumber == _currentRequest.sequenceNumber
                 && commitMsg->view == _currentView
                 && commitMsg->result == _currentRequestResult){
-                    if(commitMsg->byzantine){
-                        numberOfByzantineCommits++; 
-                    }
-                }
+            
+            if(commitMsg->byzantine){
+                numberOfByzantineCommits++;
+            }
+            numberOfCommits++;
+        }
     }
-    if(numberOfByzantineCommits < faultyPeers() && !_currentRequest.byzantine){
+    
+    if(numberOfByzantineCommits < faultyPeers() && _currentRequest.byzantine){
+        viewChange(_neighbors);
+    }else if(numberOfByzantineCommits < faultyPeers() && !_currentRequest.byzantine){
         commit.defeated = false;
         _ledger.push_back(commit);
-    }else if(numberOfByzantineCommits >= faultyPeers()){
+        _currentRequest = PBFT_Message();
+    }else if(numberOfByzantineCommits >= faultyPeers() && _currentRequest.byzantine){
         commit.defeated = true;
         _ledger.push_back(commit);
-    }else{ 
-        viewChange(_neighbors); 
+        _currentRequest = PBFT_Message();
     }
-    _currentPhase = IDEAL; // complete distributed-consensus
-    _currentRequestResult = 0;
-    _currentRequest = PBFT_Message();
     for(auto confirmedTransaction = _ledger.begin(); confirmedTransaction != _ledger.end(); confirmedTransaction++){
         cleanLogs(confirmedTransaction->sequenceNumber);
     }
+    _currentPhase = IDEAL; // complete distributed-consensus
+    _currentRequestResult = 0;
 }
 
-void PBFT_Peer::viewChange(std::map<std::string, Peer<PBFT_Message>* > potentialPrimary){
+void PBFT_Peer::viewChange(std::map<std::string, Peer<PBFT_Message>* > potentialPrimarys){
     _currentView++;
-    _primary = findPrimary(potentialPrimary);
+    _primary = findPrimary(potentialPrimarys);
     PBFT_Message request;
     request = _currentRequest;
     request.view = _currentView;
@@ -304,10 +309,6 @@ void PBFT_Peer::viewChange(std::map<std::string, Peer<PBFT_Message>* > potential
     if(_primary->id() == _id){
         _requestLog.push_back(request);
     }
-
-    cleanLogs(_currentRequest.sequenceNumber);
-
-    _currentRequest = PBFT_Message();
 }
 
 Peer<PBFT_Message>* PBFT_Peer::findPrimary(const std::map<std::string, Peer<PBFT_Message> *> neighbors){

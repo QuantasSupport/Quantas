@@ -47,6 +47,7 @@ void PBFTPeer_Sharded::commitRequest(){
     // >= 1/3 then we will commit a defeated transaction
     // < 1/3 and an honest primary will commit
     // < 1/3 and byzantine primary will view change
+
     int numberOfByzantineCommits = 0;
     for(auto commitMsg = _commitLog.begin(); commitMsg != _commitLog.end(); commitMsg++){
         if(commitMsg->sequenceNumber == _currentRequest.sequenceNumber
@@ -57,25 +58,26 @@ void PBFTPeer_Sharded::commitRequest(){
                     }
                 }
     }
-    if(numberOfByzantineCommits < faultyPeers() && !_currentRequest.byzantine){
+    if(numberOfByzantineCommits < faultyPeers() && _currentRequest.byzantine){
+        viewChange(_committeeMembers);
+    }else if(numberOfByzantineCommits < faultyPeers() && !_currentRequest.byzantine){
         commit.defeated = false;
         _ledger.push_back(commit);
         _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
+        _currentRequest = PBFT_Message();
         clearCommittee();
-    }else if(numberOfByzantineCommits >= faultyPeers()){
+    }else{
         commit.defeated = true;
         _ledger.push_back(commit);
         _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
+        _currentRequest = PBFT_Message();
         clearCommittee();
-    }else{ 
-        viewChange(_committeeMembers); 
+    }
+    for(auto confirmedTransaction = _ledger.begin(); confirmedTransaction != _ledger.end(); confirmedTransaction++){
+        cleanLogs(confirmedTransaction->sequenceNumber);
     }
     _currentPhase = IDEAL; // complete distributed-consensus
     _currentRequestResult = 0;
-    _currentRequest = PBFT_Message();
-    for(auto entry = _ledger.begin(); entry != _ledger.end(); entry++){
-        cleanLogs(entry->sequenceNumber);
-    }
 }
 
 std::vector<std::string> PBFTPeer_Sharded::getGroupMembers()const{

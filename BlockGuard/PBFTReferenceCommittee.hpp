@@ -80,7 +80,7 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     void                                setGroupSize            (int g)                                 {_groupSize = g;};
     void                                setFaultTolerance       (double);
     void                                setLog                  (std::ostream &o)                       {_log = &o; _peers.setLog(o);}
-
+    void                                setSquenceNumber        (int s)                                 {_nextSquenceNumber = s;}
     // getters
     int                                 getGroupSize            ()const                                 {return _groupSize;};
     int                                 numberOfGroups          ()const                                 {return (int)_groupIds.size();};

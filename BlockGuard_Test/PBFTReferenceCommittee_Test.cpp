@@ -632,6 +632,7 @@ void testByzantineConfirmationRate(std::ostream &log){
     refCom.setGroupSize(GROUP_SIZE);
     refCom.setFaultTolerance(FAULT);
     refCom.initNetwork(PEERS);
+    refCom.makeByzantines(PEERS*0.1);
     refCom.log();
 
     // number of groups by 1/2 becouse a committee needs at least two groups
@@ -641,21 +642,20 @@ void testByzantineConfirmationRate(std::ostream &log){
         refCom.makeRequest(refCom.securityLevel1());
     }
     
-    // make 1/2 of the primarys Byzantine peers
+    // count byz leaders
+    int byzLeaders = 0;
     for(int i = 0; i < refCom.getCurrentCommittees().size()/2; i++){
         std::vector<aGroup> groupsInCom = refCom.getCommittee(refCom.getCurrentCommittees()[i]);
         for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
             for(auto peer = group->begin(); peer != group->end(); peer++){
-                if((*peer)->isPrimary()){
-                    (*peer)->makeByzantine();
-                    break;
+                if((*peer)->isPrimary() && (*peer)->isByzantine()){
+                    byzLeaders++;
                 }
             }
         }
     }
 
-    // run for 5 rounds 1/2 of numberOfRequests should be in the ledger the rest should have been set back (had a view change)
-    log << "-- run for 5 rounds 1/2 of numberOfRequests should be in the ledger the rest should have been set back (had a view change) --"<< std::endl;
+    // run for 5 rounds for a view change
     for(int i = 0; i < 5; i++){
         refCom.receive();
         refCom.preformComputation();
@@ -663,10 +663,22 @@ void testByzantineConfirmationRate(std::ostream &log){
         refCom.log();
     }
 
-    assert(refCom.getGlobalLedger().size()      == numberOfRequests/2);
-    assert(refCom.getCurrentCommittees().size() == numberOfRequests/2); // make sure the committees that did not commit and are view changeing are still alive
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests-byzLeaders);
+    assert(refCom.getCurrentCommittees().size() == byzLeaders); // make sure the committees that did not commit and are view changeing are still alive
 
-
+    // count byz leaders
+    byzLeaders = 0;
+    for(int i = 0; i < refCom.getCurrentCommittees().size()/2; i++){
+        std::vector<aGroup> groupsInCom = refCom.getCommittee(refCom.getCurrentCommittees()[i]);
+        for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
+            for(auto peer = group->begin(); peer != group->end(); peer++){
+                if((*peer)->isPrimary() && (*peer)->isByzantine()){
+                    byzLeaders++;
+                }
+            }
+        }
+    }
+    
     // run for another 5 rounds and all trnasactions should be approved (makes sure non of the transactions are lost)
     log << "-- run for another 5 rounds and all trnasactions should be approved --"<< std::endl;
     for(int i = 0; i < 5; i++){
@@ -676,26 +688,40 @@ void testByzantineConfirmationRate(std::ostream &log){
         refCom.log();
     }
 
-    assert(refCom.getGlobalLedger().size()      == numberOfRequests);
-    assert(refCom.getCurrentCommittees().size() == 0); // make sure all committees are dead
+    assert(refCom.getGlobalLedger().size()      == numberOfRequests-byzLeaders);
+    assert(refCom.getCurrentCommittees().size() == byzLeaders); // make sure the committees that did not commit and are view changeing are still alive
 
-
-    // make the same number of request now that non of the primarys are Byzantine there should be no set back
-    int newRequests = refCom.getGroupIds().size()/2;
-    for(int i = 0; i < refCom.getGroupIds().size()/2; i++){
-        refCom.makeRequest(refCom.securityLevel1());
+    // do this until there all transactions are committed or we have gone over the upper bound of rounds possable to commit (i.e. they will never commit)
+    int upperBound = PEERS*0.5;
+    int i = 0;
+    while(refCom.getGlobalLedger().size() < numberOfRequests ){
+        i++;
+        // count byz leaders
+        byzLeaders = 0;
+        for(int i = 0; i < refCom.getCurrentCommittees().size()/2; i++){
+            std::vector<aGroup> groupsInCom = refCom.getCommittee(refCom.getCurrentCommittees()[i]);
+            for(auto group = groupsInCom.begin(); group != groupsInCom.end(); group++){
+                for(auto peer = group->begin(); peer != group->end(); peer++){
+                    if((*peer)->isPrimary() && (*peer)->isByzantine()){
+                        byzLeaders++;
+                    }
+                }
+            }
+        }
+        
+        // run for another 5 rounds and all trnasactions should be approved (makes sure non of the transactions are lost)
+        log << "-- run for another 5 rounds and all trnasactions should be approved --"<< std::endl;
+        for(int i = 0; i < 5; i++){
+            refCom.receive();
+            refCom.preformComputation();
+            refCom.transmit();
+            refCom.log();
+        }
+        
+        assert(i                                    < upperBound);
+        assert(refCom.getGlobalLedger().size()      == numberOfRequests-byzLeaders);
+        assert(refCom.getCurrentCommittees().size() == byzLeaders); // make sure the committees that did not commit and are view changeing are still alive
     }
-
-    log << "-- make the same number of request there should be at least as many set backs as views are reset when a new committee is formed --"<< std::endl;
-    for(int i = 0; i < 10; i++){
-        refCom.receive();
-        refCom.preformComputation();
-        refCom.transmit();
-        refCom.log();
-    }
-
-    assert(refCom.getGlobalLedger().size()      == numberOfRequests + newRequests);
-    assert(refCom.getCurrentCommittees().size() == 0); // make sure all committees are dead
 
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineConfirmationRate Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }

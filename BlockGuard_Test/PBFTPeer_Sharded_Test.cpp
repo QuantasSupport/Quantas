@@ -174,6 +174,97 @@ void testSettersMutatorsPBFT_s(std::ostream &log){
     assert(a.getPrimary()               == NO_PRIMARY);
     assert(a.getDelayToNeighbor("C")    == 1);
 
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.setFaultTolerance(0.3);
+    b.setFaultTolerance(0.3);
+    c.setFaultTolerance(0.3);
+    
+    assert(a.faultyPeers() == 1);
+    assert(b.faultyPeers() == 1);
+    assert(c.faultyPeers() == 1);
+    
+    PBFTPeer_Sharded d = PBFTPeer_Sharded("D");
+    PBFTPeer_Sharded e = PBFTPeer_Sharded("E");
+    PBFTPeer_Sharded f = PBFTPeer_Sharded("F");
+    d.setFaultTolerance(0.3);
+    e.setFaultTolerance(0.3);
+    f.setFaultTolerance(0.3);
+    
+    d.setLogFile(log);
+    e.setLogFile(log);
+    f.setLogFile(log);
+    
+    d.addNeighbor(b, 1);
+    d.addNeighbor(c, 1);
+    d.addNeighbor(a, 1);
+    d.addNeighbor(e, 1);
+    d.addNeighbor(f, 1);
+    
+    e.addNeighbor(b, 1);
+    e.addNeighbor(c, 1);
+    e.addNeighbor(a, 1);
+    e.addNeighbor(d, 1);
+    e.addNeighbor(f, 1);
+    
+    f.addNeighbor(b, 1);
+    f.addNeighbor(c, 1);
+    f.addNeighbor(a, 1);
+    f.addNeighbor(e, 1);
+    f.addNeighbor(d, 1);
+    
+    d.setCommittee(1);
+    e.setCommittee(1);
+    f.setCommittee(1);
+    
+    a.addCommitteeMember(d);
+    a.addCommitteeMember(e);
+    a.addCommitteeMember(f);
+    
+    b.addCommitteeMember(d);
+    b.addCommitteeMember(e);
+    b.addCommitteeMember(f);
+    
+    c.addCommitteeMember(d);
+    c.addCommitteeMember(e);
+    c.addCommitteeMember(f);
+    
+    d.addCommitteeMember(a);
+    d.addCommitteeMember(b);
+    d.addCommitteeMember(c);
+    d.addCommitteeMember(e);
+    d.addCommitteeMember(f);
+    
+    e.addCommitteeMember(a);
+    e.addCommitteeMember(b);
+    e.addCommitteeMember(c);
+    e.addCommitteeMember(d);
+    e.addCommitteeMember(f);
+    
+    f.addCommitteeMember(a);
+    f.addCommitteeMember(b);
+    f.addCommitteeMember(c);
+    f.addCommitteeMember(d);
+    f.addCommitteeMember(e);
+    
+    assert(a.faultyPeers() == 2);
+    assert(b.faultyPeers() == 2);
+    assert(c.faultyPeers() == 2);
+    assert(d.faultyPeers() == 2);
+    assert(e.faultyPeers() == 2);
+    assert(f.faultyPeers() == 2);
+    
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testSettersMutators Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
 void testGroups(std::ostream &log){
@@ -988,6 +1079,7 @@ void testViewChange(std::ostream &log){
     b.log();
     c.log();
     
+    a.makeByzantine();
     a.setCommittee(1);
     b.setCommittee(1);
     c.setCommittee(1);
@@ -1008,7 +1100,6 @@ void testViewChange(std::ostream &log){
     ///////////////////////////////////////////
     // Byzantine leader
     
-    a.makeByzantine();
     a.makeRequest();
     
     for(int i = 0; i < 5; i++){
@@ -1042,16 +1133,16 @@ void testViewChange(std::ostream &log){
     assert(b.getLedger().size()         == 0);
     assert(c.getLedger().size()         == 0);
     
-    assert(a.getCommitLog().size()      == 0);
-    assert(b.getCommitLog().size()      == 0);
-    assert(c.getCommitLog().size()      == 0);
+    assert(a.getCommitLog().size()      == 3);
+    assert(b.getCommitLog().size()      == 3);
+    assert(c.getCommitLog().size()      == 3);
     
-    assert(a.getPrepareLog().size()     == 0);
-    assert(b.getPrepareLog().size()     == 1);// the recycled request
-    assert(c.getPrepareLog().size()     == 0);
+    assert(a.getPrepareLog().size()     == 3);
+    assert(b.getPrepareLog().size()     == 4);
+    assert(c.getPrepareLog().size()     == 3);
     
     assert(a.getPrePrepareLog().size()  == 0);
-    assert(b.getPrePrepareLog().size()  == 1);// the recycled request
+    assert(b.getPrePrepareLog().size()  == 1);
     assert(c.getPrePrepareLog().size()  == 0);
     
     assert(a.getRequestLog().size()     == 0);
@@ -1212,6 +1303,10 @@ void testViewChange(std::ostream &log){
     
     z.log();
 
+    // rm a from committee to adjust byz
+    a.setCommittee(-1);
+    a.makeCorrect();
+
     a.setCommittee(1);
     b.setCommittee(1);
     c.setCommittee(1);
@@ -1238,7 +1333,6 @@ void testViewChange(std::ostream &log){
     c.init();
     z.init();
     
-    a.makeCorrect();
     b.makeRequest(); // b is leader becouse of view change
     
     for(int i = 0; i < 5; i++){
@@ -1313,6 +1407,9 @@ void testByzantine(std::ostream &log){
     b.log();
     c.log();
     
+    b.makeByzantine();
+    c.makeByzantine();
+    
     a.setCommittee(1);
     b.setCommittee(1);
     c.setCommittee(1);
@@ -1332,9 +1429,7 @@ void testByzantine(std::ostream &log){
     
     ///////////////////////////////////////////
     // Byzantine majority non-leader
-    
-    b.makeByzantine();
-    c.makeByzantine();
+
     a.makeRequest();
     
     for(int i = 0; i < 5; i++){
@@ -1417,6 +1512,9 @@ void testByzantine(std::ostream &log){
     b.log();
     c.log();
     
+    a.makeByzantine();
+    c.makeByzantine();
+    
     a.setCommittee(1);
     b.setCommittee(1);
     c.setCommittee(1);
@@ -1437,8 +1535,6 @@ void testByzantine(std::ostream &log){
     ///////////////////////////////////////////
     // Byzantine majority leader
     
-    a.makeByzantine();
-    c.makeByzantine();
     a.makeRequest();
     
     for(int i = 0; i < 5; i++){
@@ -1597,6 +1693,8 @@ void waitingTimeSharded(std::ostream &log){
     b.setFaultTolerance(1);
     c.setFaultTolerance(1);
     
+    a.makeByzantine();
+    
     a.setCommittee(1);
     b.setCommittee(1);
     c.setCommittee(1);
@@ -1614,7 +1712,6 @@ void waitingTimeSharded(std::ostream &log){
     b.init();
     c.init();
     
-    a.makeByzantine();
     a.makeRequest();
     
     for(int i = 0; i < 10; i++){

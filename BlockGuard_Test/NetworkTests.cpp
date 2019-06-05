@@ -30,6 +30,7 @@ void testSize(std::ostream &log){
     
     Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
     system.initNetwork(1);
+    system.setLog(log);
     system.log();
     assert(system.maxDelay()     == 1);
     assert(system.minDelay()     == 1);
@@ -47,13 +48,13 @@ void testSize(std::ostream &log){
     assert(system.size()         == 100);
     
     system = Network<ExampleMessage, ExamplePeer>();
-    system.initNetwork(10000);
+    system.initNetwork(1000);
     system.log();
     assert(system.maxDelay()     == 1);
     assert(system.minDelay()     == 1);
     assert(system.avgDelay()     == 1);
     assert(system.distribution() == RANDOM);
-    assert(system.size()         == 10000);
+    assert(system.size()         == 1000);
     
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testSize Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
@@ -61,12 +62,14 @@ void testIndex(std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testIndex"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
     Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
     system.initNetwork(1);
+    system.setLog(log);
     system.log();
     assert(system[0]->id()         != "");
     assert(system[0]->getCounter() == 0);
 
     system = Network<ExampleMessage, ExamplePeer>();
     system.initNetwork(100);
+    system.setLog(log);
     system.log();
     for(int i = 0; i < 100; i++){
         assert(system[i]->id()                  != "");
@@ -75,12 +78,13 @@ void testIndex(std::ostream &log){
     }
     
     system = Network<ExampleMessage, ExamplePeer>();
-    system.initNetwork(10000);
+    system.initNetwork(1000);
+    system.setLog(log);
     system.log();
-    for(int i = 0; i < 10000; i++){
+    for(int i = 0; i < 1000; i++){
         assert(system[i]->id()                  != "");
         assert(system[i]->getCounter()          == 0);
-        assert(system[i]->neighbors().size()    == 9999); // 100 - self
+        assert(system[i]->neighbors().size()    == 999); // 5000 - self
     }
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testIndex complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
@@ -88,13 +92,14 @@ void testOneDelay(std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testOneDelay"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
     Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
     system.initNetwork(100);
+    system.setLog(log);
     system.log();
     for(int i = 0; i < 100; i++){
         assert(system[i]->id()                  != "");
         assert(system[i]->getCounter()          == 0);
         assert(system[i]->neighbors().size()    == 99); // 100 - self
-        for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-            assert(system[i]->getDelayToNeighbor(*n) == 1);
+        for(int n = 0; n < system[i]->neighbors().size(); n++){
+            assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) == 1);
         }
     }
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testOneDelay complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
@@ -105,57 +110,62 @@ void testRandomDelay(std::ostream &log){
     
     for(int i = 0; i < 100; i++){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
+        system.setLog(log);
         int max = 2;
         int min = 1;
-        system.initNetwork(10);
+        
         system.setMaxDelay(max);
         system.setMinDelay(min);
+        system.initNetwork(10);
+        
         system.log();
         for(int i = 0; i < 10; i++){
             assert(system[i]->id()                  != "");
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 100 - self
-            for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-                assert(system[i]->getDelayToNeighbor(*n) >= min);
-                assert(system[i]->getDelayToNeighbor(*n) <= max);
+            for(int n = 0; n < system[i]->neighbors().size(); n++){
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) >= min);
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) <= max);
             }
         }
     }
     
     for(int i = 0; i < 100; i++){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
+        system.setLog(log);
         int max = 5;
         int min = 1;
-        system.initNetwork(10);
         system.setMaxDelay(max);
         system.setMinDelay(min);
+        system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
             assert(system[i]->id()                  != "");
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 100 - self
-            for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-                assert(system[i]->getDelayToNeighbor(*n) >= min);
-                assert(system[i]->getDelayToNeighbor(*n) <= max);
+            for(int n = 0; n < system[i]->neighbors().size(); n++){
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) >= min);
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) <= max);
             }
         }
     }
     
     for(int i = 0; i < 100; i++){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
+        system.setLog(log);
         int max = 100;
         int min = 1;
-        system.initNetwork(10);
         system.setMaxDelay(max);
         system.setMinDelay(min);
+        system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
             assert(system[i]->id()                  != "");
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 100 - self
-            for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-                assert(system[i]->getDelayToNeighbor(*n) >= min);
-                assert(system[i]->getDelayToNeighbor(*n) <= max);
+            for(int n = 0; n < system[i]->neighbors().size(); n++){
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) >= min);
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) <= max);
             }
         }
     }
@@ -164,36 +174,37 @@ void testRandomDelay(std::ostream &log){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
         int max = 5;
         int min = 2;
-        system.initNetwork(10);
         system.setMaxDelay(max);
         system.setMinDelay(min);
+        system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
             assert(system[i]->id()                  != "");
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 100 - self
-            for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-                assert(system[i]->getDelayToNeighbor(*n) >= min);
-                assert(system[i]->getDelayToNeighbor(*n) <= max);
+            for(int n = 0; n < system[i]->neighbors().size(); n++){
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) >= min);
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) <= max);
             }
         }
     }
     
     for(int i = 0; i < 100; i++){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
+        system.setLog(log);
         int max = 1000;
         int min = 100;
-        system.initNetwork(10);
         system.setMaxDelay(max);
         system.setMinDelay(min);
+        system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
             assert(system[i]->id()                  != "");
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 100 - self
-            for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-                assert(system[i]->getDelayToNeighbor(*n) >= min);
-                assert(system[i]->getDelayToNeighbor(*n) <= max);
+            for(int n = 0; n < system[i]->neighbors().size(); n++){
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) >= min);
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) <= max);
             }
         }
     }
@@ -206,44 +217,46 @@ void testPoissonDelay(std::ostream &log){
     // sense this is random we do it a bunch of times to see if it holds
     for(int i = 0; i < 100; i++){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
+        system.setLog(log);
         int max = 2;
         int min = 1;
         int avg = 1;
-        system.initNetwork(10);
         system.setToPoisson();
         system.setMaxDelay(max);
         system.setAvgDelay(avg);
         system.setMinDelay(min);
+        system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
             assert(system[i]->id()                  != "");
             assert(system[i]->getCounter()          == 0);
-            assert(system[i]->neighbors().size()    == 9); // 100 - self
-            for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-                assert(system[i]->getDelayToNeighbor(*n) >= min);
-                assert(system[i]->getDelayToNeighbor(*n) <= max);
+            assert(system[i]->neighbors().size()    == 9); // 10 - self
+            for(int n = 0; n < system[i]->neighbors().size(); n++){
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) >= min);
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) <= max);
             }
         }
     }
     
     for(int i = 0; i < 100; i++){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
+        system.setLog(log);
         int max = 5;
         int min = 1;
         int avg = 2;
-        system.initNetwork(10);
         system.setToPoisson();
         system.setMaxDelay(max);
         system.setAvgDelay(avg);
         system.setMinDelay(min);
+        system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
             assert(system[i]->id()                  != "");
             assert(system[i]->getCounter()          == 0);
-            assert(system[i]->neighbors().size()    == 9); // 100 - self
-            for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-                assert(system[i]->getDelayToNeighbor(*n) >= min);
-                assert(system[i]->getDelayToNeighbor(*n) <= max);
+            assert(system[i]->neighbors().size()    == 9); // 10 - self
+            for(int n = 0; n < system[i]->neighbors().size(); n++){
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) >= min);
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) <= max);
             }
         }
     }
@@ -253,63 +266,65 @@ void testPoissonDelay(std::ostream &log){
         int max = 20;
         int min = 10;
         int avg = 15;
-        system.initNetwork(10);
         system.setToPoisson();
         system.setMaxDelay(max);
         system.setAvgDelay(avg);
         system.setMinDelay(min);
+        system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
             assert(system[i]->id()                  != "");
             assert(system[i]->getCounter()          == 0);
-            assert(system[i]->neighbors().size()    == 9); // 100 - self
-            for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-                assert(system[i]->getDelayToNeighbor(*n) >= min);
-                assert(system[i]->getDelayToNeighbor(*n) <= max);
+            assert(system[i]->neighbors().size()    == 9); // 10 - self
+            for(int n = 0; n < system[i]->neighbors().size(); n++){
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) >= min);
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) <= max);
             }
         }
     }
     
     for(int i = 0; i < 100; i++){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
+        system.setLog(log);
         int max = 200;
         int min = 100;
-        int avg = 1;
-        system.initNetwork(10);
+        int avg = 90;
         system.setToPoisson();
         system.setMaxDelay(max);
         system.setAvgDelay(avg);
         system.setMinDelay(min);
+        system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
             assert(system[i]->id()                  != "");
             assert(system[i]->getCounter()          == 0);
-            assert(system[i]->neighbors().size()    == 9); // 100 - self
-            for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-                assert(system[i]->getDelayToNeighbor(*n) >= min);
-                assert(system[i]->getDelayToNeighbor(*n) <= max);
+            assert(system[i]->neighbors().size()    == 9); // 10 - self
+            for(int n = 0; n < system[i]->neighbors().size(); n++){
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) >= min);
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) <= max);
             }
         }
     }
     
     for(int i = 0; i < 100; i++){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
+        system.setLog(log);
         int max = 20;
         int min = 10;
-        int avg = 100;
-        system.initNetwork(10);
+        int avg = 25;
         system.setToPoisson();
         system.setMaxDelay(max);
         system.setAvgDelay(avg);
         system.setMinDelay(min);
+        system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
             assert(system[i]->id()                  != "");
             assert(system[i]->getCounter()          == 0);
-            assert(system[i]->neighbors().size()    == 9); // 100 - self
-            for(auto n = system[i]->neighbors().begin(); n != system[i]->neighbors().end(); n++){
-                assert(system[i]->getDelayToNeighbor(*n) >= min);
-                assert(system[i]->getDelayToNeighbor(*n) <= max);
+            assert(system[i]->neighbors().size()    == 9); // 10 - self
+            for(int n = 0; n < system[i]->neighbors().size(); n++){
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) >= min);
+                assert(system[i]->getDelayToNeighbor(system[i]->neighbors()[n]) <= max);
             }
         }
     }

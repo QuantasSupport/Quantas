@@ -1938,13 +1938,13 @@ void viewChange(std::ostream &log){
     assert(b.getLedger().size()         == 0);
     assert(c.getLedger().size()         == 0);
 
-    assert(a.getCommitLog().size()      == 0);
-    assert(b.getCommitLog().size()      == 0);
-    assert(c.getCommitLog().size()      == 0);
+    assert(a.getCommitLog().size()      == 3);
+    assert(b.getCommitLog().size()      == 3);
+    assert(c.getCommitLog().size()      == 3);
 
-    assert(a.getPrepareLog().size()     == 0);
-    assert(b.getPrepareLog().size()     == 1);// the recycled request
-    assert(c.getPrepareLog().size()     == 0);
+    assert(a.getPrepareLog().size()     == 3);
+    assert(b.getPrepareLog().size()     == 4);// the recycled request
+    assert(c.getPrepareLog().size()     == 3);
 
     assert(a.getPrePrepareLog().size()  == 0);
     assert(b.getPrePrepareLog().size()  == 1);// the recycled request
@@ -2193,7 +2193,6 @@ void byzantineCommit(std::ostream &log){
     c.setFaultTolerance(0.5);
     
     b.makeByzantine();
-    c.makeByzantine();
 
     a.init();
     b.init();
@@ -2228,9 +2227,9 @@ void byzantineCommit(std::ostream &log){
     assert(b.getLedger().size()         == 1);
     assert(c.getLedger().size()         == 1);
 
-    assert(a.getLedger()[0].defeated    == true);
-    assert(b.getLedger()[0].defeated    == true);
-    assert(c.getLedger()[0].defeated    == true);
+    assert(a.getLedger()[0].defeated    == false);
+    assert(b.getLedger()[0].defeated    == false);
+    assert(c.getLedger()[0].defeated    == false);
 
     assert(a.getCommitLog().size()      == 0);
     assert(b.getCommitLog().size()      == 0);
@@ -2249,7 +2248,7 @@ void byzantineCommit(std::ostream &log){
     assert(c.getRequestLog().size()     == 0);
 
     ////////////////////////////////////////////////////////////////////////
-    // transaction by a byzantine leader and < 1/3 peers should be defeated 
+    // transaction by a byzantine leader and > 1/3 peers should be defeated
     a = PBFT_Peer("A");
     b = PBFT_Peer("B");
     c = PBFT_Peer("C");
@@ -2279,7 +2278,6 @@ void byzantineCommit(std::ostream &log){
     c.init();
 
     // begin consensus
-    // make sure that other byzantine peers that are below 1/3 do not force a view change
     a.makeRequest();
     for(int i = 0; i < 5; i++){
         a.log();

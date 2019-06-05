@@ -12,6 +12,7 @@
 #include "PBFTPeer_Sharded_Test.hpp"
 #include "PBFTReferenceCommittee_Test.hpp"
 #include "ByzantineNetwork_Test.hpp"
+#include "NetworkTests.hpp"
 
 #include <string>
 

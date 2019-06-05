@@ -154,7 +154,7 @@ public:
     std::vector<PBFT_Message>   getLedger           ()const                                         {return std::vector<PBFT_Message>{ std::begin(_ledger), std::end(_ledger) };};
     std::string                 getPhase            ()const                                         {return _currentPhase;};
     bool                        isPrimary           ()const                                         {return _primary == nullptr ? false : _id == _primary->id();};
-    virtual int                 faultyPeers         ()const                                         {return ceil((_neighbors.size() + 1) * _faultUpperBound);};
+    virtual int                 faultyPeers         ()const                                         {return ceil(double(_neighbors.size() + 1) * _faultUpperBound);};
     int                         getRound            ()const                                         {return _currentRound;};
     std::string                 getPrimary          ()const                                         {return _primary == nullptr ? NO_PRIMARY : _primary->id();}
     double                      getFaultTolerance   ()const                                         {return _faultUpperBound;};
