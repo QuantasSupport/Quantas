@@ -23,7 +23,7 @@ protected:
     std::vector<int>                                           _committeeSizes;
     
     // logging vars
-    bool                                                       _printComitte;
+    bool                                                       _printCommittee;
     bool                                                       _printGroup;
 
     // methods from PBFT peer that need to be adjusted for sharding
@@ -43,16 +43,16 @@ public:
    
     void                        printGroupOn            ()                                              {_printGroup = true;};
     void                        printGroupOff           ()                                              {_printGroup = false;};
-    void                        printCommitteeOn        ()                                              {_printComitte = true;};
-    void                        printCommitteeOff       ()                                              {_printComitte = false;};
+    void                        printCommitteeOn        ()                                              {_printCommittee = true;};
+    void                        printCommitteeOff       ()                                              {_printCommittee = false;};
 
     // mutators
     void                        clearCommittee          ()                                              {_committeeMembers.clear(); _committeeId = -1; _currentView = 0;}
     void                        clearGroup              ()                                              {_groupMembers.clear(); _groupId = -1;}
     void                        initPrimary             () override                                     {_primary = findPrimary(_committeeMembers);};
     void                        preformComputation      () override;
-    virtual void                makeCorrect             () override                                     {if(_committeeId == -1){_byzantine = false;}};
-    virtual void                makeByzantine           () override                                     {if(_committeeId == -1){_byzantine = true;}};
+    virtual bool                makeCorrect             () override;
+    virtual bool                makeByzantine           () override;
     
     // getters
     int                         faultyPeers             ()const override                                {return ceil(double(_committeeMembers.size() + 1) * _faultUpperBound);};

@@ -2537,6 +2537,183 @@ void testByzantine(std::ostream &log){
     assert(b.getRequestLog().size()         == 0);
     assert(c.getRequestLog().size()         == 0);
     
+    /////////////////////////////////////////////////////////////
+    // testing slow peers and honest majority multi view changes
+    //
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    PBFTPeer_Sharded d = PBFTPeer_Sharded("D");
+    PBFTPeer_Sharded e = PBFTPeer_Sharded("E");
+
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
+    d.setFaultTolerance(0.6);
+    e.setFaultTolerance(0.6);
+    
+    
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    e.setLogFile(log);
+    d.setLogFile(log);
+    
+    a.addNeighbor(b, 5);
+    a.addNeighbor(c, 1);
+    a.addNeighbor(e, 5);
+    a.addNeighbor(d, 1);
+    
+    b.addNeighbor(a, 5);
+    b.addNeighbor(c, 1);
+    b.addNeighbor(e, 1);
+    b.addNeighbor(d, 1);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    c.addNeighbor(e, 1);
+    c.addNeighbor(d, 1);
+    
+    e.addNeighbor(b, 1);
+    e.addNeighbor(a, 5);
+    e.addNeighbor(c, 1);
+    e.addNeighbor(d, 1);
+    
+    d.addNeighbor(b, 1);
+    d.addNeighbor(a, 1);
+    d.addNeighbor(c, 1);
+    d.addNeighbor(e, 1);
+    
+    a.log();
+    b.log();
+    c.log();
+    e.log();
+    d.log();
+    
+    a.makeByzantine();
+    b.makeByzantine();
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    d.setCommittee(1);
+    e.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    a.addCommitteeMember(d);
+    a.addCommitteeMember(e);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    b.addCommitteeMember(d);
+    b.addCommitteeMember(e);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    c.addCommitteeMember(d);
+    c.addCommitteeMember(e);
+    
+    d.addCommitteeMember(b);
+    d.addCommitteeMember(a);
+    d.addCommitteeMember(c);
+    d.addCommitteeMember(e);
+    
+    e.addCommitteeMember(b);
+    e.addCommitteeMember(a);
+    e.addCommitteeMember(d);
+    e.addCommitteeMember(c);
+    
+    a.init();
+    b.init();
+    c.init();
+    d.init();
+    e.init();
+    
+    a.makeRequest();
+    
+    for(int i = 0; i < 50; i++){
+        a.log();
+        b.log();
+        c.log();
+        d.log();
+        e.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        d.receive();
+        e.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        d.preformComputation();
+        e.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+        d.transmit();
+        e.transmit();
+    }
+    
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == false);
+    assert(c.isPrimary()                    == true);
+    assert(d.isPrimary()                    == false);
+    assert(e.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 1);
+    assert(b.getLedger().size()             == 1);
+    assert(c.getLedger().size()             == 1);
+    assert(d.getLedger().size()             == 1);
+    assert(e.getLedger().size()             == 1);
+    
+    assert(a.getCommitteeSizes()[0]         == 5);
+    assert(b.getCommitteeSizes()[0]         == 5);
+    assert(c.getCommitteeSizes()[0]         == 5);
+    assert(d.getCommitteeSizes()[0]         == 5);
+    assert(e.getCommitteeSizes()[0]         == 5);
+    
+    assert(a.getCommittee()                 == -1);
+    assert(b.getCommittee()                 == -1);
+    assert(c.getCommittee()                 == -1);
+    assert(d.getCommittee()                 == -1);
+    assert(e.getCommittee()                 == -1);
+    
+    assert(a.getLedger()[0].defeated        == false);
+    assert(b.getLedger()[0].defeated        == false);
+    assert(c.getLedger()[0].defeated        == false);
+    assert(d.getLedger()[0].defeated        == false);
+    assert(e.getLedger()[0].defeated        == false);
+    
+    assert(a.getCommitLog().size()          == 0);
+    assert(b.getCommitLog().size()          == 0);
+    assert(c.getCommitLog().size()          == 0);
+    assert(d.getCommitLog().size()          == 0);
+    assert(e.getCommitLog().size()          == 0);
+    
+    assert(a.getPrepareLog().size()         == 0);
+    assert(b.getPrepareLog().size()         == 0);
+    assert(c.getPrepareLog().size()         == 0);
+    assert(d.getPrepareLog().size()         == 0);
+    assert(e.getPrepareLog().size()         == 0);
+    
+    assert(a.getPrePrepareLog().size()      == 0);
+    assert(b.getPrePrepareLog().size()      == 0);
+    assert(c.getPrePrepareLog().size()      == 0);
+    assert(d.getPrePrepareLog().size()         == 0);
+    assert(e.getPrePrepareLog().size()         == 0);
+    
+    assert(a.getRequestLog().size()         == 0);
+    assert(b.getRequestLog().size()         == 0);
+    assert(c.getRequestLog().size()         == 0);
+    assert(d.getRequestLog().size()         == 0);
+    assert(e.getRequestLog().size()         == 0);
+    
+    
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantine Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
 

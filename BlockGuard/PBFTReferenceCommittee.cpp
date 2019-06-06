@@ -388,11 +388,11 @@ std::ostream& PBFTReferenceCommittee::printTo(std::ostream& out)const{
     for(auto id = _currentCommittees.begin(); id != _currentCommittees.end(); id++){
         std::vector<aGroup> committee = getCommittee(*id);
         out<< '\t'<< std::setw(LOG_WIDTH)<< "Committee ID:" + std::to_string(*id) << std::setw(LOG_WIDTH)<< "Current Committees Sizes:" + std::to_string(committee.size())<< std::endl;
-        out<< '\t'<< std::setw(LOG_WIDTH)<< "Peer:"<< std::setw(LOG_WIDTH)<< "Current Phase:"<< std::setw(LOG_WIDTH)<< "Last Commit:"<< std::setw(LOG_WIDTH)<< "Current Committee"<< std::endl;
+        out<< '\t'<< std::setw(LOG_WIDTH)<< "Peer:"<< std::setw(LOG_WIDTH)<< "Current Phase:"<< std::setw(LOG_WIDTH)<< "Last Commit:"<< std::setw(LOG_WIDTH)<< "Current Committee"<< std::setw(LOG_WIDTH)<< "Current Primary"<< std::endl;
         for(auto group = committee.begin(); group != committee.end(); group++){
             for(auto peer = group->begin(); peer != group->end(); peer++ ){
                 if((*peer)->getLedger().size() != 0){
-                    out<< '\t'<< std::setw(LOG_WIDTH)<< (*peer)->id()<< std::setw(LOG_WIDTH)<< (*peer)->getPhase()<< std::setw(LOG_WIDTH)<< (*peer)->getLedger().end()->commit_round<< std::setw(LOG_WIDTH)<< (*peer)->getCommittee()<<std::endl;
+                    out<< '\t'<< std::setw(LOG_WIDTH)<< (*peer)->id()<< std::setw(LOG_WIDTH)<< (*peer)->getPhase()<< std::setw(LOG_WIDTH)<< (*peer)->getLedger().end()->commit_round<< std::setw(LOG_WIDTH)<< (*peer)->getCommittee()<< std::setw(LOG_WIDTH)<< (*peer)->getPrimary()<<std::endl;
                 }else{
                     out<< '\t'<< std::setw(LOG_WIDTH)<< (*peer)->id()<< std::setw(LOG_WIDTH)<< (*peer)->getPhase()<< std::setw(LOG_WIDTH)<< "None"<< std::setw(LOG_WIDTH)<< (*peer)->getCommittee()<<std::endl;
                 }

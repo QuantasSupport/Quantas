@@ -13,7 +13,7 @@ PBFTPeer_Sharded::PBFTPeer_Sharded(std::string id) : PBFT_Peer(id) {
     _committeeId = -1;
     _groupMembers = std::map<std::string, Peer<PBFT_Message>* >();
     _committeeMembers = std::map<std::string, Peer<PBFT_Message>* >();
-    _printComitte = false;
+    _printCommittee = false;
     _printGroup = false;
     _committeeSizes = std::vector<int>();
 }
@@ -23,7 +23,7 @@ PBFTPeer_Sharded::PBFTPeer_Sharded(const PBFTPeer_Sharded &rhs) : PBFT_Peer(rhs)
     _committeeId = rhs._committeeId;
     _groupMembers = rhs._groupMembers;
     _committeeMembers = rhs._committeeMembers;
-    _printComitte = rhs._printComitte;
+    _printCommittee = rhs._printCommittee;
     _printGroup = rhs._printGroup;
     _committeeSizes = rhs._committeeSizes;
 }
@@ -50,6 +50,7 @@ void PBFTPeer_Sharded::commitRequest(){
 
     int numberOfByzantineCommits = 0;
     int correctCommitMsg = 0;
+    std::vector<PBFT_Message> tmp = std::vector<PBFT_Message>();
     for(auto commitMsg = _commitLog.begin(); commitMsg != _commitLog.end(); commitMsg++){
         if(commitMsg->sequenceNumber == _currentRequest.sequenceNumber
                 && commitMsg->view == _currentView
@@ -58,10 +59,14 @@ void PBFTPeer_Sharded::commitRequest(){
                 numberOfByzantineCommits++;
             }else{
                 correctCommitMsg++;
+                tmp.push_back(*commitMsg);
             }
         }
     }
-    if(_currentRequest.byzantine){
+    if (numberOfByzantineCommits + correctCommitMsg != _committeeMembers.size() +1){
+        return;
+    }
+    if(_primary->isByzantine()){
         if( numberOfByzantineCommits >= faultyPeers()){
             commit.defeated = true;
             _ledger.push_back(commit);
@@ -74,7 +79,7 @@ void PBFTPeer_Sharded::commitRequest(){
         }else{
             viewChange(_committeeMembers);
         }
-    }else if(!_currentRequest.byzantine){
+    }else if(!_primary->isByzantine()){
         if( correctCommitMsg >= faultyPeers()){
             commit.defeated = false;
             _ledger.push_back(commit);
@@ -116,17 +121,47 @@ void PBFTPeer_Sharded::preformComputation(){
     if(_primary == nullptr){
         _primary = findPrimary(_committeeMembers);
     }
+    //_committeeMembers[_primary->id()];
     _currentRound++;
+    assert(_prePrepareLog.size() < 2);
     collectMessages(); // sorts messages into there repective logs
+    assert(_prePrepareLog.size() < 2);
     prePrepare();
+    assert(_prePrepareLog.size() < 2);
     prepare();
+    assert(_prePrepareLog.size() < 2);
     waitPrepare();
+    assert(_prePrepareLog.size() < 2);
     commit();
+    assert(_prePrepareLog.size() < 2);
     waitCommit();
+    assert(_prePrepareLog.size() < 2);
     for(auto confirmedTransaction = _ledger.begin(); confirmedTransaction != _ledger.end(); confirmedTransaction++){
         cleanLogs(confirmedTransaction->sequenceNumber);
     }
+    assert(_prePrepareLog.size() < 2);
+    assert(_committeeMembers.size() != 1);
 }
+
+bool PBFTPeer_Sharded::makeCorrect(){
+    if(_committeeId == -1){
+        _byzantine = false;
+        return true;
+        
+    }else{
+        return false;
+    }
+};
+
+bool PBFTPeer_Sharded::makeByzantine(){
+    if(_committeeId == -1){
+        _byzantine = true;
+        return true;
+        
+    }else{
+        return false;
+    }
+};
 
 PBFTPeer_Sharded& PBFTPeer_Sharded::operator= (const PBFTPeer_Sharded &rhs){
     PBFT_Peer::operator=(rhs);
@@ -135,7 +170,7 @@ PBFTPeer_Sharded& PBFTPeer_Sharded::operator= (const PBFTPeer_Sharded &rhs){
     _committeeId = rhs._committeeId;
     _groupMembers = rhs._groupMembers;
     _committeeMembers = rhs._committeeMembers;
-    _printComitte = rhs._printComitte;
+    _printCommittee = rhs._printCommittee;
     _printGroup = rhs._printGroup;
     _committeeSizes = rhs._committeeSizes;
     
@@ -165,13 +200,13 @@ std::ostream& PBFTPeer_Sharded::printTo(std::ostream &out)const{
         committeeMembersIds.push_back("");
     }
 
-    if(_printComitte || _printGroup){
+    if(_printCommittee || _printGroup){
         out<< "\t"<< std::setw(LOG_WIDTH)<< "Group Members"<< std::setw(LOG_WIDTH)<< "Committee Members"<< std::endl;
     }
     for(int i = 0; i < committeeMembersIds.size(); i++){
-        if(_printComitte && _printGroup){
+        if(_printCommittee && _printGroup){
             out<< "\t"<< std::setw(LOG_WIDTH)<< groupMembersIds[i]<< std::setw(LOG_WIDTH)<< committeeMembersIds[i]<< std::endl;
-        }else if(_printComitte){
+        }else if(_printCommittee){
             out<< "\t"<< std::setw(LOG_WIDTH)<< ""<< std::setw(LOG_WIDTH)<< committeeMembersIds[i]<< std::endl;
         }else if(_printGroup){
             out<< "\t"<< std::setw(LOG_WIDTH)<< groupMembersIds[i]<< std::setw(LOG_WIDTH)<< ""<< std::endl;

@@ -107,13 +107,13 @@ int main(int argc, const char * argv[]) {
             std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
         }
             //ceil(256*0.3)
-        for(int delay = 5; delay < 10; delay++){
+        for(int delay = 1; delay < 10; delay++){
             csv<< "Delay,"<< std::to_string(delay)<< std::endl;
             csv<< s_pbft_header;
-            double fault = 0.5;
-            while(ceil(256*fault) != 256){
+            double fault = 0.0;
+            while(ceil(256*fault) <= 256){
                 csv<< "fault,"<< std::to_string(fault)<< std::endl;
-                for(int run = 0; run < 2; run++){
+                for(int run = 0; run < 4; run++){
                     Sharded_PBFT(csv,log,delay,fault);
                 }
                 fault += 0.1;
@@ -374,7 +374,7 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
     system.setToRandom();
     system.setMaxDelay(delay);
     system.setLog(log);
-    system.setSquenceNumber(1024);
+    system.setSquenceNumber(999);
     system.initNetwork(256);
     system.setFaultTolerance(0.3);
     system.makeByzantines(256*fault);
@@ -387,7 +387,7 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
         system.makeRequest();numberOfRequests++;
 
          if(i%5 == 0){
-             system.shuffleByzantines(256*fault);
+             //system.shuffleByzantines(256*fault);
          }
 
         system.receive();
@@ -398,7 +398,7 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
         std::cout<< 't'<< std::flush;
         system.log();
 
-        if(i%50 == 0){
+        if(i%100 == 0){
             calculateResults(system,csv);
             if(test == system.getGlobalLedger().size()){
                 system.printNetworkOn();

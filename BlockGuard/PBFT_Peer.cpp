@@ -116,6 +116,7 @@ void PBFT_Peer::collectMessages(){
 }
 
 void PBFT_Peer::cleanLogs(int sequenceNumber){
+
     int oldTransaction = sequenceNumber;
     auto entry = _prePrepareLog.begin();
     while(entry != _prePrepareLog.end()){
@@ -151,6 +152,7 @@ void PBFT_Peer::prePrepare(){
        _primary->id() != _id){
         return;
     }
+
     PBFT_Message request = _requestLog.front();
     _requestLog.erase(_requestLog.begin());
     
@@ -167,7 +169,6 @@ void PBFT_Peer::prePrepare(){
     _currentPhase = PREPARE_WAIT;
     _currentRequest = request;
     _currentRequestResult = executeQuery(request);
-    _prePrepareLog.push_back(request);
     PBFT_Message myPrepareMsg = request;
     myPrepareMsg.phase = PREPARE;
     _prepareLog.push_back(myPrepareMsg);
@@ -188,6 +189,7 @@ void PBFT_Peer::prepare(){
     if(!isVailedRequest(prePrepareMesg)){
         return;
     }
+    assert(_prePrepareLog.size() == 0);
     prePrepareMesg.phase = PREPARE;
     _prepareLog.push_back(prePrepareMesg);
     PBFT_Message prepareMsg = prePrepareMesg;
@@ -207,7 +209,7 @@ void PBFT_Peer::waitPrepare(){
     if(_currentPhase != PREPARE_WAIT){
         return;
     }
-    
+    assert(_prePrepareLog.size() == 0);
     int numberOfPrepareMsg = 0;
     for(auto entry = _prepareLog.begin(); entry != _prepareLog.end(); entry++){
         if(entry->sequenceNumber == _currentRequest.sequenceNumber
@@ -246,9 +248,7 @@ void PBFT_Peer::waitCommit(){
     int numberOfCommitMsg = 0;
     for(auto entry = _commitLog.begin(); entry != _commitLog.end(); entry++){
         if(entry->sequenceNumber == _currentRequest.sequenceNumber
-           && entry->view == _currentView
-           && entry->result == _currentRequestResult){
-            
+           && entry->view == _currentView){
             numberOfCommitMsg++;
         }
     }
@@ -312,12 +312,11 @@ void PBFT_Peer::commitRequest(){
 void PBFT_Peer::viewChange(std::map<std::string, Peer<PBFT_Message>* > potentialPrimarys){
     _currentView++;
     _primary = findPrimary(potentialPrimarys);
-    PBFT_Message request;
-    request = _currentRequest;
-    request.view = _currentView;
-    request.sequenceNumber = -1;
-    request.byzantine = _byzantine;
     if(_primary->id() == _id){
+        PBFT_Message request;
+        request = _currentRequest;
+        request.view = _currentView;
+        request.byzantine = _byzantine;
         _requestLog.push_back(request);
     }
 }
@@ -400,7 +399,7 @@ void PBFT_Peer::makeRequest(){
         *_log<< "ERROR: makeRequest called with no primary"<< std::endl;
         return;
     }
-    
+    assert(false);
     // create request
     PBFT_Message request;
     request.submission_round = _currentRound;
@@ -473,6 +472,7 @@ void PBFT_Peer::makeRequest(int squenceNumber){
     request.phase = IDEAL;
     request.sequenceNumber = squenceNumber;
     request.result = 0;
+    request.byzantine = _byzantine;
     
     // if this is primary then dont send to primary
     // if this is busy then dont send to primary
