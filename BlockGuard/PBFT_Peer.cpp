@@ -399,7 +399,6 @@ void PBFT_Peer::makeRequest(){
         *_log<< "ERROR: makeRequest called with no primary"<< std::endl;
         return;
     }
-    assert(false);
     // create request
     PBFT_Message request;
     request.submission_round = _currentRound;

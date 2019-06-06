@@ -1144,7 +1144,7 @@ void testViewChange(std::ostream &log){
     assert(c.getPrepareLog().size()     == 3);
     
     assert(a.getPrePrepareLog().size()  == 0);
-    assert(b.getPrePrepareLog().size()  == 1);
+    assert(b.getPrePrepareLog().size()  == 0);
     assert(c.getPrePrepareLog().size()  == 0);
     
     assert(a.getRequestLog().size()     == 0);

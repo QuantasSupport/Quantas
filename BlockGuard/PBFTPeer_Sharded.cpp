@@ -123,24 +123,15 @@ void PBFTPeer_Sharded::preformComputation(){
     }
     //_committeeMembers[_primary->id()];
     _currentRound++;
-    assert(_prePrepareLog.size() < 2);
     collectMessages(); // sorts messages into there repective logs
-    assert(_prePrepareLog.size() < 2);
     prePrepare();
-    assert(_prePrepareLog.size() < 2);
     prepare();
-    assert(_prePrepareLog.size() < 2);
     waitPrepare();
-    assert(_prePrepareLog.size() < 2);
     commit();
-    assert(_prePrepareLog.size() < 2);
     waitCommit();
-    assert(_prePrepareLog.size() < 2);
     for(auto confirmedTransaction = _ledger.begin(); confirmedTransaction != _ledger.end(); confirmedTransaction++){
         cleanLogs(confirmedTransaction->sequenceNumber);
     }
-    assert(_prePrepareLog.size() < 2);
-    assert(_committeeMembers.size() != 1);
 }
 
 bool PBFTPeer_Sharded::makeCorrect(){

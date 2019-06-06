@@ -68,7 +68,7 @@ int main(int argc, const char * argv[]) {
         Example(out);
     }
     else if (algorithm== "pbft"){
-        for(int delay = 1; delay < 51; delay = delay + 10){
+        for(int delay = 1; delay < 10; delay++){
             std::cout<< "PBFT"<<std::endl;
             std::ofstream out;
             out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".log");
@@ -198,7 +198,7 @@ void PBFT(std::ofstream &out,int delay){
     system.setLog(out);
     system.setToRandom();
     system.setMaxDelay(delay);
-    system.initNetwork(1024);
+    system.initNetwork(128);
     for(int i = 0; i < system.size(); i++){
         system[i]->setFaultTolerance(0.3);
         system[i]->init();
@@ -206,18 +206,20 @@ void PBFT(std::ofstream &out,int delay){
     
     int numberOfRequests = 0;
     for(int i =-1; i < 1000; i++){
-        int randIndex = rand()%system.size();
-        while(system[randIndex]->isPrimary()){
-            randIndex = rand()%system.size();
+        for(int i = 0; i < system.size(); i++){
+            if(system[i]->isPrimary()){
+                system.makeRequest(i);
+                numberOfRequests++;
+                break;
+            }
         }
-        system.makeRequest(randIndex);
-        numberOfRequests++;
-        
         system.receive();
+        std::cout<< 'r'<< std::flush;
         system.preformComputation();
+        std::cout<< 'p'<< std::flush;
         system.transmit();
+        std::cout<< 't'<< std::flush;
         system.log();
-        std::cout<< '.'<< std::flush;
     }
 
     int min = (int)system[0]->getLedger().size();

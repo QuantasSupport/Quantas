@@ -385,14 +385,7 @@ void requestFromLeader(std::ostream &log){
     assert(c.getPhase()                             == IDEAL);
     
     assert(a.getRequestLog().size()                 == 0);
-    assert(a.getPrePrepareLog().size()              == 1);
-    assert(a.getPrePrepareLog()[0].sequenceNumber   == 1);
-    assert(a.getPrePrepareLog()[0].client_id        == "A");
-    assert(a.getPrePrepareLog()[0].view             == 0);
-    assert(a.getPrePrepareLog()[0].type             == REPLY);
-    assert(a.getPrePrepareLog()[0].commit_round     == 0);
-    assert(a.getPrePrepareLog()[0].phase            == PRE_PREPARE);
-    assert(a.getPrePrepareLog()[0].result           == 0);
+    assert(a.getPrePrepareLog().size()              == 0);
 
     a.transmit();
     b.transmit();
@@ -785,14 +778,7 @@ void requestFromPeer(std::ostream &log){
     assert(c.getPhase()                             == IDEAL);
     
     assert(a.getRequestLog().size()                 == 0);
-    assert(a.getPrePrepareLog().size()              == 1);
-    assert(a.getPrePrepareLog()[0].sequenceNumber   == 1);
-    assert(a.getPrePrepareLog()[0].client_id        == "B");
-    assert(a.getPrePrepareLog()[0].view             == 0);
-    assert(a.getPrePrepareLog()[0].type             == REPLY);
-    assert(a.getPrePrepareLog()[0].commit_round     == 0);
-    assert(a.getPrePrepareLog()[0].phase            == PRE_PREPARE);
-    assert(a.getPrePrepareLog()[0].result           == 0);
+    assert(a.getPrePrepareLog().size()              == 0);
 
     a.transmit();
     b.transmit();
@@ -1154,14 +1140,7 @@ void multiRequest(std::ostream &log){
     assert(b.getPhase()                             == IDEAL);
     assert(c.getPhase()                             == IDEAL);
 
-    assert(a.getPrePrepareLog().size()                 == 1);
-    assert(a.getPrePrepareLog()[0].sequenceNumber      == 1);
-    assert(a.getPrePrepareLog()[0].client_id           == "A");
-    assert(a.getPrePrepareLog()[0].view                == 0);
-    assert(a.getPrePrepareLog()[0].type                == REPLY);
-    assert(a.getPrePrepareLog()[0].commit_round               == 0);
-    assert(a.getPrePrepareLog()[0].phase               == PRE_PREPARE);
-    assert(a.getPrePrepareLog()[0].result              == 0);
+    assert(a.getPrePrepareLog().size()                 == 0);
     
     a.transmit();
     b.transmit();
@@ -1947,7 +1926,7 @@ void viewChange(std::ostream &log){
     assert(c.getPrepareLog().size()     == 3);
 
     assert(a.getPrePrepareLog().size()  == 0);
-    assert(b.getPrePrepareLog().size()  == 1);// the recycled request
+    assert(b.getPrePrepareLog().size()  == 0);
     assert(c.getPrePrepareLog().size()  == 0);
 
     assert(a.getRequestLog().size()     == 0);
