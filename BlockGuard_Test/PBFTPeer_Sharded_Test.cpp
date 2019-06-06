@@ -1052,15 +1052,17 @@ void MultiRequestMultiCommittee(std::ostream &log){
     //log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"Multi Request Multi Committee Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
 
+/////////////////////////////////////////
+//
 void testViewChange(std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testViewChange "<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
     PBFTPeer_Sharded a = PBFTPeer_Sharded("A");
     PBFTPeer_Sharded b = PBFTPeer_Sharded("B");
     PBFTPeer_Sharded c = PBFTPeer_Sharded("C");
     
-    a.setFaultTolerance(1);
-    b.setFaultTolerance(1);
-    c.setFaultTolerance(1);
+    a.setFaultTolerance(0.6);
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
     
     a.setLogFile(log);
     b.setLogFile(log);
@@ -1382,6 +1384,10 @@ void testViewChange(std::ostream &log){
 }
 void testByzantine(std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantine "<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    
+    ///////////////////////////////////////////
+    // Byzantine majority and honest leader should view change for byz leader and commit defeated trnasaction
+    
     PBFTPeer_Sharded a = PBFTPeer_Sharded("A");
     PBFTPeer_Sharded b = PBFTPeer_Sharded("B");
     PBFTPeer_Sharded c = PBFTPeer_Sharded("C");
@@ -1426,10 +1432,112 @@ void testByzantine(std::ostream &log){
     a.init();
     b.init();
     c.init();
+
+    a.makeRequest();
+    
+    for(int i = 0; i < 10; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    // make sure that there was no view change and that the transaction was committed as defeated
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
+    assert(c.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 1);
+    assert(b.getLedger().size()             == 1);
+    assert(c.getLedger().size()             == 1);
+    
+    assert(a.getCommitteeSizes()[0]         == 3);
+    assert(b.getCommitteeSizes()[0]         == 3);
+    assert(c.getCommitteeSizes()[0]         == 3);
+    
+    assert(a.getCommittee()                 == -1);
+    assert(b.getCommittee()                 == -1);
+    assert(c.getCommittee()                 == -1);
+    
+    assert(a.getLedger()[0].defeated        == true);
+    assert(b.getLedger()[0].defeated        == true);
+    assert(c.getLedger()[0].defeated        == true);
+    
+    assert(a.getCommitLog().size()          == 0);
+    assert(b.getCommitLog().size()          == 0);
+    assert(c.getCommitLog().size()          == 0);
+    
+    assert(a.getPrepareLog().size()         == 0);
+    assert(b.getPrepareLog().size()         == 0);
+    assert(c.getPrepareLog().size()         == 0);
+    
+    assert(a.getPrePrepareLog().size()      == 0);
+    assert(b.getPrePrepareLog().size()      == 0);
+    assert(c.getPrePrepareLog().size()      == 0);
+    
+    assert(a.getRequestLog().size()         == 0);
+    assert(b.getRequestLog().size()         == 0);
+    assert(c.getRequestLog().size()         == 0);
     
     ///////////////////////////////////////////
-    // Byzantine majority non-leader
-
+    // Byzantine majority and Byzantine leader commit defeated transaction
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
+    
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 1);
+    b.addNeighbor(c, 1);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.log();
+    b.log();
+    c.log();
+    
+    a.makeByzantine();
+    c.makeByzantine();
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
     a.makeRequest();
     
     for(int i = 0; i < 5; i++){
@@ -1487,6 +1595,9 @@ void testByzantine(std::ostream &log){
     assert(b.getRequestLog().size()         == 0);
     assert(c.getRequestLog().size()         == 0);
     
+    ///////////////////////////////////////////
+    // Honest majority byz leader does not commit defeated transaction
+    
     a = PBFTPeer_Sharded("A");
     b = PBFTPeer_Sharded("B");
     c = PBFTPeer_Sharded("C");
@@ -1513,7 +1624,6 @@ void testByzantine(std::ostream &log){
     c.log();
     
     a.makeByzantine();
-    c.makeByzantine();
     
     a.setCommittee(1);
     b.setCommittee(1);
@@ -1531,9 +1641,6 @@ void testByzantine(std::ostream &log){
     a.init();
     b.init();
     c.init();
-    
-    ///////////////////////////////////////////
-    // Byzantine majority leader
     
     a.makeRequest();
     
@@ -1555,9 +1662,140 @@ void testByzantine(std::ostream &log){
         c.transmit();
     }
     
-    // make sure that there was no view change and that the transaction was committed as defeated
-    assert(a.isPrimary()                    == true);
-    assert(b.isPrimary()                    == false);
+    // make sure that there was a view change and that the transaction was not committed as defeated
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
+    assert(c.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 0);
+    assert(b.getLedger().size()             == 0);
+    assert(c.getLedger().size()             == 0);
+    
+    for(int i = 0; i < 5; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
+    assert(c.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 1);
+    assert(b.getLedger().size()             == 1);
+    assert(c.getLedger().size()             == 1);
+    
+    assert(a.getCommitteeSizes()[0]         == 3);
+    assert(b.getCommitteeSizes()[0]         == 3);
+    assert(c.getCommitteeSizes()[0]         == 3);
+    
+    assert(a.getCommittee()                 == -1);
+    assert(b.getCommittee()                 == -1);
+    assert(c.getCommittee()                 == -1);
+    
+    assert(a.getLedger()[0].defeated        == false);
+    assert(b.getLedger()[0].defeated        == false);
+    assert(c.getLedger()[0].defeated        == false);
+    
+    assert(a.getCommitLog().size()          == 0);
+    assert(b.getCommitLog().size()          == 0);
+    assert(c.getCommitLog().size()          == 0);
+    
+    assert(a.getPrepareLog().size()         == 0);
+    assert(b.getPrepareLog().size()         == 0);
+    assert(c.getPrepareLog().size()         == 0);
+    
+    assert(a.getPrePrepareLog().size()      == 0);
+    assert(b.getPrePrepareLog().size()      == 0);
+    assert(c.getPrePrepareLog().size()      == 0);
+    
+    assert(a.getRequestLog().size()         == 0);
+    assert(b.getRequestLog().size()         == 0);
+    assert(c.getRequestLog().size()         == 0);
+    
+    /////////////////////////////////////////////////////////////
+    // testing slow peers and byz majority
+    //
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
+    
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 5);
+    a.addNeighbor(c, 5);
+    
+    b.addNeighbor(a, 1);
+    b.addNeighbor(c, 1);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.log();
+    b.log();
+    c.log();
+    
+    b.makeByzantine();
+    c.makeByzantine();
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
+    a.makeRequest();
+    
+    for(int i = 0; i < 25; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
     assert(c.isPrimary()                    == false);
     
     assert(a.getLedger().size()             == 1);
@@ -1575,6 +1813,713 @@ void testByzantine(std::ostream &log){
     assert(a.getLedger()[0].defeated        == true);
     assert(b.getLedger()[0].defeated        == true);
     assert(c.getLedger()[0].defeated        == true);
+    
+    assert(a.getCommitLog().size()          == 0);
+    assert(b.getCommitLog().size()          == 0);
+    assert(c.getCommitLog().size()          == 0);
+    
+    assert(a.getPrepareLog().size()         == 0);
+    assert(b.getPrepareLog().size()         == 0);
+    assert(c.getPrepareLog().size()         == 0);
+    
+    assert(a.getPrePrepareLog().size()      == 0);
+    assert(b.getPrePrepareLog().size()      == 0);
+    assert(c.getPrePrepareLog().size()      == 0);
+    
+    assert(a.getRequestLog().size()         == 0);
+    assert(b.getRequestLog().size()         == 0);
+    assert(c.getRequestLog().size()         == 0);
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
+    
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 5);
+    b.addNeighbor(c, 5);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.log();
+    b.log();
+    c.log();
+    
+    b.makeByzantine();
+    c.makeByzantine();
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
+    a.makeRequest();
+    
+    for(int i = 0; i < 25; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
+    assert(c.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 1);
+    assert(b.getLedger().size()             == 1);
+    assert(c.getLedger().size()             == 1);
+    
+    assert(a.getCommitteeSizes()[0]         == 3);
+    assert(b.getCommitteeSizes()[0]         == 3);
+    assert(c.getCommitteeSizes()[0]         == 3);
+    
+    assert(a.getCommittee()                 == -1);
+    assert(b.getCommittee()                 == -1);
+    assert(c.getCommittee()                 == -1);
+    
+    assert(a.getLedger()[0].defeated        == true);
+    assert(b.getLedger()[0].defeated        == true);
+    assert(c.getLedger()[0].defeated        == true);
+    
+    assert(a.getCommitLog().size()          == 0);
+    assert(b.getCommitLog().size()          == 0);
+    assert(c.getCommitLog().size()          == 0);
+    
+    assert(a.getPrepareLog().size()         == 0);
+    assert(b.getPrepareLog().size()         == 0);
+    assert(c.getPrepareLog().size()         == 0);
+    
+    assert(a.getPrePrepareLog().size()      == 0);
+    assert(b.getPrePrepareLog().size()      == 0);
+    assert(c.getPrePrepareLog().size()      == 0);
+    
+    assert(a.getRequestLog().size()         == 0);
+    assert(b.getRequestLog().size()         == 0);
+    assert(c.getRequestLog().size()         == 0);
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
+    
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 5);
+    b.addNeighbor(c, 5);
+    
+    c.addNeighbor(b, 5);
+    c.addNeighbor(a, 5);
+    
+    a.log();
+    b.log();
+    c.log();
+    
+    b.makeByzantine();
+    c.makeByzantine();
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
+    a.makeRequest();
+    
+    for(int i = 0; i < 25; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
+    assert(c.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 1);
+    assert(b.getLedger().size()             == 1);
+    assert(c.getLedger().size()             == 1);
+    
+    assert(a.getCommitteeSizes()[0]         == 3);
+    assert(b.getCommitteeSizes()[0]         == 3);
+    assert(c.getCommitteeSizes()[0]         == 3);
+    
+    assert(a.getCommittee()                 == -1);
+    assert(b.getCommittee()                 == -1);
+    assert(c.getCommittee()                 == -1);
+    
+    assert(a.getLedger()[0].defeated        == true);
+    assert(b.getLedger()[0].defeated        == true);
+    assert(c.getLedger()[0].defeated        == true);
+    
+    assert(a.getCommitLog().size()          == 0);
+    assert(b.getCommitLog().size()          == 0);
+    assert(c.getCommitLog().size()          == 0);
+    
+    assert(a.getPrepareLog().size()         == 0);
+    assert(b.getPrepareLog().size()         == 0);
+    assert(c.getPrepareLog().size()         == 0);
+    
+    assert(a.getPrePrepareLog().size()      == 0);
+    assert(b.getPrePrepareLog().size()      == 0);
+    assert(c.getPrePrepareLog().size()      == 0);
+    
+    assert(a.getRequestLog().size()         == 0);
+    assert(b.getRequestLog().size()         == 0);
+    assert(c.getRequestLog().size()         == 0);
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
+    
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 5);
+    a.addNeighbor(c, 5);
+    
+    b.addNeighbor(a, 5);
+    b.addNeighbor(c, 5);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.log();
+    b.log();
+    c.log();
+    
+    b.makeByzantine();
+    c.makeByzantine();
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
+    a.makeRequest();
+    
+    for(int i = 0; i < 25; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
+    assert(c.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 1);
+    assert(b.getLedger().size()             == 1);
+    assert(c.getLedger().size()             == 1);
+    
+    assert(a.getCommitteeSizes()[0]         == 3);
+    assert(b.getCommitteeSizes()[0]         == 3);
+    assert(c.getCommitteeSizes()[0]         == 3);
+    
+    assert(a.getCommittee()                 == -1);
+    assert(b.getCommittee()                 == -1);
+    assert(c.getCommittee()                 == -1);
+    
+    assert(a.getLedger()[0].defeated        == true);
+    assert(b.getLedger()[0].defeated        == true);
+    assert(c.getLedger()[0].defeated        == true);
+    
+    assert(a.getCommitLog().size()          == 0);
+    assert(b.getCommitLog().size()          == 0);
+    assert(c.getCommitLog().size()          == 0);
+    
+    assert(a.getPrepareLog().size()         == 0);
+    assert(b.getPrepareLog().size()         == 0);
+    assert(c.getPrepareLog().size()         == 0);
+    
+    assert(a.getPrePrepareLog().size()      == 0);
+    assert(b.getPrePrepareLog().size()      == 0);
+    assert(c.getPrePrepareLog().size()      == 0);
+    
+    assert(a.getRequestLog().size()         == 0);
+    assert(b.getRequestLog().size()         == 0);
+    assert(c.getRequestLog().size()         == 0);
+    
+    /////////////////////////////////////////////////////////////
+    // testing slow peers and honest majority
+    //
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
+    
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 5);
+    a.addNeighbor(c, 5);
+    
+    b.addNeighbor(a, 1);
+    b.addNeighbor(c, 1);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.log();
+    b.log();
+    c.log();
+    
+    a.makeByzantine();
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
+    a.makeRequest();
+    
+    for(int i = 0; i < 25; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
+    assert(c.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 1);
+    assert(b.getLedger().size()             == 1);
+    assert(c.getLedger().size()             == 1);
+    
+    assert(a.getCommitteeSizes()[0]         == 3);
+    assert(b.getCommitteeSizes()[0]         == 3);
+    assert(c.getCommitteeSizes()[0]         == 3);
+    
+    assert(a.getCommittee()                 == -1);
+    assert(b.getCommittee()                 == -1);
+    assert(c.getCommittee()                 == -1);
+    
+    assert(a.getLedger()[0].defeated        == false);
+    assert(b.getLedger()[0].defeated        == false);
+    assert(c.getLedger()[0].defeated        == false);
+    
+    assert(a.getCommitLog().size()          == 0);
+    assert(b.getCommitLog().size()          == 0);
+    assert(c.getCommitLog().size()          == 0);
+    
+    assert(a.getPrepareLog().size()         == 0);
+    assert(b.getPrepareLog().size()         == 0);
+    assert(c.getPrepareLog().size()         == 0);
+    
+    assert(a.getPrePrepareLog().size()      == 0);
+    assert(b.getPrePrepareLog().size()      == 0);
+    assert(c.getPrePrepareLog().size()      == 0);
+    
+    assert(a.getRequestLog().size()         == 0);
+    assert(b.getRequestLog().size()         == 0);
+    assert(c.getRequestLog().size()         == 0);
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
+    
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 5);
+    b.addNeighbor(c, 5);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.log();
+    b.log();
+    c.log();
+    
+    a.makeByzantine();
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
+    a.makeRequest();
+    
+    for(int i = 0; i < 25; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
+    assert(c.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 1);
+    assert(b.getLedger().size()             == 1);
+    assert(c.getLedger().size()             == 1);
+    
+    assert(a.getCommitteeSizes()[0]         == 3);
+    assert(b.getCommitteeSizes()[0]         == 3);
+    assert(c.getCommitteeSizes()[0]         == 3);
+    
+    assert(a.getCommittee()                 == -1);
+    assert(b.getCommittee()                 == -1);
+    assert(c.getCommittee()                 == -1);
+    
+    assert(a.getLedger()[0].defeated        == false);
+    assert(b.getLedger()[0].defeated        == false);
+    assert(c.getLedger()[0].defeated        == false);
+    
+    assert(a.getCommitLog().size()          == 0);
+    assert(b.getCommitLog().size()          == 0);
+    assert(c.getCommitLog().size()          == 0);
+    
+    assert(a.getPrepareLog().size()         == 0);
+    assert(b.getPrepareLog().size()         == 0);
+    assert(c.getPrepareLog().size()         == 0);
+    
+    assert(a.getPrePrepareLog().size()      == 0);
+    assert(b.getPrePrepareLog().size()      == 0);
+    assert(c.getPrePrepareLog().size()      == 0);
+    
+    assert(a.getRequestLog().size()         == 0);
+    assert(b.getRequestLog().size()         == 0);
+    assert(c.getRequestLog().size()         == 0);
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
+    
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 1);
+    a.addNeighbor(c, 1);
+    
+    b.addNeighbor(a, 5);
+    b.addNeighbor(c, 5);
+    
+    c.addNeighbor(b, 5);
+    c.addNeighbor(a, 5);
+    
+    a.log();
+    b.log();
+    c.log();
+    
+    a.makeByzantine();
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
+    a.makeRequest();
+    
+    for(int i = 0; i < 25; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
+    assert(c.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 1);
+    assert(b.getLedger().size()             == 1);
+    assert(c.getLedger().size()             == 1);
+    
+    assert(a.getCommitteeSizes()[0]         == 3);
+    assert(b.getCommitteeSizes()[0]         == 3);
+    assert(c.getCommitteeSizes()[0]         == 3);
+    
+    assert(a.getCommittee()                 == -1);
+    assert(b.getCommittee()                 == -1);
+    assert(c.getCommittee()                 == -1);
+    
+    assert(a.getLedger()[0].defeated        == false);
+    assert(b.getLedger()[0].defeated        == false);
+    assert(c.getLedger()[0].defeated        == false);
+    
+    assert(a.getCommitLog().size()          == 0);
+    assert(b.getCommitLog().size()          == 0);
+    assert(c.getCommitLog().size()          == 0);
+    
+    assert(a.getPrepareLog().size()         == 0);
+    assert(b.getPrepareLog().size()         == 0);
+    assert(c.getPrepareLog().size()         == 0);
+    
+    assert(a.getPrePrepareLog().size()      == 0);
+    assert(b.getPrePrepareLog().size()      == 0);
+    assert(c.getPrePrepareLog().size()      == 0);
+    
+    assert(a.getRequestLog().size()         == 0);
+    assert(b.getRequestLog().size()         == 0);
+    assert(c.getRequestLog().size()         == 0);
+    
+    a = PBFTPeer_Sharded("A");
+    b = PBFTPeer_Sharded("B");
+    c = PBFTPeer_Sharded("C");
+    
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
+    
+    a.setLogFile(log);
+    b.setLogFile(log);
+    c.setLogFile(log);
+    
+    a.addNeighbor(b, 5);
+    a.addNeighbor(c, 5);
+    
+    b.addNeighbor(a, 5);
+    b.addNeighbor(c, 5);
+    
+    c.addNeighbor(b, 1);
+    c.addNeighbor(a, 1);
+    
+    a.log();
+    b.log();
+    c.log();
+    
+    a.makeByzantine();
+    
+    a.setCommittee(1);
+    b.setCommittee(1);
+    c.setCommittee(1);
+    
+    a.addCommitteeMember(b);
+    a.addCommitteeMember(c);
+    
+    b.addCommitteeMember(a);
+    b.addCommitteeMember(c);
+    
+    c.addCommitteeMember(b);
+    c.addCommitteeMember(a);
+    
+    a.init();
+    b.init();
+    c.init();
+    
+    a.makeRequest();
+    
+    for(int i = 0; i < 25; i++){
+        a.log();
+        b.log();
+        c.log();
+        
+        a.receive();
+        b.receive();
+        c.receive();
+        
+        a.preformComputation();
+        b.preformComputation();
+        c.preformComputation();
+        
+        a.transmit();
+        b.transmit();
+        c.transmit();
+    }
+    
+    assert(a.isPrimary()                    == false);
+    assert(b.isPrimary()                    == true);
+    assert(c.isPrimary()                    == false);
+    
+    assert(a.getLedger().size()             == 1);
+    assert(b.getLedger().size()             == 1);
+    assert(c.getLedger().size()             == 1);
+    
+    assert(a.getCommitteeSizes()[0]         == 3);
+    assert(b.getCommitteeSizes()[0]         == 3);
+    assert(c.getCommitteeSizes()[0]         == 3);
+    
+    assert(a.getCommittee()                 == -1);
+    assert(b.getCommittee()                 == -1);
+    assert(c.getCommittee()                 == -1);
+    
+    assert(a.getLedger()[0].defeated        == false);
+    assert(b.getLedger()[0].defeated        == false);
+    assert(c.getLedger()[0].defeated        == false);
     
     assert(a.getCommitLog().size()          == 0);
     assert(b.getCommitLog().size()          == 0);
@@ -1689,9 +2634,9 @@ void waitingTimeSharded(std::ostream &log){
     c.addNeighbor(b, 1);
     c.addNeighbor(a, 1);
     
-    a.setFaultTolerance(1);
-    b.setFaultTolerance(1);
-    c.setFaultTolerance(1);
+    a.setFaultTolerance(0.6);
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
     
     a.makeByzantine();
     

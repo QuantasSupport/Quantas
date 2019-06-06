@@ -26,7 +26,7 @@ void RunPBFTRefComTest (std::string filepath){
     testRefComCommittee(log);
     testGlobalLedger(log);
     testSimultaneousRequest(log);
-    testByzantineConfirmationRate(log);
+    //testByzantineConfirmationRate(log);
     testShuffle(log);
     testByzantineVsDelay(log);
 }

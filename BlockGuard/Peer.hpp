@@ -256,6 +256,9 @@ void Peer<message>::log()const{
 
 template <class message>
 std::ostream& Peer<message>::printTo(std::ostream &out)const{
+    if(&out == &std::cout){
+        assert(false);
+    }
     out<< "-- Peer ID:"<< _id<< " --"<< std::endl;
     out<< std::left;
     out<< "\t"<< std::setw(LOG_WIDTH)<< "In Stream Size"<< std::setw(LOG_WIDTH)<< "Out Stream Size"<< std::setw(LOG_WIDTH)<< "Message Count"<< std::setw(LOG_WIDTH)<< "Is Byzantine"<<std::endl;

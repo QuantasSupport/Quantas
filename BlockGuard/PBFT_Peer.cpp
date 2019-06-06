@@ -253,7 +253,7 @@ void PBFT_Peer::waitCommit(){
         }
     }
     // if we have enough commit messages
-    if(numberOfCommitMsg >= faultyPeers() + 1){
+    if(numberOfCommitMsg >= faultyPeers()){
         commitRequest();
     }
 }
@@ -261,36 +261,47 @@ void PBFT_Peer::waitCommit(){
 void PBFT_Peer::commitRequest(){
     PBFT_Message commit = _currentRequest;
     commit.result = _currentRequestResult;
-    commit.commit_round = _currentRound;    
-    // count the number of byzantine commits 
-    // >= 1/3 then we will commit a defeated transaction
-    // < 1/3 and an honest primary will commit
-    // < 1/3 and byzantine primary will view change
-    int numberOfCommits = 0;
+    commit.commit_round = _currentRound;
+    // count the number of byzantine and correct commits
+    // if more then f peers match leader commit otherwise view change (byz peers force view change until leader is byz)
+    
     int numberOfByzantineCommits = 0;
+    int correctCommitMsg = 0;
     for(auto commitMsg = _commitLog.begin(); commitMsg != _commitLog.end(); commitMsg++){
         if(commitMsg->sequenceNumber == _currentRequest.sequenceNumber
-                && commitMsg->view == _currentView
-                && commitMsg->result == _currentRequestResult){
-            
+           && commitMsg->view == _currentView
+           && commitMsg->result == _currentRequestResult){
             if(commitMsg->byzantine){
                 numberOfByzantineCommits++;
+            }else{
+                correctCommitMsg++;
             }
-            numberOfCommits++;
+        }
+    }
+    if(_currentRequest.byzantine){
+        if( numberOfByzantineCommits >= faultyPeers()){
+            commit.defeated = true;
+            _ledger.push_back(commit);
+            _currentRequest = PBFT_Message();
+            _currentRequest = PBFT_Message();
+        }else if (numberOfByzantineCommits + correctCommitMsg != _neighbors.size() +1){
+            return;
+        }else{
+            viewChange(_neighbors);
+        }
+    }else if(!_currentRequest.byzantine){
+        if( correctCommitMsg >= faultyPeers()){
+            commit.defeated = false;
+            _ledger.push_back(commit);
+            _currentRequest = PBFT_Message();
+            _currentRequest = PBFT_Message();
+        }else if (numberOfByzantineCommits + correctCommitMsg != _neighbors.size() +1){
+            return;
+        }else{
+            viewChange(_neighbors);
         }
     }
     
-    if(numberOfByzantineCommits < faultyPeers() && _currentRequest.byzantine){
-        viewChange(_neighbors);
-    }else if(numberOfByzantineCommits < faultyPeers() && !_currentRequest.byzantine){
-        commit.defeated = false;
-        _ledger.push_back(commit);
-        _currentRequest = PBFT_Message();
-    }else if(numberOfByzantineCommits >= faultyPeers() && _currentRequest.byzantine){
-        commit.defeated = true;
-        _ledger.push_back(commit);
-        _currentRequest = PBFT_Message();
-    }
     for(auto confirmedTransaction = _ledger.begin(); confirmedTransaction != _ledger.end(); confirmedTransaction++){
         cleanLogs(confirmedTransaction->sequenceNumber);
     }
@@ -379,6 +390,9 @@ void PBFT_Peer::preformComputation(){
     waitPrepare();
     commit();
     waitCommit();
+    for(auto confirmedTransaction = _ledger.begin(); confirmedTransaction != _ledger.end(); confirmedTransaction++){
+        cleanLogs(confirmedTransaction->sequenceNumber);
+    }
 }
 
 void PBFT_Peer::makeRequest(){

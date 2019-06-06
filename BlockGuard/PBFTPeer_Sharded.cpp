@@ -49,30 +49,46 @@ void PBFTPeer_Sharded::commitRequest(){
     // < 1/3 and byzantine primary will view change
 
     int numberOfByzantineCommits = 0;
+    int correctCommitMsg = 0;
     for(auto commitMsg = _commitLog.begin(); commitMsg != _commitLog.end(); commitMsg++){
         if(commitMsg->sequenceNumber == _currentRequest.sequenceNumber
                 && commitMsg->view == _currentView
                 && commitMsg->result == _currentRequestResult){
-                    if(commitMsg->byzantine){
-                        numberOfByzantineCommits++; 
-                    }
-                }
+            if(commitMsg->byzantine){
+                numberOfByzantineCommits++;
+            }else{
+                correctCommitMsg++;
+            }
+        }
     }
-    if(numberOfByzantineCommits < faultyPeers() && _currentRequest.byzantine){
-        viewChange(_committeeMembers);
-    }else if(numberOfByzantineCommits < faultyPeers() && !_currentRequest.byzantine){
-        commit.defeated = false;
-        _ledger.push_back(commit);
-        _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
-        _currentRequest = PBFT_Message();
-        clearCommittee();
-    }else{
-        commit.defeated = true;
-        _ledger.push_back(commit);
-        _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
-        _currentRequest = PBFT_Message();
-        clearCommittee();
+    if(_currentRequest.byzantine){
+        if( numberOfByzantineCommits >= faultyPeers()){
+            commit.defeated = true;
+            _ledger.push_back(commit);
+            _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
+            _currentRequest = PBFT_Message();
+            clearCommittee();
+            _currentRequest = PBFT_Message();
+        }else if (numberOfByzantineCommits + correctCommitMsg != _committeeMembers.size() +1){
+            return;
+        }else{
+            viewChange(_committeeMembers);
+        }
+    }else if(!_currentRequest.byzantine){
+        if( correctCommitMsg >= faultyPeers()){
+            commit.defeated = false;
+            _ledger.push_back(commit);
+            _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
+            _currentRequest = PBFT_Message();
+            clearCommittee();
+            _currentRequest = PBFT_Message();
+        }else if (numberOfByzantineCommits + correctCommitMsg != _committeeMembers.size() +1){
+            return;
+        }else{
+            viewChange(_committeeMembers);
+        }
     }
+    
     for(auto confirmedTransaction = _ledger.begin(); confirmedTransaction != _ledger.end(); confirmedTransaction++){
         cleanLogs(confirmedTransaction->sequenceNumber);
     }
@@ -107,6 +123,9 @@ void PBFTPeer_Sharded::preformComputation(){
     waitPrepare();
     commit();
     waitCommit();
+    for(auto confirmedTransaction = _ledger.begin(); confirmedTransaction != _ledger.end(); confirmedTransaction++){
+        cleanLogs(confirmedTransaction->sequenceNumber);
+    }
 }
 
 PBFTPeer_Sharded& PBFTPeer_Sharded::operator= (const PBFTPeer_Sharded &rhs){

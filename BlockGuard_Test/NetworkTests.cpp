@@ -172,6 +172,7 @@ void testRandomDelay(std::ostream &log){
     
     for(int i = 0; i < 100; i++){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
+        system.setLog(log);
         int max = 5;
         int min = 2;
         system.setMaxDelay(max);
@@ -263,6 +264,7 @@ void testPoissonDelay(std::ostream &log){
     
     for(int i = 0; i < 100; i++){
         Network<ExampleMessage, ExamplePeer> system = Network<ExampleMessage, ExamplePeer>();
+        system.setLog(log);
         int max = 20;
         int min = 10;
         int avg = 15;

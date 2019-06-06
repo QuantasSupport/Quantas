@@ -1673,9 +1673,9 @@ void slowLeaderConnection(std::ostream &log){
     c.addNeighbor(a, 10);
     
     // set fault tolerance higher so that needs confirmation from 2 peers (myself + another)
-    a.setFaultTolerance(1);
-    b.setFaultTolerance(1);
-    c.setFaultTolerance(1);
+    a.setFaultTolerance(0.6);
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
     
     a.init();
     b.init();
@@ -1824,9 +1824,9 @@ void viewChange(std::ostream &log){
     c.addNeighbor(b, 1);
     c.addNeighbor(a, 1);
     
-    a.setFaultTolerance(1);
-    b.setFaultTolerance(1);
-    c.setFaultTolerance(1);
+    a.setFaultTolerance(0.6);
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
     
     b.makeByzantine();
 
@@ -1898,9 +1898,9 @@ void viewChange(std::ostream &log){
     c.addNeighbor(b, 1);
     c.addNeighbor(a, 1);
     
-    a.setFaultTolerance(1);
-    b.setFaultTolerance(1);
-    c.setFaultTolerance(1);
+    a.setFaultTolerance(0.6);
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
     
     a.makeByzantine();
 
@@ -2350,9 +2350,9 @@ void waitingTime(std::ostream &log){
     c.addNeighbor(b, 1);
     c.addNeighbor(a, 1);
     
-    a.setFaultTolerance(1);
-    b.setFaultTolerance(1);
-    c.setFaultTolerance(1);
+    a.setFaultTolerance(0.6);
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
     
     a.init();
     b.init();
@@ -2409,9 +2409,9 @@ void waitingTime(std::ostream &log){
     c.addNeighbor(b, 1);
     c.addNeighbor(a, 1);
     
-    a.setFaultTolerance(1);
-    b.setFaultTolerance(1);
-    c.setFaultTolerance(1);
+    a.setFaultTolerance(0.6);
+    b.setFaultTolerance(0.6);
+    c.setFaultTolerance(0.6);
     
     a.init();
     b.init();
