@@ -113,7 +113,7 @@ int main(int argc, const char * argv[]) {
             double fault = 0.0;
             while(ceil(256*fault) <= 256){
                 csv<< "fault,"<< std::to_string(fault)<< std::endl;
-                for(int run = 0; run < 4; run++){
+                for(int run = 0; run < 2; run++){
                     Sharded_PBFT(csv,log,delay,fault);
                 }
                 fault += 0.1;
@@ -389,7 +389,7 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
         system.makeRequest();numberOfRequests++;
 
          if(i%5 == 0){
-             //system.shuffleByzantines(256*fault);
+             system.shuffleByzantines(256*fault);
          }
 
         system.receive();
