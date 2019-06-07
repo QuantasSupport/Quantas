@@ -28,6 +28,11 @@ const int blockChainLength = 100;
 Blockchain *blockchain;
 int shuffleByzantineInterval = 0;
 int syncBFT_Peer::peerCount = 3;
+static const int SPBFT_PEER_COUNT = 256;
+static const int SPBFT_GROUP_SIZE = 8;
+static const double FAULT = 0.3;
+static const int NUMBER_OF_ROUNDS = 1000;
+static const int NUMBER_OF_RUNS = 2;
 const static std::string s_pbft_header = "Total Request:,Max Ledger:,Ratio Defeated To Honest 1,Ratio Defeated To Honest 2,Ratio Defeated To Honest 3,Ratio Defeated To Honest 4,Ratio Defeated To Honest 5,Average Waiting Time 1,Average Waiting Time 2,Average Waiting Time 3 ,Average Waiting Time 4,Average Waiting Time 5, total honest 1, total honest 2, total honest 3, total honest 4, total honest 5, total defeated 1, total defeated 2, total defeated 3, total defeated 4, total defeated 5\n";
 
 // util functions
@@ -38,14 +43,26 @@ int sumMessagesSentBGS(const PBFTReferenceCommittee&);
 void calculateResults(const PBFTReferenceCommittee system,std::ofstream &csv);
 double ratioOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
 double waitTimeOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
+double waitTime(std::vector<std::pair<PBFT_Message,int> > globalLedger);
 int totalNumberOfDefeatedCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
 int totalNumberOfCorrectCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
+int defeatedTrnasactions(std::vector<std::pair<PBFT_Message,int> > globalLedger);
 
 void Example(std::ofstream &logFile);
 void PBFT(std::ofstream &out,int);
 void syncBFT(std::ofstream &,int );
 void bitcoin(std::ofstream &,int );
 void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int,double);
+
+void MOTIVATIONAL11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log);
+void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log);
+void PARAMETER1_Sharded_PBFT(std::ofstream &csv, std::ofstream &log);
+void PARAMETER2_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay);
+void ADAPTIVE11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay);
+void ADAPTIVE12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine);
+void ADAPTIVE21_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay);
+void ADAPTIVE22_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine);
+void ADAPTIVE3_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine);
 
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
@@ -97,42 +114,80 @@ int main(int argc, const char * argv[]) {
         std::cout<< "pbft_s"<<std::endl;
         std::ofstream csv;
         std::ofstream log;
-        std::string file = filePath + "pbft_s";
-        csv.open(file + ".csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
-        }
-        log.open(file + ".log");
+        log.open(filePath + "pbft_s.log");
         if ( log.fail() ){
-            std::cerr << "Error: could not open file: "<< file + ".csv" << std::endl;
+            std::cerr << "Error: could not open file: "<< filePath + ".log" << std::endl;
         }
-            //ceil(256*0.3)
-        for(int delay = 1; delay < 10; delay++){
-            csv<< "Delay,"<< std::to_string(delay)<< std::endl;
-            csv<< s_pbft_header;
-            double fault = 0.0;
-            while(ceil(256*fault) <= 256){
-                csv<< "fault,"<< std::to_string(fault)<< std::endl;
-                for(int run = 0; run < 2; run++){
-                    Sharded_PBFT(csv,log,delay,fault);
-                }
-                fault += 0.1;
-            }
+        
+        csv.open(filePath + "MOTIVATIONAL11_Sharded_PBFT.csv");
+        if ( csv.fail() ){
+            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
         }
-//        for(int delay = 10; delay < 50; delay = delay + 10){
-//             csv<< "Delay,"<< std::to_string(delay);
-//             csv<< s_pbft_header;
-//             double fault = 0.0;
-//             while(ceil(256*fault) != 256){
-//                 csv<< "fault,"<< std::to_string(fault)<< std::endl;
-//                 for(int run = 0; run < 2; run++){
-//                     Sharded_PBFT(csv,log,delay,fault);
-//                 }
-//                 fault += 0.1;
-//             }
-//         }
-        log.close();
+        MOTIVATIONAL11_Sharded_PBFT(csv,log);
         csv.close();
+        
+        csv.open(filePath + "MOTIVATIONAL12_Sharded_PBFT.csv");
+        if ( csv.fail() ){
+            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+        }
+        MOTIVATIONAL12_Sharded_PBFT(csv,log);
+        csv.close();
+        
+        csv.open(filePath + "PARAMETER1_Sharded_PBFT.csv");
+        if ( csv.fail() ){
+            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+        }
+        PARAMETER1_Sharded_PBFT(csv, log);
+        csv.close();
+        
+        for(int delay = 1; delay < 11; delay = delay + 2){
+            csv.open(filePath + "PARAMETER2_Sharded_PBFT_" + std::to_string(delay) + ".csv");
+            if ( csv.fail() ){
+                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+            }
+            PARAMETER2_Sharded_PBFT(csv, log, delay);
+            csv.close();
+        }
+        
+        for(int delay = 1; delay < 11; delay = delay + 2){
+            csv.open(filePath + "ADAPTIVE11_Sharded_PBFT_" + std::to_string(delay) + ".csv");
+            if ( csv.fail() ){
+                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+            }
+            ADAPTIVE11_Sharded_PBFT(csv, log, delay);
+            csv.close();
+            csv.open(filePath + "ADAPTIVE21_Sharded_PBFT_" + std::to_string(delay) + ".csv");
+            if ( csv.fail() ){
+                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+            }
+            ADAPTIVE21_Sharded_PBFT(csv, log, delay);
+            csv.close();
+        }
+        
+        for(double byz = 0; byz < 1; byz = byz + 0.2){
+            csv.open(filePath + "ADAPTIVE12_Sharded_PBFT_" + std::to_string(byz) + ".csv");
+            if ( csv.fail() ){
+                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+            }
+            ADAPTIVE12_Sharded_PBFT(csv, log, byz);
+            csv.close();
+            csv.open(filePath + "ADAPTIVE22_Sharded_PBFT_" + std::to_string(byz) + ".csv");
+            if ( csv.fail() ){
+                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+            }
+            ADAPTIVE22_Sharded_PBFT(csv, log, byz);
+            csv.close();
+        }
+        
+        for(double byz = 0; byz < 1; byz = byz + 0.2){
+            csv.open(filePath + "ADAPTIVE3_Sharded_PBFT_" + std::to_string(byz) + ".csv");
+            if ( csv.fail() ){
+                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+            }
+            ADAPTIVE3_Sharded_PBFT(csv,log,byz);
+            csv.close();
+        }
+        log.close();
     }else if (algorithm == "bitcoin") {
         std::ofstream out;
         bitcoin(out, 1);
@@ -477,24 +532,17 @@ int sumMessagesSentBGS(const PBFTReferenceCommittee &system){
 }
 
 double ratioOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl){
-    double honest = 0;
+    double total = globalLedger.size();
     double defeated = 0;
     for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
         if(entry->second == secLvl){
             if(entry->first.defeated){
                 defeated++;
-            }else{
-                honest++;
             }
         }
     }
-    if(honest == 0 && defeated == 0){
-        return 0;
-    }else if(honest == 0){
-        return 1;
-    }else{
-        return defeated/honest;
-    }
+    
+    return defeated/total;
 }
 
 double waitTimeOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl){
@@ -513,6 +561,20 @@ double waitTimeOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, 
     }
 }
 
+double waitTime(std::vector<std::pair<PBFT_Message,int> > globalLedger){
+    double sumOfWaitingTime = 0;
+    double totalNumberOfTrnasactions = 0;
+    for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
+        sumOfWaitingTime += entry->first.commit_round - entry->first.submission_round;
+        totalNumberOfTrnasactions++;
+    }
+    if(totalNumberOfTrnasactions == 0){
+        return 0;
+    }else{
+        return sumOfWaitingTime/totalNumberOfTrnasactions;
+    }
+}
+
 int totalNumberOfDefeatedCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl){
     int total = 0;
     for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
@@ -523,6 +585,18 @@ int totalNumberOfDefeatedCommittees(std::vector<std::pair<PBFT_Message,int> > gl
         }
     }
     return total;
+}
+
+int defeatedTrnasactions(std::vector<std::pair<PBFT_Message,int> > globalLedger){
+    int defeated = 0;
+    
+    for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
+        if(entry->first.defeated){
+            defeated++;
+        }
+    }
+    
+    return defeated;
 }
 
 int totalNumberOfCorrectCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl){
@@ -567,4 +641,445 @@ void calculateResults(const PBFTReferenceCommittee system, std::ofstream &csv){
     csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel5()*system.getGroupSize()));
     csv<< std::endl;
     
+}
+
+//static const int SPBFT_PEER_COUNT = 256
+//static const int SPBFT_GROUP_SIZE = 8
+//static const double FAULT = 0.3
+
+//void MOTIVATIONAL11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log);
+//void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int committee_size);
+//void PARAMETER_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay);
+//void ADAPTIVE11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay);
+//void ADAPTIVE12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine);
+//void ADAPTIVE21_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay);
+//void ADAPTIVE22_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine);
+//void ADAPTIVE3_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine);
+
+void MOTIVATIONAL11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
+    std::string header = "Committee Size, Defeated Transactions, Confirmed/Submitted";
+
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setToOne();
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest();
+            system.makeRequest();
+            system.makeRequest();
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+        }
+        csv<< header<< std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        
+    }
+}
+
+void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
+    std::string header = "Committee Size, Defeated Transactions, Confirmed/Submitted";
+    
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setToOne();
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest(system.securityLevel1());
+            system.makeRequest(system.securityLevel1());
+            system.makeRequest(system.securityLevel1());
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+        }
+        csv<< header<< std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        
+    }
+    
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setToOne();
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest(system.securityLevel2());
+            system.makeRequest(system.securityLevel2());
+            system.makeRequest(system.securityLevel2());
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+        }
+        csv<< header<< std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        
+    }
+    
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setToOne();
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest(system.securityLevel3());
+            system.makeRequest(system.securityLevel3());
+            system.makeRequest(system.securityLevel3());
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+        }
+        csv<< header<< std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        
+    }
+    
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setToOne();
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest(system.securityLevel4());
+            system.makeRequest(system.securityLevel4());
+            system.makeRequest(system.securityLevel4());
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+        }
+        csv<< header<< std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        
+    }
+    
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setToOne();
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest(system.securityLevel5());
+            system.makeRequest(system.securityLevel5());
+            system.makeRequest(system.securityLevel5());
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+        }
+        csv<< header<< std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        
+    }
+    
+}
+void PARAMETER1_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
+    std::string header = "Round, Confirmed/Submitted";
+    csv<< header<< std::endl;
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setToOne();
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest();
+            system.makeRequest();
+            system.makeRequest();
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+            if(i%100){
+                csv<< i<< ","<< system.getGlobalLedger().size()/totalSub;
+            }
+        }
+    }
+}
+
+void PARAMETER2_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
+    std::string header = "Round, Confirmed/Submitted";
+    csv<< header<< std::endl;
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setMaxDelay(delay);
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest();
+            system.makeRequest();
+            system.makeRequest();
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+            if(i%100){
+                csv<< i<< ","<< system.getGlobalLedger().size()/totalSub;
+            }
+        }
+    }
+}
+
+void ADAPTIVE11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
+    std::string header = "Round, Confirmed/Submitted";
+    csv<< header<< std::endl;
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setMaxDelay(delay);
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.2);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest();
+            system.makeRequest();
+            system.makeRequest();
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.2);
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+            if(i%100){
+                csv<< i<< ","<< system.getGlobalLedger().size()/totalSub;
+            }
+        }
+    }
+}
+void ADAPTIVE12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine){
+    std::string header = "Round, Confirmed/Submitted";
+    csv<< header<< std::endl;
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setToOne();
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*byzantine);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest();
+            system.makeRequest();
+            system.makeRequest();
+            system.shuffleByzantines(SPBFT_PEER_COUNT*byzantine);
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+            if(i%100){
+                csv<< i<< ","<< system.getGlobalLedger().size()/totalSub;
+            }
+        }
+    }
+}
+void ADAPTIVE21_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
+    std::string header = "Round, Confirmed/Submitted";
+    csv<< header<< std::endl;
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setMaxDelay(delay);
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.2);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest();
+            system.makeRequest();
+            system.makeRequest();
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.2);
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+            if(i%100){
+                csv<< i<< ","<< waitTime(system.getGlobalLedger());
+            }
+        }
+    }
+}
+void ADAPTIVE22_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine){
+    std::string header = "Round, Confirmed/Submitted";
+    csv<< header<< std::endl;
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setToOne();
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*byzantine);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest();
+            system.makeRequest();
+            system.makeRequest();
+            system.shuffleByzantines(SPBFT_PEER_COUNT*byzantine);
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+            if(i%100){
+                csv<< i<< ","<< waitTime(system.getGlobalLedger());
+            }
+        }
+    }
+}
+void ADAPTIVE3_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine){
+    std::string header = "fraction of byzantine, defeated/submitted";
+    csv<< header<< std::endl;
+    for(int r = 0; r < NUMBER_OF_RUNS; r++){
+        PBFTReferenceCommittee system = PBFTReferenceCommittee();
+        system.setGroupSize(SPBFT_GROUP_SIZE);
+        system.setToRandom();
+        system.setToOne();
+        system.setLog(log);
+        system.setSquenceNumber(999);
+        system.initNetwork(SPBFT_PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*byzantine);
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.makeRequest();
+            system.makeRequest();
+            system.makeRequest();
+            system.shuffleByzantines(SPBFT_PEER_COUNT*byzantine);
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+            system.log();
+        }
+        csv<< byzantine<< ","<< defeatedTrnasactions(system.getGlobalLedger())<< std::endl;
+    }
 }
