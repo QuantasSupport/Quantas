@@ -11,6 +11,8 @@
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <string>
+#include <sstream>
 
 class Logger{
 private:
