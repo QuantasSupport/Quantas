@@ -668,11 +668,13 @@ void MOTIVATIONAL11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.makeRequest();
             system.makeRequest();
             system.makeRequest();
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
             totalSub = totalSub + 3;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -683,11 +685,11 @@ void MOTIVATIONAL11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
             system.log();
         }
         csv<< header<< std::endl;
-        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         
     }
 }
@@ -704,11 +706,14 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
             system.makeRequest(system.securityLevel1());
             system.makeRequest(system.securityLevel1());
             system.makeRequest(system.securityLevel1());
+            
             totalSub = totalSub + 3;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -719,11 +724,11 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
             system.log();
         }
         csv<< header<< std::endl;
-        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         
     }
     
@@ -736,11 +741,14 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
             system.makeRequest(system.securityLevel2());
             system.makeRequest(system.securityLevel2());
             system.makeRequest(system.securityLevel2());
+            
             totalSub = totalSub + 3;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -751,11 +759,11 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
             system.log();
         }
         csv<< header<< std::endl;
-        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         
     }
     
@@ -768,11 +776,14 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
             system.makeRequest(system.securityLevel3());
             system.makeRequest(system.securityLevel3());
             system.makeRequest(system.securityLevel3());
+            
             totalSub = totalSub + 3;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -783,11 +794,11 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
             system.log();
         }
         csv<< header<< std::endl;
-        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         
     }
     
@@ -800,11 +811,13 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.makeRequest(system.securityLevel4());
             system.makeRequest(system.securityLevel4());
             system.makeRequest(system.securityLevel4());
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
             totalSub = totalSub + 3;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -815,11 +828,11 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
             system.log();
         }
         csv<< header<< std::endl;
-        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         
     }
     
@@ -832,11 +845,14 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
             system.makeRequest(system.securityLevel5());
             system.makeRequest(system.securityLevel5());
             system.makeRequest(system.securityLevel5());
+            
             totalSub = totalSub + 3;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -847,11 +863,11 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
             system.log();
         }
         csv<< header<< std::endl;
-        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
-        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< system.getGlobalLedger().size()/totalSub <<std::endl;
+        csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel2()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel2())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
+        csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         
     }
     
@@ -873,6 +889,7 @@ void PARAMETER1_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
             system.makeRequest();
             system.makeRequest();
             system.makeRequest();
+            
             totalSub = totalSub + 3;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -881,8 +898,8 @@ void PARAMETER1_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
             system.transmit();
             std::cout<< 't'<< std::flush;
             system.log();
-            if(i%100){
-                csv<< i<< ","<< system.getGlobalLedger().size()/totalSub;
+            if(i%100 == 0){
+                csv<< i<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
             }
         }
     }
@@ -902,9 +919,11 @@ void PARAMETER2_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
         system.setFaultTolerance(FAULT);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
             system.makeRequest();
             system.makeRequest();
             system.makeRequest();
+            
             totalSub = totalSub + 3;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -913,8 +932,8 @@ void PARAMETER2_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
             system.transmit();
             std::cout<< 't'<< std::flush;
             system.log();
-            if(i%100){
-                csv<< i<< ","<< system.getGlobalLedger().size()/totalSub;
+            if(i%100 == 0){
+                csv<< i<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
             }
         }
     }
@@ -947,8 +966,8 @@ void ADAPTIVE11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
             system.transmit();
             std::cout<< 't'<< std::flush;
             system.log();
-            if(i%100){
-                csv<< i<< ","<< system.getGlobalLedger().size()/totalSub;
+            if(i%100 == 0){
+                csv<< i<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
             }
         }
     }
@@ -980,8 +999,8 @@ void ADAPTIVE12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byza
             system.transmit();
             std::cout<< 't'<< std::flush;
             system.log();
-            if(i%100){
-                csv<< i<< ","<< system.getGlobalLedger().size()/totalSub;
+            if(i%100 == 0){
+                csv<< i<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
             }
         }
     }
@@ -1013,8 +1032,8 @@ void ADAPTIVE21_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
             system.transmit();
             std::cout<< 't'<< std::flush;
             system.log();
-            if(i%100){
-                csv<< i<< ","<< waitTime(system.getGlobalLedger());
+            if(i%100 == 0){
+                csv<< i<< ","<< waitTime(system.getGlobalLedger())<< std::endl;
             }
         }
     }
@@ -1046,8 +1065,8 @@ void ADAPTIVE22_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byza
             system.transmit();
             std::cout<< 't'<< std::flush;
             system.log();
-            if(i%100){
-                csv<< i<< ","<< waitTime(system.getGlobalLedger());
+            if(i%100 == 0){
+                csv<< i<< ","<< waitTime(system.getGlobalLedger())<< std::endl;
             }
         }
     }
