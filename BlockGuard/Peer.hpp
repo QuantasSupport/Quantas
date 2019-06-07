@@ -30,7 +30,8 @@ class Peer{
 protected:
     std::string                             _id;
     bool                                    _byzantine;
-    
+	bool									_busy;
+
     // type abbreviations
     typedef std::deque<Packet<message> >    aChannel;
     typedef std::string                     peerId;
@@ -65,7 +66,9 @@ public:
     int                               getDelayToNeighbor    (std::string id)const;
     int                               getMessageCount       ()const                             {return _numberOfMessagesSent;};
     virtual bool					  isByzantine			()const                             {return _byzantine;};
-    
+	virtual bool					  isBusy				()									{ return _busy; }
+	virtual void					  setBusy				(bool busy)							{ _busy= busy; }
+
     // mutators
     void                              removeNeighbor        (const Peer &neighbor)              {_neighbors.erase(neighbor);};
     void                              addNeighbor           (Peer &newNeighbor, int delay);
@@ -83,7 +86,7 @@ public:
     void                              transmit              ();
     // preform one step of the Consensus message with the messages in inStream
     virtual void                      preformComputation    ()=0;
-    
+
     void                              log                   ()const;
     std::ostream&                     printTo               (std::ostream&)const;
     Peer&                             operator=             (const Peer&);
@@ -120,6 +123,7 @@ Peer<message>::Peer(){
     _byzantine = false;
     _numberOfMessagesSent = 0;
     _printNeighborhood = false;
+	_busy = false;
 }
 
 template <class message>
@@ -134,6 +138,7 @@ Peer<message>::Peer(std::string id){
     _byzantine = false;
     _numberOfMessagesSent = 0;
     _printNeighborhood = false;
+	_busy = false;
 }
 
 template <class message>
@@ -148,6 +153,7 @@ Peer<message>::Peer(const Peer &rhs){
     _byzantine = rhs._byzantine;
     _numberOfMessagesSent = rhs._numberOfMessagesSent;
     _printNeighborhood = rhs._printNeighborhood;
+	_busy = rhs._busy;
 }
 
 template <class message>
@@ -235,6 +241,8 @@ int Peer<message>::getDelayToNeighbor(std::string id)const{
 
 template <class message>
 Peer<message>& Peer<message>::operator=(const Peer<message> &rhs){
+	if(this == &rhs)
+		return *this;
     _id = rhs._id;
     _inStream = rhs._inStream;
     _outStream = rhs._outStream;
@@ -245,7 +253,8 @@ Peer<message>& Peer<message>::operator=(const Peer<message> &rhs){
     _byzantine = rhs._byzantine;
     _numberOfMessagesSent = rhs._numberOfMessagesSent;
     _printNeighborhood = rhs._printNeighborhood;
-    
+	_busy = rhs._busy;
+
     return *this;
 }
 
