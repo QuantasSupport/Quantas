@@ -18,6 +18,8 @@
 #include "bCoin_Peer.hpp"
 #include "PBFTPeer_Sharded.hpp"
 #include "PBFTReferenceCommittee.hpp"
+#include "syncBFT_Committee.hpp"
+#include "Logger.hpp"
 #include <iostream>
 #include <chrono>
 #include <random>
@@ -27,7 +29,6 @@ const int peerCount = 10;
 const int blockChainLength = 100;
 Blockchain *blockchain;
 int shuffleByzantineInterval = 0;
-int syncBFT_Peer::peerCount = 3;
 static const int SPBFT_PEER_COUNT = 256;
 static const int SPBFT_GROUP_SIZE = 8;
 static const double FAULT = 0.3;
@@ -50,7 +51,7 @@ int defeatedTrnasactions(std::vector<std::pair<PBFT_Message,int> > globalLedger)
 
 void Example(std::ofstream &logFile);
 void PBFT(std::ofstream &out,int);
-void syncBFT(std::ofstream &,int );
+void syncBFT(const char ** argv);
 void bitcoin(std::ofstream &,int );
 void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int,double);
 
@@ -102,15 +103,13 @@ int main(int argc, const char * argv[]) {
         }
 
     }else if (algorithm == "syncBFT") {
-        std::ofstream out;
-        for(int delay = 1;delay<2; delay+=10){
-            std::cout<< "Start with Delay "+std::to_string(delay)<< std::endl;
-            for(int run = 0; run < 2; run++){
-                syncBFT(out, delay);
-            }
-
-        }
-    }else if (algorithm == "pbft_s") {
+		//	Program arguments: syncBFT fileName 2 1 1 128 100 0.3 1
+		std::ofstream out;
+		int runs = std::stoi(argv[3]);
+		for(int i = 0; i< runs; i++){
+			syncBFT(argv);
+		}
+	}else if (algorithm == "pbft_s") {
         std::cout<< "pbft_s"<<std::endl;
         std::ofstream csv;
         std::ofstream log;
@@ -118,28 +117,28 @@ int main(int argc, const char * argv[]) {
         if ( log.fail() ){
             std::cerr << "Error: could not open file: "<< filePath + ".log" << std::endl;
         }
-        
+
         csv.open(filePath + "MOTIVATIONAL11_Sharded_PBFT.csv");
         if ( csv.fail() ){
             std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
         }
         MOTIVATIONAL11_Sharded_PBFT(csv,log);
         csv.close();
-        
+
         csv.open(filePath + "MOTIVATIONAL12_Sharded_PBFT.csv");
         if ( csv.fail() ){
             std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
         }
         MOTIVATIONAL12_Sharded_PBFT(csv,log);
         csv.close();
-        
+
         csv.open(filePath + "PARAMETER1_Sharded_PBFT.csv");
         if ( csv.fail() ){
             std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
         }
         PARAMETER1_Sharded_PBFT(csv, log);
         csv.close();
-        
+
         for(int delay = 1; delay < 11; delay = delay + 2){
             csv.open(filePath + "PARAMETER2_Sharded_PBFT_" + std::to_string(delay) + ".csv");
             if ( csv.fail() ){
@@ -148,7 +147,7 @@ int main(int argc, const char * argv[]) {
             PARAMETER2_Sharded_PBFT(csv, log, delay);
             csv.close();
         }
-        
+
         for(int delay = 1; delay < 11; delay = delay + 2){
             csv.open(filePath + "ADAPTIVE11_Sharded_PBFT_" + std::to_string(delay) + ".csv");
             if ( csv.fail() ){
@@ -163,7 +162,7 @@ int main(int argc, const char * argv[]) {
             ADAPTIVE21_Sharded_PBFT(csv, log, delay);
             csv.close();
         }
-        
+
         for(double byz = 0; byz < 1; byz = byz + 0.2){
             csv.open(filePath + "ADAPTIVE12_Sharded_PBFT_" + std::to_string(byz) + ".csv");
             if ( csv.fail() ){
@@ -178,7 +177,7 @@ int main(int argc, const char * argv[]) {
             ADAPTIVE22_Sharded_PBFT(csv, log, byz);
             csv.close();
         }
-        
+
         for(double byz = 0; byz < 1; byz = byz + 0.2){
             csv.open(filePath + "ADAPTIVE3_Sharded_PBFT_" + std::to_string(byz) + ".csv");
             if ( csv.fail() ){
@@ -192,42 +191,42 @@ int main(int argc, const char * argv[]) {
         std::ofstream out;
         bitcoin(out, 1);
     }
-    
+
     return 0;
 }
 
 void Example(std::ofstream &logFile){
     ByzantineNetwork<ExampleMessage,ExamplePeer> system;
     system.setLog(logFile); // set the system to write log to file logFile
-    system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays) 
+    system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
     system.setMaxDelay(3); // set the max weight an edge can have to 3 (system will now pick randomly between [1, 3])
     system.initNetwork(5); // Initialize the system (create it) with 5 peers given the above settings
 
     for(int i =0; i < 3; i++){
        logFile<< "-- STARTING ROUND "<< i<< " --"<<  std::endl; // write in the log when the round started
 
-        system.receive(); // do the receive phase of the round 
+        system.receive(); // do the receive phase of the round
         //system.log(); // log the system state
-        system.preformComputation();  // do the preform computation phase of the round 
+        system.preformComputation();  // do the preform computation phase of the round
         //system.log();
-        system.transmit(); // do the transmit phase of the round 
+        system.transmit(); // do the transmit phase of the round
         //system.log();
 
         logFile<< "-- ENDING ROUND "<< i<< " --"<<  std::endl; // log the end of a round
     }
 
     system = ByzantineNetwork<ExampleMessage,ExamplePeer>(); // clear old setup by creating a fresh object
-    system.setLog(std::cout); // set the system to write log to terminal 
-    system.setToRandom(); 
+    system.setLog(std::cout); // set the system to write log to terminal
+    system.setToRandom();
     system.setMaxDelay(10);
-    system.initNetwork(3); 
+    system.initNetwork(3);
 
     for(int i =0; i < 3; i++){
         std::cout<< "-- STARTING ROUND "<< i<< " --"<<  std::endl; // print outwhen the round started
 
-        system.receive(); 
+        system.receive();
         system.log(); // log now goes to the terminal
-        system.preformComputation(); 
+        system.preformComputation();
         system.log();
         system.transmit();
         system.log();
@@ -235,13 +234,13 @@ void Example(std::ofstream &logFile){
         std::cout<< "-- ENDING ROUND "<< i<< " --"<<  std::endl; // print out the end of a round
     }
 
-    // The base peer class tracks number of messages sent by a(1) peer. To calculate the total number of messages that where in the system we need 
+    // The base peer class tracks number of messages sent by a(1) peer. To calculate the total number of messages that where in the system we need
     //      to add up each peers indivudal message count (example of looping thouth the Network class)
 
     int numberOfMessages = 0;
     for(int i = 0; i < system.size(); i++){
-        numberOfMessages += system[i]->getMessageCount(); // notice that the index operator ([]) return a pointer to a peer. NEVER DELETE THIS PEER INSTANCE. 
-                                                          //    The netwrok class deconstructor will get ride off ALL peer instances once it is deconstructed. 
+        numberOfMessages += system[i]->getMessageCount(); // notice that the index operator ([]) return a pointer to a peer. NEVER DELETE THIS PEER INSTANCE.
+                                                          //    The netwrok class deconstructor will get ride off ALL peer instances once it is deconstructed.
                                                           //    Use the -> to call method on the peer instance. The Network class will also cast the instance to
                                                           //    your derived class so all methods that you add will be avalable via the -> operator
     }
@@ -258,7 +257,7 @@ void PBFT(std::ofstream &out,int delay){
         system[i]->setFaultTolerance(0.3);
         system[i]->init();
     }
-    
+
     int numberOfRequests = 0;
     for(int i =-1; i < 1000; i++){
         for(int i = 0; i < system.size(); i++){
@@ -297,105 +296,6 @@ void PBFT(std::ofstream &out,int delay){
     //std::cout<< std::endl;
 }
 
-void syncBFT(std::ofstream &out,int maxDelay){
-//    srand(1);
-    srand(time(nullptr));
-
-    syncBFT_Peer::changeLeader = true;
-    syncBFT_Peer::leaderIdCandidates = {};
-    syncBFT_Peer::leaderId = "";
-    syncBFT_Peer::syncBFTsystemState = 0;
-
-    ByzantineNetwork<syncBFTmessage, syncBFT_Peer> n;
-    ByzantineNetwork<PBFT_Message, PBFT_Peer> system;
-
-    n.setMaxDelay(maxDelay);
-    n.setToRandom();
-    n.initNetwork(syncBFT_Peer::peerCount);
-
-    int consensusSize = 0;
-
-    vector<string> byzantinePeers;
-    while(byzantinePeers.size()<(syncBFT_Peer::peerCount-1)/2) {
-        int index = rand()%syncBFT_Peer::peerCount;
-        if (std::find(byzantinePeers.begin(),byzantinePeers.end(),n[index]->id())!= byzantinePeers.end()){
-        }else{
-            n[index]->setByzantineFlag(true);
-            byzantinePeers.push_back(n[index]->id());
-        }
-    }
-
-    std::cerr<<"Byzantine Peers are ";
-    for(auto &peer: byzantinePeers){
-        std::cerr<<peer<<" ";
-    }
-
-    int lastConsensusAt = 0;
-
-    //start with the first peer as leader
-
-    bool shuffleByzantinePeers = false;
-    int shuffleByzantineInterval = 20;
-    for(int i =1; i<100; i++){
-
-        if(i%shuffleByzantineInterval == 0){
-            std::cerr<<"Iteration "<<i<<std::endl;
-            shuffleByzantinePeers = true;
-        }
-
-        n.receive();
-        n.preformComputation();
-        n.transmit();
-
-        if(syncBFT_Peer::syncBFTsystemState == 3){
-            if(shuffleByzantinePeers){
-                n.shuffleByzantines ((syncBFT_Peer::peerCount-1)/2);
-                shuffleByzantinePeers = false;
-            }
-            //check if all peers terminated
-            bool consensus = true;
-            for(int peerId = 0; peerId<n.size(); peerId++ ) {
-                if (!n[peerId]->getTerminationFlag()) {
-                    //the leader does not need to terminate
-                    if (n[peerId]->id() == syncBFT_Peer::getLeaderId()) {
-                        continue;
-                    }
-                    consensus = false;
-                    break;
-                }
-            }
-            if (consensus){
-                consensusSize++;
-                std::cerr<<"++++++++++++++++++++++++++++++++++++++++++Consensus reached at iteration "<<i<<std::endl;
-                //refresh the peers
-                for(int i = 0;i<n.size();i++){
-                    n[i]->refreshSyncBFT();
-
-                }
-                //reset system-wide sync state
-                syncBFT_Peer::syncBFTsystemState = 0;
-
-                lastConsensusAt = i;
-                continue;
-            }
-        }
-
-        if((i-lastConsensusAt)%n.maxDelay() ==0){
-            //reset sync status of the peers after a notify step is done.
-            if(syncBFT_Peer::syncBFTsystemState==3){
-                for(int i = 0; i<n.size();i++){
-                    n[i]->setSyncBFTState(0);
-                    n[i]->iter++;
-                }
-            }
-            syncBFT_Peer::incrementSyncBFTsystemState();
-        }
-    }
-
-    std::cerr<<"Shuffled byzantine peers every "<<shuffleByzantineInterval<<"\tMax delay: "<<maxDelay<<"\t Consensus count: "<<n[0]->getBlockchain()->getChainSize()-1<<std::endl;
-
-}
-
 void bitcoin(std::ofstream &out, int avgDelay){
     ByzantineNetwork<bCoinMessage, bCoin_Peer> n;
     n.setToPoisson();
@@ -422,6 +322,262 @@ void bitcoin(std::ofstream &out, int avgDelay){
     std::cerr<<"Number of confirmations = "<<n[maxChain]->getBlockchain()->getChainSize()<<std::endl;
 }
 
+void syncBFT(const char ** argv){
+
+	std::string filePath	= 	argv[2];
+	int avgDelay 			= 	std::stoi(argv[4]);
+	int byzantineOrNot 		= 	std::stoi(argv[5]);
+	int peersCount 			= 	std::stoi(argv[6]);
+	int iterationCount 		= 	std::stoi(argv[7]);
+	double tolerance 		= 	std::stod(argv[8]);
+	int txRate 				= 	std::stoi(argv[9]);
+
+	Logger::setLogFileName(filePath + "_"+std::to_string(std::chrono::system_clock::now().time_since_epoch().count())+"_"+argv[1]+"_delay"+std::to_string(avgDelay)+"_peerCount"+std::to_string(peersCount)
+						   +"_iterationCount"+std::to_string(iterationCount)+"_tolerance"+std::to_string(tolerance)+"_txRate"+std::to_string(txRate)+".txt");
+
+	Network<syncBFTmessage, syncBFT_Peer> n;
+	n.setToRandom();
+	n.setMaxDelay(avgDelay);
+	n.setMinDelay(1);
+	n.initNetwork(peersCount);
+	n.buildInitialDAG();
+
+	std::vector<syncBFT_Committee *> currentCommittees;
+	std::deque<std::string> txQueue;
+
+//	for printing security levels
+	std::vector<int> securityLevels;
+	securityLevels.push_back(peersCount/16);
+	securityLevels.push_back(peersCount/8);
+	securityLevels.push_back(peersCount/4);
+	securityLevels.push_back(peersCount/2);
+	securityLevels.push_back(peersCount/1);
+
+	vector<string> byzantinePeers;
+	if(byzantineOrNot == 1){
+		while(byzantinePeers.size()< tolerance*((double)peersCount)) {
+			int index = rand()%peersCount;
+			if (std::find(byzantinePeers.begin(),byzantinePeers.end(),n[index]->id())!= byzantinePeers.end()){
+			}else{
+				n[index]->setByzantineFlag(true);
+				byzantinePeers.push_back(n[index]->id());
+			}
+		}
+	}
+
+	//phase mining or collecting
+	const std::string MINING 			= "MINING";
+	const std::string COLLECTING 		= "COLLECTING";
+	const std::string WAITING_FOR_TX 	= "WAITING_FOR_TX";
+
+	std::string status = COLLECTING;
+	int collectInterval = 0;
+	std::vector<vector<syncBFT_Peer*>> consensusGroups;
+	std::vector<int> consensusGroupCount;
+	std::map<int, int> securityLevelCount;
+	std::map<int, int> defeatedCommittee;
+	std::map<int, double> confirmationRate;
+
+	//	initial block size is peersCount + 1
+	int prevConfirmationSize = peersCount + 1;
+	int waitTime = 2 * n.maxDelay();
+
+	for(int i = 0; i<iterationCount; i++){
+		if(i % 100 == 0){
+			//	saturation point calculation, keep track of confirmed count, look at the dag of any peer to find the chain size. i.e. number of confirmed blocks
+			//	number of transactions introduced will be 100/txRate
+			confirmationRate[i] = ((double)(n[0]->getDAG().getSize() - prevConfirmationSize))/(100);
+			prevConfirmationSize = n[0]->getDAG().getSize();
+		}
+
+		if( i%txRate == 0  ){
+			txQueue.push_back("Tx_"+std::to_string(i));
+		}
+		Logger::instance()->log("----------------------------------------------------------Iteration "+std::to_string(i)+"\n");
+		if(status == WAITING_FOR_TX){
+//			wait for max delay until all committees receive their transactions
+			if(waitTime >=0 ){
+				for(auto & currentCommittee : currentCommittees) {
+					currentCommittee->receive();
+				}
+				waitTime--;
+			}
+
+			if(waitTime == 0){
+				for(auto & currentCommittee : currentCommittees) {
+					currentCommittee->receiveTx();
+				}
+				status = MINING;
+				waitTime = 2*n.maxDelay();
+			}
+
+		}else if(status == MINING){
+			waitTime--;
+
+			for(auto & currentCommittee : currentCommittees){
+				if(currentCommittee->getConsensusFlag()){
+					continue;
+				}
+				currentCommittee->receive();
+				currentCommittee->performComputation();
+				if(waitTime == 0){
+					currentCommittee->nextState(i, n.maxDelay());
+					waitTime = 2*n.maxDelay();
+				}
+				currentCommittee->transmit();
+			}
+
+			//	don't erase but check to see if consensus reached in all
+			bool consensus = true;
+			auto it = currentCommittees.begin();
+			while(it != currentCommittees.end()) {
+				if(!(*it)->getConsensusFlag()) {
+					consensus = false;
+					break;
+				}
+				++it;
+			}
+			if (consensus){
+				for(auto committee: currentCommittees ){
+					committee->refreshPeers();
+				}
+				//	send blocks
+				Logger::instance()->log("CONSENSUS REACHEDDDD \n");
+				for(auto & currentCommittee : currentCommittees){
+					//	propogate the block to whole network except the committee itself.
+					std::vector<std::string> peerIds = currentCommittee->getCommitteePeerIds();
+					std::map<std::string, Peer<syncBFTmessage>* > neighbours;
+
+
+					//	selecting the first peer in the committee, as all peers agree on the same block.
+					syncBFT_Peer * minerPeer = currentCommittee->getCommitteePeers()[0];
+
+					for(int j = 0; j < n.size(); j++) {
+						if(minerPeer->id()!=n[j]->id()) {
+							if (std::find(peerIds.begin(), peerIds.end(), n[j]->id()) != peerIds.end()) {
+							} else {
+								neighbours[n[j]->id()] = n[j];
+							}
+						}
+					}
+					if(currentCommittee->size()!=n.size())
+						assert(!neighbours.empty());
+					minerPeer->setCommitteeNeighbours(neighbours);
+					minerPeer->sendBlock();
+					Logger::instance()->log("TRANSMITTING MINED BLOCK FROM PEER "+ minerPeer->id() + "\n");
+					minerPeer->transmit();
+				}
+				for(auto committee: currentCommittees ){
+					delete committee;
+				}
+				currentCommittees.clear();
+
+				Logger::instance()->log("CONSENSUS REACHED IN ALL COMMITTEES, STARTING COLLECTION IN ITERATION "+std::to_string(i)+"\n");
+				status =COLLECTING;
+				collectInterval = 2 * n.maxDelay();
+			}
+		}else if(status == COLLECTING){
+			//	make sure no peer is busy
+			for(int a = 0; a< n.size();a++){
+				assert(n[a]->isTerminated());
+				assert(n[a]->getConsensusTx().empty());
+			}
+			assert (currentCommittees.empty());
+
+			if(collectInterval > 0){
+				n.receive();
+
+				if(--collectInterval == 0){
+					Logger::instance()->log("UPDATING THE DAG\n");
+					for(int index = 0; index< n.size();index++){
+						n[index]->updateDAG();
+					}
+				}else{
+					//	collection is not complete yet
+					continue;
+				}
+			}
+
+			//	shuffling byzantines
+			if(byzantineOrNot==1){
+				Logger::instance()->log("Shuffling "+std::to_string(peersCount/10)+" Peers.\n");
+				n.shuffleByzantines (peersCount/10);
+			}
+
+			if(!txQueue.empty()){
+				//	select a random peer
+				int randIndex;
+				syncBFT_Peer *p;
+
+				std::vector<syncBFT_Peer*> consensusGroup;
+				int concurrentGroupCount = 0;
+				do{
+					int securityLevel = n.pickSecurityLevel(peersCount);
+					randIndex = rand()%n.size();
+					p = n[randIndex];
+					consensusGroup = n.setPeersForConsensusDAG(p, securityLevel);
+
+					//create a committee if only a consensus group is formed.
+					if(!consensusGroup.empty()){
+						syncBFT_Committee *co = new syncBFT_Committee(consensusGroup, p, txQueue.front(), securityLevel);
+						if(co->getByzantineRatio()>= 0.5){
+							co->refreshPeers();
+							defeatedCommittee[securityLevel]++;
+							txQueue.pop_front();
+							delete co;
+
+						}else{
+							concurrentGroupCount++;
+							txQueue.pop_front();
+							currentCommittees.push_back(co);
+							consensusGroups.push_back(consensusGroup);
+							securityLevelCount[securityLevel]++;
+						}
+
+					}
+				}while(!consensusGroup.empty() && !txQueue.empty()); //build committees until a busy peer is jumped on.
+
+				consensusGroupCount.push_back(concurrentGroupCount);
+			}
+
+//			change status after waiting for all peers to get their transaction
+			status = WAITING_FOR_TX;
+
+			if(!currentCommittees.empty()){
+				Logger::instance()->log("INITIATING " + std::to_string(currentCommittees.size()) + " COMMITTEES\n");
+				for(auto &committee: currentCommittees){
+					committee->initiate();
+				}
+//				change status after waiting for all peers to get their transaction
+				status = WAITING_FOR_TX;
+			}
+
+		}
+
+	}
+
+	for(int i =0; i<n.size();i++){
+		Logger::instance()->log("PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(n[i]->getDAG().getSize())+"\n");
+	}
+
+	Logger::instance()->log("DEFEATED COMMITTEES COUNT\n");
+	for(auto l : securityLevels){
+		if(defeatedCommittee.count(l)){
+			Logger::instance()->log(std::to_string(l) + " " + std::to_string(defeatedCommittee[l]) + "\n");
+		} else
+			Logger::instance()->log(std::to_string(l) + " 0 \n");
+	}
+
+	Logger::instance()->log("CONFIRMATION RATE\n");
+	for(auto cr : confirmationRate){
+		Logger::instance()->log(std::to_string(cr.first) + ": " + std::to_string(cr.second) + "\n");
+	}
+
+	for(auto committee : currentCommittees){
+		delete committee;
+	}
+
+}
 
 void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault){
     std::cout<< std::endl<< "########################### PBFT_Sharded ###########################"<< std::endl;
@@ -450,7 +606,7 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
         system.receive();
         std::cout<< 'r'<< std::flush;
         system.preformComputation();
-        std::cout<< 'p'<< std::flush;  
+        std::cout<< 'p'<< std::flush;
         system.transmit();
         std::cout<< 't'<< std::flush;
         system.log();
@@ -479,10 +635,10 @@ void buildInitialChain(std::vector<std::string> peerIds) {
     int index = 1;                  //blockchain index starts from 1;
     int blockCount = 1;
     std::string prevHash = "genesisHash";
-    
+
     while (blockCount < blockChainLength) {
         std::set<std::string> publishers;
-        
+
         std::string peerId = peerIds[rand()%peerIds.size()];
         std::string blockHash = std::to_string(index) + "_" + peerId;
         publishers.insert(peerId);
@@ -491,14 +647,14 @@ void buildInitialChain(std::vector<std::string> peerIds) {
         index++;
         blockCount++;
     }
-    
+
     std::cerr << "Initial chain build complete." << std::endl;
     std::cerr << "Prebuilt chain: " << std::endl;
     std::cerr << *preBuiltChain << std::endl;
     std::cerr << preBuiltChain->getChainSize() << std::endl;
     blockchain = preBuiltChain;
-    
-    
+
+
 }
 
 std::set<std::string> getPeersForConsensus(int securityLevel) {
@@ -511,15 +667,15 @@ std::set<std::string> getPeersForConsensus(int securityLevel) {
         peersForConsensus.insert(peerId);
         //random value
         int randVal = rand()%peerCount;
-        
+
         int skip = randVal;
         if ((i - skip) <= 0) {
             i = chainSize - i - skip;
-            
+
         } else
             i = i - skip;
     }
-    
+
     return peersForConsensus;
 }
 
@@ -541,7 +697,7 @@ double ratioOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, dou
             }
         }
     }
-    
+
     return defeated/total;
 }
 
@@ -589,13 +745,13 @@ int totalNumberOfDefeatedCommittees(std::vector<std::pair<PBFT_Message,int> > gl
 
 int defeatedTrnasactions(std::vector<std::pair<PBFT_Message,int> > globalLedger){
     int defeated = 0;
-    
+
     for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
         if(entry->first.defeated){
             defeated++;
         }
     }
-    
+
     return defeated;
 }
 
@@ -621,26 +777,26 @@ void calculateResults(const PBFTReferenceCommittee system, std::ofstream &csv){
     csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel3()*system.getGroupSize()));
     csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel4()*system.getGroupSize()));
     csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel5()*system.getGroupSize()));
-    
+
     csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel1()*system.getGroupSize()));
     csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel2()*system.getGroupSize()));
     csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel3()*system.getGroupSize()));
     csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel4()*system.getGroupSize()));
     csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel5()*system.getGroupSize()));
-    
+
     csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel1()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel2()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel3()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel4()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel5()*system.getGroupSize()));
-    
+
     csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel1()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel2()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel3()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel4()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel5()*system.getGroupSize()));
     csv<< std::endl;
-    
+
 }
 
 //static const int SPBFT_PEER_COUNT = 256
@@ -690,13 +846,13 @@ void MOTIVATIONAL11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
-        
+
     }
 }
 
 void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
     std::string header = "Committee Size, Defeated Transactions, Confirmed/Submitted";
-    
+
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
         PBFTReferenceCommittee system = PBFTReferenceCommittee();
         system.setGroupSize(SPBFT_GROUP_SIZE);
@@ -729,9 +885,9 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
-        
+
     }
-    
+
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
         PBFTReferenceCommittee system = PBFTReferenceCommittee();
         system.setGroupSize(SPBFT_GROUP_SIZE);
@@ -764,9 +920,9 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
-        
+
     }
-    
+
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
         PBFTReferenceCommittee system = PBFTReferenceCommittee();
         system.setGroupSize(SPBFT_GROUP_SIZE);
@@ -799,9 +955,9 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
-        
+
     }
-    
+
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
         PBFTReferenceCommittee system = PBFTReferenceCommittee();
         system.setGroupSize(SPBFT_GROUP_SIZE);
@@ -833,9 +989,9 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
-        
+
     }
-    
+
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
         PBFTReferenceCommittee system = PBFTReferenceCommittee();
         system.setGroupSize(SPBFT_GROUP_SIZE);
@@ -868,9 +1024,9 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         csv<< system.securityLevel3()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel4()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel5()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
-        
+
     }
-    
+
 }
 void PARAMETER1_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
     std::string header = "Round, Confirmed/Submitted";

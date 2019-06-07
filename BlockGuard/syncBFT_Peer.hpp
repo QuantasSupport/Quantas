@@ -8,147 +8,169 @@
 
 #include <cassert>
 #include <algorithm>
+#include <queue>
 
 #include "Peer.hpp"
-#include "Blockchain.hpp"
+#include "DAG.hpp"
 
 struct proposal{
-    std::vector<vector<string>> status;
-    std::vector<vector<string>> notify;
+	std::vector<vector<string>> 					status;
+	std::vector<vector<string>> 					notify;
 
-    int size() const{
-        return (status.size() + notify.size());
-    }
+	int 											size									() const{ return (status.size() + notify.size()); }
 
-    void clear() {
-        status.clear();
-        notify.clear();
-    }
-
+	void 											clear									() { status.clear(); notify.clear(); }
 };
 
 struct commitCertificate{
-    std::vector<vector<string>> commit;
-    void clear(){
-        commit.clear();
-    }
+	std::vector<vector<string>> 					commit;
+	void 											clear									() { commit.clear(); }
 };
 
 struct syncBFTmessage {
-    std::string 							peerId;
-    std::string 							type;
-//    std::string 							info;
-    std::string 							value;
-    std::string 							iter;
-    std::vector<std::string> 				message;
-    std::string 							statusCert;
-    proposal                                P;
-    commitCertificate                       cc;
+	std::string 									peerId;
+	std::string 									type;
+	std::string 									value;
+	std::string 									iter;
+	std::vector<std::string> 						message;
+	std::string 									statusCert;
+	proposal                                		P;
+	commitCertificate                       		cc;
+	DAGBlock                                		dagBlock;
+	bool                                    		txFlag = false;
+	bool                                    		dagBlockFlag =false;
 
-    syncBFTmessage(const syncBFTmessage& rhs){
-        peerId = rhs.peerId;
-        type = rhs.type;
-//        info = rhs.info;
-        value = rhs.value;
-        iter = rhs.iter;
-        message = rhs.message;
-        statusCert = rhs.statusCert;
-        cc = rhs.cc;
-        P = rhs.P;
+	syncBFTmessage() = default;
 
-    }
-    syncBFTmessage() = default;
+	syncBFTmessage(const syncBFTmessage& rhs){
+		peerId = rhs.peerId;
+		type = rhs.type;
+		value = rhs.value;
+		iter = rhs.iter;
+		message = rhs.message;
+		statusCert = rhs.statusCert;
+		P = rhs.P;
+		cc = rhs.cc;
+		dagBlock = rhs.dagBlock;
+		txFlag = rhs.txFlag;
+		dagBlockFlag = rhs.dagBlockFlag;
+	}
 
+	syncBFTmessage& operator=(const syncBFTmessage& rhs){
+		if(this == &rhs)
+			return *this;
+		peerId = rhs.peerId;
+		type = rhs.type;
+		value = rhs.value;
+		iter = rhs.iter;
+		message = rhs.message;
+		statusCert = rhs.statusCert;
+		P = rhs.P;
+		cc = rhs.cc;
+		dagBlock = rhs.dagBlock;
+		txFlag = rhs.txFlag;
+		dagBlockFlag = rhs.dagBlockFlag;
+		return *this;
+	}
 
-    syncBFTmessage& operator=(const syncBFTmessage& rhs){
-        peerId = rhs.peerId;
-        type = rhs.type;
-//        info = rhs.info;
-        value = rhs.value;
-        iter = rhs.iter;
-        message = rhs.message;
-        statusCert = rhs.statusCert;
-        cc = rhs.cc;
-        P = rhs.P;
-        
-        return *this;
-
-    }
-
-    ~syncBFTmessage() = default;
+	~syncBFTmessage() = default;
 
 };
 
 
 class syncBFT_Peer : public Peer<syncBFTmessage> {
-    struct acceptedState {
-        std::string 							value;
-        std::string 							valueAcceptedAt;
-        commitCertificate                       cc;
+	struct acceptedState {
+		std::string 								value;
+		std::string 								valueAcceptedAt;
+		commitCertificate                       	cc;
 
-        acceptedState(string v, string vAt , commitCertificate c):value(std::move(v)), valueAcceptedAt(std::move(vAt)), cc(std::move(c)){}
-        acceptedState(const acceptedState& rhs){
-            value = rhs.value;
-            valueAcceptedAt = rhs.valueAcceptedAt;
-            cc = rhs.cc;
-        };
+		acceptedState(string v, string vAt , commitCertificate c){
+			value = std::move(v);
+			valueAcceptedAt = std::move(vAt);
+			cc = std::move(c);
+		}
 
-        acceptedState& operator=(const acceptedState&) = delete;
+		acceptedState(const acceptedState& rhs){
+			value = rhs.value;
+			valueAcceptedAt = rhs.valueAcceptedAt;
+			cc = rhs.cc;
+		};
 
-        ~acceptedState() = default;
-    };
+		acceptedState& operator=(const acceptedState &rhs){
+			if(this ==&rhs)
+				return *this;
+			value = rhs.value;
+			valueAcceptedAt = rhs.valueAcceptedAt;
+			cc = rhs.cc;
+			return *this;
+		}
+
+		~acceptedState() = default;
+	};
 
 
-    int 											counter;
-    Blockchain*			 							blockchain;
-    proposal                                   		P;
-    std::vector<acceptedState>           			acceptedStates ;
-    bool 											terminated ;
-    std::string 									valueFromLeader;
-    commitCertificate                               cc;
-    int 											syncBFTstate ;
-    std::unique_ptr<syncBFTmessage>           						statusMessageToSelf;
-    bool 											byzantineFlag ;
-    std::vector<Packet<syncBFTmessage>> 			notifyMessagesPacket;
-
+	proposal                                   		P;
+	std::vector<acceptedState>           			acceptedStates ;
+	std::string 									valueFromLeader;
+	commitCertificate                               cc;
+	int 											syncBFTstate ;
+	std::unique_ptr<syncBFTmessage>           		statusMessageToSelf;
+	std::vector<Packet<syncBFTmessage>> 			notifyMessagesPacket;
+	std::map<std::string, Peer<syncBFTmessage>* >	committeeNeighbours;
+	syncBFTmessage                                  messageToSend = {};
+	std::deque<string>                              consensusQueue = {};
+	DAGBlock										*minedBlock;
+	DAG												dag;
+	std::string 									leaderId ="";
+	bool 											terminated = true;
+	int 											committeeSize = 0;
+	std::string                           			consensusTx = "";
 
 public:
-    static std::vector<std::string> 		leaderIdCandidates;
-    static int 								syncBFTsystemState;
-    static bool 							changeLeader;
-    int 									iter;
-    static int 								peerCount;
-    static std::string 						leaderId;
+	int 											iter;
+	int												syncBFTsystemState = 0;
+	std::vector<DAGBlock>							dagBlocks={};
 
-    syncBFT_Peer																	(std::string);
-    void 									setBlockchain							(const Blockchain &bChain) { *(this->blockchain) = bChain; }
-    Blockchain*                             getBlockchain() 						{ return this->blockchain; }
-    void 									setByzantineFlag						(bool flag) { byzantineFlag = flag; }
-    void 									setSyncBFTState							(int status) { syncBFTstate = status; }
-    static std::string 						getLeaderId								() { return leaderId; }
-    bool 									getTerminationFlag						() const { return terminated; }
+	syncBFT_Peer																				(std::string);
+	syncBFT_Peer																				(const syncBFT_Peer &rhs);
+	~syncBFT_Peer																				(){ delete minedBlock; }
+	syncBFT_Peer&									operator=									(const syncBFT_Peer &rhs);
 
-    void 									createBlock								(std::set<std::string>);
-    bool 									isLeader								() { return leaderId == _id; }
-    void 									run										();
-    void 									currentStatusSend						();
-    void 									propose									();
-    void 									commitFromLeader						();
-    void 									commit									();
-    void 									notify									();
-    bool 									isValidProposal							(const syncBFTmessage &message) const { return message.peerId == leaderId; }
-    bool 									isValidNotify							(const syncBFTmessage &message) const { return true; }
-    bool 									isValidStatus							(const syncBFTmessage &message) const { return true; }
-    void 									refreshSyncBFT							();
-    static int 								incrementSyncBFTsystemState				();
-    static bool 							leaderChange							();
-    void 									preformComputation						();
-    void                                    populateOutStream                       (syncBFTmessage msg);
+	void 											setDAG										(const DAG &dagChain) { this->dag = dagChain; }
+	void 											setSyncBFTState								(int status) { syncBFTstate = status; }
+	void 											setCommitteeNeighbours						(std::map<std::string, Peer<syncBFTmessage>* > n) { committeeNeighbours = std::move(n); }
+	void 											setTerminated								(bool flag){ this->terminated = flag;}
+	void		 									setLeaderId									(std::string id) { this->leaderId = std::move(id); }
+	void		 									setCommitteeSize							(int size) { this->committeeSize = std::move(size); }
 
-    bool									isByzantine								() { return byzantineFlag; }
+	DAG                             				getDAG                           			() { return this->dag; }
+	std::map<std::string, Peer<syncBFTmessage>* > 	getCommitteeNeighbours						() { return committeeNeighbours; }
+	std::string 									getLeaderId									() { return leaderId; }
+	bool 											getTerminationFlag							() const { return terminated; }
+	std::string 									getConsensusTx								(){ return consensusTx; }
+	bool 											isTerminated								(){ return terminated; }
 
-    ~syncBFT_Peer() 						{ delete blockchain; }
-    void                                    makeRequest(){}
+	void 											createBlock									(const std::set<std::string>&);
+	bool 											isLeader									() { return leaderId == _id; }
+	void 											run											();
+	void 											currentStatusSend							();
+	void 											propose										();
+	void 											commitFromLeader							();
+	void 											commit										();
+	void 											notify										();
+	bool 											isValidProposal								(const syncBFTmessage &message) const { return message.peerId == leaderId; }
+	bool 											isValidNotify								(const syncBFTmessage &message) const { return true; }
+	bool 											isValidStatus								(const syncBFTmessage &message) const { return true; }
+
+	void 											refreshSyncBFT								();
+	void 											refreshInstream								();
+	void 											preformComputation							() override;
+	void                                    		populateOutStream                       	(const syncBFTmessage& msg);
+	void                                    		makeRequest                             	() override;
+	void                                    		makeRequest                             	(const std::vector<syncBFT_Peer*>&, const std::string&);
+	void                                    		sendBlock									();
+	void											updateDAG									();
+	void 											receiveTx									();
 
 };
 

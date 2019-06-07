@@ -18,7 +18,9 @@
 #include <iomanip>
 #include <chrono>
 #include <ctime>
+#include <memory>
 #include "Peer.hpp"
+#include "DAG.hpp"
 
 static const std::string POISSON = "POISSON";
 static const std::string RANDOM  = "RANDOM";
@@ -27,27 +29,28 @@ static const std::string ONE     = "ONE";
 template<class type_msg, class peer_type>
 class Network{
 protected:
-    
+
     std::vector<Peer<type_msg>*>        _peers;
     std::default_random_engine          _randomGenerator;
     int                                 _avgDelay;
     int                                 _maxDelay;
     int                                 _minDelay;
     std::string                         _distribution;
-    
+
     std::ostream                         *_log;
-    
-    std::string                         createId            ();
-    bool                                idTaken             (std::string);
+
+    std::string                         createId            	();
+    bool                                idTaken             	(std::string);
     std::string                         getUniqueId         ();
     void                                addEdges            (Peer<type_msg>*);
     int                                 getDelay            ();
-    
+	peer_type*							getPeerById			(std::string);
+
 public:
     Network                                                 ();
     Network                                                 (const Network<type_msg,peer_type>&);
     ~Network                                                ();
-    
+
     // setters
     void                                initNetwork         (int); // initialize network with peers
     void                                setMaxDelay         (int d)                                         {_maxDelay = d;};
@@ -57,7 +60,7 @@ public:
     void                                setToPoisson        ()                                              {_distribution = POISSON;};
     void                                setToOne            ()                                              {_distribution = ONE;};
     void                                setLog              (std::ostream&);
-    
+
     // getters
     int                                 size                ()const                                         {return (int)_peers.size();};
     int                                 maxDelay            ()const                                         {return _maxDelay;};
@@ -71,16 +74,22 @@ public:
     void                                preformComputation  ();
     void                                transmit            ();
     void                                makeRequest         (int i)                                         {_peers[i]->makeRequest();};
+	void                                shuffleByzantines   (int);
 
-    // logging and debugging
+	// logging and debugging
     std::ostream&                       printTo             (std::ostream&)const;
     void                                log                 ()const                                         {printTo(*_log);};
-    
+
     // operators
     Network&                            operator=           (const Network&);
     peer_type*                          operator[]          (int);
     const peer_type*                    operator[]          (int)const;
     friend std::ostream&                operator<<          (std::ostream &out, const Network &system)      {return system.printTo(out);};
+	void 								makeRequest			(Peer<type_msg> * peer)				 { peer->makeRequest(); }
+	void 								buildInitialDAG		();
+	std::vector<peer_type *>			setPeersForConsensusDAG(Peer<type_msg> *,int);
+	int									pickSecurityLevel	(int);
+
 };
 
 template<class type_msg, class peer_type>
@@ -100,7 +109,7 @@ Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
     if(this == &rhs){
         return;
     }
-    
+
     for(int i = 0; i < _peers.size(); i++){
         delete _peers[i];
     }
@@ -149,7 +158,7 @@ std::string Network<type_msg,peer_type>::createId(){
     thirdPos = uniformDist(_randomGenerator) + 'A';
     fourthPos = uniformDist(_randomGenerator) + 'A';
     fifthPos = uniformDist(_randomGenerator) + 'A';
-    
+
     std::string id = "";
     id = id + firstPos + secondPos + thirdPos + fourthPos + fifthPos;
     return id;
@@ -168,7 +177,7 @@ bool Network<type_msg,peer_type>::idTaken(std::string id){
 template<class type_msg, class peer_type>
 std::string Network<type_msg,peer_type>::getUniqueId(){
     std::string id = createId();
-    
+
     while(idTaken(id)){
         id = createId();
     }
@@ -246,12 +255,12 @@ std::ostream& Network<type_msg,peer_type>::printTo(std::ostream &out)const{
     out<< std::left;
     out<< '\t'<< std::setw(LOG_WIDTH)<< "Number of Peers"<< std::setw(LOG_WIDTH)<< "Distribution"<< std::setw(LOG_WIDTH)<< "Min Delay"<< std::setw(LOG_WIDTH)<< "Average Delay"<< std::setw(LOG_WIDTH)<< "Max Delay"<< std::endl;
     out<< '\t'<< std::setw(LOG_WIDTH)<< _peers.size()<< std::setw(LOG_WIDTH)<< _distribution<< std::setw(LOG_WIDTH)<< _minDelay<< std::setw(LOG_WIDTH)<< _avgDelay<< std::setw(LOG_WIDTH)<< _maxDelay<< std::endl;
-    
+
     for(int i = 0; i < _peers.size(); i++){
         peer_type *p = dynamic_cast<peer_type*>(_peers[i]);
         p->printTo(out);
     }
-    
+
     return out;
 }
 
@@ -260,7 +269,7 @@ Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Netwo
     if(this == &rhs){
         return *this;
     }
-    
+
     for(int i = 0; i < _peers.size(); i++){
         delete _peers[i];
     }
@@ -269,14 +278,14 @@ Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Netwo
     for(int i = 0; i < rhs._peers.size(); i++){
         _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
     }
-    
+
     int seed = (int)std::chrono::system_clock::now().time_since_epoch().count();
     _randomGenerator = std::default_random_engine(seed);
     _avgDelay = rhs._avgDelay;
     _maxDelay = rhs._maxDelay;
     _minDelay = rhs._minDelay;
     _distribution = rhs._distribution;
-    
+
     return *this;
 }
 
@@ -290,4 +299,217 @@ const peer_type* Network<type_msg,peer_type>::operator[](int i)const{
     return dynamic_cast<peer_type*>(_peers[i]);
 }
 
+template<class type_msg, class peer_type>
+peer_type* Network<type_msg,peer_type>::getPeerById(std::string id){
+	for(int i = 0; i<_peers.size(); i++){
+		if(_peers[i]->id() ==  id)
+			return dynamic_cast<peer_type*>(_peers[i]);
+	}
+	return nullptr;
+}
+
+std::string sha256(const std::string& str);
+
+template<class type_msg, class peer_type>
+void Network<type_msg,peer_type>::buildInitialDAG() {
+	std::cerr << "Building initial dag" << std::endl;
+	std::shared_ptr<DAG> preBuiltDAG  = std::make_shared<DAG>(true);
+//	each peer will create a block initially
+	std::vector<int> blockPeers;
+
+	for(int i = 0; i<_peers.size(); i++){
+		blockPeers.push_back(i);
+	}
+	//blockchain index starts from 1;
+	int blockCount = 1;
+	std::string prevHash = "genesisHash";
+	while (blockCount <= _peers.size()) {
+		std::set<std::string> publishers;
+		int randPeer = rand()%blockPeers.size();
+		int index = blockPeers[randPeer];
+		blockPeers.erase(blockPeers.begin() + randPeer);
+
+		std::string peerId = _peers[index]->id();
+//		std::string blockHash = sha256(prevHash+"_"+peerId);
+		std::string blockHash = std::to_string(blockCount);
+		publishers.insert(peerId);
+
+		DAGBlock newBlock = preBuiltDAG->createBlock(blockCount, {prevHash}, blockHash, publishers, "Data" ,false);
+		//the initial dag does not contain byzantine blocks
+		preBuiltDAG->addBlockToDAG(newBlock, {prevHash}, false);
+		prevHash = blockHash;
+		blockCount++;
+	}
+
+	std::cerr<<"Prebuilt dag size is "<<preBuiltDAG->getSize()<<std::endl;
+//	preBuiltDAG->printGraph();
+	preBuiltDAG->setTips();
+
+	for(int i = 0; i<_peers.size();i++){
+		dynamic_cast<peer_type *> (_peers[i])->setDAG(*preBuiltDAG);
+	}
+}
+
+template<class type_msg, class peer_type>
+std::vector<peer_type *> Network<type_msg,peer_type>::setPeersForConsensusDAG(Peer<type_msg> * peer, int securityLevel) {
+	std::cerr<<"SECURTIY LEVEL CHOSEN = "<<securityLevel<<std::endl;
+	int numOfPeers = (securityLevel);
+	std::vector<peer_type*> peersForConsensus;
+	if(numOfPeers == size()){
+//		check if a peers is busy or not
+		for(int i = 0 ; i< size(); i++){
+			if(_peers[i]->isBusy()){
+				return {};
+			}
+			peer_type* iPeer = getPeerById(_peers[i]->id());
+
+			peersForConsensus.push_back(iPeer);
+		}
+	}else{
+		std::vector<std::string> sortedDAG = (dynamic_cast<peer_type *> (peer))->getDAG().topologicalSort();
+		/*std::cerr<<"THE SORTED DAG IS ";
+		for(const auto & i : sortedDAG){
+			std::cerr<<i<<" ";
+		}*/
+
+		//are all peers busy?
+		bool allBusy = true;
+		for(int i =0; i< size();i++){
+			if(_peers[i]->isBusy()==false){
+				allBusy = false;
+				break;
+			}
+		}
+
+		if(allBusy){
+			std::cerr<<"Could not find a starting point"<<std::endl;
+			return {};
+		}
+		//	find first size()/2 unique peers
+		int uniquePeerCount = 0;
+		int uniquePeersIndex = 0 ;
+		std::vector<string> uniquePeers;
+		do{
+			std::string peerId = sortedDAG[uniquePeersIndex];
+			if (std::find(uniquePeers.begin(), uniquePeers.end(), peerId) != uniquePeers.end())
+			{
+				uniquePeersIndex++;
+				continue;
+			}
+			uniquePeers.push_back(peerId);
+			uniquePeersIndex++;
+			uniquePeerCount++;
+		}while (uniquePeerCount < size()/2);
+
+		uniquePeersIndex--;
+		std::cerr<<"THE INDEX WHERE "<<size()/2<<" UNIQUE PEERS WERE FOUND IS "<<uniquePeersIndex<<std::endl;
+		//	resize the vector upto uniquePeerBracketIndex index
+		/*std::cerr<<"BEFORE SORTED DAG, SIZE"<<sortedDAG.size()<<std::endl;
+		for(const auto & i : sortedDAG){
+			std::cerr<<i<<" ";
+		}*/
+
+		sortedDAG.resize(uniquePeersIndex+1);
+		std::cerr<<"AFTER SORTED DAG, SIZE"<<sortedDAG.size()<<std::endl;
+		/*for(const auto & i : sortedDAG){
+			std::cerr<<i<<" ";
+		}*/
+
+		std::vector<string> chosen;
+
+		while (peersForConsensus.size() < numOfPeers) {
+			if(chosen.size() + sortedDAG.size() < numOfPeers){
+				std::cerr<<"Not enough peers to form a committee"<<std::endl;
+				return {};
+			}
+			int randIndex = rand() % sortedDAG.size();
+			std::string peerId = sortedDAG[randIndex];
+			//random value
+			if(std::find(chosen.begin(), chosen.end(), peerId) !=  chosen.end()) {
+				std::cerr<<"The jumped on peer is already chosen."<<std::endl;
+				sortedDAG.erase(sortedDAG.begin()+randIndex);
+				continue;
+			} else {
+				peer_type* iPeer = getPeerById(peerId);
+				if(!iPeer->isBusy()){
+					std::cerr<<iPeer->id()<<" IS NOT BUSY"<<std::endl;
+					peersForConsensus.push_back(iPeer);
+					chosen.push_back(peerId);
+					sortedDAG.erase(sortedDAG.begin()+randIndex);
+
+				}else{
+//					no busy, if already selected remove and try another
+					std::cerr<<"The jumped on peer "<<iPeer->id()<<" is already taken for another committee "<<std::endl;
+					sortedDAG.erase(sortedDAG.begin()+randIndex);
+					continue;
+				}
+			}
+		}
+	}
+	for(int i = 0 ; i< peersForConsensus.size(); i++){
+		std::map<std::string, Peer<type_msg>* > neighbours;			//previous group is dissolved when new group is selected
+		for(int j = 0; j< peersForConsensus.size(); j++){
+			if(i != j)
+				neighbours[peersForConsensus[j]->id()]=peersForConsensus[j];
+		}
+		dynamic_cast<peer_type *> (peersForConsensus[i])->setCommitteeNeighbours(neighbours);
+	}
+
+	//set peers to busy
+	for(auto &peerBusy:peersForConsensus){
+		peerBusy->setBusy(true);
+	}
+
+	std::cerr<<"FINALISED SECURITY LEVEL CHOSEN = "<<securityLevel<<std::endl;
+	return peersForConsensus;
+}
+
+template<class type_msg, class peer_type>
+void Network<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
+	int shuffled = 0;
+	//find list of byzantineFlag peers
+	vector<int> byzantineIndex;
+	vector<int> nonByzantineIndex;
+
+	for(int i = 0; i<_peers.size();i++){
+		if(_peers[i]->isByzantine()){
+			byzantineIndex.push_back (i);
+		}else if(!_peers[i]->isByzantine()){
+			nonByzantineIndex.push_back (i);
+		}
+	}
+
+	while (shuffled<shuffleCount){
+		//find list of byzantineFlag peers
+		int byzantineShuffleIndex = static_cast<int>(rand() % byzantineIndex.size());
+		int nonByzantineShuffleIndex = static_cast<int>(rand() % nonByzantineIndex.size());
+		_peers[byzantineIndex[byzantineShuffleIndex]]->setByzantineFlag(false);
+		_peers[nonByzantineIndex[nonByzantineShuffleIndex]]->setByzantineFlag(true);
+		byzantineIndex.erase(byzantineIndex.begin ()+byzantineShuffleIndex);
+		nonByzantineIndex.erase(nonByzantineIndex.begin ()+nonByzantineShuffleIndex);
+		shuffled++;
+	}
+}
+
+template<class type_msg, class peer_type>
+int Network<type_msg, peer_type>::pickSecurityLevel(int numberOfPeers){
+	unsigned seed = (unsigned)std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine _randomGenerator;
+	_randomGenerator = std::default_random_engine(seed);
+	std::uniform_int_distribution<int> coin(0,1);
+	int trails = 0;
+	int heads = coin(_randomGenerator);
+	while(!heads){
+		trails++;
+		heads = coin(_randomGenerator);
+	}
+	switch (trails) {
+		case 0: return numberOfPeers / 16;
+		case 1: return numberOfPeers / 8;
+		case 2: return numberOfPeers / 4;
+		case 3: return numberOfPeers / 2;
+		case 4: return numberOfPeers;
+		default: return numberOfPeers / 16;
+	}
+}
 #endif /* Network_hpp */
