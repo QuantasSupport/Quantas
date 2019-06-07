@@ -27,7 +27,10 @@ public:
 
 	Block 								getBlockAt						(int index);
 
-	Blockchain& operator=(const Blockchain&);
+	Blockchain& 						operator=						(const Blockchain&);
+	Blockchain															(const Blockchain&);
+	~Blockchain															() = default;
+
 	friend std::ostream &operator<<(std::ostream &os, Blockchain &blockchain);
 };
 
