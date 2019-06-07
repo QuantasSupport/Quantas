@@ -51,8 +51,6 @@ public:
     void                        clearGroup              ()                                              {_groupMembers.clear(); _groupId = -1;}
     void                        initPrimary             () override                                     {_primary = findPrimary(_committeeMembers);};
     void                        preformComputation      () override;
-    virtual bool                makeCorrect             () override;
-    virtual bool                makeByzantine           () override;
     
     // getters
     int                         faultyPeers             ()const override                                {return ceil(double(_committeeMembers.size() + 1) * _faultUpperBound);};

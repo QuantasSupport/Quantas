@@ -70,8 +70,8 @@ public:
     void                              removeNeighbor        (const Peer &neighbor)              {_neighbors.erase(neighbor);};
     void                              addNeighbor           (Peer &newNeighbor, int delay);
     virtual void					  setByzantineFlag		(bool f)                            {_byzantine = f;};
-    virtual bool                      makeCorrect           ()                                  {_byzantine = false; return true;};
-    virtual bool                      makeByzantine         ()                                  {_byzantine = true; return true;};
+    virtual void                      makeCorrect           ()                                  {_byzantine = false;};
+    virtual void                      makeByzantine         ()                                  {_byzantine = true;};
 
     // tells this peer to create a transation
     virtual void                      makeRequest           ()=0;

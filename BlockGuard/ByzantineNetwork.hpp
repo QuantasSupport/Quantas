@@ -193,9 +193,9 @@ void ByzantineNetwork<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
         //find list of byzantineFlag peers
         int byzantineShuffleIndex = static_cast<int>(rand() % byzantineIndex.size());
         int nonByzantineShuffleIndex = static_cast<int>(rand() % nonByzantineIndex.size());
-        if( Network<type_msg,peer_type>::_peers[byzantineIndex[byzantineShuffleIndex]]->makeCorrect() && Network<type_msg,peer_type>::_peers[nonByzantineIndex[nonByzantineShuffleIndex]]->makeByzantine()){
-            shuffled++;
-        }
+        Network<type_msg,peer_type>::_peers[byzantineIndex[byzantineShuffleIndex]]->makeCorrect();
+        Network<type_msg,peer_type>::_peers[nonByzantineIndex[nonByzantineShuffleIndex]]->makeByzantine();
+        shuffled++;
         byzantineIndex.erase(byzantineIndex.begin () + byzantineShuffleIndex);
         nonByzantineIndex.erase(nonByzantineIndex.begin () + nonByzantineShuffleIndex);
     }

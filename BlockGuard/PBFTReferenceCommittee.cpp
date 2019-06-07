@@ -348,6 +348,32 @@ void PBFTReferenceCommittee::setMinSecurityLevel(int min){
     }
 }
 
+void PBFTReferenceCommittee::shuffleByzantines(int n){
+    std::vector<int> correct = std::vector<int>();
+    std::vector<int> byz = std::vector<int>();
+    for(int i = 0; i < _peers.size(); i++){
+        if(_peers[i]->getCommittee() == -1){
+            if(_peers[i]->isByzantine()){
+                byz.push_back(i);
+            }else{
+                correct.push_back(i);
+            }
+        }
+    }
+    if(correct.size() > n){
+        n = correct.size();
+    }
+    if(byz.size() > n){
+        n = byz.size();
+    }
+    
+    int shuffleCount = 0;
+    while(shuffleCount < n){
+        
+    }
+    
+}
+
 PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCommittee &rhs){
     _securityLevel5 = rhs._securityLevel5;
     _securityLevel4 = rhs._securityLevel4;

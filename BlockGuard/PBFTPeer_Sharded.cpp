@@ -134,26 +134,6 @@ void PBFTPeer_Sharded::preformComputation(){
     }
 }
 
-bool PBFTPeer_Sharded::makeCorrect(){
-    if(_committeeId == -1){
-        _byzantine = false;
-        return true;
-        
-    }else{
-        return false;
-    }
-};
-
-bool PBFTPeer_Sharded::makeByzantine(){
-    if(_committeeId == -1){
-        _byzantine = true;
-        return true;
-        
-    }else{
-        return false;
-    }
-};
-
 PBFTPeer_Sharded& PBFTPeer_Sharded::operator= (const PBFTPeer_Sharded &rhs){
     PBFT_Peer::operator=(rhs);
     

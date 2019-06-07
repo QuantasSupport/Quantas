@@ -126,7 +126,7 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     void                                setToPoisson            ()                                      {_peers.setToPoisson();};
     void                                setToOne                ()                                      {_peers.setToOne();};
     void                                setToRandom             ()                                      {_peers.setToRandom();};
-    void                                shuffleByzantines       (int n)                                 {_peers.shuffleByzantines(n);};
+    void                                shuffleByzantines       (int n);
     std::vector<PBFTPeer_Sharded*>      getByzantine            ()const                                 {return _peers.getByzantine();};
     std::vector<PBFTPeer_Sharded*>      getCorrect              ()const                                 {return _peers.getCorrect();};
     void                                makeByzantines          (int n)                                 {_peers.makeByzantines(n);};
