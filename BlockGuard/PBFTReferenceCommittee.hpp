@@ -81,6 +81,7 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     void                                setFaultTolerance       (double);
     void                                setLog                  (std::ostream &o)                       {_log = &o; _peers.setLog(o);}
     void                                setSquenceNumber        (int s)                                 {_nextSquenceNumber = s;}
+    
     // getters
     int                                 getGroupSize            ()const                                 {return _groupSize;};
     int                                 numberOfGroups          ()const                                 {return (int)_groupIds.size();};
@@ -131,6 +132,8 @@ PBFTReferenceCommittee                                          (const PBFTRefer
     std::vector<PBFTPeer_Sharded*>      getCorrect              ()const                                 {return _peers.getCorrect();};
     void                                makeByzantines          (int n)                                 {_peers.makeByzantines(n);};
     void                                makeCorrect             (int n)                                 {_peers.makeCorrect(n);};
+    void                                makePeerByzantines      (int i)                                 {_peers.makePeerByzantines(i);};
+    void                                makePeerCorrect         (int i)                                 {_peers.makePeerByzantines(i);};
 
 
     // logging and debugging

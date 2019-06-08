@@ -34,5 +34,6 @@ void testSimultaneousRequest        (std::ostream &log); // test making more the
 void testByzantineConfirmationRate  (std::ostream &log); // test that committees are set-back (do view changes) correctly
 void testShuffle                    (std::ostream &log); // test that shuffling byzantine works and does not change thier state (erase ledger, messages etc)
 void testByzantineVsDelay           (std::ostream &log); // test that committees are set-back (do view changes) with var delay
+void testDelay                      (std::ostream &log); // test that delay is set correctly
 
 #endif /* PBFTReferenceCommittee_Test_hpp */

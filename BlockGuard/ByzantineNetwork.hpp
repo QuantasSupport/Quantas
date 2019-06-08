@@ -37,6 +37,8 @@ public:
     void                                shuffleByzantines   (int);
     void                                makeByzantines      (int);
     void                                makeCorrect         (int);
+    void                                makePeerByzantines  (int i)                                             {Network<type_msg,peer_type>::_peers[i]->makeByzantine(); _numberOfByzantines++;_numberOfCorrect--;};
+    void                                makePeerCorrect     (int i)                                             {Network<type_msg,peer_type>::_peers[i]->makeCorrect();   _numberOfCorrect++;   _numberOfByzantines--;};
 
     // overrides
     void                                initNetwork         (int);

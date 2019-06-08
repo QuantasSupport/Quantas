@@ -360,16 +360,22 @@ void PBFTReferenceCommittee::shuffleByzantines(int n){
             }
         }
     }
-    if(correct.size() > n){
+    if(correct.size() < n){
         n = correct.size();
     }
-    if(byz.size() > n){
+    if(byz.size() < n){
         n = byz.size();
     }
     
     int shuffleCount = 0;
     while(shuffleCount < n){
-        
+        int byzantineShuffleIndex = static_cast<int>(rand() % byz.size());
+        int nonByzantineShuffleIndex = static_cast<int>(rand() % correct.size());
+        _peers[byz[byzantineShuffleIndex]]->makeCorrect();
+        _peers[correct[nonByzantineShuffleIndex]]->makeByzantine();
+        shuffleCount++;
+        byz.erase(byz.begin () + byzantineShuffleIndex);
+        correct.erase(correct.begin () + nonByzantineShuffleIndex);
     }
     
 }

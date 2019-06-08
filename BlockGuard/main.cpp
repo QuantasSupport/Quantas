@@ -824,13 +824,13 @@ void MOTIVATIONAL11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
-        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.2);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.makeRequest();
             system.makeRequest();
             system.makeRequest();
-            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.2);
             totalSub = totalSub + 3;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -862,10 +862,10 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
-        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.2);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.2);
             system.makeRequest(system.securityLevel1());
             system.makeRequest(system.securityLevel1());
             system.makeRequest(system.securityLevel1());
@@ -892,10 +892,10 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
-        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.2);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.2);
             system.makeRequest(system.securityLevel2());
             system.makeRequest(system.securityLevel2());
             system.makeRequest(system.securityLevel2());
@@ -922,10 +922,10 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
-        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.2);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.2);
             system.makeRequest(system.securityLevel3());
             system.makeRequest(system.securityLevel3());
             system.makeRequest(system.securityLevel3());
@@ -953,13 +953,13 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
-        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.2);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.makeRequest(system.securityLevel4());
             system.makeRequest(system.securityLevel4());
             system.makeRequest(system.securityLevel4());
-            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.2);
             totalSub = totalSub + 3;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -983,10 +983,10 @@ void MOTIVATIONAL12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
         system.setSquenceNumber(999);
         system.initNetwork(SPBFT_PEER_COUNT);
         system.setFaultTolerance(FAULT);
-        system.makeByzantines(SPBFT_PEER_COUNT*0.1);
+        system.makeByzantines(SPBFT_PEER_COUNT*0.2);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.shuffleByzantines(SPBFT_PEER_COUNT*0.1);
+            system.shuffleByzantines(SPBFT_PEER_COUNT*0.2);
             system.makeRequest(system.securityLevel5());
             system.makeRequest(system.securityLevel5());
             system.makeRequest(system.securityLevel5());
@@ -1036,6 +1036,7 @@ void PARAMETER1_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
                 csv<< i<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
             }
         }
+        csv<< NUMBER_OF_ROUNDS<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
     }
 }
 
@@ -1070,6 +1071,7 @@ void PARAMETER2_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
                 csv<< i<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
             }
         }
+        csv<< NUMBER_OF_ROUNDS<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
     }
 }
 
@@ -1104,6 +1106,7 @@ void ADAPTIVE11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
                 csv<< i<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
             }
         }
+        csv<< NUMBER_OF_ROUNDS<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
     }
 }
 void ADAPTIVE12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine){
@@ -1137,6 +1140,7 @@ void ADAPTIVE12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byza
                 csv<< i<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
             }
         }
+        csv<< NUMBER_OF_ROUNDS<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
     }
 }
 void ADAPTIVE21_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
@@ -1170,6 +1174,7 @@ void ADAPTIVE21_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
                 csv<< i<< ","<< waitTime(system.getGlobalLedger())<< std::endl;
             }
         }
+        csv<< NUMBER_OF_ROUNDS<< ","<< waitTime(system.getGlobalLedger())<< std::endl;
     }
 }
 void ADAPTIVE22_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine){
@@ -1203,6 +1208,7 @@ void ADAPTIVE22_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byza
                 csv<< i<< ","<< waitTime(system.getGlobalLedger())<< std::endl;
             }
         }
+        csv<< NUMBER_OF_ROUNDS<< ","<< waitTime(system.getGlobalLedger())<< std::endl;
     }
 }
 void ADAPTIVE3_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine){

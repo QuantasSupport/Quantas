@@ -29,6 +29,7 @@ void RunPBFTRefComTest (std::string filepath){
     //testByzantineConfirmationRate(log);
     testShuffle(log);
     testByzantineVsDelay(log);
+    testDelay(log);
 }
 
 void testInit(std::ostream &log){
@@ -852,12 +853,317 @@ void testShuffle(std::ostream &log){
 
 void testByzantineVsDelay(std::ostream &log){
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineVsDelay"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    
+    /////////////////////////////////////////////
+    // test shuffle
+    //
+    
+    PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
+    refCom.setLog(log);
+    refCom.setToOne();
+    refCom.setToRandom();
+    refCom.setGroupSize(2);
+    refCom.setFaultTolerance(FAULT);
+    refCom.initNetwork(64);
+    refCom.makeByzantines(64.0*0.25); // make 25% of the peers Byzantine
+    refCom.log();
+    
+    int numberByz = 0;
+    int numberCorrect = 0;
+    
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            numberByz++;
+        }else{
+            numberCorrect++;
+        }
+    }
+    
+    assert(numberByz        == 64.0*0.25);
+    assert(numberCorrect    == 64 - (64.0*0.25));
+    
+    for(int r = 0; r < 100; r++){
+        refCom.shuffleByzantines(r);
+        numberByz = 0;
+        numberCorrect = 0;
+        
+        for(int i = 0; i < refCom.size(); i++){
+            if(refCom[i]->isByzantine()){
+                numberByz++;
+            }else{
+                numberCorrect++;
+            }
+        }
+        
+        assert(numberByz        == 64.0*0.25);
+        assert(numberCorrect    == 64 - (64.0*0.25));
+    }
+    
+    for(int r = 0; r < 100; r++){
+        refCom.shuffleByzantines(64.0*0.25);
+        numberByz = 0;
+        numberCorrect = 0;
+        
+        for(int i = 0; i < refCom.size(); i++){
+            if(refCom[i]->isByzantine()){
+                numberByz++;
+            }else{
+                numberCorrect++;
+            }
+        }
+        
+        assert(numberByz        == 64.0*0.25);
+        assert(numberCorrect    == 64 - (64.0*0.25));
+    }
+    
+    std::vector<std::string> beforeCorrectIds = std::vector<std::string>();
+    std::vector<std::string> beforeByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            beforeByzIds.push_back(refCom[i]->id());
+        }else{
+            beforeCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    refCom.shuffleByzantines(64.0*0.25);
+    
+    std::vector<std::string> afterCorrectIds = std::vector<std::string>();
+    std::vector<std::string> afterByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            afterByzIds.push_back(refCom[i]->id());
+        }else{
+            afterCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    assert(beforeByzIds != afterByzIds);
+    assert(beforeCorrectIds != afterCorrectIds);
+    
+    
+    for(int r = 1; r < 100; r++){
+        std::vector<std::string> beforeCorrectIds = std::vector<std::string>();
+        std::vector<std::string> beforeByzIds = std::vector<std::string>();
+        for(int i = 0; i < refCom.size(); i++){
+            if(refCom[i]->isByzantine()){
+                beforeByzIds.push_back(refCom[i]->id());
+            }else{
+                beforeCorrectIds.push_back(refCom[i]->id());
+            }
+        }
+        
+        refCom.shuffleByzantines(r);
+        
+        std::vector<std::string> afterCorrectIds = std::vector<std::string>();
+        std::vector<std::string> afterByzIds = std::vector<std::string>();
+        for(int i = 0; i < refCom.size(); i++){
+            if(refCom[i]->isByzantine()){
+                afterByzIds.push_back(refCom[i]->id());
+            }else{
+                afterCorrectIds.push_back(refCom[i]->id());
+            }
+        }
+        
+        assert(beforeByzIds != afterByzIds);
+        assert(beforeCorrectIds != afterCorrectIds);
+    }
+    
+    refCom.makeRequest(refCom.securityLevel1());
+    // make sure committee is not going to view change
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->getCommittee() != -1){
+            refCom.makePeerCorrect(i);
+        }
+    }
+    
+    beforeCorrectIds = std::vector<std::string>();
+    beforeByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            beforeByzIds.push_back(refCom[i]->id());
+        }else{
+            beforeCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    refCom.receive();
+    refCom.preformComputation();
+    refCom.transmit();
+    
+    assert(refCom.getCurrentCommittees().size() != 0);
+    
+    refCom.shuffleByzantines(PEERS);
+    
+    afterCorrectIds = std::vector<std::string>();
+    afterByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            afterByzIds.push_back(refCom[i]->id());
+        }else{
+            afterCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    assert(refCom.getCurrentCommittees().size() != 0);
+    assert(beforeByzIds                         != afterByzIds);
+    assert(beforeCorrectIds                     != afterCorrectIds);
+    assert(beforeByzIds.size()                  == afterByzIds.size());
+    assert(beforeCorrectIds.size()              == afterCorrectIds.size());
+    assert(beforeByzIds.size()                  != 0);
+    assert(beforeCorrectIds.size()              != 0);
+    
+    beforeCorrectIds = std::vector<std::string>();
+    beforeByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            beforeByzIds.push_back(refCom[i]->id());
+        }else{
+            beforeCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    refCom.receive();
+    refCom.preformComputation();
+    refCom.transmit();
+    
+    assert(refCom.getCurrentCommittees().size() != 0);
+    
+    refCom.shuffleByzantines(PEERS);
+    
+    afterCorrectIds = std::vector<std::string>();
+    afterByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            afterByzIds.push_back(refCom[i]->id());
+        }else{
+            afterCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    assert(refCom.getCurrentCommittees().size() != 0);
+    assert(beforeByzIds                         != afterByzIds);
+    assert(beforeCorrectIds                     != afterCorrectIds);
+    assert(beforeByzIds.size()                  == afterByzIds.size());
+    assert(beforeCorrectIds.size()              == afterCorrectIds.size());
+    assert(beforeByzIds.size()                  != 0);
+    assert(beforeCorrectIds.size()              != 0);
+    
+    beforeCorrectIds = std::vector<std::string>();
+    beforeByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            beforeByzIds.push_back(refCom[i]->id());
+        }else{
+            beforeCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    refCom.receive();
+    refCom.preformComputation();
+    refCom.transmit();
+    
+    assert(refCom.getCurrentCommittees().size() != 0);
+    
+    refCom.shuffleByzantines(PEERS);
+    
+    afterCorrectIds = std::vector<std::string>();
+    afterByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            afterByzIds.push_back(refCom[i]->id());
+        }else{
+            afterCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    assert(refCom.getCurrentCommittees().size() != 0);
+    assert(beforeByzIds                         != afterByzIds);
+    assert(beforeCorrectIds                     != afterCorrectIds);
+    assert(beforeByzIds.size()                  == afterByzIds.size());
+    assert(beforeCorrectIds.size()              == afterCorrectIds.size());
+    assert(beforeByzIds.size()                  != 0);
+    assert(beforeCorrectIds.size()              != 0);
+    
+    beforeCorrectIds = std::vector<std::string>();
+    beforeByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            beforeByzIds.push_back(refCom[i]->id());
+        }else{
+            beforeCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    refCom.receive();
+    refCom.preformComputation();
+    refCom.transmit();
+    
+    assert(refCom.getCurrentCommittees().size() == 0);
+    
+    refCom.shuffleByzantines(PEERS);
+    
+    afterCorrectIds = std::vector<std::string>();
+    afterByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            afterByzIds.push_back(refCom[i]->id());
+        }else{
+            afterCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    assert(refCom.getCurrentCommittees().size() == 0);
+    assert(beforeByzIds                         != afterByzIds);
+    assert(beforeCorrectIds                     != afterCorrectIds);
+    assert(beforeByzIds.size()                  == afterByzIds.size());
+    assert(beforeCorrectIds.size()              == afterCorrectIds.size());
+    assert(beforeByzIds.size()                  != 0);
+    assert(beforeCorrectIds.size()              != 0);
+    
+    beforeCorrectIds = std::vector<std::string>();
+    beforeByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            beforeByzIds.push_back(refCom[i]->id());
+        }else{
+            beforeCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    refCom.makeRequest(refCom.securityLevel5());
+    refCom.receive();
+    refCom.preformComputation();
+    refCom.transmit();
+    
+    assert(refCom.getCurrentCommittees().size() != 0);
+    
+    refCom.shuffleByzantines(PEERS);
+    
+    afterCorrectIds = std::vector<std::string>();
+    afterByzIds = std::vector<std::string>();
+    for(int i = 0; i < refCom.size(); i++){
+        if(refCom[i]->isByzantine()){
+            afterByzIds.push_back(refCom[i]->id());
+        }else{
+            afterCorrectIds.push_back(refCom[i]->id());
+        }
+    }
+    
+    assert(refCom.getCurrentCommittees().size() != 0);
+    assert(beforeByzIds                         == afterByzIds);
+    assert(beforeCorrectIds                     == afterCorrectIds);
+    assert(beforeByzIds.size()                  == afterByzIds.size());
+    assert(beforeCorrectIds.size()              == afterCorrectIds.size());
+    assert(beforeByzIds.size()                  != 0);
+    assert(beforeCorrectIds.size()              != 0);
+    
     /////////////////////////////////////////////
     // Delay 1
     //
     
     int Delay = 1;
-    PBFTReferenceCommittee refCom = PBFTReferenceCommittee();
+    refCom = PBFTReferenceCommittee();
     refCom.setLog(log);
     refCom.setMaxDelay(Delay);
     refCom.setToRandom();
@@ -867,6 +1173,7 @@ void testByzantineVsDelay(std::ostream &log){
     refCom.makeByzantines(64*0.25); // make 25% of the peers Byzantine
     refCom.log();
 
+    
     
     // number of groups by 1/2 becouse a committee needs at least two groups
     // this should make the make be the nunmber of groups the system can have at one time
@@ -1245,4 +1552,115 @@ void testByzantineVsDelay(std::ostream &log){
     assert(refCom.getCurrentCommittees().size() == 0); // make sure the committees are gone
     
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testByzantineVsDelay Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+}
+
+void testDelay(std::ostream &log){
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testDelay"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
+    
+    PBFTReferenceCommittee system = PBFTReferenceCommittee();
+    system.setGroupSize(2);
+    system.setToRandom();
+    system.setMaxDelay(1);
+    system.setLog(log);
+    system.setSquenceNumber(999);
+    system.initNetwork(32);
+    system.setFaultTolerance(0.3);
+    
+    for(int i = 0; i < system.size(); i++){
+        std::vector<std::string> neighbourhood = system[i]->neighbors();
+        for(auto neighbour = neighbourhood.begin(); neighbour != neighbourhood.end(); neighbour++){
+            int delay = system[i]->getDelayToNeighbor(*neighbour);
+            assert(delay == 1);
+        }
+    }
+    
+    system = PBFTReferenceCommittee();
+    system.setGroupSize(2);
+    system.setToRandom();
+    system.setMaxDelay(2);
+    system.setLog(log);
+    system.setSquenceNumber(999);
+    system.initNetwork(32);
+    system.setFaultTolerance(0.3);
+    
+    std::vector<int> delaysInSystem = std::vector<int>();
+    for(int i = 0; i < system.size(); i++){
+        std::vector<std::string> neighbourhood = system[i]->neighbors();
+        for(auto neighbour = neighbourhood.begin(); neighbour != neighbourhood.end(); neighbour++){
+            int delay = system[i]->getDelayToNeighbor(*neighbour);
+            assert(delay <= 2);
+            delaysInSystem.push_back(delay);
+        }
+    }
+    
+    assert(std::find(delaysInSystem.begin(), delaysInSystem.end(), 2) != delaysInSystem.end());
+    assert(std::find(delaysInSystem.begin(), delaysInSystem.end(), 1) != delaysInSystem.end());
+    
+    system = PBFTReferenceCommittee();
+    system.setGroupSize(2);
+    system.setToRandom();
+    system.setMaxDelay(5);
+    system.setLog(log);
+    system.setSquenceNumber(999);
+    system.initNetwork(32);
+    system.setFaultTolerance(0.3);
+    
+    delaysInSystem = std::vector<int>();
+    for(int i = 0; i < system.size(); i++){
+        std::vector<std::string> neighbourhood = system[i]->neighbors();
+        for(auto neighbour = neighbourhood.begin(); neighbour != neighbourhood.end(); neighbour++){
+            int delay = system[i]->getDelayToNeighbor(*neighbour);
+            assert(delay <= 5);
+            delaysInSystem.push_back(delay);
+        }
+    }
+    
+    assert(std::find(delaysInSystem.begin(), delaysInSystem.end(), 5) != delaysInSystem.end());
+    assert(std::find(delaysInSystem.begin(), delaysInSystem.end(), 1) != delaysInSystem.end());
+    
+    system = PBFTReferenceCommittee();
+    system.setGroupSize(2);
+    system.setToRandom();
+    system.setMaxDelay(10);
+    system.setLog(log);
+    system.setSquenceNumber(999);
+    system.initNetwork(32);
+    system.setFaultTolerance(0.3);
+    
+    delaysInSystem = std::vector<int>();
+    for(int i = 0; i < system.size(); i++){
+        std::vector<std::string> neighbourhood = system[i]->neighbors();
+        for(auto neighbour = neighbourhood.begin(); neighbour != neighbourhood.end(); neighbour++){
+            int delay = system[i]->getDelayToNeighbor(*neighbour);
+            assert(delay <= 10);
+            delaysInSystem.push_back(delay);
+        }
+    }
+    
+    assert(std::find(delaysInSystem.begin(), delaysInSystem.end(), 10) != delaysInSystem.end());
+    assert(std::find(delaysInSystem.begin(), delaysInSystem.end(), 1) != delaysInSystem.end());
+    
+    system = PBFTReferenceCommittee();
+    system.setGroupSize(2);
+    system.setToRandom();
+    system.setMaxDelay(50);
+    system.setLog(log);
+    system.setSquenceNumber(999);
+    system.initNetwork(32);
+    system.setFaultTolerance(0.3);
+    
+    delaysInSystem = std::vector<int>();
+    for(int i = 0; i < system.size(); i++){
+        std::vector<std::string> neighbourhood = system[i]->neighbors();
+        for(auto neighbour = neighbourhood.begin(); neighbour != neighbourhood.end(); neighbour++){
+            int delay = system[i]->getDelayToNeighbor(*neighbour);
+            assert(delay <= 50);
+            delaysInSystem.push_back(delay);
+        }
+    }
+    
+    assert(std::find(delaysInSystem.begin(), delaysInSystem.end(), 50) != delaysInSystem.end());
+    assert(std::find(delaysInSystem.begin(), delaysInSystem.end(), 1) != delaysInSystem.end());
+    
+    log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testDelay"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
 }
