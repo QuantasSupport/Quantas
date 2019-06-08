@@ -37,6 +37,8 @@ public:
 
 syncBFT_Committee::syncBFT_Committee(std::vector<syncBFT_Peer *> peers, syncBFT_Peer *sender, std::string transaction, int sLevel) : Committee<syncBFT_Peer>(peers, sender, transaction, sLevel){
 	for(auto & committeePeer : committeePeers){
+		committeePeer->setTerminated(false);
+		committeePeer->setCommitteeSize(committeePeers.size());
 		leaderIdCandidates.push_back(committeePeer->id());
 	}
 }

@@ -53,9 +53,6 @@ Committee<peer_type>::Committee(std::vector<peer_type*> peers, peer_type *sender
 
 	int byzantineCount = 0;
 	for(int i =0; i<committeePeers.size(); i++){
-//		set committee size in each peer
-		committeePeers[i]->setTerminated(false);
-		committeePeers[i]->setCommitteeSize(committeePeers.size());
 		if(committeePeers[i]->isByzantine()){
 			byzantineCount++;
 		}
