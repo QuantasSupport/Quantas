@@ -32,6 +32,7 @@ public:
 	void 									nextState						(int, int);
 	void 									leaderChange					();
 	void									refreshPeers					();
+	void									initiate						();
 
 };
 
@@ -154,6 +155,20 @@ void syncBFT_Committee::performComputation(){
 			syncBFTsystemState = 0;
 		}
 		consensusFlag = consensus;
+	}
+}
+
+void syncBFT_Committee::initiate(){
+	dynamic_cast<syncBFT_Peer *>(senderPeer)->makeRequest(committeePeers, tx);
+
+	for(int i = 0 ; i< committeePeers.size(); i++){
+		std::map<std::string, Peer<syncBFTmessage>* > neighbours;	//previous group is dissolved when new group is selected
+		for(int j = 0; j< committeePeers.size(); j++){
+			if(i != j){
+				neighbours[committeePeers[j]->id()] = committeePeers[j];
+			}
+		}
+		dynamic_cast<syncBFT_Peer *> (committeePeers[i])->setCommitteeNeighbours(neighbours);
 	}
 }
 

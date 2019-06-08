@@ -38,7 +38,6 @@ public:
 	virtual void							performComputation				() = 0;
 	void									receive							();
 	void									transmit						();
-	void									initiate						();
 
 };
 
@@ -109,21 +108,6 @@ std::vector<std::string> Committee<peer_type>::getCommitteePeerIds(){
 		ids.push_back(committeePeers[i]->id());
 	}
 	return ids;
-}
-
-template <class peer_type>
-void Committee<peer_type>::initiate(){
-	dynamic_cast<syncBFT_Peer *>(senderPeer)->makeRequest(committeePeers, tx);
-
-	for(int i = 0 ; i< committeePeers.size(); i++){
-		std::map<std::string, Peer<syncBFTmessage>* > neighbours;	//previous group is dissolved when new group is selected
-		for(int j = 0; j< committeePeers.size(); j++){
-			if(i != j){
-				neighbours[committeePeers[j]->id()] = committeePeers[j];
-			}
-		}
-		dynamic_cast<syncBFT_Peer *> (committeePeers[i])->setCommitteeNeighbours(neighbours);
-	}
 }
 
 
