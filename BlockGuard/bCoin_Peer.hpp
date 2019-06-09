@@ -63,7 +63,7 @@ public:
     void                                    sendBlock                               ();
 
     ~bCoin_Peer                                                                     () { delete blockchain; }
-    void                                    makeRequest                             (){}
+    void                                    makeRequest                             () override {}
 
 };
 
