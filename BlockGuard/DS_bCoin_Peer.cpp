@@ -20,7 +20,7 @@ DS_bCoin_Peer::DS_bCoin_Peer(const std::string id) : Peer<DS_bCoinMessage>(id){
 	_busy = false;
 }
 
-DS_bCoin_Peer::DS_bCoin_Peer(const DS_bCoin_Peer &rhs) {
+DS_bCoin_Peer::DS_bCoin_Peer(const DS_bCoin_Peer &rhs)  : Peer<DS_bCoinMessage>(rhs) {
 	counter = rhs.counter;
 	dag = rhs.dag;
 	mineNextAt = rhs.mineNextAt;
