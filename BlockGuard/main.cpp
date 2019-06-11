@@ -122,95 +122,107 @@ int main(int argc, const char * argv[]) {
             std::cerr << "Error: could not open file: "<< filePath + "pbft_s.log" << std::endl;
         }
 
-//        std::string file = filePath + "pbft_s";
-//        csv.open(file + ".csv");
+        std::string file = filePath + "pbft_s";
+        csv.open(file + "1.csv");
+        if ( csv.fail() ){
+            std::cerr << "Error: could not open file: "<< file + ".log" << std::endl;
+        }
+        
+        csv<< "Delay,Fault,Confirmed/Submitted"<< std::endl;
+        for(int delay = 1; delay < 10; delay++){
+            double fault = 0.0;
+            while(fault <= 0.4){
+                Sharded_PBFT(csv,log,delay,fault);
+                fault += 0.05;
+            }
+        }
+        csv.close();
+        
+        std::string file = filePath + "pbft_s";
+        csv.open(file + "2.csv");
+        if ( csv.fail() ){
+            std::cerr << "Error: could not open file: "<< file + ".log" << std::endl;
+        }
+        
+        csv<< "Delay,Fault,Confirmed/Submitted"<< std::endl;
+        for(int delay = 1; delay < 10; delay++){
+            double fault = 0.0;
+            while(fault <= 0.4){
+                Sharded_PBFT(csv,log,delay,fault);
+                fault += 0.05;
+            }
+        }
+        csv.close();
+        
+//        csv.open(filePath + "MOTIVATIONAL11_Sharded_PBFT.csv");
 //        if ( csv.fail() ){
-//            std::cerr << "Error: could not open file: "<< file + ".log" << std::endl;
+//            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
 //        }
-        
-//        for(int delay = 1; delay < 10; delay++){
-//            csv<< "Delay,"<< std::to_string(delay)<< std::endl;
-//            csv<< s_pbft_header;
-//            double fault = 0.0;
-//            while(ceil(256*fault) <= 256){
-//                csv<< "fault,"<< std::to_string(fault)<< std::endl;
-//                for(int run = 0; run < 2; run++){
-//                    Sharded_PBFT(csv,log,delay,fault);
-//                }
-//                fault += 0.1;
-//            }
-//        }
+//        MOTIVATIONAL11_Sharded_PBFT(csv,log);
 //        csv.close();
-        
-        csv.open(filePath + "MOTIVATIONAL11_Sharded_PBFT.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-        }
-        MOTIVATIONAL11_Sharded_PBFT(csv,log);
-        csv.close();
-
-        csv.open(filePath + "MOTIVATIONAL12_Sharded_PBFT.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-        }
-        MOTIVATIONAL12_Sharded_PBFT(csv,log);
-        csv.close();
-
-        csv.open(filePath + "PARAMETER1_Sharded_PBFT.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-        }
-        PARAMETER1_Sharded_PBFT(csv, log);
-        csv.close();
-
-        for(int delay = 1; delay < 11; delay = delay + 2){
-            csv.open(filePath + "PARAMETER2_Sharded_PBFT_" + std::to_string(delay) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            PARAMETER2_Sharded_PBFT(csv, log, delay);
-            csv.close();
-        }
-
-        for(int delay = 1; delay < 11; delay = delay + 2){
-            csv.open(filePath + "ADAPTIVE11_Sharded_PBFT_" + std::to_string(delay) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE11_Sharded_PBFT(csv, log, delay);
-            csv.close();
-            csv.open(filePath + "ADAPTIVE21_Sharded_PBFT_" + std::to_string(delay) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE21_Sharded_PBFT(csv, log, delay);
-            csv.close();
-        }
-
-        for(double byz = 0; byz < 1; byz = byz + 0.2){
-            csv.open(filePath + "ADAPTIVE12_Sharded_PBFT_" + std::to_string(byz) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE12_Sharded_PBFT(csv, log, byz);
-            csv.close();
-            csv.open(filePath + "ADAPTIVE22_Sharded_PBFT_" + std::to_string(byz) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE22_Sharded_PBFT(csv, log, byz);
-            csv.close();
-        }
-
-        for(double byz = 0; byz < 1; byz = byz + 0.2){
-            csv.open(filePath + "ADAPTIVE3_Sharded_PBFT_" + std::to_string(byz) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE3_Sharded_PBFT(csv,log,byz);
-            csv.close();
-        }
-        log.close();
+//
+//        csv.open(filePath + "MOTIVATIONAL12_Sharded_PBFT.csv");
+//        if ( csv.fail() ){
+//            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+//        }
+//        MOTIVATIONAL12_Sharded_PBFT(csv,log);
+//        csv.close();
+//
+//        csv.open(filePath + "PARAMETER1_Sharded_PBFT.csv");
+//        if ( csv.fail() ){
+//            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+//        }
+//        PARAMETER1_Sharded_PBFT(csv, log);
+//        csv.close();
+//
+//        for(int delay = 1; delay < 11; delay = delay + 2){
+//            csv.open(filePath + "PARAMETER2_Sharded_PBFT_" + std::to_string(delay) + ".csv");
+//            if ( csv.fail() ){
+//                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+//            }
+//            PARAMETER2_Sharded_PBFT(csv, log, delay);
+//            csv.close();
+//        }
+//
+//        for(int delay = 1; delay < 11; delay = delay + 2){
+//            csv.open(filePath + "ADAPTIVE11_Sharded_PBFT_" + std::to_string(delay) + ".csv");
+//            if ( csv.fail() ){
+//                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+//            }
+//            ADAPTIVE11_Sharded_PBFT(csv, log, delay);
+//            csv.close();
+//            csv.open(filePath + "ADAPTIVE21_Sharded_PBFT_" + std::to_string(delay) + ".csv");
+//            if ( csv.fail() ){
+//                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+//            }
+//            ADAPTIVE21_Sharded_PBFT(csv, log, delay);
+//            csv.close();
+//        }
+//
+//        for(double byz = 0; byz < 1; byz = byz + 0.2){
+//            csv.open(filePath + "ADAPTIVE12_Sharded_PBFT_" + std::to_string(byz) + ".csv");
+//            if ( csv.fail() ){
+//                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+//            }
+//            ADAPTIVE12_Sharded_PBFT(csv, log, byz);
+//            csv.close();
+//            csv.open(filePath + "ADAPTIVE22_Sharded_PBFT_" + std::to_string(byz) + ".csv");
+//            if ( csv.fail() ){
+//                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+//            }
+//            ADAPTIVE22_Sharded_PBFT(csv, log, byz);
+//            csv.close();
+//        }
+//
+//        for(double byz = 0; byz < 1; byz = byz + 0.2){
+//            csv.open(filePath + "ADAPTIVE3_Sharded_PBFT_" + std::to_string(byz) + ".csv");
+//            if ( csv.fail() ){
+//                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
+//            }
+//            ADAPTIVE3_Sharded_PBFT(csv,log,byz);
+//            csv.close();
+//        }
+//        log.close();
     }else if (algorithm == "bitcoin") {
         std::ofstream out;
         bitcoin(out, 1);
@@ -905,7 +917,6 @@ void syncBFT(const char ** argv){
 
 void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault){
     std::cout<< std::endl<< "########################### PBFT_Sharded ###########################"<< std::endl;
-    csv<< ""<< std::endl;
     PBFTReferenceCommittee system = PBFTReferenceCommittee();
     system.setGroupSize(8);
     system.setToRandom();
@@ -917,7 +928,6 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
     system.makeByzantines(256*fault);
 
     int numberOfRequests = 0;
-    int test = -1;
     for(int i =0; i < 1000; i++){
         system.makeRequest();numberOfRequests++;
         system.makeRequest();numberOfRequests++;
@@ -934,18 +944,10 @@ void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault
         system.transmit();
         std::cout<< 't'<< std::flush;
         system.log();
-
-        if(i%100 == 0){
-            calculateResults(system,csv);
-            if(test == system.getGlobalLedger().size()){
-                system.printNetworkOn();
-                system.log();
-                system.printNetworkOff();
-            }
-            test = system.getGlobalLedger().size();
-        }
     }
-    calculateResults(system,csv);
+    
+    csv<< delay<< ","<< fault<< ","<< (double(system.getGlobalLedger().size())/numberOfRequests)<< std::endl;
+    
 }
 
 //////////////////////////////////////////////

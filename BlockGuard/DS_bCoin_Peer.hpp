@@ -55,8 +55,8 @@ class DS_bCoin_Peer : public Peer<DS_bCoinMessage> {
 	int                                             mineNextAt;
 	std::deque<string>                              consensusQueue = {};
 	std::string			                            consensusTx="";
-	DS_bCoinMessage                                    messageToSend = {};
-	std::map<std::string, Peer<DS_bCoinMessage>* >		committeeNeighbours;
+	DS_bCoinMessage                                 messageToSend = {};
+	std::map<std::string, Peer<DS_bCoinMessage>* >	committeeNeighbours;
 	bool terminated = false;
 
 public:
