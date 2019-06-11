@@ -138,7 +138,6 @@ int main(int argc, const char * argv[]) {
         }
         csv.close();
         
-        std::string file = filePath + "pbft_s";
         csv.open(file + "2.csv");
         if ( csv.fail() ){
             std::cerr << "Error: could not open file: "<< file + ".log" << std::endl;
