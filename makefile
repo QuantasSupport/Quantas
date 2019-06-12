@@ -30,24 +30,24 @@ PBFTReferenceCommittee:
 	clang++ -std=c++14 BlockGuard/PBFTReferenceCommittee.cpp -c --debug -o ./BlockGuard_Test/PBFTReferenceCommittee.o
 
 run_pbft:
-    tmux new-session -d -s "1" ./BlockGuard.out pbft_s ./../results1/
-    tmux new-session -d -s "2" ./BlockGuard.out pbft_s ./../results2/
-    tmux new-session -d -s "3" ./BlockGuard.out pbft_s ./../results3/
-    tmux new-session -d -s "4" ./BlockGuard.out pbft_s ./../results4/
-    tmux new-session -d -s "5" ./BlockGuard.out pbft_s ./../results5/
-    tmux new-session -d -s "6" ./BlockGuard.out pbft_s ./../results6/
-    tmux new-session -d -s "7" ./BlockGuard.out pbft_s ./../results7/
-    tmux new-session -d -s "8" ./BlockGuard.out pbft_s ./../results8/
+	tmux new-session -d -s "1" ./BlockGuard.out pbft_s ./../results1/
+	tmux new-session -d -s "2" ./BlockGuard.out pbft_s ./../results2/
+	tmux new-session -d -s "3" ./BlockGuard.out pbft_s ./../results3/
+	tmux new-session -d -s "4" ./BlockGuard.out pbft_s ./../results4/
+	tmux new-session -d -s "5" ./BlockGuard.out pbft_s ./../results5/
+	tmux new-session -d -s "6" ./BlockGuard.out pbft_s ./../results6/
+	tmux new-session -d -s "7" ./BlockGuard.out pbft_s ./../results7/
+	tmux new-session -d -s "8" ./BlockGuard.out pbft_s ./../results8/
 
 clean_pbft:
-    rm ./../results1/*
-    rm ./../results2/*
-    rm ./../results3/*
-    rm ./../results4/*
-    rm ./../results5/*
-    rm ./../results6/*
-    rm ./../results7/*
-    rm ./../results8/*
+	rm ./../results1/*
+	rm ./../results2/*
+	rm ./../results3/*
+	rm ./../results4/*
+	rm ./../results5/*
+	rm ./../results6/*
+	rm ./../results7/*
+	rm ./../results8/*
 
 collect:
 	scp -r khood@jadamek1.cs.kent.edu:/home/khood/results1/*.csv /Users/kendrichood/Desktop/pbft_s/results1/
