@@ -17,6 +17,9 @@
 //
 //Base Message Class
 //
+
+static std::default_random_engine RANDOM_GENERATOR = std::default_random_engine((int)time(nullptr));
+
 template<class content>
 class Packet{
 private:
@@ -27,7 +30,6 @@ protected:
     std::string                 _id; // message id
     std::string                 _targetId; // traget node id
     std::string                 _sourceId; // source node id
-    std::default_random_engine  _randomGenerator;
     
     content                     _body;
     
@@ -99,7 +101,10 @@ Packet<content>::~Packet(){
 template <class content>
 void Packet<content>::setDelay(int maxDelay, int minDelay){
     std::uniform_int_distribution<int> uniformDist(minDelay,maxDelay);
-    _delay = uniformDist(_randomGenerator);
+    int tmp = uniformDist(RANDOM_GENERATOR);
+    std::cout<< "max:"<< maxDelay<< " min:"<< minDelay<< std::endl;
+    std::cout<< "uniformDist(_randomGenerator)"<< tmp<< std::endl;
+    _delay = uniformDist(RANDOM_GENERATOR);;
 }
 
 template<class content>

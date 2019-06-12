@@ -146,8 +146,10 @@ int main(int argc, const char * argv[]) {
         csv<< "Delay,Fault,Confirmed/Submitted"<< std::endl;
         for(int delay = 1; delay < 10; delay++){
             double fault = 0.0;
-            while(fault <= 0.4){
-                Sharded_PBFT(csv,log,delay,fault);
+            while(fault <= 0.45){
+                for(int i = 0; i < 10; i++){
+                    Sharded_PBFT(csv,log,delay,fault);
+                }
                 fault += 0.05;
             }
         }

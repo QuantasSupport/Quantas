@@ -39,8 +39,8 @@ protected:
 
     std::ostream                         *_log;
 
-    std::string                         createId            	();
-    bool                                idTaken             	(std::string);
+    std::string                         createId            ();
+    bool                                idTaken             (std::string);
     std::string                         getUniqueId         ();
     void                                addEdges            (Peer<type_msg>*);
     int                                 getDelay            ();
