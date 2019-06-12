@@ -100,11 +100,8 @@ Packet<content>::~Packet(){
 
 template <class content>
 void Packet<content>::setDelay(int maxDelay, int minDelay){
-    std::uniform_int_distribution<int> uniformDist(minDelay,maxDelay);
-    int tmp = uniformDist(RANDOM_GENERATOR);
-    std::cout<< "max:"<< maxDelay<< " min:"<< minDelay<< std::endl;
-    std::cout<< "uniformDist(_randomGenerator)"<< tmp<< std::endl;
-    _delay = uniformDist(RANDOM_GENERATOR);;
+    std::uniform_int_distribution<int> uniformDist(minDelay,(maxDelay - 1));
+    _delay = uniformDist(RANDOM_GENERATOR); // max is not included so delay 1 is next round delay 2 is one round waiting and then receve in the following round
 }
 
 template<class content>

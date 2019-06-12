@@ -22,16 +22,14 @@
 #include "Peer.hpp"
 #include "DAG.hpp"
 
-static const std::string POISSON = "POISSON";
-static const std::string RANDOM  = "RANDOM";
-static const std::string ONE     = "ONE";
-
+static const std::string                POISSON = "POISSON";
+static const std::string                RANDOM  = "RANDOM";
+static const std::string                ONE     = "ONE";
 template<class type_msg, class peer_type>
 class Network{
 protected:
 
     std::vector<Peer<type_msg>*>        _peers;
-    std::default_random_engine          _randomGenerator;
     int                                 _avgDelay;
     int                                 _maxDelay;
     int                                 _minDelay;
@@ -95,8 +93,6 @@ public:
 template<class type_msg, class peer_type>
 Network<type_msg,peer_type>::Network(){
     _peers = std::vector<Peer<type_msg>*>();
-    int seed = (int)time(nullptr);
-    _randomGenerator = std::default_random_engine(seed);
     _avgDelay = 1;
     _maxDelay = 1;
     _minDelay = 1;
@@ -118,8 +114,6 @@ Network<type_msg,peer_type>::Network(const Network<type_msg,peer_type> &rhs){
     for(int i = 0; i < rhs._peers.size(); i++){
         _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
     }
-    int seed = (int)time(nullptr);
-    _randomGenerator = std::default_random_engine(seed);
     _avgDelay = rhs._avgDelay;
     _maxDelay = rhs._maxDelay;
     _minDelay = rhs._minDelay;
@@ -153,11 +147,11 @@ std::string Network<type_msg,peer_type>::createId(){
 
     std::uniform_int_distribution<int> uniformDist(0,25);
     // add 'A' to shift char into rnage of upper case letters
-    firstPos = uniformDist(_randomGenerator) + 'A';
-    secondPos = uniformDist(_randomGenerator) + 'A';
-    thirdPos = uniformDist(_randomGenerator) + 'A';
-    fourthPos = uniformDist(_randomGenerator) + 'A';
-    fifthPos = uniformDist(_randomGenerator) + 'A';
+    firstPos = uniformDist(RANDOM_GENERATOR) + 'A';
+    secondPos = uniformDist(RANDOM_GENERATOR) + 'A';
+    thirdPos = uniformDist(RANDOM_GENERATOR) + 'A';
+    fourthPos = uniformDist(RANDOM_GENERATOR) + 'A';
+    fifthPos = uniformDist(RANDOM_GENERATOR) + 'A';
 
     std::string id = "";
     id = id + firstPos + secondPos + thirdPos + fourthPos + fifthPos;
@@ -206,11 +200,11 @@ template<class type_msg, class peer_type>
 int Network<type_msg,peer_type>::getDelay(){
     if(_distribution == RANDOM){
         std::uniform_int_distribution<int> randomDistribution(_minDelay,_maxDelay);
-        return randomDistribution(_randomGenerator);
+        return randomDistribution(RANDOM_GENERATOR);
     }
     if(_distribution == POISSON){
         std::poisson_distribution<int> poissonDistribution(_avgDelay);
-        return poissonDistribution(_randomGenerator);
+        return poissonDistribution(RANDOM_GENERATOR);
     }
     if(_distribution == ONE){
         return 1;
@@ -279,8 +273,6 @@ Network<type_msg, peer_type>& Network<type_msg,peer_type>::operator=(const Netwo
         _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
     }
 
-    int seed = (int)std::chrono::system_clock::now().time_since_epoch().count();
-    _randomGenerator = std::default_random_engine(seed);
     _avgDelay = rhs._avgDelay;
     _maxDelay = rhs._maxDelay;
     _minDelay = rhs._minDelay;
@@ -494,14 +486,12 @@ void Network<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
 template<class type_msg, class peer_type>
 int Network<type_msg, peer_type>::pickSecurityLevel(int numberOfPeers){
 	unsigned seed = (unsigned)std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine _randomGenerator;
-	_randomGenerator = std::default_random_engine(seed);
 	std::uniform_int_distribution<int> coin(0,1);
 	int trails = 0;
-	int heads = coin(_randomGenerator);
+	int heads = coin(RANDOM_GENERATOR);
 	while(!heads){
 		trails++;
-		heads = coin(_randomGenerator);
+		heads = coin(RANDOM_GENERATOR);
 	}
 	switch (trails) {
 		case 0: return numberOfPeers / 16;
