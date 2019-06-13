@@ -285,6 +285,12 @@ void PBFT_Peer::commitRequest(){
         }else if (numberOfByzantineCommits + correctCommitMsg != _neighbors.size() +1){
             return;
         }else{
+            if(_currentView + 1 == _neighbors.size() + 1){
+                commit.defeated = true;
+                _ledger.push_back(commit);
+                _currentRequest = PBFT_Message();
+                _currentRequest = PBFT_Message();
+            }
             viewChange(_neighbors);
         }
     }else if(!_currentRequest.byzantine){
@@ -296,6 +302,12 @@ void PBFT_Peer::commitRequest(){
         }else if (numberOfByzantineCommits + correctCommitMsg != _neighbors.size() +1){
             return;
         }else{
+            if(_currentView + 1 == _neighbors.size() + 1){
+                commit.defeated = true;
+                _ledger.push_back(commit);
+                _currentRequest = PBFT_Message();
+                _currentRequest = PBFT_Message();
+            }
             viewChange(_neighbors);
         }
     }

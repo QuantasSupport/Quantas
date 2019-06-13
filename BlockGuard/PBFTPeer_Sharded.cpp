@@ -77,6 +77,12 @@ void PBFTPeer_Sharded::commitRequest(){
         }else if (numberOfByzantineCommits + correctCommitMsg != _committeeMembers.size() +1){
             return;
         }else{
+            if(_currentView + 1 == _committeeMembers.size() + 1){
+                commit.defeated = true;
+                _ledger.push_back(commit);
+                _currentRequest = PBFT_Message();
+                _currentRequest = PBFT_Message();
+            }
             viewChange(_committeeMembers);
         }
     }else if(!_primary->isByzantine()){
@@ -90,6 +96,12 @@ void PBFTPeer_Sharded::commitRequest(){
         }else if (numberOfByzantineCommits + correctCommitMsg != _committeeMembers.size() +1){
             return;
         }else{
+            if(_currentView + 1 == _committeeMembers.size() + 1){
+                commit.defeated = true;
+                _ledger.push_back(commit);
+                _currentRequest = PBFT_Message();
+                _currentRequest = PBFT_Message();
+            }
             viewChange(_committeeMembers);
         }
     }
