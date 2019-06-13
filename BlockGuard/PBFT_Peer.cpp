@@ -189,7 +189,6 @@ void PBFT_Peer::prepare(){
     if(!isVailedRequest(prePrepareMesg)){
         return;
     }
-    assert(_prePrepareLog.size() == 0);
     prePrepareMesg.phase = PREPARE;
     _prepareLog.push_back(prePrepareMesg);
     PBFT_Message prepareMsg = prePrepareMesg;
@@ -209,7 +208,6 @@ void PBFT_Peer::waitPrepare(){
     if(_currentPhase != PREPARE_WAIT){
         return;
     }
-    assert(_prePrepareLog.size() == 0);
     int numberOfPrepareMsg = 0;
     for(auto entry = _prepareLog.begin(); entry != _prepareLog.end(); entry++){
         if(entry->sequenceNumber == _currentRequest.sequenceNumber
