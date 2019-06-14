@@ -290,8 +290,9 @@ void PBFT_Peer::commitRequest(){
                 _ledger.push_back(commit);
                 _currentRequest = PBFT_Message();
                 _currentRequest = PBFT_Message();
+            }else{
+                viewChange(_neighbors);
             }
-            viewChange(_neighbors);
         }
     }else if(!_currentRequest.byzantine){
         if( correctCommitMsg >= faultyPeers()){
@@ -307,8 +308,9 @@ void PBFT_Peer::commitRequest(){
                 _ledger.push_back(commit);
                 _currentRequest = PBFT_Message();
                 _currentRequest = PBFT_Message();
+            }else{
+                viewChange(_neighbors);
             }
-            viewChange(_neighbors);
         }
     }
     
@@ -362,6 +364,7 @@ int PBFT_Peer::executeQuery(const PBFT_Message &query){
             
         default:
             *_log<< "ERROR: invailed request excution"<< std::endl;
+            assert(false);
             return 0;
             break;
     }

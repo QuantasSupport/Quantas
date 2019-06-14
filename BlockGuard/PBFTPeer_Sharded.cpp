@@ -81,9 +81,11 @@ void PBFTPeer_Sharded::commitRequest(){
                 commit.defeated = true;
                 _ledger.push_back(commit);
                 _currentRequest = PBFT_Message();
+                clearCommittee();
                 _currentRequest = PBFT_Message();
+            }else{
+                viewChange(_committeeMembers);
             }
-            viewChange(_committeeMembers);
         }
     }else if(!_primary->isByzantine()){
         if( correctCommitMsg >= faultyPeers()){
@@ -100,9 +102,11 @@ void PBFTPeer_Sharded::commitRequest(){
                 commit.defeated = true;
                 _ledger.push_back(commit);
                 _currentRequest = PBFT_Message();
+                clearCommittee();
                 _currentRequest = PBFT_Message();
+            }else{
+                viewChange(_committeeMembers);
             }
-            viewChange(_committeeMembers);
         }
     }
     
