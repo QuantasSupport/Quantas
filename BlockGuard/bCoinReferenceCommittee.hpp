@@ -27,6 +27,18 @@ typedef std::pair<DS_bCoinMessage,int> bCoinledgerEntery; // includes committee 
 class bCoinReferenceCommittee{
 protected:
     
+    // secrity level is the number of groups needed for a committee
+    // 5 is high (all groups )1 is low (4 groups for 1024 peers)
+    // initialization in initNetwork
+    double _securityLevel5;
+    double _securityLevel4;
+    double _securityLevel3;
+    double _securityLevel2;
+    double _securityLevel1;
+    
+    std::default_random_engine                          _randomGenerator;
+    int                                                 _groupSize;
+    int                                                 _nextId;
     ByzantineNetwork<DS_bCoinMessage, DS_bCoin_Peer>    _peers;
     std::map<int,bCoinGroup>                            _groups;
     std::deque<transactionRequest>                      _requestQueue;
@@ -35,6 +47,9 @@ protected:
     std::ostream                                        *_log;
     bool                                                _printNetwork;
     
+    // util
+    std::vector<bCoinGroup>            getFreeGroups            ();
+    
 public:
     bCoinReferenceCommittee                                     ();
     bCoinReferenceCommittee                                     (const bCoinReferenceCommittee&);
@@ -42,6 +57,7 @@ public:
     
     // setters
     void                                setLog                  (std::ostream &o)                       {_log = &o; _peers.setLog(o);}
+    void                                setGroupSize            (int s)                                 {_groupSize = s;};
     
     // getters
     std::vector<bCoinGroup>             getFreeGroups           ()const;
