@@ -80,6 +80,7 @@ void PBFTPeer_Sharded::commitRequest(){
             if(_currentView + 1 == _committeeMembers.size() + 1){
                 commit.defeated = true;
                 _ledger.push_back(commit);
+                _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
                 _currentRequest = PBFT_Message();
                 clearCommittee();
                 _currentRequest = PBFT_Message();
@@ -101,6 +102,7 @@ void PBFTPeer_Sharded::commitRequest(){
             if(_currentView + 1 == _committeeMembers.size() + 1){
                 commit.defeated = true;
                 _ledger.push_back(commit);
+                _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
                 _currentRequest = PBFT_Message();
                 clearCommittee();
                 _currentRequest = PBFT_Message();
