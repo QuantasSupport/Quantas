@@ -72,9 +72,9 @@ protected:
     void                                updateBusyGroup         ();
 
 public:
-PBFTReferenceCommittee                                          ();
-PBFTReferenceCommittee                                          (const PBFTReferenceCommittee&);
-~PBFTReferenceCommittee                                         ()                                      {};
+    PBFTReferenceCommittee                                      ();
+    PBFTReferenceCommittee                                      (const PBFTReferenceCommittee&);
+    ~PBFTReferenceCommittee                                     ()                                      {};
     
     // setters
     void                                setGroupSize            (int g)                                 {_groupSize = g;};

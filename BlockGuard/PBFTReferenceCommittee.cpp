@@ -220,10 +220,10 @@ std::vector<aGroup> PBFTReferenceCommittee::getCommittee(int committeeId)const{
     for(auto id = _groupIds.begin(); id != _groupIds.end(); id++){ 
         aGroup group = getGroup(*id);
         // check each group member to see if they belong to that committee still
-        bool inCommittee = true;
+        bool inCommittee = false;
         for(auto peer = group.begin(); peer != group.end(); peer++){
-            if((*peer)->getCommittee() != committeeId){
-                inCommittee = false;
+            if((*peer)->getCommittee() == committeeId){
+                inCommittee = true;
             }
         }
         if(inCommittee){

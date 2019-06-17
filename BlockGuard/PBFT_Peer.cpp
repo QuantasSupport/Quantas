@@ -180,13 +180,15 @@ void PBFT_Peer::prepare(){
         return;
     }
     PBFT_Message prePrepareMesg;
-    if(!_prePrepareLog.empty()){
-        prePrepareMesg = _prePrepareLog.front();
-        _prePrepareLog.erase(_prePrepareLog.begin());
-    }else{
-        return;
+    for(auto it = _prePrepareLog.begin(); it != _prePrepareLog.end(); it++){
+        if(isVailedRequest(*it)){
+            prePrepareMesg = *it;
+            _prePrepareLog.erase(it);
+            break;
+        }
     }
     if(!isVailedRequest(prePrepareMesg)){
+        // if no vailed prePrepair message was found then this will fail
         return;
     }
     prePrepareMesg.phase = PREPARE;
@@ -285,7 +287,14 @@ void PBFT_Peer::commitRequest(){
         }else if (numberOfByzantineCommits + correctCommitMsg != _neighbors.size() +1){
             return;
         }else{
-            viewChange(_neighbors);
+            if(_currentView + 1 == _neighbors.size() + 1){
+                commit.defeated = true;
+                _ledger.push_back(commit);
+                _currentRequest = PBFT_Message();
+                _currentRequest = PBFT_Message();
+            }else{
+                viewChange(_neighbors);
+            }
         }
     }else if(!_currentRequest.byzantine){
         if( correctCommitMsg >= faultyPeers()){
@@ -296,7 +305,14 @@ void PBFT_Peer::commitRequest(){
         }else if (numberOfByzantineCommits + correctCommitMsg != _neighbors.size() +1){
             return;
         }else{
-            viewChange(_neighbors);
+            if(_currentView + 1 == _neighbors.size() + 1){
+                commit.defeated = true;
+                _ledger.push_back(commit);
+                _currentRequest = PBFT_Message();
+                _currentRequest = PBFT_Message();
+            }else{
+                viewChange(_neighbors);
+            }
         }
     }
     
@@ -350,6 +366,7 @@ int PBFT_Peer::executeQuery(const PBFT_Message &query){
             
         default:
             *_log<< "ERROR: invailed request excution"<< std::endl;
+            assert(false);
             return 0;
             break;
     }
