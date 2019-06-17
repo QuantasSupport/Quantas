@@ -180,13 +180,15 @@ void PBFT_Peer::prepare(){
         return;
     }
     PBFT_Message prePrepareMesg;
-    if(!_prePrepareLog.empty()){
-        prePrepareMesg = _prePrepareLog.front();
-        _prePrepareLog.erase(_prePrepareLog.begin());
-    }else{
-        return;
+    for(auto it = _prePrepareLog.begin(); it != _prePrepareLog.end(); it++){
+        if(isVailedRequest(*it)){
+            prePrepareMesg = *it;
+            _prePrepareLog.erase(it);
+            break;
+        }
     }
     if(!isVailedRequest(prePrepareMesg)){
+        // if no vailed prePrepair message was found then this will fail
         return;
     }
     prePrepareMesg.phase = PREPARE;

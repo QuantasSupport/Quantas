@@ -1135,13 +1135,13 @@ void testViewChange(std::ostream &log){
     assert(b.getLedger().size()         == 0);
     assert(c.getLedger().size()         == 0);
     
-    assert(a.getCommitLog().size()      == 3);
-    assert(b.getCommitLog().size()      == 3);
-    assert(c.getCommitLog().size()      == 3);
+    assert(a.getCommitLog().size()      == 0);
+    assert(b.getCommitLog().size()      == 0);
+    assert(c.getCommitLog().size()      == 0);
     
-    assert(a.getPrepareLog().size()     == 3);
-    assert(b.getPrepareLog().size()     == 4);
-    assert(c.getPrepareLog().size()     == 3);
+    assert(a.getPrepareLog().size()     == 0);
+    assert(b.getPrepareLog().size()     == 1);
+    assert(c.getPrepareLog().size()     == 0);
     
     assert(a.getPrePrepareLog().size()  == 0);
     assert(b.getPrePrepareLog().size()  == 0);
@@ -1454,8 +1454,8 @@ void testByzantine(std::ostream &log){
     }
     
     // make sure that there was no view change and that the transaction was committed as defeated
-    assert(a.isPrimary()                    == false);
-    assert(b.isPrimary()                    == true);
+    assert(a.isPrimary()                    == true);
+    assert(b.isPrimary()                    == false);
     assert(c.isPrimary()                    == false);
     
     assert(a.getLedger().size()             == 1);
@@ -1794,8 +1794,8 @@ void testByzantine(std::ostream &log){
         c.transmit();
     }
     
-    assert(a.isPrimary()                    == false);
-    assert(b.isPrimary()                    == true);
+    assert(a.isPrimary()                    == true);
+    assert(b.isPrimary()                    == false);
     assert(c.isPrimary()                    == false);
     
     assert(a.getLedger().size()             == 1);
@@ -1895,8 +1895,8 @@ void testByzantine(std::ostream &log){
         c.transmit();
     }
     
-    assert(a.isPrimary()                    == false);
-    assert(b.isPrimary()                    == true);
+    assert(a.isPrimary()                    == true);
+    assert(b.isPrimary()                    == false);
     assert(c.isPrimary()                    == false);
     
     assert(a.getLedger().size()             == 1);
@@ -1996,8 +1996,8 @@ void testByzantine(std::ostream &log){
         c.transmit();
     }
     
-    assert(a.isPrimary()                    == false);
-    assert(b.isPrimary()                    == true);
+    assert(a.isPrimary()                    == true);
+    assert(b.isPrimary()                    == false);
     assert(c.isPrimary()                    == false);
     
     assert(a.getLedger().size()             == 1);
@@ -2097,8 +2097,8 @@ void testByzantine(std::ostream &log){
         c.transmit();
     }
     
-    assert(a.isPrimary()                    == false);
-    assert(b.isPrimary()                    == true);
+    assert(a.isPrimary()                    == true);
+    assert(b.isPrimary()                    == false);
     assert(c.isPrimary()                    == false);
     
     assert(a.getLedger().size()             == 1);
@@ -2383,7 +2383,7 @@ void testByzantine(std::ostream &log){
     
     a.makeRequest();
     
-    for(int i = 0; i < 25; i++){
+    for(int i = 0; i < 30; i++){
         a.log();
         b.log();
         c.log();
@@ -2547,7 +2547,7 @@ void testByzantine(std::ostream &log){
     PBFTPeer_Sharded d = PBFTPeer_Sharded("D");
     PBFTPeer_Sharded e = PBFTPeer_Sharded("E");
 
-    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 2 Byzantine peers
+    a.setFaultTolerance(0.6); // this will allow for defeated transactions with only 3 Byzantine peers
     b.setFaultTolerance(0.6);
     c.setFaultTolerance(0.6);
     d.setFaultTolerance(0.6);

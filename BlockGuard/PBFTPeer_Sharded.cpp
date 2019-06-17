@@ -43,14 +43,9 @@ void PBFTPeer_Sharded::commitRequest(){
     PBFT_Message commit = _currentRequest;
     commit.result = _currentRequestResult;
     commit.commit_round = _currentRound;
-    // count the number of byzantine commits 
-    // >= 1/3 then we will commit a defeated transaction
-    // < 1/3 and an honest primary will commit
-    // < 1/3 and byzantine primary will view change
 
     int numberOfByzantineCommits = 0;
     int correctCommitMsg = 0;
-    std::vector<PBFT_Message> tmp = std::vector<PBFT_Message>();
     for(auto commitMsg = _commitLog.begin(); commitMsg != _commitLog.end(); commitMsg++){
         if(commitMsg->sequenceNumber == _currentRequest.sequenceNumber
                 && commitMsg->view == _currentView
@@ -59,57 +54,62 @@ void PBFTPeer_Sharded::commitRequest(){
                 numberOfByzantineCommits++;
             }else{
                 correctCommitMsg++;
-                tmp.push_back(*commitMsg);
             }
         }
     }
-    if (numberOfByzantineCommits + correctCommitMsg != _committeeMembers.size() +1){
-        return;
+    
+    // if we dont have enough honest commits and we have not heard from everyone wait
+    if(correctCommitMsg <= faultyPeers()){
+        if (correctCommitMsg + numberOfByzantineCommits != _committeeMembers.size() + 1){
+            return;
+        }
     }
-    if(_primary->isByzantine()){
-        if( numberOfByzantineCommits >= faultyPeers()){
-            commit.defeated = true;
-            _ledger.push_back(commit);
-            _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
-            _currentRequest = PBFT_Message();
-            clearCommittee();
-            _currentRequest = PBFT_Message();
-        }else if (numberOfByzantineCommits + correctCommitMsg != _committeeMembers.size() +1){
-            return;
-        }else{
-            if(_currentView + 1 == _committeeMembers.size() + 1){
-                commit.defeated = true;
-                _ledger.push_back(commit);
-                _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
-                _currentRequest = PBFT_Message();
-                clearCommittee();
-                _currentRequest = PBFT_Message();
+    
+    if(_currentRequest.byzantine && correctCommitMsg >= faultyPeers()){
+        // clear messages from old view
+        int oldTransaction = _currentRequest.sequenceNumber;
+        int view = _currentView;
+        auto entry = _prePrepareLog.begin();
+        while(entry != _prePrepareLog.end()){
+            if(entry->sequenceNumber == oldTransaction && entry->view == view){
+                _prePrepareLog.erase(entry++);
             }else{
-                viewChange(_committeeMembers);
+                entry++;
             }
         }
-    }else if(!_primary->isByzantine()){
-        if( correctCommitMsg >= faultyPeers()){
-            commit.defeated = false;
-            _ledger.push_back(commit);
-            _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
-            _currentRequest = PBFT_Message();
-            clearCommittee();
-            _currentRequest = PBFT_Message();
-        }else if (numberOfByzantineCommits + correctCommitMsg != _committeeMembers.size() +1){
-            return;
-        }else{
-            if(_currentView + 1 == _committeeMembers.size() + 1){
-                commit.defeated = true;
-                _ledger.push_back(commit);
-                _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
-                _currentRequest = PBFT_Message();
-                clearCommittee();
-                _currentRequest = PBFT_Message();
+        
+        entry = _prepareLog.begin();
+        while(entry != _prepareLog.end()){
+            if(entry->sequenceNumber == oldTransaction && entry->view == view){
+                _prepareLog.erase(entry++);
             }else{
-                viewChange(_committeeMembers);
+                entry++;
             }
         }
+        
+        entry = _commitLog.begin();
+        while(entry != _commitLog.end()){
+            if(entry->sequenceNumber == oldTransaction && entry->view == view){
+                _commitLog.erase(entry++);
+            }else{
+                entry++;
+            }
+        }
+        viewChange(_committeeMembers);
+    }else if(!_currentRequest.byzantine && correctCommitMsg >= faultyPeers()){
+        commit.defeated = false;
+        _ledger.push_back(commit);
+        _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
+        _currentRequest = PBFT_Message();
+        clearCommittee();
+        _currentRequest = PBFT_Message();
+    }else{
+        commit.defeated = true;
+        _ledger.push_back(commit);
+        _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
+        _currentRequest = PBFT_Message();
+        clearCommittee();
+        _currentRequest = PBFT_Message();
     }
     
     for(auto confirmedTransaction = _ledger.begin(); confirmedTransaction != _ledger.end(); confirmedTransaction++){
