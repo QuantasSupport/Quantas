@@ -34,6 +34,7 @@ int shuffleByzantineInterval = 0;
 static const int SPBFT_PEER_COUNT = 256;
 static const int SPBFT_GROUP_SIZE = 8;
 static const double FAULT = 0.6;
+static const int NUMBER_OF_BYZ =  SPBFT_PEER_COUNT * 0.0;
 static const int NUMBER_OF_ROUNDS = 1000;
 static const int NUMBER_OF_RUNS = 2;
 static const double NUMBER_OF_BYZ = SPBFT_PEER_COUNT*0.3;
@@ -1031,7 +1032,7 @@ double ratioOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, dou
     double total = globalLedger.size();
     double defeated = 0;
     for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
-        if(entry->second == secLvl){
+        if(entry->second == secLvl*SPBFT_GROUP_SIZE){
             if(entry->first.defeated){
                 defeated++;
             }
@@ -1045,7 +1046,7 @@ double waitTimeOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, 
     double sumOfWaitingTime = 0;
     double totalNumberOfTrnasactions = 0;
     for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
-        if(entry->second == secLvl){
+        if(entry->second == secLvl*SPBFT_GROUP_SIZE){
             sumOfWaitingTime += entry->first.commit_round - entry->first.submission_round;
             totalNumberOfTrnasactions++;
         }
@@ -1074,7 +1075,7 @@ double waitTime(std::vector<std::pair<PBFT_Message,int> > globalLedger){
 int totalNumberOfDefeatedCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl){
     int total = 0;
     for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
-        if(entry->second == secLvl){
+        if(entry->second == secLvl*SPBFT_GROUP_SIZE){
             if(entry->first.defeated){
                 total++;
             }
@@ -1098,7 +1099,7 @@ int defeatedTrnasactions(std::vector<std::pair<PBFT_Message,int> > globalLedger)
 int totalNumberOfCorrectCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl){
     int total = 0;
     for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
-        if(entry->second == secLvl){
+        if(entry->second == secLvl*SPBFT_GROUP_SIZE){
             if(!entry->first.defeated){
                 total++;
             }
@@ -1179,6 +1180,7 @@ void MOTIVATIONAL11_Sharded_PBFT(std::ofstream &csv, std::ofstream &log){
             system.transmit();
             std::cout<< 't'<< std::flush;
             system.log();
+            
         }
         csv<< header<< std::endl;
         csv<< system.securityLevel1()*SPBFT_GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel1())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;

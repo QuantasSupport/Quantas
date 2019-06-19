@@ -58,7 +58,7 @@ public:
     void                              setLogFile            (std::ostream &o)                   {_log = &o;};
     void                              printNeighborhoodOn   ()                                  {_printNeighborhood = true;}
     void                              printNeighborhoodOff  ()                                  {_printNeighborhood = false;}
-    
+    virtual void                      setBusy               (bool busy)                        { _busy= busy; }
     // getters
     std::vector<std::string>          neighbors             ()const;
     std::string                       id                    ()const                             {return _id;};
@@ -66,9 +66,11 @@ public:
     int                               getDelayToNeighbor    (std::string id)const;
     int                               getMessageCount       ()const                             {return _numberOfMessagesSent;};
     virtual bool					  isByzantine			()const                             {return _byzantine;};
-	virtual bool					  isBusy				()									{ return _busy; }
-	virtual void					  setBusy				(bool busy)							{ _busy= busy; }
-
+	virtual bool					  isBusy				()									{return _busy; }
+    std::deque<Packet<message> >      getInStream           ()const                             {return _inStream;};
+    std::deque<Packet<message> >      getOutStream          ()const                             {return _outStream;};
+    
+    
     // mutators
     void                              removeNeighbor        (const Peer &neighbor)              {_neighbors.erase(neighbor);};
     void                              addNeighbor           (Peer &newNeighbor, int delay);
