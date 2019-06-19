@@ -23,7 +23,7 @@ public:
 
 	int 									getFirstMinerIndex				(){return firstMinerIndex;}
 
-	void									performComputation				() override ;
+	void									preformComputation				();
 	void									initiate						();
 	bool									checkForConsensus				();
 	void									propagateBlock					();
@@ -50,7 +50,7 @@ bCoin_Committee& bCoin_Committee::operator=(const bCoin_Committee &rhs) {
 	return *this;
 }
 
-void bCoin_Committee::performComputation(){
+void bCoin_Committee::preformComputation(){
 	for(auto & committeePeer : committeePeers){
 		if(!committeePeer->isTerminated())
 			committeePeer->preformComputation();

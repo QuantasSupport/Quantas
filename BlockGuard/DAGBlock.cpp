@@ -69,4 +69,16 @@ bool DAGBlock::isByantine() const{
 	return isByzantine;
 }
 
+bool DAGBlock::operator==(const DAGBlock &rhs)const{
+    return (    (index == rhs.index) &&
+                (previousHashes == rhs.previousHashes) &&
+                (hash == rhs.hash) &&
+                (publishers == rhs.publishers) &&
+                (data == rhs.data) &&
+                (isByzantine == rhs.isByzantine) &&
+                (secruityLevel == rhs.secruityLevel) &&
+                (submissionRound == rhs.submissionRound) &&
+                (confirmedRound == rhs.confirmedRound)
+    )
+}
 

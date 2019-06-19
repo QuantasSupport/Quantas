@@ -53,11 +53,12 @@ class DS_bCoin_Peer : public Peer<DS_bCoinMessage> {
 
 	int 											counter;
 	int                                             mineNextAt;
-	std::deque<string>                              consensusQueue = {};
-	std::string			                            consensusTx="";
-	DS_bCoinMessage                                 messageToSend = {};
+    int                                             startedMiningAt;
+	std::deque<string>                              consensusQueue      = {};
+	std::string			                            consensusTx         = "";
+	DS_bCoinMessage                                 messageToSend       = {};
 	std::map<std::string, Peer<DS_bCoinMessage>* >	committeeNeighbours;
-	bool terminated = false;
+    bool                                            terminated          = false;
 
 public:
 	static std::default_random_engine               generator;

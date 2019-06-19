@@ -13,6 +13,7 @@ DS_bCoin_Peer::DS_bCoin_Peer(const std::string id) : Peer<DS_bCoinMessage>(id){
 	counter = 0;
 	dag = {};
 	mineNextAt = -1;
+    startedMiningAt = -1;
 	consensusQueue = {};
 	consensusTx = "";
 	committeeNeighbours = _neighbors;
@@ -24,6 +25,7 @@ DS_bCoin_Peer::DS_bCoin_Peer(const DS_bCoin_Peer &rhs)  : Peer<DS_bCoinMessage>(
 	counter = rhs.counter;
 	dag = rhs.dag;
 	mineNextAt = rhs.mineNextAt;
+    startedMiningAt = rhs.startedMiningAt;
 	consensusQueue = rhs.consensusQueue;
 	consensusTx = rhs.consensusTx;
 	committeeNeighbours = rhs.committeeNeighbours;
@@ -46,6 +48,7 @@ bool DS_bCoin_Peer::mineBlock() {
 
 		messageToSend.dagBlock = dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, _byzantine);
 		minedBlock = new DAGBlock(messageToSend.dagBlock);
+        minedBlock->steSubmissionRound(startedMiningAt);
 
 		messageToSend.dagBlockFlag = true;
 
@@ -148,6 +151,8 @@ void DS_bCoin_Peer::updateDAG() {
 	assert(consensusQueue.empty());
 	//	process self mined block
 	if(minedBlock!= nullptr){
+        minedBlock->setSecruityLevel(committeeNeighbours.size());
+        minedBlock->setConfirmedRound(counter);
 		dag.addVertex(*minedBlock, minedBlock->getPreviousHashes());
 		delete minedBlock;
 		minedBlock = nullptr;
@@ -191,6 +196,7 @@ void DS_bCoin_Peer::updateDAG() {
 void DS_bCoin_Peer::resetMiningClock() {
 	_busy = true;
 	mineNextAt = distribution(generator);
+    startedMiningAt = counter;
 	delete minedBlock;
 	minedBlock = nullptr;
 }

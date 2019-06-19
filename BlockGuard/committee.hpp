@@ -35,10 +35,13 @@ public:
 	double									getByzantineRatio				(){return byzantineRatio;};
 	std::string								getCommitteeId					(){return cId;}
 
-	virtual void							performComputation				() = 0;
+	virtual void							preformComputation				() = 0;
 	void									receive							();
 	void									transmit						();
 
+    // operators
+    peer_type*                              operator[]                      (int);
+    const peer_type*                        operator[]                      (int)const;
 };
 
 template <class peer_type>
@@ -110,6 +113,15 @@ std::vector<std::string> Committee<peer_type>::getCommitteePeerIds(){
 	return ids;
 }
 
+template<class peer_type>
+peer_type* Committee<peer_type>::operator[](int i){
+    return dynamic_cast<peer_type*>(committeePeers[i]);
+}
+
+template<class peer_type>
+const peer_type* Committee<peer_type>::operator[](int i)const{
+    return dynamic_cast<peer_type*>(committeePeers[i]);
+}
 
 #endif //Committee_hpp
 

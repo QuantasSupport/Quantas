@@ -13,8 +13,10 @@
 #include <map>
 #include <deque>
 #include <vector>
+#include <unordered_set>
 #include "DS_bCoin_Peer.hpp"
 #include "ByzantineNetwork.hpp"
+#include "bCoin_Committee.hpp"
 
 struct transactionRequest{
     double securityLevel;
@@ -42,14 +44,20 @@ protected:
     ByzantineNetwork<DS_bCoinMessage, DS_bCoin_Peer>    _peers;
     std::map<int,bCoinGroup>                            _groups;
     std::deque<transactionRequest>                      _requestQueue;
+    std::vector<bCoin_Committee>                        _currentCommittees;
     
     // logging and metrics
     std::ostream                                        *_log;
     bool                                                _printNetwork;
+    int                                                 _secLevel5Defeated;
+    int                                                 _secLevel4Defeated;
+    int                                                 _secLevel3Defeated;
+    int                                                 _secLevel2Defeated;
+    int                                                 _secLevel1Defeated;
     
     // util
     std::vector<bCoinGroup>            getFreeGroups            ();
-    
+    int                                getRandomSecLevel        ()const;
 public:
     bCoinReferenceCommittee                                     ();
     bCoinReferenceCommittee                                     (const bCoinReferenceCommittee&);
@@ -66,9 +74,13 @@ public:
     // mutators
     void                                initNetwork             (int);
     void                                makeRequest             (transactionRequest);
+    void                                shuffleByzantines       (int n);
     
     // metrics
-    std::vector<bCoinledgerEntery>      getGlobalLedger         ()const;
+    std::vector<DAGBlock>               getGlobalLedger         ();
+    void                                receive                 ();
+    void                                preformComputation      ();
+    void                                transmit                ();
     
     // operators
     std::ostream&                       printTo                 (std::ostream&)const;
@@ -78,16 +90,12 @@ public:
     friend std::ostream&                operator<<              (std::ostream &out, // continued on next line
                                                                  const bCoinReferenceCommittee&system)  {return system.printTo(out);};
     // pass-through to ByzantineNetwork class
-    void                                receive                 ()                                      {_peers.receive();};
-    void                                preformComputation      ()                                      {_peers.preformComputation();};
-    void                                transmit                ()                                      {_peers.transmit();};
     void                                setMaxDelay             (int d)                                 {_peers.setMaxDelay(d);};
     void                                setAvgDelay             (int d)                                 {_peers.setAvgDelay(d);};
     void                                setMinDelay             (int d)                                 {_peers.setMinDelay(d);};
     void                                setToPoisson            ()                                      {_peers.setToPoisson();};
     void                                setToOne                ()                                      {_peers.setToOne();};
     void                                setToRandom             ()                                      {_peers.setToRandom();};
-    void                                shuffleByzantines       (int n);
     std::vector<DS_bCoin_Peer*>         getByzantine            ()const                                 {return _peers.getByzantine();};
     std::vector<DS_bCoin_Peer*>         getCorrect              ()const                                 {return _peers.getCorrect();};
     void                                makeByzantines          (int n)                                 {_peers.makeByzantines(n);};

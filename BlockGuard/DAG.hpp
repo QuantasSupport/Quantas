@@ -61,7 +61,6 @@ public:
 
 	void addVertex(const DAGBlock& dagBlock, const std::vector<std::string>& ids = {"EMPTY"}, bool byzantineFlag=false) {
 		int vertex_count = num_vertices(g);
-//		printGraph();
 		Vertex v = { dagBlock.getHash(), dagBlock, *(dagBlock.getPublishers().begin()), vertex_count };
 		//check if vertex already present
 		{
@@ -137,12 +136,6 @@ public:
 
 		// Traverse adjacency lists to fill indegrees of vertices.  This step takes O(V+E) time
 
-		/*std::cerr << "INDEGREES BEFORE" << std::endl;
-		for (auto it = vDegree.cbegin(); it != vDegree.cend(); ++it) {
-			std::cerr << it->first->publisherId << " " << it->second << "\n";
-		}*/
-
-		boost::property_map<Graph, boost::vertex_bundle_t>::type pmap = boost::get(boost::vertex_bundle, g);
 		auto vertex_idMap = get(boost::vertex_bundle, g);
 		boost::graph_traits<Graph>::vertex_iterator iter, end;
 		boost::graph_traits<Graph>::adjacency_iterator ai, ai_end;
@@ -236,14 +229,12 @@ public:
 		}
 
 		// Check if there was a cycle
-
 		if (cnt != verticesCount) {
 			std::cerr << "There exists a cycle in the graph\n";
 		}
 		assert(cnt == verticesCount);
 
 		// Print topological order
-//		std::cerr<<"THE ordering is "<<std::endl;
 		for (const auto & i : top_order){ std::cerr<< i << " "; }
 
 		return top_order;
@@ -267,8 +258,6 @@ public:
 	void setTips(){
 		tips.clear();
 
-		//vertices with indegree 0
-		int verticesCount = num_vertices(g);
 		std::map<Vertex*, int> vDegree;
 		auto vertex_idMap = get(boost::vertex_bundle, g);
 
@@ -296,6 +285,13 @@ public:
 		return tips;
 	}
 
+//    std::vector<DAGBlock> getTransactions()const{
+//        std::vector<DAGBlock> transactions = std::vector<DAGBlock>();
+////        for (auto vd : boost::make_iterator_range(vertices(g))) {
+////            transactions.push_back(g[vd].dagBlock);
+////        }
+//        return transactions;
+//    }
 };
 
 

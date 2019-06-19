@@ -116,6 +116,7 @@ public:
     void                                setMinSecurityLevel     (int); // used to fix min security as number of groups for debugging
     void                                printNetworkOn          ()                                      {_printNetwork = true;};
     void                                printNetworkOff         ()                                      {_printNetwork = false;};
+    void                                shuffleByzantines       (int n);
     
     // pass-through to ByzantineNetwork class
     void                                receive                 ()                                      {_peers.receive();};
@@ -127,7 +128,6 @@ public:
     void                                setToPoisson            ()                                      {_peers.setToPoisson();};
     void                                setToOne                ()                                      {_peers.setToOne();};
     void                                setToRandom             ()                                      {_peers.setToRandom();};
-    void                                shuffleByzantines       (int n);
     std::vector<PBFTPeer_Sharded*>      getByzantine            ()const                                 {return _peers.getByzantine();};
     std::vector<PBFTPeer_Sharded*>      getCorrect              ()const                                 {return _peers.getCorrect();};
     void                                makeByzantines          (int n)                                 {_peers.makeByzantines(n);};

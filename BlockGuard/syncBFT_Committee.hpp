@@ -26,7 +26,7 @@ public:
 	std::string								getLeaderId						(){return leaderId;}
 	int 									getFirstMinerIndex				(){return firstMinerIndex;}
 
-	void 									performComputation				() override;
+	void 									preformComputation				() override;
 	void 									receiveTx						();
 	int 									incrementSyncBFTsystemState		();
 	void 									nextState						(int, int);
@@ -123,7 +123,7 @@ void syncBFT_Committee::refreshPeers() {
 	}
 }
 
-void syncBFT_Committee::performComputation(){
+void syncBFT_Committee::preformComputation(){
 
 	if(syncBFTsystemState == 0 || syncBFTsystemState == 4){
 		if(changeLeader){

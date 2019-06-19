@@ -2704,8 +2704,8 @@ void testByzantine(std::ostream &log){
     assert(a.getPrePrepareLog().size()      == 0);
     assert(b.getPrePrepareLog().size()      == 0);
     assert(c.getPrePrepareLog().size()      == 0);
-    assert(d.getPrePrepareLog().size()         == 0);
-    assert(e.getPrePrepareLog().size()         == 0);
+    assert(d.getPrePrepareLog().size()      == 0);
+    assert(e.getPrePrepareLog().size()      == 0);
     
     assert(a.getRequestLog().size()         == 0);
     assert(b.getRequestLog().size()         == 0);

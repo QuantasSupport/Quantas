@@ -377,7 +377,6 @@ void PBFTReferenceCommittee::shuffleByzantines(int n){
         byz.erase(byz.begin () + byzantineShuffleIndex);
         correct.erase(correct.begin () + nonByzantineShuffleIndex);
     }
-    
 }
 
 PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCommittee &rhs){
