@@ -79,6 +79,6 @@ bool DAGBlock::operator==(const DAGBlock &rhs)const{
                 (secruityLevel == rhs.secruityLevel) &&
                 (submissionRound == rhs.submissionRound) &&
                 (confirmedRound == rhs.confirmedRound)
-    )
+            );
 }
 

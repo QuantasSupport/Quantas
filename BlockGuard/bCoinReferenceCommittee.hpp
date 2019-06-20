@@ -14,11 +14,16 @@
 #include <deque>
 #include <vector>
 #include <unordered_set>
+#include <random>
+#include <chrono>
+#include <ctime>
+#include <algorithm>
+#include <set>
 #include "DS_bCoin_Peer.hpp"
 #include "ByzantineNetwork.hpp"
 #include "bCoin_Committee.hpp"
 
-struct transactionRequest{
+struct bCoinTransactionRequest{
     double securityLevel;
     int id;
 };
@@ -43,7 +48,7 @@ protected:
     int                                                 _nextId;
     ByzantineNetwork<DS_bCoinMessage, DS_bCoin_Peer>    _peers;
     std::map<int,bCoinGroup>                            _groups;
-    std::deque<transactionRequest>                      _requestQueue;
+    std::deque<bCoinTransactionRequest>                 _requestQueue;
     std::vector<bCoin_Committee>                        _currentCommittees;
     
     // logging and metrics
@@ -57,7 +62,8 @@ protected:
     
     // util
     std::vector<bCoinGroup>            getFreeGroups            ();
-    int                                getRandomSecLevel        ()const;
+    int                                getRandomSecLevel        ();
+    
 public:
     bCoinReferenceCommittee                                     ();
     bCoinReferenceCommittee                                     (const bCoinReferenceCommittee&);
@@ -69,11 +75,11 @@ public:
     
     // getters
     std::vector<bCoinGroup>             getFreeGroups           ()const;
-    std::deque<transactionRequest>      getRequestQueue         ()const;
+    std::deque<bCoinTransactionRequest> getRequestQueue         ()const;
     
     // mutators
     void                                initNetwork             (int);
-    void                                makeRequest             (transactionRequest);
+    void                                makeRequest             (bCoinTransactionRequest);
     void                                shuffleByzantines       (int n);
     
     // metrics

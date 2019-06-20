@@ -14,6 +14,11 @@
 #include "PBFTReferenceCommittee.hpp"
 
 PBFTReferenceCommittee::PBFTReferenceCommittee(){
+    _securityLevel5 = -1;
+    _securityLevel4 = -1;
+    _securityLevel3 = -1;
+    _securityLevel2 = -1;
+    _securityLevel1 = -1;
     _totalTransactionsSubmitted = 0;
     _currentRound = 0;
     _groupSize = -1;

@@ -9,33 +9,55 @@
 #include "bCoinReferenceCommittee.hpp"
 
 bCoinReferenceCommittee::bCoinReferenceCommittee (){
-     _securityLevel5;
-     _securityLevel4;
-     _securityLevel3;
-     _securityLevel2;
-     _securityLevel1;
+    _securityLevel5 = -1;
+    _securityLevel4 = -1;
+    _securityLevel3 = -1;
+    _securityLevel2 = -1;
+    _securityLevel1 = -1;
     
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
-                                                 _groupSize = -1;
-                                               _nextId = -1;
-        _peers = ByzantineNetwork<DS_bCoinMessage, DS_bCoin_Peer>();
-                                _groups = std::map<int,bCoinGroup>();
-    _requestQueue = std::deque<transactionRequest>();;
-                            _currentCommittees = std::vector<bCoin_Committee>();
+    _groupSize = -1;
+    _nextId = -1;
+    _peers = ByzantineNetwork<DS_bCoinMessage, DS_bCoin_Peer>();
+    _groups = std::map<int,bCoinGroup>();
+    _requestQueue = std::deque<bCoinTransactionRequest>();
+    _currentCommittees = std::vector<bCoin_Committee>();
     
 
-    std::ostream                                        *_log;
-                                               _printNetwork;
-                                                _secLevel5Defeated;
-                                                _secLevel4Defeated;
-                                                _secLevel3Defeated;
-                                                _secLevel2Defeated;
-                                                _secLevel1Defeated;
+    _log = nullptr;
+    _printNetwork = false;
+    _secLevel5Defeated = -1;
+    _secLevel4Defeated = -1;
+    _secLevel3Defeated = -1;
+    _secLevel2Defeated = -1;
+    _secLevel1Defeated = -1;
 }
 
-bCoinReferenceCommittee::bCoinReferenceCommittee (const bCoinReferenceCommittee&){
+bCoinReferenceCommittee::bCoinReferenceCommittee (const bCoinReferenceCommittee &rhs){
+    _securityLevel5 = rhs._securityLevel5;
+    _securityLevel4 = rhs._securityLevel4;
+    _securityLevel3 = rhs._securityLevel3;
+    _securityLevel2 = rhs._securityLevel2;
+    _securityLevel1 = rhs._securityLevel1;
     
+    int seed = (int)time(nullptr);
+    _randomGenerator = std::default_random_engine(seed);
+    _groupSize = rhs._groupSize;
+    _nextId = rhs._nextId;
+    _peers = rhs._peers;
+    _groups = rhs._groups;
+    _requestQueue = rhs._requestQueue;
+    _currentCommittees = rhs._currentCommittees;
+    
+    
+    _log = rhs._log;
+    _printNetwork = rhs._printNetwork;
+    _secLevel5Defeated = rhs._secLevel5Defeated;
+    _secLevel4Defeated = rhs._secLevel4Defeated;
+    _secLevel3Defeated = rhs._secLevel3Defeated;
+    _secLevel2Defeated = rhs._secLevel2Defeated;
+    _secLevel1Defeated = rhs._secLevel1Defeated;
 }
 
 void bCoinReferenceCommittee::initNetwork(int numberOfPeers){
@@ -85,7 +107,7 @@ std::vector<bCoinGroup> bCoinReferenceCommittee::getFreeGroups(){
     return freeGroups;
 }
 
-int bCoinReferenceCommittee::getRandomSecLevel()const{
+int bCoinReferenceCommittee::getRandomSecLevel(){
     std::uniform_int_distribution<int> coin(0,1);
     int trails = 0;
     int heads = coin(_randomGenerator);
@@ -107,11 +129,8 @@ int bCoinReferenceCommittee::getRandomSecLevel()const{
     return secLevel;
 }
 
-void bCoinReferenceCommittee::makeRequest(transactionRequest){
-    // make a new transaction
-    int secLevel = getRandomSecLevel();
-    transactionRequest req = transactionRequest();
-    req.securityLevel = secLevel;
+void bCoinReferenceCommittee::makeRequest(bCoinTransactionRequest req = bCoinTransactionRequest()){
+    int secLevel = req.securityLevel == -1 ? req.securityLevel : getRandomSecLevel();
     req.id = _nextId;
     _nextId++;
     _requestQueue.push_back(req); // add to queue
