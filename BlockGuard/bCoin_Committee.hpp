@@ -9,9 +9,10 @@
 #include "DS_bCoin_Peer.hpp"
 #include "committee.hpp"
 
-std::vector<int> someByzantineCount;
-std::vector<int> moreThanHalfByzantineCount;
-std::map<int, std::map<int, int>> securityLevelToByznainteFound = {};
+static std::vector<int> someByzantineCount;
+static std::vector<int> moreThanHalfByzantineCount;
+static std::map<int, std::map<int, int>> securityLevelToByznainteFound = {};
+
 class bCoin_Committee : public Committee<DS_bCoin_Peer>{
 private:
 	int 									firstMinerIndex = -1;

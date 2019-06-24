@@ -70,29 +70,33 @@ public:
 
 	explicit DS_bCoin_Peer																	(std::string);
 	DS_bCoin_Peer                                                                      		(const DS_bCoin_Peer &rhs);
-	void 											setCommitteeNeighbours					(std::map<std::string, Peer<DS_bCoinMessage>* > n) { committeeNeighbours = std::move(n); }
-	std::map<std::string, Peer<DS_bCoinMessage>* > 	getCommitteeNeighbours					() { return committeeNeighbours ; }
-	void                                    		setMineNextAt                           (int iter) { mineNextAt = iter; }
-	int                                     		getMineNextAt                           () { return mineNextAt; }
-	void                                     		resetMineNextAt                         () { mineNextAt = DS_bCoin_Peer::distribution(DS_bCoin_Peer::generator); }
-	void 											setDAG									(const DAG &dagChain) { this->dag = dagChain; }
-	DAG                             				getDAG                           		() { return this->dag; }
-	void 											preformComputation						() override;
+	~DS_bCoin_Peer                                                                     		() override                                                 { delete minedBlock; }
 
-	bool 											mineBlock                               ();
-	void                                    		receiveMsg                              ();
-	void                                    		sendBlock								();
-	~DS_bCoin_Peer                                                                     		() override { delete minedBlock; }
-	void                                    		makeRequest                             () override;
-	void                                    		makeRequest                             (const std::vector<DS_bCoin_Peer*>&, const std::string&);
-	void 											setTerminated							(bool flag){ this->terminated = flag;}
-	void 											clearConsensusTx						();
-	std::string 									getConsensusTx							(){ return consensusTx; }
-	bool 											isTerminated							(){ return terminated; }
-	void 											resetMiningClock						();
-	void											deleteMinedBlock						(){ delete minedBlock; minedBlock= nullptr; }
-	void											addToBlocks								();
-
+    // mutators
+    void                                            makeRequest                             () override;
+    void                                            makeRequest                             (const std::vector<DS_bCoin_Peer*>&, const std::string&);
+    void                                            deleteMinedBlock                        ()                                                          { delete minedBlock; minedBlock= nullptr; }
+    void                                            resetMiningClock                        ();
+    void                                            addToBlocks                             ();
+    void                                            clearConsensusTx                        ();
+    bool                                            mineBlock                               ();
+    void                                            receiveMsg                              ();
+    void                                            sendBlock                               ();
+    void                                            preformComputation                      () override;
+    void                                            resetMineNextAt                         ()                                                          { mineNextAt = DS_bCoin_Peer::distribution(DS_bCoin_Peer::generator); }
+    
+    // getters
+    bool                                            isTerminated                            ()                                                          { return terminated; }
+    std::string                                     getConsensusTx                          ()                                                          { return consensusTx; }
+    DAG                                             getDAG                                  ()const                                                     { return this->dag; }
+    int                                             getMineNextAt                           ()                                                          { return mineNextAt; }
+    std::map<std::string, Peer<DS_bCoinMessage>* >  getCommitteeNeighbours                  ()                                                          { return committeeNeighbours ; }
+    
+    // setters
+    void                                            setTerminated                           (bool flag)                                                 { this->terminated = flag;}
+    void                                            setDAG                                  (const DAG &dagChain)                                       { this->dag = dagChain; }
+    void                                            setMineNextAt                           (int iter)                                                  { mineNextAt = iter; }
+    void                                            setCommitteeNeighbours                  (std::map<std::string, Peer<DS_bCoinMessage>* > n)          { committeeNeighbours = std::move(n); }
 };
 
 

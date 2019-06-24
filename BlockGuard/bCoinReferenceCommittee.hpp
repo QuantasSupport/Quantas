@@ -59,10 +59,11 @@ protected:
     int                                                 _secLevel3Defeated;
     int                                                 _secLevel2Defeated;
     int                                                 _secLevel1Defeated;
+    int                                                 _totalSubmitoins;
     
     // util
-    std::vector<bCoinGroup>            getFreeGroups            ();
-    int                                getRandomSecLevel        ();
+    int                                 getRandomSecLevel       ();
+    void                                cleanupCommittee        ();
     
 public:
     bCoinReferenceCommittee                                     ();
@@ -76,26 +77,36 @@ public:
     // getters
     std::vector<bCoinGroup>             getFreeGroups           ()const;
     std::deque<bCoinTransactionRequest> getRequestQueue         ()const;
+    int                                 totalSubmissions        ()const                                 {return _totalSubmitoins;};
+    double                              securityLevel5          ()const                                 {return _securityLevel5;};
+    double                              securityLevel4          ()const                                 {return _securityLevel4;};
+    double                              securityLevel3          ()const                                 {return _securityLevel3;};
+    double                              securityLevel2          ()const                                 {return _securityLevel2;};
+    double                              securityLevel1          ()const                                 {return _securityLevel1;};
+    int                                 getGroupSize            ()const                                 {return _groupSize;};
+    std::vector<bCoinGroup>             getFreeGroups            ();
     
     // mutators
     void                                initNetwork             (int);
-    void                                makeRequest             (bCoinTransactionRequest);
+    void                                makeRequest             (int secLevel = -1);
     void                                shuffleByzantines       (int n);
     
     // metrics
-    std::vector<DAGBlock>               getGlobalLedger         ();
+    std::vector<DAGBlock>               getGlobalLedger         ()const;
     void                                receive                 ();
     void                                preformComputation      ();
     void                                transmit                ();
     
     // operators
     std::ostream&                       printTo                 (std::ostream&)const;
+    void                                log                     ()const                                 {printTo(*_log);};
     bCoinReferenceCommittee&            operator=               (const bCoinReferenceCommittee&);
     DS_bCoin_Peer*                      operator[]              (int i)                                 {return _peers[i];};
     const DS_bCoin_Peer*                operator[]              (int i)const                            {return _peers[i];};
     friend std::ostream&                operator<<              (std::ostream &out, // continued on next line
                                                                  const bCoinReferenceCommittee&system)  {return system.printTo(out);};
     // pass-through to ByzantineNetwork class
+    int                                 size                    ()const                                 {return _peers.size();};
     void                                setMaxDelay             (int d)                                 {_peers.setMaxDelay(d);};
     void                                setAvgDelay             (int d)                                 {_peers.setAvgDelay(d);};
     void                                setMinDelay             (int d)                                 {_peers.setMinDelay(d);};

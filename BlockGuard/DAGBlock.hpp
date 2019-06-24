@@ -22,7 +22,7 @@ class DAGBlock {
 	string 								hash            = "";
 	set<string> 						publishers      = {};
 	string                          	data            = "";
-	bool 								isByzantine     = false;
+	bool 								byzantine       = false;
     
     // metrics
     int                                 secruityLevel   = 0;
@@ -38,7 +38,7 @@ public:
     
     // setters
     void                                setSecruityLevel                    (int s)                                                     {secruityLevel = s;};
-    void                                steSubmissionRound                  (int s)                                                     {submissionRound = s;};
+    void                                setSubmissionRound                  (int s)                                                     {submissionRound = s;};
     void                                setConfirmedRound                   (int c)                                                     {confirmedRound = c;};
     
     // getters
@@ -47,7 +47,10 @@ public:
 	int 								getIndex							() const;
 	set<string> 						getPublishers						() const;
 	string                          	getData                             () const;
-	bool                          		isByantine                          () const;
+    bool                          		isByzantine                         () const                                                    {return byzantine;};
+    int                                 getSecruityLevel                    () const                                                    {return secruityLevel;};
+    int                                 getSubmissionRound                  () const                                                    {return submissionRound;};
+    int                                 getConfirmedRound                   () const                                                    {return confirmedRound;};
     
     // operators
     bool                                operator==                          (const DAGBlock &rhs)const;

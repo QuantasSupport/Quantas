@@ -67,14 +67,15 @@ public:
 			const auto iter = findVertex(g, v.id);
 			const auto theEnd = boost::vertices(g).second;
 			if (iter != theEnd) {
-				std::cerr<<"VERTEX FOUND ALREADY"<<std::endl;
+//                std::cerr<<"VERTEX FOUND ALREADY"<<std::endl;
 				//don't add
 				return;
 			} else {
-				std::cerr << "VERTEX NOT FOUND, ADDING IT\n";
+//                std::cerr << "VERTEX NOT FOUND, ADDING IT\n";
 			}
 		}
-
+        v.dagBlock.setConfirmedRound(dagBlock.getConfirmedRound());
+        v.dagBlock.setSubmissionRound(dagBlock.getSubmissionRound());
 		vertexT a = boost::add_vertex(v, g);
 		for (auto &id: ids) {
 			const auto iter = findVertex(g, id);
@@ -83,7 +84,7 @@ public:
 				boost::add_edge(a, *iter, Edge{id}, g);
 
 			} else {
-				std::cerr << "FAILED TO FIND THE PREVIOUS HASH\n";
+//                std::cerr << "FAILED TO FIND THE PREVIOUS HASH\n";
 			}
 		}
 	}
@@ -281,17 +282,17 @@ public:
 		}
 	}
 
-	std::vector<string> getTips(){
-		return tips;
-	}
+    std::vector<string> getTips(){
+        return tips;
+    }
 
-//    std::vector<DAGBlock> getTransactions()const{
-//        std::vector<DAGBlock> transactions = std::vector<DAGBlock>();
-////        for (auto vd : boost::make_iterator_range(vertices(g))) {
-////            transactions.push_back(g[vd].dagBlock);
-////        }
-//        return transactions;
-//    }
+    std::vector<DAGBlock> getTransactions()const{
+        std::vector<DAGBlock> transactions = std::vector<DAGBlock>();
+        for (auto vd : boost::make_iterator_range(vertices(g))) {
+            transactions.push_back(g[vd].dagBlock);
+        }
+        return transactions;
+    }
 };
 
 

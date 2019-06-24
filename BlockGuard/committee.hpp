@@ -28,17 +28,21 @@ public:
 	~Committee								() = default;
 	Committee&								operator=						(const Committee&);
 
-	int										size							()const	{return committeePeers.size();};
-	std::vector<peer_type *>				getCommitteePeers				(){return committeePeers;};
+    // getters
+	int										size							()const	                            {return committeePeers.size();};
+	std::vector<peer_type *>				getCommitteePeers				()                                  {return committeePeers;};
 	std::vector<std::string>				getCommitteePeerIds				();
-	bool 									getConsensusFlag				(){return consensusFlag;};
-	double									getByzantineRatio				(){return byzantineRatio;};
-	std::string								getCommitteeId					(){return cId;}
-
+	bool 									getConsensusFlag				()                                  {return consensusFlag;};
+	double									getByzantineRatio				()                                  {return byzantineRatio;};
+	std::string								getCommitteeId					()                                  {return cId;}
+    peer_type*                              get                             (int i)                             {return operator[](i);};
+    peer_type*                              get                             (int i)const                        {return operator[](i);};
+    
+    // mutators
 	virtual void							preformComputation				() = 0;
 	void									receive							();
 	void									transmit						();
-
+    
     // operators
     peer_type*                              operator[]                      (int);
     const peer_type*                        operator[]                      (int)const;
@@ -61,7 +65,7 @@ Committee<peer_type>::Committee(std::vector<peer_type*> peers, peer_type *sender
 	}
 
 	byzantineRatio = double(byzantineCount)/committeePeers.size();
-	std::cerr<<"BYZANTINE RATIO: "<<byzantineRatio<<" FOR COMMITTEE SIZED "<<committeePeers.size()<<std::endl;
+//    std::cerr<<"BYZANTINE RATIO: "<<byzantineRatio<<" FOR COMMITTEE SIZED "<<committeePeers.size()<<std::endl;
 
 }
 

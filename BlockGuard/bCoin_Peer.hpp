@@ -46,15 +46,15 @@ class bCoin_Peer : public Peer<bCoinMessage> {
     int                                             mineNextAt;
 
 public:
-    static std::default_random_engine               generator;
-    static std::binomial_distribution<int>          distribution;
+    static std::default_random_engine       generator;
+    static std::binomial_distribution<int>  distribution;
 
     bCoin_Peer																	    (std::string);
     bCoin_Peer                                                                      (const bCoin_Peer &rhs);
-    void                                    setMineNextAt                           (int iter) { mineNextAt = iter; }
-    int                                     getMineNextAt                           () { return mineNextAt; }
-    void 									setBlockchain							(const Blockchain &bChain) { *(this->blockchain) = bChain; }
-    Blockchain*                             getBlockchain                           () { return this->blockchain; }
+    void                                    setMineNextAt                           (int iter)                  { mineNextAt = iter; }
+    int                                     getMineNextAt                           ()                          { return mineNextAt; }
+    void 									setBlockchain							(const Blockchain &bChain)  { *(this->blockchain) = bChain; }
+    Blockchain*                             getBlockchain                           ()                          { return this->blockchain; }
 
     void 									preformComputation						() override;
 
@@ -62,8 +62,8 @@ public:
     void                                    receiveBlock                            ();
     void                                    sendBlock                               ();
 
-    ~bCoin_Peer                                                                     () { delete blockchain; }
-    void                                    makeRequest                             () override {}
+    ~bCoin_Peer                                                                     ()                          { delete blockchain; }
+    void                                    makeRequest                             () override                 {}
 
 };
 

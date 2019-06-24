@@ -485,7 +485,6 @@ void Network<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
 
 template<class type_msg, class peer_type>
 int Network<type_msg, peer_type>::pickSecurityLevel(int numberOfPeers){
-	unsigned seed = (unsigned)std::chrono::system_clock::now().time_since_epoch().count();
 	std::uniform_int_distribution<int> coin(0,1);
 	int trails = 0;
 	int heads = coin(RANDOM_GENERATOR);

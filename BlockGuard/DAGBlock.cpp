@@ -13,7 +13,7 @@ DAGBlock::DAGBlock(int index, std::vector<string> prevHashes, string DAGBlockHas
 	this->index = index;
 	this->hash = std::move(DAGBlockHash);
 	this->data=std::move(data);
-	this->isByzantine = byzantine;
+	this->byzantine = byzantine;
 }
 
 DAGBlock::DAGBlock(const DAGBlock &rhs) {
@@ -22,7 +22,7 @@ DAGBlock::DAGBlock(const DAGBlock &rhs) {
 	this->index = rhs.index;
 	this->hash = rhs.hash;
 	this->data = rhs.data;
-	this->isByzantine = rhs.isByzantine;
+	this->byzantine = rhs.byzantine;
 }
 
 DAGBlock& DAGBlock::operator=(const DAGBlock & rhs) {
@@ -33,7 +33,7 @@ DAGBlock& DAGBlock::operator=(const DAGBlock & rhs) {
 	this->index = rhs.index;
 	this->hash = rhs.hash;
 	this->data = rhs.data;
-	this->isByzantine = rhs.isByzantine;
+	this->byzantine = rhs.byzantine;
 	return *this;
 }
 
@@ -65,17 +65,13 @@ std::ostream& operator<<(std::ostream& os, const DAGBlock& DAGBlockToPrint){
 	return os;
 }
 
-bool DAGBlock::isByantine() const{
-	return isByzantine;
-}
-
 bool DAGBlock::operator==(const DAGBlock &rhs)const{
     return (    (index == rhs.index) &&
                 (previousHashes == rhs.previousHashes) &&
                 (hash == rhs.hash) &&
                 (publishers == rhs.publishers) &&
                 (data == rhs.data) &&
-                (isByzantine == rhs.isByzantine) &&
+                (byzantine == rhs.byzantine) &&
                 (secruityLevel == rhs.secruityLevel) &&
                 (submissionRound == rhs.submissionRound) &&
                 (confirmedRound == rhs.confirmedRound)

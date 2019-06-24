@@ -603,7 +603,7 @@ void syncBFT_Peer::updateDAG() {
 			return lhs.getData() < rhs.getData();
 		});
 		for(auto & dagBlock : dagBlocks){
-			dag.addVertex(dagBlock, dagBlock.getPreviousHashes(), dagBlock.isByantine());
+			dag.addVertex(dagBlock, dagBlock.getPreviousHashes(), dagBlock.isByzantine());
 		}
 	}
 	dag.setTips();

@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include "bCoin_Committee.hpp"
 
-
 bCoin_Committee::bCoin_Committee(std::vector<DS_bCoin_Peer *> peers, DS_bCoin_Peer *sender, std::string transaction, int sLevel) : Committee<DS_bCoin_Peer>(peers, sender, transaction, sLevel){
     for(auto & committeePeer : committeePeers){
         committeePeer->setTerminated(false);
@@ -48,11 +47,11 @@ bool bCoin_Committee::checkForConsensus(){
         }
     }
     
-    if(consensusFlag)
-        std::cerr<<"CONSENSUS REACHED FOR TX "<<tx<<std::endl;
-    else
-        std::cerr<<"NO CONSENSUS FOR TX "<<tx<<std::endl;
-    
+    if(consensusFlag){
+//        std::cerr<<"CONSENSUS REACHED FOR TX "<<tx<<std::endl;
+    }else{
+//        std::cerr<<"NO CONSENSUS FOR TX "<<tx<<std::endl;
+    }
     return consensusFlag;
 }
 

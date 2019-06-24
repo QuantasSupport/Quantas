@@ -32,6 +32,7 @@ bCoinReferenceCommittee::bCoinReferenceCommittee (){
     _secLevel3Defeated = -1;
     _secLevel2Defeated = -1;
     _secLevel1Defeated = -1;
+    _totalSubmitoins = 0;
 }
 
 bCoinReferenceCommittee::bCoinReferenceCommittee (const bCoinReferenceCommittee &rhs){
@@ -58,6 +59,7 @@ bCoinReferenceCommittee::bCoinReferenceCommittee (const bCoinReferenceCommittee 
     _secLevel3Defeated = rhs._secLevel3Defeated;
     _secLevel2Defeated = rhs._secLevel2Defeated;
     _secLevel1Defeated = rhs._secLevel1Defeated;
+    _totalSubmitoins = rhs._totalSubmitoins;
 }
 
 void bCoinReferenceCommittee::initNetwork(int numberOfPeers){
@@ -95,7 +97,7 @@ std::vector<bCoinGroup> bCoinReferenceCommittee::getFreeGroups(){
         bool free = true;
         bCoinGroup group = g->second;
         for(auto peer = group.begin(); peer != group.end(); peer++){
-            if(!(*peer)->isTerminated()){
+            if((*peer)->isTerminated() || (*peer)->isBusy()){
                 free = false;
             }
         }
@@ -129,11 +131,13 @@ int bCoinReferenceCommittee::getRandomSecLevel(){
     return secLevel;
 }
 
-void bCoinReferenceCommittee::makeRequest(bCoinTransactionRequest req = bCoinTransactionRequest()){
-    int secLevel = req.securityLevel == -1 ? req.securityLevel : getRandomSecLevel();
+void bCoinReferenceCommittee::makeRequest(int secLevel){
+    bCoinTransactionRequest req = bCoinTransactionRequest();
+    req.securityLevel = secLevel == -1 ? getRandomSecLevel() : secLevel;
     req.id = _nextId;
     _nextId++;
     _requestQueue.push_back(req); // add to queue
+    _totalSubmitoins++;
     
     // get front of queue not necessarily the transaction we just made
     req = _requestQueue.front();
@@ -150,6 +154,7 @@ void bCoinReferenceCommittee::makeRequest(bCoinTransactionRequest req = bCoinTra
         // add members
         for(int i = 0; i < group.size(); i++){
             peersForCommittee.push_back(group[i]);
+            group[i]->setBusy(true);
         }
         // remove groups from list of free groups
         freeGroups.pop_back();
@@ -157,35 +162,20 @@ void bCoinReferenceCommittee::makeRequest(bCoinTransactionRequest req = bCoinTra
     
     // add new committee to list
     bCoin_Committee committee = bCoin_Committee(peersForCommittee,peersForCommittee[0], std::to_string(req.id), req.securityLevel);
-    committee.initiate();
-    if(committee.getByzantineRatio() > 0.5){
-        switch (secLevel) {
-            case 1:{
-                _secLevel1Defeated++;
-                break;
-            }
-            case 2:{
-                _secLevel2Defeated++;
-                break;
-            }
-            case 3:{
-                _secLevel3Defeated++;
-                break;
-            }
-            case 4:{
-                _secLevel4Defeated++;
-                break;
-            }
-            case 5:{
-                _secLevel5Defeated++;
-                break;
-            }
-                
-            default:{
-                assert(false);
-            }
-        }
+    for(int i = 0; i<committee.size(); i++){
+        committee[i]->resetMiningClock();
     }
+
+
+    if(committee.getByzantineRatio() > 0.5){
+                 if (req.securityLevel == _securityLevel1){_secLevel1Defeated++;}
+            else if (req.securityLevel == _securityLevel2){_secLevel2Defeated++;}
+            else if (req.securityLevel == _securityLevel3){_secLevel3Defeated++;}
+            else if (req.securityLevel == _securityLevel4){_secLevel4Defeated++;}
+            else if (req.securityLevel == _securityLevel5){_secLevel5Defeated++;}
+            else                                          {assert(false);}
+        }
+    committee.initiate();
     _currentCommittees.push_back(committee);
 }
 
@@ -227,22 +217,100 @@ void bCoinReferenceCommittee::receive(){
         committee->receive();
     }
 };
+
 void bCoinReferenceCommittee::preformComputation(){
+    cleanupCommittee();
     for(auto committee = _currentCommittees.begin(); committee != _currentCommittees.end(); committee++){
         committee->preformComputation();
     }
 };
+
+void bCoinReferenceCommittee::cleanupCommittee(){
+    // clear old committees that have terminated and release peers from them
+    auto committee = _currentCommittees.begin();
+    while(committee != _currentCommittees.end()){
+        if(committee->checkForConsensus() == true){
+            for(int i = 0; i < committee->size(); i++){
+                committee->get(i)->updateDAG();
+            }
+            for(int i = 0; i < committee->size(); i++){
+                committee->get(i)->setTerminated(false);
+                committee->get(i)->setBusy(false);
+            }
+            _currentCommittees.erase(committee);
+        }else{
+            committee++;
+        }
+    }
+}
+
 void bCoinReferenceCommittee::transmit(){
     for(auto committee = _currentCommittees.begin(); committee != _currentCommittees.end(); committee++){
         committee->transmit();
     }
 };
 
-std::vector<DAGBlock> bCoinReferenceCommittee::getGlobalLedger(){
+std::vector<DAGBlock> bCoinReferenceCommittee::getGlobalLedger()const{
     std::vector<DAGBlock> transactions = std::vector<DAGBlock>();
     for(int i = 0; i < _peers.size(); i++){
-        //std::vector<DAGBlock> transactionsInPeer = _peers[i]->getDAG().getTransactions();
-        //transactions.insert(transactions.end(), transactionsInPeer.begin(), transactionsInPeer.end());
+        std::vector<DAGBlock> transactionsInPeer = _peers[i]->getDAG().getTransactions();
+        for(auto tx = transactionsInPeer.begin(); tx != transactionsInPeer.end(); tx++){
+            bool found = false;
+            for(auto prvTx = transactions.begin(); prvTx != transactions.end(); prvTx++){
+                if(prvTx->getData() == tx->getData()){
+                    found = true;
+                }
+            }
+            if(!found){
+                transactions.push_back(*tx);
+            }
+        }
     }
     return transactions;
+}
+
+bCoinReferenceCommittee& bCoinReferenceCommittee::operator=(const bCoinReferenceCommittee &rhs){
+    if(this == &rhs){
+        return *this;
+    }
+    
+    _securityLevel5 = rhs._securityLevel5;
+    _securityLevel4 = rhs._securityLevel4;
+    _securityLevel3 = rhs._securityLevel3;
+    _securityLevel2 = rhs._securityLevel2;
+    _securityLevel1 = rhs._securityLevel1;
+    
+    int seed = (int)time(nullptr);
+    _randomGenerator = std::default_random_engine(seed);
+    _groupSize = rhs._groupSize;
+    _nextId = rhs._nextId;
+    _peers = rhs._peers;
+    _groups = rhs._groups;
+    _requestQueue = rhs._requestQueue;
+    _currentCommittees = rhs._currentCommittees;
+    
+    
+    _log = rhs._log;
+    _printNetwork = rhs._printNetwork;
+    _secLevel5Defeated = rhs._secLevel5Defeated;
+    _secLevel4Defeated = rhs._secLevel4Defeated;
+    _secLevel3Defeated = rhs._secLevel3Defeated;
+    _secLevel2Defeated = rhs._secLevel2Defeated;
+    _secLevel1Defeated = rhs._secLevel1Defeated;
+    _totalSubmitoins = rhs._totalSubmitoins;
+    
+    return *this;
+}
+
+std::ostream& bCoinReferenceCommittee::printTo(std::ostream &out)const{
+    out<< "-- REFERENCE COMMITTEE SETUP --"<< std::endl<< std::endl;
+    out<< std::left;
+    out<< '\t'<< std::setw(LOG_WIDTH)<<  "Request Queue Size"   << std::setw(LOG_WIDTH)<< "Next Committee Id"   << std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<< _requestQueue.size()    << std::setw(LOG_WIDTH)<< _nextId               << std::endl;
+    out<<std::endl;
+    if(_printNetwork){
+        _peers.printTo(out);
+    }
+    
+    return out;
 }

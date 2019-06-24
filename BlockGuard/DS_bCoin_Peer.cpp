@@ -47,8 +47,12 @@ bool DS_bCoin_Peer::mineBlock() {
 
 
 		messageToSend.dagBlock = dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, _byzantine);
+        messageToSend.dagBlock.setSubmissionRound(startedMiningAt);
+        messageToSend.dagBlock.setConfirmedRound(counter);
+        
 		minedBlock = new DAGBlock(messageToSend.dagBlock);
-        minedBlock->steSubmissionRound(startedMiningAt);
+        minedBlock->setSubmissionRound(startedMiningAt);
+        minedBlock->setConfirmedRound(counter);
 
 		messageToSend.dagBlockFlag = true;
 
@@ -95,6 +99,7 @@ void DS_bCoin_Peer::receiveMsg(){
 				minedBlock = new DAGBlock(i.getMessage().dagBlock);
 				dagBlocks.push_back(*minedBlock);
 				terminated = true;
+                _busy = false;
 
 			}
 			//	removing the transaction
@@ -143,6 +148,7 @@ void DS_bCoin_Peer::makeRequest(const vector<DS_bCoin_Peer *>& committeeMembers,
 			consensusTx = txMessage.message[0];
 		}
 	}
+    startedMiningAt = counter;
 	this->transmit();
 	messageToSend= {};
 }
@@ -183,7 +189,7 @@ void DS_bCoin_Peer::updateDAG() {
 			return lhs.getData() < rhs.getData();
 		});
 		for(auto & dagBlock : dagBlocks){
-			dag.addVertex(dagBlock, dagBlock.getPreviousHashes(), dagBlock.isByantine());
+			dag.addVertex(dagBlock, dagBlock.getPreviousHashes(), dagBlock.isByzantine());
 		}
 	}
 
