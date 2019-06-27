@@ -35,13 +35,6 @@ const int peerCount = 10;
 const int blockChainLength = 100;
 Blockchain *blockchain;
 int shuffleByzantineInterval = 0;
-static const int SPBFT_PEER_COUNT = 256;
-static const int SPBFT_GROUP_SIZE = 8;
-static const double FAULT = 0.6;
-static const int NUMBER_OF_BYZ =  SPBFT_PEER_COUNT * 0.29;
-static const int NUMBER_OF_ROUNDS = 1000;
-static const int NUMBER_OF_RUNS = 2;
-const static std::string s_pbft_header = "Total Request:,Max Ledger:,Ratio Defeated To Honest 1,Ratio Defeated To Honest 2,Ratio Defeated To Honest 3,Ratio Defeated To Honest 4,Ratio Defeated To Honest 5,Average Waiting Time 1,Average Waiting Time 2,Average Waiting Time 3 ,Average Waiting Time 4,Average Waiting Time 5, total honest 1, total honest 2, total honest 3, total honest 4, total honest 5, total defeated 1, total defeated 2, total defeated 3, total defeated 4, total defeated 5\n";
 
 // util functions
 void buildInitialChain(std::vector<std::string>);
