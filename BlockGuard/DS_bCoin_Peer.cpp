@@ -14,7 +14,6 @@ DS_bCoin_Peer::DS_bCoin_Peer(const std::string id) : Peer<DS_bCoinMessage>(id){
 	dag = {};
 	mineNextAt = -1;
     startedMiningAt = -1;
-	consensusQueue = {};
 	consensusTx = "";
 	committeeNeighbours = _neighbors;
 	minedBlock = nullptr;
@@ -26,7 +25,6 @@ DS_bCoin_Peer::DS_bCoin_Peer(const DS_bCoin_Peer &rhs)  : Peer<DS_bCoinMessage>(
 	dag = rhs.dag;
 	mineNextAt = rhs.mineNextAt;
     startedMiningAt = rhs.startedMiningAt;
-	consensusQueue = rhs.consensusQueue;
 	consensusTx = rhs.consensusTx;
 	committeeNeighbours = rhs.committeeNeighbours;
 	minedBlock = nullptr;
@@ -55,9 +53,6 @@ bool DS_bCoin_Peer::mineBlock() {
         minedBlock->setConfirmedRound(counter);
 
 		messageToSend.dagBlockFlag = true;
-
-		//	not popping in here pop only if successfully mined
-		//	consensusQueue.pop_front();
 
 		return true;
 	}
@@ -144,7 +139,6 @@ void DS_bCoin_Peer::makeRequest(const vector<DS_bCoin_Peer *>& committeeMembers,
 			newMessage.setBody(txMessage);
 			_outStream.push_back(newMessage);
 		}else{
-			//	need to add to consensusqueue since the peer is in the committee
 			consensusTx = txMessage.message[0];
 		}
 	}
@@ -154,15 +148,27 @@ void DS_bCoin_Peer::makeRequest(const vector<DS_bCoin_Peer *>& committeeMembers,
 }
 
 void DS_bCoin_Peer::updateDAG() {
-	assert(consensusQueue.empty());
 	//	process self mined block
 	if(minedBlock!= nullptr){
-        minedBlock->setSecruityLevel(committeeNeighbours.size());
+        minedBlock->setSecruityLevel(committeeNeighbours.size()+1);
         minedBlock->setConfirmedRound(counter);
 		dag.addVertex(*minedBlock, minedBlock->getPreviousHashes());
 		delete minedBlock;
 		minedBlock = nullptr;
 	}
+    
+    if(!dagBlocks.empty()){
+        sort( dagBlocks.begin( ), dagBlocks.end( ), [ ]( const auto& lhs, const auto& rhs )
+             {
+                 return lhs.getData() < rhs.getData();
+             });
+        auto dagBlock = dagBlocks.begin();
+        while(!dagBlocks.empty()){
+            dag.addVertex((*dagBlock), dagBlock->getPreviousHashes(), dagBlock->isByzantine());
+            dagBlocks.erase(dagBlock);
+        }
+    }
+    
 	//	resolve the dag
 	for(auto & i : _inStream){
 		if(i.getMessage().txFlag){
@@ -171,8 +177,7 @@ void DS_bCoin_Peer::updateDAG() {
 				continue;
 			else{
 				std::cerr<<i.getMessage().message[0]<<std::endl;
-				consensusQueue.push_back(i.getMessage().message[0]);
-				assert(false);
+				//assert(false);
 			}
 			continue;
 		}
@@ -180,16 +185,6 @@ void DS_bCoin_Peer::updateDAG() {
 		assert(i.getMessage().dagBlockFlag);
 		if(i.getMessage().dagBlockFlag){
 			dagBlocks.push_back(i.getMessage().dagBlock);
-		}
-	}
-
-	if(!dagBlocks.empty()){
-		sort( dagBlocks.begin( ), dagBlocks.end( ), [ ]( const auto& lhs, const auto& rhs )
-		{
-			return lhs.getData() < rhs.getData();
-		});
-		for(auto & dagBlock : dagBlocks){
-			dag.addVertex(dagBlock, dagBlock.getPreviousHashes(), dagBlock.isByzantine());
 		}
 	}
 
