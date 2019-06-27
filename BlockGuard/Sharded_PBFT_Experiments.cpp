@@ -461,7 +461,7 @@ void ADAPTIVE12_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byza
     }
 }
 void ADAPTIVE21_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
-    std::string header = "Round, Confirmed/Submitted";
+    std::string header = "Round, Average Waiting Time";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
         PBFTReferenceCommittee system = PBFTReferenceCommittee();
@@ -495,7 +495,7 @@ void ADAPTIVE21_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, int delay){
     }
 }
 void ADAPTIVE22_Sharded_PBFT(std::ofstream &csv, std::ofstream &log, double byzantine){
-    std::string header = "Round, Confirmed/Submitted";
+    std::string header = "Round, Average Waiting Time";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
         PBFTReferenceCommittee system = PBFTReferenceCommittee();
