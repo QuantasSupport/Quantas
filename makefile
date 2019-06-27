@@ -32,8 +32,8 @@ PBFTReferenceCommittee:
 run_pbft:
 	tmux new-session -d -s "1" ./BlockGuard.out pbft_s ./../results1/
 	tmux new-session -d -s "2" ./BlockGuard.out pbft_s ./../results2/
-    #tmux new-session -d -s "3" ./BlockGuard.out pbft_s ./../results3/
-    #tmux new-session -d -s "4" ./BlockGuard.out pbft_s ./../results4/
+	#tmux new-session -d -s "3" ./BlockGuard.out pbft_s ./../results3/
+	#tmux new-session -d -s "4" ./BlockGuard.out pbft_s ./../results4/
 	tmux new-session -d -s "5" ./BlockGuard.out pow_s ./../results5/
 	tmux new-session -d -s "6" ./BlockGuard.out pow_s ./../results6/
 	tmux new-session -d -s "7" ./BlockGuard.out pow_s ./../results7/
