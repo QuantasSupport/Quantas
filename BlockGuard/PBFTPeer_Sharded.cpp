@@ -42,7 +42,7 @@ void PBFTPeer_Sharded::braodcast(const PBFT_Message &msg){
 void PBFTPeer_Sharded::commitRequest(){
     PBFT_Message commit = _currentRequest;
     commit.result = _currentRequestResult;
-    commit.commit_round = _currentRound;
+    commit.commit_round = _clock;
 
     int numberOfByzantineCommits = 0;
     int correctCommitMsg = 0;
@@ -140,7 +140,6 @@ void PBFTPeer_Sharded::preformComputation(){
         _primary = findPrimary(_committeeMembers);
     }
     //_committeeMembers[_primary->id()];
-    _currentRound++;
     collectMessages(); // sorts messages into there repective logs
     prePrepare();
     prepare();

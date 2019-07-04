@@ -17,7 +17,6 @@ PBFT_Peer::PBFT_Peer(std::string id) : Peer<PBFT_Message>(id){
     _ledger = std::list<PBFT_Message>();
     
     _faultUpperBound = 0;
-    _currentRound = 0;
     
     _primary = nullptr;
     _currentPhase = IDEAL;
@@ -34,7 +33,6 @@ PBFT_Peer::PBFT_Peer(std::string id, double fault) : Peer<PBFT_Message>(id){
     _ledger = std::list<PBFT_Message>();
     
     _faultUpperBound = fault;
-    _currentRound = 0;
     
     _primary = nullptr;
     _currentPhase = IDEAL;
@@ -56,7 +54,6 @@ PBFT_Peer::PBFT_Peer(const PBFT_Peer &rhs) : Peer<PBFT_Message>(rhs){
     _ledger = rhs._ledger;
     
     _faultUpperBound = rhs._faultUpperBound;
-    _currentRound = rhs._currentRound;
     
     _primary = rhs._primary;
     _currentPhase = rhs._currentPhase;
@@ -80,7 +77,6 @@ PBFT_Peer& PBFT_Peer::operator=(const PBFT_Peer &rhs){
     _ledger = rhs._ledger;
     
     _faultUpperBound = rhs._faultUpperBound;
-    _currentRound = rhs._currentRound;
     
     _primary = rhs._primary;
     _currentPhase = rhs._currentPhase;
@@ -197,7 +193,7 @@ void PBFT_Peer::prepare(){
     prepareMsg.creator_id = _id;
     prepareMsg.view = _currentView;
     prepareMsg.type = REPLY;
-    prepareMsg.commit_round = _currentRound;
+    prepareMsg.commit_round = _clock;
     prepareMsg.phase = PREPARE;
     prepareMsg.byzantine = _byzantine;
     _prepareLog.push_back(prepareMsg);
@@ -234,7 +230,7 @@ void PBFT_Peer::commit(){
     commitMsg.creator_id = _id;
     commitMsg.type = REPLY;
     commitMsg.result = _currentRequestResult;
-    commitMsg.commit_round = _currentRound;
+    commitMsg.commit_round = _clock;
     commitMsg.byzantine = _byzantine;
     _commitLog.push_back(commitMsg);
     braodcast(commitMsg);
@@ -261,7 +257,7 @@ void PBFT_Peer::waitCommit(){
 void PBFT_Peer::commitRequest(){
     PBFT_Message commit = _currentRequest;
     commit.result = _currentRequestResult;
-    commit.commit_round = _currentRound;
+    commit.commit_round = _clock;
     // count the number of byzantine and correct commits
     // if more then f peers match leader commit otherwise view change (byz peers force view change until leader is byz)
     
@@ -397,7 +393,6 @@ void PBFT_Peer::preformComputation(){
     if(_primary == nullptr){
         _primary = findPrimary(_neighbors);
     }
-    _currentRound++;
     collectMessages(); // sorts messages into there repective logs
     prePrepare();
     prepare();
@@ -416,7 +411,7 @@ void PBFT_Peer::makeRequest(){
     }
     // create request
     PBFT_Message request;
-    request.submission_round = _currentRound;
+    request.submission_round = _clock;
     request.client_id = _id;
     request.creator_id = _id;
     request.view = _currentView;
@@ -433,7 +428,7 @@ void PBFT_Peer::makeRequest(){
     request.operands.first = (rand()%100)+1;
     request.operands.second = (rand()%100)+1;
     
-    request.commit_round = _currentRound;
+    request.commit_round = _clock;
     request.phase = IDEAL;
     request.sequenceNumber = -1;
     request.result = 0;
@@ -465,7 +460,7 @@ void PBFT_Peer::makeRequest(int squenceNumber){
     
     // create request
     PBFT_Message request;
-    request.submission_round = _currentRound;
+    request.submission_round = _clock;
     request.client_id = _id;
     request.creator_id = _id;
     request.view = _currentView;
@@ -482,7 +477,7 @@ void PBFT_Peer::makeRequest(int squenceNumber){
     request.operands.first = (rand()%100)+1;
     request.operands.second = (rand()%100)+1;
     
-    request.commit_round = _currentRound;
+    request.commit_round = _clock;
     request.phase = IDEAL;
     request.sequenceNumber = squenceNumber;
     request.result = 0;
@@ -514,7 +509,7 @@ std::ostream& PBFT_Peer::printTo(std::ostream &out)const{
     
     out<< "\t"<< "Current State:"<< std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Round"<< std::setw(LOG_WIDTH)<< "Current Phase"<< std::setw(LOG_WIDTH)<< "Current View"<< std::setw(LOG_WIDTH)<< "Primary ID"<< std::setw(LOG_WIDTH)<< "Current Request Client ID"<< std::setw(LOG_WIDTH)<< "Current Request Result"<< std::endl;
-    out<< "\t"<< std::setw(LOG_WIDTH)<< _currentRound<< std::setw(LOG_WIDTH)<< _currentPhase<< std::setw(LOG_WIDTH)<< _currentView<< std::setw(LOG_WIDTH)<< primaryId<< std::setw(LOG_WIDTH)<< _currentRequest.client_id<< std::setw(LOG_WIDTH)<< _currentRequestResult<< std::endl;
+    out<< "\t"<< std::setw(LOG_WIDTH)<< _clock<< std::setw(LOG_WIDTH)<< _currentPhase<< std::setw(LOG_WIDTH)<< _currentView<< std::setw(LOG_WIDTH)<< primaryId<< std::setw(LOG_WIDTH)<< _currentRequest.client_id<< std::setw(LOG_WIDTH)<< _currentRequestResult<< std::endl;
     
     out<< "\t"<< std::setw(LOG_WIDTH)<< "Request Log"<< std::setw(LOG_WIDTH)<< "Pre-Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Prepare Log Size"<< std::setw(LOG_WIDTH)<< "Commit Log Size"<< std::setw(LOG_WIDTH)<< "Ledger Size"<<  std::endl;
     out<< "\t"<< std::setw(LOG_WIDTH)<< _requestLog.size()<< std::setw(LOG_WIDTH)<< _prePrepareLog.size()<< std::setw(LOG_WIDTH)<< _prepareLog.size()<< std::setw(LOG_WIDTH)<< _commitLog.size()<< std::setw(LOG_WIDTH)<< _ledger.size()<< std::endl;

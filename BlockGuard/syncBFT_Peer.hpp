@@ -117,50 +117,51 @@ class syncBFT_Peer : public Peer<syncBFTmessage> {
 	std::unique_ptr<syncBFTmessage>           		statusMessageToSelf;
 	std::vector<Packet<syncBFTmessage>> 			notifyMessagesPacket;
 	std::map<std::string, Peer<syncBFTmessage>* >	committeeNeighbours;
-	syncBFTmessage                                  messageToSend = {};
-	std::deque<string>                              consensusQueue = {};
+	syncBFTmessage                                  messageToSend           = {};
+	std::deque<string>                              consensusQueue          = {};
 	DAGBlock										*minedBlock;
 	DAG												dag;
-	std::string 									leaderId ="";
-	bool 											terminated = true;
-	int 											committeeSize = 0;
-	std::string                           			consensusTx = "";
+	std::string 									leaderId                = "";
+	bool 											terminated              = true;
+	int 											committeeSize           = 0;
+	std::string                           			consensusTx             = "";
 
 public:
 	int 											iter;
-	int												syncBFTsystemState = 0;
-	std::vector<DAGBlock>							dagBlocks={};
+	int												syncBFTsystemState      = 0;
+	std::vector<DAGBlock>							dagBlocks               = {};
 
 	syncBFT_Peer																				(std::string);
 	syncBFT_Peer																				(const syncBFT_Peer &rhs);
-	~syncBFT_Peer																				(){ delete minedBlock; }
+	~syncBFT_Peer																				()                                                  { delete minedBlock; }
 	syncBFT_Peer&									operator=									(const syncBFT_Peer &rhs);
 
-	void 											setDAG										(const DAG &dagChain) { this->dag = dagChain; }
-	void 											setSyncBFTState								(int status) { syncBFTstate = status; }
-	void 											setCommitteeNeighbours						(std::map<std::string, Peer<syncBFTmessage>* > n) { committeeNeighbours = std::move(n); }
-	void 											setTerminated								(bool flag){ this->terminated = flag;}
-	void		 									setLeaderId									(std::string id) { this->leaderId = std::move(id); }
-	void		 									setCommitteeSize							(int size) { this->committeeSize = std::move(size); }
+	void 											setDAG										(const DAG &dagChain)                               { this->dag = dagChain; }
+	void 											setSyncBFTState								(int status)                                        { syncBFTstate = status; }
+	void 											setCommitteeNeighbours						(std::map<std::string, Peer<syncBFTmessage>* > n)   { committeeNeighbours = std::move(n); }
+	void 											setTerminated								(bool flag)                                         { this->terminated = flag;}
+	void		 									setLeaderId									(std::string id)                                    { this->leaderId = std::move(id); }
+	void		 									setCommitteeSize							(int size)                                          { this->committeeSize = std::move(size); }
 
-	DAG                             				getDAG                           			() { return this->dag; }
-	std::map<std::string, Peer<syncBFTmessage>* > 	getCommitteeNeighbours						() { return committeeNeighbours; }
-	std::string 									getLeaderId									() { return leaderId; }
-	bool 											getTerminationFlag							() const { return terminated; }
-	std::string 									getConsensusTx								(){ return consensusTx; }
-	bool 											isTerminated								(){ return terminated; }
+	DAG                             				getDAG                           			()                                                  { return this->dag; }
+    DAG                                             getDAG                                      ()const                                             { return this->dag; }
+	std::map<std::string, Peer<syncBFTmessage>* > 	getCommitteeNeighbours						()                                                  { return committeeNeighbours; }
+	std::string 									getLeaderId									()                                                  { return leaderId; }
+	bool 											getTerminationFlag							() const                                            { return terminated; }
+	std::string 									getConsensusTx								()                                                  { return consensusTx; }
+	bool 											isTerminated								()                                                  { return terminated; }
 
 	void 											createBlock									(const std::set<std::string>&);
-	bool 											isLeader									() { return leaderId == _id; }
+	bool 											isLeader									()                                                  { return leaderId == _id; }
 	void 											run											();
 	void 											currentStatusSend							();
 	void 											propose										();
 	void 											commitFromLeader							();
 	void 											commit										();
 	void 											notify										();
-	bool 											isValidProposal								(const syncBFTmessage &message) const { return message.peerId == leaderId; }
-	bool 											isValidNotify								(const syncBFTmessage &message) const { return true; }
-	bool 											isValidStatus								(const syncBFTmessage &message) const { return true; }
+	bool 											isValidProposal								(const syncBFTmessage &message) const               { return message.peerId == leaderId; }
+	bool 											isValidNotify								(const syncBFTmessage &message) const               { return true; }
+	bool 											isValidStatus								(const syncBFTmessage &message) const               { return true; }
 
 	void 											refreshSyncBFT								();
 	void 											refreshInstream								();

@@ -287,6 +287,8 @@ int main(int argc, const char * argv[]) {
             csv.close();
         }
         log.close();
+    }else if(algorithm == "sbft_s"){
+        
     }else if (algorithm == "bitcoin") {
         std::ofstream out;
         bitcoin(out, 1);

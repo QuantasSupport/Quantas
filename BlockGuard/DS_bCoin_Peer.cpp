@@ -3,14 +3,12 @@
 //
 
 #include "DS_bCoin_Peer.hpp"
-//#include "hash.hpp"
 #include <cassert>
 
 std::default_random_engine DS_bCoin_Peer::generator;
 std::binomial_distribution<int> DS_bCoin_Peer::distribution(10, 0.5);
 
 DS_bCoin_Peer::DS_bCoin_Peer(const std::string id) : Peer<DS_bCoinMessage>(id){
-	counter = 0;
 	dag = {};
 	mineNextAt = -1;
     startedMiningAt = -1;
@@ -21,7 +19,6 @@ DS_bCoin_Peer::DS_bCoin_Peer(const std::string id) : Peer<DS_bCoinMessage>(id){
 }
 
 DS_bCoin_Peer::DS_bCoin_Peer(const DS_bCoin_Peer &rhs)  : Peer<DS_bCoinMessage>(rhs) {
-	counter = rhs.counter;
 	dag = rhs.dag;
 	mineNextAt = rhs.mineNextAt;
     startedMiningAt = rhs.startedMiningAt;
@@ -39,18 +36,15 @@ bool DS_bCoin_Peer::mineBlock() {
 		for (auto const& s : hashesToConnectTo) { newBlockString += "_"+s;}
 
 		newBlockString+= "_"+consensusTx;
-
-//		string newBlockHash = sha256(newBlockString);
 		string newBlockHash = std::to_string(dag.getSize());
-
 
 		messageToSend.dagBlock = dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, _byzantine);
         messageToSend.dagBlock.setSubmissionRound(startedMiningAt);
-        messageToSend.dagBlock.setConfirmedRound(counter);
+        messageToSend.dagBlock.setConfirmedRound(_clock);
         
 		minedBlock = new DAGBlock(messageToSend.dagBlock);
         minedBlock->setSubmissionRound(startedMiningAt);
-        minedBlock->setConfirmedRound(counter);
+        minedBlock->setConfirmedRound(_clock);
 
 		messageToSend.dagBlockFlag = true;
 
@@ -68,8 +62,6 @@ void DS_bCoin_Peer::preformComputation(){
 		_busy = false;
 	}
 	mineNextAt--;
-
-	counter++;
 }
 
 void DS_bCoin_Peer::makeRequest(){}
@@ -142,7 +134,7 @@ void DS_bCoin_Peer::makeRequest(const vector<DS_bCoin_Peer *>& committeeMembers,
 			consensusTx = txMessage.message[0];
 		}
 	}
-    startedMiningAt = counter;
+    startedMiningAt = _clock;
 	this->transmit();
 	messageToSend= {};
 }
@@ -151,7 +143,7 @@ void DS_bCoin_Peer::updateDAG() {
 	//	process self mined block
 	if(minedBlock!= nullptr){
         minedBlock->setSecruityLevel(committeeNeighbours.size()+1);
-        minedBlock->setConfirmedRound(counter);
+        minedBlock->setConfirmedRound(_clock);
 		dag.addVertex(*minedBlock, minedBlock->getPreviousHashes());
 		delete minedBlock;
 		minedBlock = nullptr;
@@ -197,7 +189,7 @@ void DS_bCoin_Peer::updateDAG() {
 void DS_bCoin_Peer::resetMiningClock() {
 	_busy = true;
 	mineNextAt = distribution(generator);
-    startedMiningAt = counter;
+    startedMiningAt = _clock;
 	delete minedBlock;
 	minedBlock = nullptr;
 }

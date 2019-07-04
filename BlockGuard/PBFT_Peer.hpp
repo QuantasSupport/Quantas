@@ -109,7 +109,6 @@ protected:
     std::list<PBFT_Message>         _ledger;
     
     double                          _faultUpperBound;
-    int                             _currentRound; // this is the peers clock
     
     // status varables
     Peer<PBFT_Message>*             _primary;
@@ -134,7 +133,7 @@ protected:
     virtual void                commitRequest       ();
     virtual Peer<PBFT_Message>* findPrimary         (const std::map<std::string, Peer<PBFT_Message>*> peers);
     virtual int                 executeQuery        (const PBFT_Message&);
-    std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_currentRound);};
+    std::string                 makePckId           ()const                                         { return "Peer ID:"+_id + " round:" + std::to_string(_clock);};
     virtual bool                isVailedRequest     (const PBFT_Message&)const;
     virtual void                braodcast           (const PBFT_Message&);
     void                        cleanLogs           (int); // clears logs for all transactions in _ledger
@@ -155,7 +154,7 @@ public:
     std::string                 getPhase            ()const                                         {return _currentPhase;};
     bool                        isPrimary           ()const                                         {return _primary == nullptr ? false : _id == _primary->id();};
     virtual int                 faultyPeers         ()const                                         {return ceil(double(_neighbors.size() + 1) * _faultUpperBound);};
-    int                         getRound            ()const                                         {return _currentRound;};
+    int                         getRound            ()const                                         {return _clock;};
     std::string                 getPrimary          ()const                                         {return _primary == nullptr ? NO_PRIMARY : _primary->id();}
     double                      getFaultTolerance   ()const                                         {return _faultUpperBound;};
     

@@ -31,7 +31,8 @@ protected:
     std::string                             _id;
     bool                                    _byzantine;
 	bool									_busy;
-
+    int                                     _clock;
+    
     // type abbreviations
     typedef std::deque<Packet<message> >    aChannel;
     typedef std::string                     peerId;
@@ -126,6 +127,7 @@ Peer<message>::Peer(){
     _numberOfMessagesSent = 0;
     _printNeighborhood = false;
 	_busy = false;
+    _clock = 0;
 }
 
 template <class message>
@@ -141,6 +143,7 @@ Peer<message>::Peer(std::string id){
     _numberOfMessagesSent = 0;
     _printNeighborhood = false;
 	_busy = false;
+    _clock = 0;
 }
 
 template <class message>
@@ -156,6 +159,7 @@ Peer<message>::Peer(const Peer &rhs){
     _numberOfMessagesSent = rhs._numberOfMessagesSent;
     _printNeighborhood = rhs._printNeighborhood;
 	_busy = rhs._busy;
+    _clock = rhs._clock;
 }
 
 template <class message>
@@ -205,6 +209,7 @@ void Peer<message>::transmit(){
 
 template <class message>
 void Peer<message>::receive(){
+    _clock++;
     for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
         std::string neighborID = it->first;
         if(!_channels.at(neighborID).empty()){
@@ -256,6 +261,7 @@ Peer<message>& Peer<message>::operator=(const Peer<message> &rhs){
     _numberOfMessagesSent = rhs._numberOfMessagesSent;
     _printNeighborhood = rhs._printNeighborhood;
 	_busy = rhs._busy;
+    _clock = rhs._clock;
 
     return *this;
 }

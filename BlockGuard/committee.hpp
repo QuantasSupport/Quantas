@@ -65,8 +65,6 @@ Committee<peer_type>::Committee(std::vector<peer_type*> peers, peer_type *sender
 	}
 
 	byzantineRatio = double(byzantineCount)/committeePeers.size();
-//    std::cerr<<"BYZANTINE RATIO: "<<byzantineRatio<<" FOR COMMITTEE SIZED "<<committeePeers.size()<<std::endl;
-
 }
 
 template <class peer_type>

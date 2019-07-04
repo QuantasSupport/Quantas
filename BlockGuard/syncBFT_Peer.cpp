@@ -3,7 +3,6 @@
 //
 
 #include "syncBFT_Peer.hpp"
-//#include "hash.hpp"
 #include <cassert>
 #include <utility>
 #include "Logger.hpp"
@@ -103,28 +102,28 @@ void syncBFT_Peer::createBlock(const std::set<std::string>& publishers){
 	for (auto const& s : hashesToConnectTo) { newBlockString += "_" + s;}
 
 	newBlockString += "_" + consensusTx;
-//	string newBlockHash = sha256(newBlockString);
 	string newBlockHash = std::to_string(dag.getSize());
 
 	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, _byzantine));
+    minedBlock->setSubmissionRound(_clock);
+    minedBlock->setSecruityLevel(committeeNeighbours.size() + 1);
 }
 
 void syncBFT_Peer::currentStatusSend(){
 	Logger::instance()->log("---STATUS---\n");
 
 	//handle notfiy messages if any, save it.
-	for(auto & i : _inStream){
+    //just accept the first notify message
+	if(!_inStream.empty()){
+        auto i = _inStream.front();
 		assert(i.getMessage().type == "NOTIFY");
 		if(isValidNotify(i.getMessage())){
 			notifyMessagesPacket.push_back(i);
 			acceptedState as1(valueFromLeader, std::to_string(iter), i.getMessage().cc);
 			acceptedStates.push_back (as1);
 		}
-		//just accept the first notify message
-		break;
+        _inStream.clear();
 	}
-
-	_inStream.clear();
 
 	syncBFTmessage sMessage;
 	sMessage.peerId = _id;
@@ -431,10 +430,6 @@ void syncBFT_Peer::run(){
 				switch (syncBFTsystemState) {
 					case 0:
 					case 4:
-//                    	handle this part in the committee
-						/*if(changeLeader){
-							leaderChange();
-						}*/
 						Logger::instance()->log("----------------------------------------------------------------------STATUS SEND\n");
 						currentStatusSend();
 						break;
@@ -467,34 +462,6 @@ void syncBFT_Peer::preformComputation(){
 	run();
 }
 
-/*
-//committee handles these
- bool syncBFT_Peer::leaderChange(){
-    if(leaderId.empty()){
-        leaderId = leaderIdCandidates.front();
-
-    }else
-    {
-        auto it = std::find(leaderIdCandidates.begin(),leaderIdCandidates.end(),leaderId);
-        assert(it!=leaderIdCandidates.end());
-        std::rotate(it, it+1, leaderIdCandidates.end());
-        assert(leaderId!=leaderIdCandidates.front());
-        leaderId = leaderIdCandidates.front();
-
-    }
-    changeLeader = false;
-}
-
-int syncBFT_Peer::incrementSyncBFTsystemState(){
-    if(syncBFTsystemState == 3) {
-        changeLeader = true;
-        syncBFTsystemState=0;
-    }
-    else
-        syncBFTsystemState++;
-    return syncBFTsystemState;
-}*/
-
 
 void syncBFT_Peer::refreshSyncBFT(){
 	iter = 0;
@@ -512,9 +479,6 @@ void syncBFT_Peer::refreshSyncBFT(){
 	notifyMessagesPacket.clear();
 	cc.clear();
 	P.clear();
-//    todo can't delete minedBlock in here, will need it in updateDag later
-//    delete minedBlock;
-//    minedBlock = nullptr;
 	_busy = false;
 	committeeSize = 0;
 	dagBlocks.clear();
@@ -559,7 +523,6 @@ void syncBFT_Peer::makeRequest(const vector<syncBFT_Peer *>& committeeMembers, c
 			newMessage.setBody(txMessage);
 			_outStream.push_back(newMessage);
 		}else{
-//			need to add to consensus queue since the peer is in the committee
 			consensusTx = txMessage.message[0];
 		}
 	}
@@ -593,6 +556,9 @@ void syncBFT_Peer::updateDAG() {
 		}
 		assert(!i.getMessage().txFlag);
 		if(i.getMessage().dagBlockFlag){
+            DAGBlock newBlock = i.getMessage().dagBlock;
+            newBlock.setConfirmedRound(_clock);
+            newBlock.setSecruityLevel(committeeNeighbours.size() + 1);
 			dagBlocks.push_back(i.getMessage().dagBlock);
 		}
 	}
