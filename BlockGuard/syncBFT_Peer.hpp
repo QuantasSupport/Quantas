@@ -2,10 +2,10 @@
 // Created by srai on 3/15/19.
 //
 
-#ifndef BCPeer_hpp
-#define BCPeer_hpp
-#include <utility>
+#ifndef syncBFT_Peer_hpp
+#define syncBFT_Peer_hpp
 
+#include <utility>
 #include <cassert>
 #include <algorithm>
 #include <queue>

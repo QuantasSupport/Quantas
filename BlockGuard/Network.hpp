@@ -359,11 +359,6 @@ std::vector<peer_type *> Network<type_msg,peer_type>::setPeersForConsensusDAG(Pe
 		}
 	}else{
 		std::vector<std::string> sortedDAG = (dynamic_cast<peer_type *> (peer))->getDAG().topologicalSort();
-		/*std::cerr<<"THE SORTED DAG IS ";
-		for(const auto & i : sortedDAG){
-			std::cerr<<i<<" ";
-		}*/
-
 		//are all peers busy?
 		bool allBusy = true;
 		for(int i =0; i< size();i++){
@@ -395,18 +390,8 @@ std::vector<peer_type *> Network<type_msg,peer_type>::setPeersForConsensusDAG(Pe
 
 		uniquePeersIndex--;
 		std::cerr<<"THE INDEX WHERE "<<size()/2<<" UNIQUE PEERS WERE FOUND IS "<<uniquePeersIndex<<std::endl;
-		//	resize the vector upto uniquePeerBracketIndex index
-		/*std::cerr<<"BEFORE SORTED DAG, SIZE"<<sortedDAG.size()<<std::endl;
-		for(const auto & i : sortedDAG){
-			std::cerr<<i<<" ";
-		}*/
-
 		sortedDAG.resize(uniquePeersIndex+1);
 		std::cerr<<"AFTER SORTED DAG, SIZE"<<sortedDAG.size()<<std::endl;
-		/*for(const auto & i : sortedDAG){
-			std::cerr<<i<<" ";
-		}*/
-
 		std::vector<string> chosen;
 
 		while (peersForConsensus.size() < numOfPeers) {
@@ -498,7 +483,7 @@ int Network<type_msg, peer_type>::pickSecurityLevel(int numberOfPeers){
 		case 2: return numberOfPeers / 4;
 		case 3: return numberOfPeers / 2;
 		case 4: return numberOfPeers;
-		default: return numberOfPeers / 16;
+		default: return numberOfPeers / 2;
 	}
 }
 #endif /* Network_hpp */

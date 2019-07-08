@@ -15,8 +15,13 @@
 #include <algorithm>
 #include <random>
 #include "syncBFT_Peer.hpp"
-#include "SBFTCommittee.hpp"
+#include "syncBFT_Committee.hpp"
 #include "ByzantineNetwork.hpp"
+
+//phase mining or collecting
+const std::string MINING             = "MINING";
+const std::string COLLECTING         = "COLLECTING";
+const std::string WAITING_FOR_TX     = "WAITING_FOR_TX";
 
 struct SBFTTransactionRequest{
     double securityLevel;
@@ -40,10 +45,13 @@ protected:
     std::default_random_engine                          _randomGenerator;
     int                                                 _groupSize;
     int                                                 _nextId;
+    int                                                 _waitTime;
+    int                                                 _clock;
+    std::string                                         _status;
     ByzantineNetwork<syncBFTmessage, syncBFT_Peer>      _peers;
     std::map<int,SBFTGroup>                             _groups;
     std::deque<SBFTTransactionRequest>                  _requestQueue;
-    std::vector<SBFTCommittee>                          _activeCommittees;
+    std::vector<syncBFT_Committee>                      _activeCommittees;
     
     // logging and metrics
     std::ostream                                        *_log;
@@ -71,7 +79,7 @@ public:
     void                                shuffleByzantines       (int n);
     
     // setters
-    void                                setGroupSize            (int);
+    void                                setGroupSize            (int s)                                 {_groupSize = s;};
     void                                setLog                  (std::ostream &o)                       {_log = &o; _peers.setLog(o);}
     
     // getters
@@ -87,6 +95,8 @@ public:
     int                                 secLevel2Defeated       ()const                                 {return _secLevel2Defeated;};
     int                                 secLevel1Defeated       ()const                                 {return _secLevel1Defeated;};
     
+    std::vector<syncBFT_Committee>      activeCommittees        ()const                                 {return _activeCommittees;};
+    
     // metrics
     std::vector<DAGBlock>               getGlobalLedger         ()const;
     void                                preformComputation      ();
@@ -94,8 +104,8 @@ public:
     void                                transmit                ();
     
     // logging and debugging
-    std::ostream&                       printTo                 (std::ostream&)const;
-    void                                log                     ()const;
+    std::ostream&                       printTo                 (std::ostream &out)const                {_peers.printTo(out); return out;};
+    void                                log                     ()const                                 {printTo(*_log);};
     
     // operators
     SBFTReferenceCommittee&             operator=               (const SBFTReferenceCommittee&);
@@ -113,6 +123,7 @@ public:
     void                                setToRandom             ()                                      {_peers.setToRandom();};
     std::vector<syncBFT_Peer*>          getByzantine            ()const                                 {return _peers.getByzantine();};
     std::vector<syncBFT_Peer*>          getCorrect              ()const                                 {return _peers.getCorrect();};
+    int                                 maxDelay                ()const                                 {return _peers.maxDelay();};
     void                                makeByzantines          (int n)                                 {_peers.makeByzantines(n);};
     void                                makeCorrect             (int n)                                 {_peers.makeCorrect(n);};
     void                                makePeerByzantines      (int i)                                 {_peers.makePeerByzantines(i);};
