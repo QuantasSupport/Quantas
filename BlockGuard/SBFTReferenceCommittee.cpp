@@ -44,9 +44,9 @@ void SBFTReferenceCommittee::preformComputation(){
                 for(int index = 0; index< committee.size();index++){
                     committee[index]->updateDAG();
                 }
+                committeeDone = true;
+                committee.refreshPeers();
             }
-            committeeDone = true;
-            committee.refreshPeers();
         }
         
         if(committeeDone){
