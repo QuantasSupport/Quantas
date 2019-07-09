@@ -66,6 +66,7 @@ public:
     bool                              isNeighbor            (std::string id)const;
     int                               getDelayToNeighbor    (std::string id)const;
     int                               getMessageCount       ()const                             {return _numberOfMessagesSent;};
+    int                               getClock              ()const                             {return _clock;};
     virtual bool					  isByzantine			()const                             {return _byzantine;};
 	virtual bool					  isBusy				()									{return _busy; }
     std::deque<Packet<message> >      getInStream           ()const                             {return _inStream;};

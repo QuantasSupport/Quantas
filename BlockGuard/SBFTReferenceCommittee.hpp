@@ -30,6 +30,7 @@ struct SBFTTransactionRequest{
 
 typedef std::vector<syncBFT_Peer*> SBFTGroup;
 typedef std::pair<syncBFTmessage,int> SBFTLedgerEntery;
+typedef std::pair<std::string, syncBFT_Committee> SBFTState; // committee state (collecting mining ect) and committee
 
 class SBFTReferenceCommittee{
 protected:
@@ -42,16 +43,14 @@ protected:
     double _securityLevel2;
     double _securityLevel1;
     
-    std::default_random_engine                          _randomGenerator;
     int                                                 _groupSize;
     int                                                 _nextId;
     int                                                 _waitTime;
     int                                                 _clock;
-    std::string                                         _status;
     ByzantineNetwork<syncBFTmessage, syncBFT_Peer>      _peers;
-    std::map<int,SBFTGroup>                             _groups;
+    std::deque<SBFTGroup>                               _groups;
     std::deque<SBFTTransactionRequest>                  _requestQueue;
-    std::vector<syncBFT_Committee>                      _activeCommittees;
+    std::vector<SBFTState>                              _activeCommittees;
     
     // logging and metrics
     std::ostream                                        *_log;
@@ -65,8 +64,6 @@ protected:
     
     // util
     int                                 getRandomSecLevel       ();
-    void                                cleanupCommittee        ();
-    std::vector<SBFTGroup>              getFreeGroups           ();
     
 public:
     SBFTReferenceCommittee                                      ();
@@ -95,7 +92,7 @@ public:
     int                                 secLevel2Defeated       ()const                                 {return _secLevel2Defeated;};
     int                                 secLevel1Defeated       ()const                                 {return _secLevel1Defeated;};
     
-    std::vector<syncBFT_Committee>      activeCommittees        ()const                                 {return _activeCommittees;};
+    std::vector<SBFTState>              activeCommittees        ()const                                 {return _activeCommittees;};
     
     // metrics
     std::vector<DAGBlock>               getGlobalLedger         ()const;

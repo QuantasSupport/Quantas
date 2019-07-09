@@ -10,74 +10,84 @@
 
 
 void SBFTReferenceCommittee::preformComputation(){
-    cleanupCommittee();
-    for(auto committee = _activeCommittees.begin(); committee != _activeCommittees.end(); committee++){
-        committee->preformComputation();
-    }
-    
-    if(_status == WAITING_FOR_TX){
-        //            wait for max delay until all committees receive their transactions
-        if(_clock%_waitTime ==  0){
-            for(auto & currentCommittee : _activeCommittees) {
-                currentCommittee.receiveTx();
+    std::cout<< "groups:"<< _groups.size()<< std::endl;
+    auto iter = _activeCommittees.begin();
+    while(iter != _activeCommittees.end()){
+        bool committeeDone = false;
+        std::string status = iter->first;
+        syncBFT_Committee committee = iter->second;
+        if(status == WAITING_FOR_TX){
+            //            wait for max delay until all committees receive their transactions
+            if(committee.getClock()%_waitTime ==  0 && committee.getClock() != 0){
+                committee.receiveTx();
+                status = MINING;
             }
-            _status = MINING;            }
-        
-    }else if(_status == MINING){
-        for(auto & currentCommittee : _activeCommittees){
-            if(currentCommittee.getConsensusFlag()){
+        }else if(status == MINING){
+            if(committee.getConsensusFlag()){
                 continue;
             }
-            currentCommittee.preformComputation();
-            if(_clock%_waitTime ==  0){
-                currentCommittee.nextState(0, _peers.maxDelay());
+            committee.preformComputation();
+            if(committee.getClock()%_waitTime ==  0){
+                committee.nextState(0, _peers.maxDelay());
             }
-        }
-        
-        //    don't erase but check to see if consensus reached in all
-        bool consensus = true;
-        auto it = _activeCommittees.begin();
-        while(it != _activeCommittees.end()) {
-            if(!it->getConsensusFlag()) {
+            //    don't erase but check to see if consensus reached in all
+            bool consensus = true;
+            if(!committee.getConsensusFlag()) {
                 consensus = false;
-                break;
             }
-            ++it;
-        }
-        if (consensus){
-            for(auto committee: _activeCommittees ){
-                committee.refreshPeers();
+            if (consensus){
+                status =COLLECTING;
             }
-            _activeCommittees.clear();
-            
-            _status =COLLECTING;
+        }else if(status == COLLECTING){
+            //    make sure no peer is busy
+            if(committee.getClock()%_waitTime == 0){
+                for(int index = 0; index< committee.size();index++){
+                    committee[index]->updateDAG();
+                }
+            }
+            committeeDone = true;
+            committee.refreshPeers();
         }
-    }else if(_status == COLLECTING){
-        //    make sure no peer is busy
-        for(int a = 0; a< _peers.size();a++){
-            assert(_peers[a]->isTerminated());
-            assert(_peers[a]->getConsensusTx().empty());
-        }
-        assert (_activeCommittees.empty());
         
-        if(_clock%_waitTime == 0){
-            for(int index = 0; index< _peers.size();index++){
-                _peers[index]->updateDAG();
+        if(committeeDone){
+            syncBFT_Committee *committee = &iter->second;
+            SBFTGroup aGroup = SBFTGroup();
+            int groupId = 0;
+            for(int i = 0; i < committee->size(); i++){
+                // if we have seen enough peers add a new group
+                if(i%_groupSize == 0 && i != 0){
+                    _groups.push_back(aGroup);
+                    aGroup = SBFTGroup(); // clear for next group
+                    groupId++;
+                }
+                aGroup.push_back(committee->get(i)); // add peer to group
             }
+            
+            // if there was not enough peers for the last group just make a group that is slightly smaller
+            if(!aGroup.empty()){
+                _groups.push_back(aGroup);
+            }
+            _activeCommittees.erase(iter);
+        }else{
+            iter->first = status;
+            iter->second = committee;
+            iter++;
         }
-        _status = WAITING_FOR_TX;
     }
 }
 
 void SBFTReferenceCommittee::receive(){
     _clock++;
-    for(auto committee = _activeCommittees.begin(); committee != _activeCommittees.end(); committee++){
+    for(auto iter = _activeCommittees.begin(); iter != _activeCommittees.end(); iter++){
+        syncBFT_Committee *committee = &iter->second;
+        committee->clockTik();
         committee->receive();
     }
 }
 
 void SBFTReferenceCommittee::transmit(){
-    for(auto committee = _activeCommittees.begin(); committee != _activeCommittees.end(); committee++){
+    for(auto iter = _activeCommittees.begin(); iter != _activeCommittees.end(); iter++){
+        syncBFT_Committee *committee = &iter->second;
         committee->transmit();
     }
 }
@@ -85,10 +95,10 @@ void SBFTReferenceCommittee::transmit(){
 int SBFTReferenceCommittee::getRandomSecLevel(){
     std::uniform_int_distribution<int> coin(0,1);
     int trails = 0;
-    int heads = coin(_randomGenerator);
+    int heads = coin(RANDOM_GENERATOR);
     while(!heads){
         trails++;
-        heads = coin(_randomGenerator);
+        heads = coin(RANDOM_GENERATOR);
     }
     
     int secLevel = -1;
@@ -104,50 +114,15 @@ int SBFTReferenceCommittee::getRandomSecLevel(){
     return secLevel;
 }
 
-std::vector<SBFTGroup> SBFTReferenceCommittee::getFreeGroups(){
-    std::vector<SBFTGroup> freeGroups = std::vector<SBFTGroup>();
-    // look at each id,group pair
-    for(auto id = _groups.begin(); id != _groups.end(); id++){
-        SBFTGroup group = _groups[id->first]; // get the group by id
-        bool free = true; // assume the group is free
-        for(auto peer = group.begin(); peer != group.end(); peer++){
-            if(!(*peer)->isTerminated()){
-                free = false; // if any of the peers has not terminated then the group is not free
-            }
-        }
-        if(free){
-            freeGroups.push_back(group); // if the group is free add it
-        }
-    }
-    return freeGroups;
-}
-
-void SBFTReferenceCommittee::cleanupCommittee(){
-    auto committee = _activeCommittees.begin();
-    while(committee != _activeCommittees.end()){
-        bool committeeDone = true;
-        for(int i = 0; i < committee->size(); i++){
-            if(!committee->get(i)->isTerminated()){
-                committeeDone = false;
-            }
-        }
-        if(committeeDone){
-            _activeCommittees.erase(committee);
-        }else{
-            committee++;
-        }
-    }
-}
-
 void SBFTReferenceCommittee::initNetwork(int numberOfPeers){
     assert(_groupSize > 0);
     
     // assign secLevels
-    _securityLevel5 = numberOfPeers/_groupSize;
-    _securityLevel4 = _securityLevel5/2;
-    _securityLevel3 = _securityLevel4/2;
-    _securityLevel2 = _securityLevel3/2;
-    _securityLevel1 = _securityLevel2/2;
+    _securityLevel5 = numberOfPeers/_groupSize > 1 ? numberOfPeers/_groupSize : 1;
+    _securityLevel4 = _securityLevel5/2  > 1 ? _securityLevel5/2 : 1;;
+    _securityLevel3 = _securityLevel4/2  > 1 ? _securityLevel4/2 : 1;;
+    _securityLevel2 = _securityLevel3/2  > 1 ? _securityLevel3/2 : 1;;
+    _securityLevel1 = _securityLevel2/2  > 1 ? _securityLevel2/2 : 1;;
     
     _peers.initNetwork(numberOfPeers);
     _waitTime = 2*_peers.maxDelay();
@@ -158,7 +133,7 @@ void SBFTReferenceCommittee::initNetwork(int numberOfPeers){
     for(int i = 0; i < _peers.size(); i++){
         // if we have seen enough peers add a new group
         if(i%_groupSize == 0 && i != 0){
-            _groups[groupId] = aGroup;
+            _groups.push_back(aGroup);
             aGroup = SBFTGroup(); // clear for next group
             groupId++;
         }
@@ -167,7 +142,7 @@ void SBFTReferenceCommittee::initNetwork(int numberOfPeers){
     
     // if there was not enough peers for the last group just make a group that is slightly smaller
     if(!aGroup.empty()){
-        _groups[groupId] = aGroup;
+        _groups.push_back(aGroup);
     }
 }
 
@@ -177,27 +152,27 @@ void SBFTReferenceCommittee::makeRequest(int secLevel){
     _nextId++;
     request.securityLevel = secLevel == -1 ? getRandomSecLevel() : secLevel;
     _requestQueue.push_back(request);
-    request = _requestQueue.front();
-    
-    if(getFreeGroups().size() < request.securityLevel){
+    if(_groups.size() < _requestQueue.front().securityLevel){
         return ;
     }
+    request = _requestQueue.front();
+    _requestQueue.pop_front();
     
     std::vector<syncBFT_Peer*> peersInCommittee = std::vector<syncBFT_Peer*>();
-    std::vector<SBFTGroup> groups = getFreeGroups();
     while(peersInCommittee.size()/_groupSize < request.securityLevel){
-        SBFTGroup nextGroup = groups.back();
+        SBFTGroup nextGroup = _groups.back();
         for(auto peer = nextGroup.begin(); peer != nextGroup.end(); peer++){
             peersInCommittee.push_back(*peer);
         }
-        groups.pop_back();
+        _groups.pop_back();
     }
-    
-    syncBFT_Committee newCommittee = syncBFT_Committee(peersInCommittee,peersInCommittee[0],std::to_string(request.id),request.securityLevel);
+    syncBFT_Committee newCommittee = syncBFT_Committee(peersInCommittee,peersInCommittee[0],std::to_string(request.id)+std::to_string(_clock),request.securityLevel);
     newCommittee.refreshPeers();
     newCommittee.initiate();
-    _activeCommittees.push_back(newCommittee);
-    newCommittee[0]->makeRequest(peersInCommittee,std::to_string(request.id));
+    for(int i = 0; i < newCommittee.size(); i++){
+        newCommittee[i]->setTerminated(false);
+    }
+    _activeCommittees.push_back(SBFTState(WAITING_FOR_TX,newCommittee));
 }
 
 void SBFTReferenceCommittee::shuffleByzantines(int n){
@@ -266,15 +241,12 @@ SBFTReferenceCommittee::SBFTReferenceCommittee(){
     _groupSize = -1;
     _nextId = 0;
     _waitTime = -1;
-    _status = COLLECTING;
     _clock = -1;
     _peers = ByzantineNetwork<syncBFTmessage, syncBFT_Peer>();
-    _groups = std::map<int,SBFTGroup>();
+    _groups = std::deque<SBFTGroup>();
     _requestQueue = std::deque<SBFTTransactionRequest>();
-    _activeCommittees = std::vector<syncBFT_Committee>();
-    
-    int seed = (int)time(nullptr);
-    _randomGenerator = std::default_random_engine(seed);
+    _activeCommittees = std::vector<SBFTState>();
+
 }
 
 SBFTReferenceCommittee::SBFTReferenceCommittee(const SBFTReferenceCommittee &rhs){
@@ -291,15 +263,12 @@ SBFTReferenceCommittee::SBFTReferenceCommittee(const SBFTReferenceCommittee &rhs
     _groupSize = rhs._groupSize;
     _nextId = rhs._nextId;
     _waitTime = rhs._waitTime;
-    _status = rhs._status;
     _clock = rhs._clock;
     _peers = rhs._peers;
     _groups = rhs._groups;
     _requestQueue = rhs._requestQueue;
     _activeCommittees = rhs._activeCommittees;
-    
-    int seed = (int)time(nullptr);
-    _randomGenerator = std::default_random_engine(seed);
+
 }
 
 SBFTReferenceCommittee& SBFTReferenceCommittee::operator=(const SBFTReferenceCommittee &rhs){
@@ -319,11 +288,12 @@ SBFTReferenceCommittee& SBFTReferenceCommittee::operator=(const SBFTReferenceCom
     _groupSize = rhs._groupSize;
     _nextId = rhs._nextId;
     _waitTime = rhs._waitTime;
-    _status = rhs._status;
     _clock = rhs._clock;
     _peers = rhs._peers;
     _groups = rhs._groups;
     _requestQueue = rhs._requestQueue;
     _activeCommittees = rhs._activeCommittees;
+
+    
     return *this;
 }

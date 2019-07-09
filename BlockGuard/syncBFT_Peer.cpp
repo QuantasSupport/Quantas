@@ -21,7 +21,6 @@ syncBFT_Peer::syncBFT_Peer(std::string id) : Peer<syncBFTmessage>(id){
 	notifyMessagesPacket = {};
 	committeeNeighbours = _neighbors;
 	messageToSend = {};
-	consensusQueue = {};
 	minedBlock = nullptr;
 	dag = {};
 	leaderId = "";
@@ -45,7 +44,6 @@ syncBFT_Peer::syncBFT_Peer(const syncBFT_Peer &rhs) : Peer(rhs),statusMessageToS
 	notifyMessagesPacket = rhs.notifyMessagesPacket;
 	committeeNeighbours = rhs.committeeNeighbours;
 	messageToSend = rhs.messageToSend;
-	consensusQueue = rhs.consensusQueue;
 	minedBlock = new DAGBlock(*rhs.minedBlock);
 	dag = rhs.dag;
 	leaderId = rhs.leaderId;
@@ -71,7 +69,6 @@ syncBFT_Peer& syncBFT_Peer::operator=(const syncBFT_Peer &rhs){
 	notifyMessagesPacket = rhs.notifyMessagesPacket;
 	committeeNeighbours = rhs.committeeNeighbours;
 	messageToSend = rhs.messageToSend;
-	consensusQueue = rhs.consensusQueue;
 	minedBlock = new DAGBlock(*rhs.minedBlock);
 	dag = rhs.dag;
 	leaderId = rhs.leaderId;
@@ -533,7 +530,6 @@ void syncBFT_Peer::makeRequest(const vector<syncBFT_Peer *>& committeeMembers, c
 void syncBFT_Peer::updateDAG() {
 	Logger::instance()->log("UPDATING DAG IN PEER " + id() + "\n");
 	Logger::instance()->log("BEFORE UPDATE DAG SIZE IS " + std::to_string(dag.getSize()) + "\n");
-	assert(consensusQueue.empty());
 	//process self mined block
 	if(minedBlock!= nullptr){
 		dagBlocks.push_back(*minedBlock);
@@ -549,8 +545,7 @@ void syncBFT_Peer::updateDAG() {
 			if(dag.transactionInDag(i.getMessage().message[0]))
 				continue;
 			else{
-				consensusQueue.push_back(i.getMessage().message[0]);
-				assert(false);
+				//assert(false);
 			}
 			continue;
 		}

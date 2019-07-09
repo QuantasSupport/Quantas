@@ -24,6 +24,7 @@ syncBFT_Committee::syncBFT_Committee(const syncBFT_Committee &rhs) : Committee<s
     changeLeader = rhs.changeLeader;
     leaderIdCandidates = rhs.leaderIdCandidates;
     firstMinerIndex = rhs.firstMinerIndex;
+    clock = rhs.clock;
 }
 
 syncBFT_Committee& syncBFT_Committee::operator=(const syncBFT_Committee &rhs) {
@@ -36,6 +37,7 @@ syncBFT_Committee& syncBFT_Committee::operator=(const syncBFT_Committee &rhs) {
     changeLeader = rhs.changeLeader;
     leaderIdCandidates = rhs.leaderIdCandidates;
     firstMinerIndex = rhs.firstMinerIndex;
+    clock = rhs.clock;
     return *this;
 }
 
@@ -97,7 +99,6 @@ void syncBFT_Committee::refreshPeers() {
 }
 
 void syncBFT_Committee::preformComputation(){
-    
     if(syncBFTsystemState == 0 || syncBFTsystemState == 4){
         if(changeLeader){
             leaderChange();
@@ -123,7 +124,7 @@ void syncBFT_Committee::preformComputation(){
             }
         }
         if (consensus){
-            std::cerr<<"++++++++++++++++++++++++++++++++++++++++++Consensus reached at iteration "<<std::endl;
+            std::cerr<<"++++++++++++++++++++++++++++++++++++++++++Consensus reached at iteration "<< std::to_string(committeePeers[0]->getClock())<<std::endl;
             //reset system-wide sync state
             syncBFTsystemState = 0;
         }

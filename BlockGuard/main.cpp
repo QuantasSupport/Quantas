@@ -993,6 +993,7 @@ void sbft_s(){
     system.setGroupSize(8);
     system.setToRandom();
     system.setMaxDelay(1);
+    system.setLog(std::cout);
     system.initNetwork(256);
 
     int numberOfRequests = 0;
@@ -1008,10 +1009,11 @@ void sbft_s(){
         std::cout<< 'p'<< std::flush;
         system.transmit();
         std::cout<< 't'<< std::flush;
-        system.log();
+        //system.log();
+        
     }
 
-    std::cout<<system.getGlobalLedger().size()<< std::endl;
+    std::cout<<"\nsystem.getGlobalLedger().size():"<<system.getGlobalLedger().size()<< std::endl;
     system.getGlobalLedger();
 }
 

@@ -21,7 +21,7 @@ Logger* Logger::instance(){
 	if (logger == nullptr){
 		logger = new Logger();
 		if(fileName.empty()){
-			std::cerr<<"FILENAME IS EMPTY"<<std::endl;
+			//std::cerr<<"FILENAME IS EMPTY"<<std::endl;
 			return nullptr;
 		}
 		out.open(fileName.c_str(), std::ios::out | std::ios::app);
