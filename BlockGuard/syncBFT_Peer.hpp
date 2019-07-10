@@ -37,8 +37,9 @@ struct syncBFTmessage {
 	proposal                                		P;
 	commitCertificate                       		cc;
 	DAGBlock                                		dagBlock;
-	bool                                    		txFlag = false;
-	bool                                    		dagBlockFlag =false;
+	bool                                    		txFlag          = false;
+	bool                                    		dagBlockFlag    = false;
+    int                                             submissionRound = 0;
 
 	syncBFTmessage() = default;
 
@@ -124,6 +125,7 @@ class syncBFT_Peer : public Peer<syncBFTmessage> {
 	bool 											terminated              = true;
 	int 											committeeSize           = 0;
 	std::string                           			consensusTx             = "";
+    int                                             submissionRound         = -1;
 
 public:
 	int 											iter;

@@ -135,7 +135,7 @@ double PBFTReferenceCommittee::pickSecrityLevel(){
 transactionRequest PBFTReferenceCommittee::generateRequest(){
     transactionRequest request;
     request.securityLevel = pickSecrityLevel();
-    request.id = _currentRound;
+    request.submissionRound = _currentRound;
     
     return request;
 }
@@ -143,7 +143,7 @@ transactionRequest PBFTReferenceCommittee::generateRequest(){
 transactionRequest PBFTReferenceCommittee::generateRequest(int securityLevel){
     transactionRequest request;
     request.securityLevel = securityLevel;
-    request.id = _currentRound;
+    request.submissionRound = _currentRound;
     
     return request;
 }
@@ -153,6 +153,7 @@ void PBFTReferenceCommittee::serveRequest(){
         return;
     }
     int groupsNeeded = std::ceil(_requestQueue.front().securityLevel);
+    int submissionRound = _requestQueue.front().submissionRound;
     updateBusyGroup();
     
     // return if there is not enough free groups to make the committee
@@ -176,7 +177,7 @@ void PBFTReferenceCommittee::serveRequest(){
         aGroup group = getGroup(groupsInCommittee[i]);
         for(int j = 0; j < group.size(); j++){
             if(group[j]->isPrimary()){
-                group[j]->makeRequest(_nextSquenceNumber);
+                group[j]->makeRequest(_nextSquenceNumber,submissionRound);
                 _nextSquenceNumber++;
                 return;
             }

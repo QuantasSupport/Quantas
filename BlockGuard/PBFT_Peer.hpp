@@ -174,7 +174,7 @@ public:
     // base class functions
     void                        preformComputation  ();
     void                        makeRequest         ();// starts distributed-consensus
-    void                        makeRequest         (int);// starts distributed-consensus with a squence number
+    void                        makeRequest         (int squenceNumber, int submission_round);// starts distributed-consensus with a squence number
     
     // operators
     PBFT_Peer&                  operator=           (const PBFT_Peer &);

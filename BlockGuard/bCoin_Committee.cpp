@@ -108,8 +108,8 @@ void bCoin_Committee::propagateBlock(){
     }
 }
 
-void bCoin_Committee::initiate(){
-    dynamic_cast<DS_bCoin_Peer *>(senderPeer)->makeRequest(committeePeers, tx);
+void bCoin_Committee::initiate(int submissionRound){
+    dynamic_cast<DS_bCoin_Peer *>(senderPeer)->makeRequest(committeePeers, tx, submissionRound);
     
     for(int i = 0 ; i< committeePeers.size(); i++){
         committeePeers[i]->resetMineNextAt();

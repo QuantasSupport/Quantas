@@ -13,12 +13,13 @@
 struct DS_bCoinMessage {
 	std::string 							peerId ;
 	std::vector<std::string> 				message;
-	int                                     length = 0;
+	int                                     length              = 0;
 	DAGBlock                                dagBlock;
-	bool                                    txFlag = false;
-	bool                                    dagBlockFlag =false;
-	bool									blockByzantineFlag = false;
-
+	bool                                    txFlag              = false;
+	bool                                    dagBlockFlag        = false;
+	bool									blockByzantineFlag  = false;
+    int                                     submissionRound     = -1;
+    
 	DS_bCoinMessage(const DS_bCoinMessage& rhs){
 		peerId = rhs.peerId;
 		message = rhs.message;
@@ -27,6 +28,7 @@ struct DS_bCoinMessage {
 		dagBlock = rhs.dagBlock;
 		dagBlockFlag = rhs.dagBlockFlag;
 		blockByzantineFlag = rhs.blockByzantineFlag;
+        submissionRound = rhs.submissionRound;
 
 	}
 	DS_bCoinMessage() = default;
@@ -41,6 +43,7 @@ struct DS_bCoinMessage {
 		dagBlock = rhs.dagBlock;
 		dagBlockFlag = rhs.dagBlockFlag;
 		blockByzantineFlag = rhs.blockByzantineFlag;
+        submissionRound = rhs.submissionRound;
 		return *this;
 	}
 
@@ -58,7 +61,8 @@ class DS_bCoin_Peer : public Peer<DS_bCoinMessage> {
 	DS_bCoinMessage                                 messageToSend       = {};
 	std::map<std::string, Peer<DS_bCoinMessage>* >	committeeNeighbours;
     bool                                            terminated          = false;
-
+    int                                             submissionRound     = -1;
+    
 public:
 	static std::default_random_engine               generator;
 	static std::binomial_distribution<int>          distribution;
@@ -73,7 +77,7 @@ public:
 
     // mutators
     void                                            makeRequest                             () override;
-    void                                            makeRequest                             (const std::vector<DS_bCoin_Peer*>&, const std::string&);
+    void                                            makeRequest                             (const vector<DS_bCoin_Peer *>& committeeMembers, const std::string& tx, int submissionRound);
     void                                            deleteMinedBlock                        ()                                                          { delete minedBlock; minedBlock= nullptr; }
     void                                            resetMiningClock                        ();
     void                                            addToBlocks                             ();

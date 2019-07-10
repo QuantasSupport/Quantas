@@ -452,7 +452,7 @@ void PBFT_Peer::sendRequest(PBFT_Message request){
     }
 }
 
-void PBFT_Peer::makeRequest(int squenceNumber){
+void PBFT_Peer::makeRequest(int squenceNumber, int submission_round){
     if(_primary == nullptr){
         *_log<< "ERROR: makeRequest called with no primary"<< std::endl;
         return;
@@ -460,7 +460,7 @@ void PBFT_Peer::makeRequest(int squenceNumber){
     
     // create request
     PBFT_Message request;
-    request.submission_round = _clock;
+    request.submission_round = submission_round;
     request.client_id = _id;
     request.creator_id = _id;
     request.view = _currentView;

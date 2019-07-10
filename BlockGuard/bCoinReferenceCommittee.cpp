@@ -18,7 +18,6 @@ bCoinReferenceCommittee::bCoinReferenceCommittee (){
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
     _groupSize = -1;
-    _nextId = -1;
     _peers = ByzantineNetwork<DS_bCoinMessage, DS_bCoin_Peer>();
     _groups = std::map<int,bCoinGroup>();
     _requestQueue = std::deque<bCoinTransactionRequest>();
@@ -45,7 +44,6 @@ bCoinReferenceCommittee::bCoinReferenceCommittee (const bCoinReferenceCommittee 
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
     _groupSize = rhs._groupSize;
-    _nextId = rhs._nextId;
     _peers = rhs._peers;
     _groups = rhs._groups;
     _requestQueue = rhs._requestQueue;
@@ -134,8 +132,7 @@ int bCoinReferenceCommittee::getRandomSecLevel(){
 void bCoinReferenceCommittee::makeRequest(int secLevel){
     bCoinTransactionRequest req = bCoinTransactionRequest();
     req.securityLevel = secLevel == -1 ? getRandomSecLevel() : secLevel;
-    req.id = _nextId;
-    _nextId++;
+    req.submissionRound = _clock;
     _requestQueue.push_back(req); // add to queue
     _totalSubmitoins++;
     
@@ -161,7 +158,7 @@ void bCoinReferenceCommittee::makeRequest(int secLevel){
     }
     
     // add new committee to list
-    bCoin_Committee committee = bCoin_Committee(peersForCommittee,peersForCommittee[0], std::to_string(req.id), req.securityLevel);
+    bCoin_Committee committee = bCoin_Committee(peersForCommittee,peersForCommittee[0], std::to_string(req.submissionRound), req.securityLevel);
     for(int i = 0; i<committee.size(); i++){
         committee[i]->resetMiningClock();
     }
@@ -175,7 +172,7 @@ void bCoinReferenceCommittee::makeRequest(int secLevel){
             else if (req.securityLevel == _securityLevel5){_secLevel5Defeated++;}
             else                                          {assert(false);}
         }
-    committee.initiate();
+    committee.initiate(req.submissionRound);
     _currentCommittees.push_back(committee);
 }
 
@@ -213,6 +210,7 @@ void bCoinReferenceCommittee::shuffleByzantines(int n){
 }
 
 void bCoinReferenceCommittee::receive(){
+    _clock++;
     for(int i = 0; i < _peers.size(); i++){
         _peers[i]->receive();
     }
@@ -283,7 +281,6 @@ bCoinReferenceCommittee& bCoinReferenceCommittee::operator=(const bCoinReference
     int seed = (int)time(nullptr);
     _randomGenerator = std::default_random_engine(seed);
     _groupSize = rhs._groupSize;
-    _nextId = rhs._nextId;
     _peers = rhs._peers;
     _groups = rhs._groups;
     _requestQueue = rhs._requestQueue;
@@ -305,9 +302,8 @@ bCoinReferenceCommittee& bCoinReferenceCommittee::operator=(const bCoinReference
 std::ostream& bCoinReferenceCommittee::printTo(std::ostream &out)const{
     out<< "-- REFERENCE COMMITTEE SETUP --"<< std::endl<< std::endl;
     out<< std::left;
-    out<< '\t'<< std::setw(LOG_WIDTH)<<  "Request Queue Size"   << std::setw(LOG_WIDTH)<< "Next Committee Id"   << std::endl;
-    out<< '\t'<< std::setw(LOG_WIDTH)<< _requestQueue.size()    << std::setw(LOG_WIDTH)<< _nextId               << std::endl;
-    out<<std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<<  "Request Queue Size" << std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<<  _requestQueue.size() << std::endl;
     if(_printNetwork){
         _peers.printTo(out);
     }

@@ -146,9 +146,9 @@ void SBFTReferenceCommittee::initNetwork(int numberOfPeers){
 }
 
 void SBFTReferenceCommittee::makeRequest(int secLevel){
+    _totalSubmissions++;
     SBFTTransactionRequest request = SBFTTransactionRequest();
-    request.id = _nextId;
-    _nextId++;
+    request.submissionRound = _clock;
     request.securityLevel = secLevel == -1 ? getRandomSecLevel() : secLevel;
     _requestQueue.push_back(request);
     if(_groups.size() < _requestQueue.front().securityLevel){
@@ -165,7 +165,7 @@ void SBFTReferenceCommittee::makeRequest(int secLevel){
         }
         _groups.pop_back();
     }
-    syncBFT_Committee newCommittee = syncBFT_Committee(peersInCommittee,peersInCommittee[0],std::to_string(request.id)+std::to_string(_clock),request.securityLevel);
+    syncBFT_Committee newCommittee = syncBFT_Committee(peersInCommittee,peersInCommittee[0],std::to_string(request.submissionRound)+std::to_string(_clock),request.securityLevel);
     newCommittee.refreshPeers();
     newCommittee.initiate();
     for(int i = 0; i < newCommittee.size(); i++){
@@ -238,7 +238,7 @@ SBFTReferenceCommittee::SBFTReferenceCommittee(){
     _secLevel2Defeated = 0;
     _secLevel1Defeated = 0;
     _groupSize = -1;
-    _nextId = 0;
+    _totalSubmissions = 0;
     _waitTime = -1;
     _clock = -1;
     _peers = ByzantineNetwork<syncBFTmessage, syncBFT_Peer>();
@@ -260,7 +260,7 @@ SBFTReferenceCommittee::SBFTReferenceCommittee(const SBFTReferenceCommittee &rhs
     _secLevel2Defeated = rhs._secLevel2Defeated;
     _secLevel1Defeated = rhs._secLevel1Defeated;
     _groupSize = rhs._groupSize;
-    _nextId = rhs._nextId;
+    _totalSubmissions = rhs._totalSubmissions;
     _waitTime = rhs._waitTime;
     _clock = rhs._clock;
     _peers = rhs._peers;
@@ -285,7 +285,7 @@ SBFTReferenceCommittee& SBFTReferenceCommittee::operator=(const SBFTReferenceCom
     _secLevel2Defeated = rhs._secLevel2Defeated;
     _secLevel1Defeated = rhs._secLevel1Defeated;
     _groupSize = rhs._groupSize;
-    _nextId = rhs._nextId;
+    _totalSubmissions = rhs._totalSubmissions;
     _waitTime = rhs._waitTime;
     _clock = rhs._clock;
     _peers = rhs._peers;

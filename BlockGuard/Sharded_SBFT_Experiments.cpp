@@ -1,16 +1,15 @@
 //
-//  Sharded_POW_Experiments.cpp
+//  Sharded_SBFT_Experiments.cpp
 //  BlockGuard
 //
-//  Created by Kendric Hood on 6/20/19.
+//  Created by Kendric Hood on 7/9/19.
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
 
-#include "Sharded_POW_Experiments.hpp"
-
+#include "Sharded_SBFT_Experiments.hpp"
 
 //"Total Request:,Max Ledger:,Ratio Defeated To Honest 1,Ratio Defeated To Honest 2,Ratio Defeated To Honest 3,Ratio Defeated To Honest 4,Ratio Defeated To Honest 5,Average Waiting Time 1,Average Waiting Time 2,Average Waiting Time 3 ,Average Waiting Time 4,Average Waiting Time 5, total honest 1, total honest 2, total honest 3, total honest 4, total honest 5, total defeated 1, total defeated 2, total defeated 3, total defeated 4, total defeated 5\n"
-void calculateResults(const bCoinReferenceCommittee system, std::ofstream &csv){
+void calculateResults(const SBFTReferenceCommittee system, std::ofstream &csv){
     std::vector<DAGBlock> globalLedger = system.getGlobalLedger();
     csv<<std::to_string(system.totalSubmissions());
     csv<< ","<< std::to_string(globalLedger.size());
@@ -19,19 +18,19 @@ void calculateResults(const bCoinReferenceCommittee system, std::ofstream &csv){
     csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel3()*system.getGroupSize()));
     csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel4()*system.getGroupSize()));
     csv<< ","<< std::to_string(ratioOfSecLvl(globalLedger,system.securityLevel5()*system.getGroupSize()));
-    
+
     csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel1()*system.getGroupSize()));
     csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel2()*system.getGroupSize()));
     csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel3()*system.getGroupSize()));
     csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel4()*system.getGroupSize()));
     csv<< ","<< std::to_string(waitTimeOfSecLvl(globalLedger,system.securityLevel5()*system.getGroupSize()));
-    
+
     csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel1()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel2()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel3()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel4()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfCorrectCommittees(globalLedger,system.securityLevel5()*system.getGroupSize()));
-    
+
     csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel1()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel2()*system.getGroupSize()));
     csv<< ","<< std::to_string(totalNumberOfDefeatedCommittees(globalLedger,system.securityLevel3()*system.getGroupSize()));
@@ -41,11 +40,11 @@ void calculateResults(const bCoinReferenceCommittee system, std::ofstream &csv){
     
 }
 
-void MOTIVATIONAL11_Sharded_POW(std::ofstream &csv, std::ofstream &log){
+void MOTIVATIONAL11_Sharded_SBFT(std::ofstream &csv, std::ofstream &log){
     std::string header = "Committee Size, Defeated Transactions, Confirmed/Submitted";
     
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setToOne();
@@ -77,15 +76,14 @@ void MOTIVATIONAL11_Sharded_POW(std::ofstream &csv, std::ofstream &log){
         csv<< system.securityLevel3()*GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel3())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel4()*GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel4())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
         csv<< system.securityLevel5()*GROUP_SIZE<< ","<< totalNumberOfDefeatedCommittees(system.getGlobalLedger(),system.securityLevel5())<< ","<< double(system.getGlobalLedger().size())/totalSub <<std::endl;
-        
     }
 }
 
-void MOTIVATIONAL12_Sharded_POW(std::ofstream &csv, std::ofstream &log){
+void MOTIVATIONAL12_Sharded_SBFT(std::ofstream &csv, std::ofstream &log){
     std::string header = "Committee Size, Defeated Transactions, Confirmed/Submitted";
     
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setToOne();
@@ -115,7 +113,7 @@ void MOTIVATIONAL12_Sharded_POW(std::ofstream &csv, std::ofstream &log){
     }
     
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setToOne();
@@ -145,7 +143,7 @@ void MOTIVATIONAL12_Sharded_POW(std::ofstream &csv, std::ofstream &log){
     }
     
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setToOne();
@@ -176,7 +174,7 @@ void MOTIVATIONAL12_Sharded_POW(std::ofstream &csv, std::ofstream &log){
     }
     
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setToOne();
@@ -206,7 +204,7 @@ void MOTIVATIONAL12_Sharded_POW(std::ofstream &csv, std::ofstream &log){
     }
     
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setToOne();
@@ -237,11 +235,11 @@ void MOTIVATIONAL12_Sharded_POW(std::ofstream &csv, std::ofstream &log){
     }
     
 }
-void PARAMETER1_Sharded_POW(std::ofstream &csv, std::ofstream &log){
+void PARAMETER1_Sharded_SBFT(std::ofstream &csv, std::ofstream &log){
     std::string header = "Round, Confirmed/Submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setToOne();
@@ -271,11 +269,11 @@ void PARAMETER1_Sharded_POW(std::ofstream &csv, std::ofstream &log){
     }
 }
 
-void PARAMETER2_Sharded_POW(std::ofstream &csv, std::ofstream &log, int delay){
+void PARAMETER2_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, int delay){
     std::string header = "Round, Confirmed/Submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setMaxDelay(delay);
@@ -306,11 +304,11 @@ void PARAMETER2_Sharded_POW(std::ofstream &csv, std::ofstream &log, int delay){
     }
 }
 
-void ADAPTIVE11_Sharded_POW(std::ofstream &csv, std::ofstream &log, int delay){
+void ADAPTIVE11_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, int delay){
     std::string header = "Round, Confirmed/Submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setMaxDelay(delay);
@@ -340,11 +338,11 @@ void ADAPTIVE11_Sharded_POW(std::ofstream &csv, std::ofstream &log, int delay){
         csv<< NUMBER_OF_ROUNDS<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
     }
 }
-void ADAPTIVE12_Sharded_POW(std::ofstream &csv, std::ofstream &log, double byzantine){
+void ADAPTIVE12_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, double byzantine){
     std::string header = "Round, Confirmed/Submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setToOne();
@@ -374,11 +372,11 @@ void ADAPTIVE12_Sharded_POW(std::ofstream &csv, std::ofstream &log, double byzan
         csv<< NUMBER_OF_ROUNDS<< ","<< double(system.getGlobalLedger().size())/totalSub<< std::endl;
     }
 }
-void ADAPTIVE21_Sharded_POW(std::ofstream &csv, std::ofstream &log, int delay){
+void ADAPTIVE21_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, int delay){
     std::string header = "Round, Confirmed/Submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setMaxDelay(delay);
@@ -408,11 +406,11 @@ void ADAPTIVE21_Sharded_POW(std::ofstream &csv, std::ofstream &log, int delay){
         csv<< NUMBER_OF_ROUNDS<< ","<< waitTime(system.getGlobalLedger())<< std::endl;
     }
 }
-void ADAPTIVE22_Sharded_POW(std::ofstream &csv, std::ofstream &log, double byzantine){
+void ADAPTIVE22_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, double byzantine){
     std::string header = "Round, Confirmed/Submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setToOne();
@@ -442,11 +440,11 @@ void ADAPTIVE22_Sharded_POW(std::ofstream &csv, std::ofstream &log, double byzan
         csv<< NUMBER_OF_ROUNDS<< ","<< waitTime(system.getGlobalLedger())<< std::endl;
     }
 }
-void ADAPTIVE3_Sharded_POW(std::ofstream &csv, std::ofstream &log, double byzantine){
+void ADAPTIVE3_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, double byzantine){
     std::string header = "fraction of byzantine, defeated/submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
-        bCoinReferenceCommittee system = bCoinReferenceCommittee();
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
         system.setGroupSize(GROUP_SIZE);
         system.setToRandom();
         system.setToOne();

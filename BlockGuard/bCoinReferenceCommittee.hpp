@@ -25,7 +25,7 @@
 
 struct bCoinTransactionRequest{
     double securityLevel;
-    int id;
+    int submissionRound;
 };
 
 typedef std::vector<DS_bCoin_Peer*> bCoinGroup;
@@ -45,7 +45,7 @@ protected:
     
     std::default_random_engine                          _randomGenerator;
     int                                                 _groupSize;
-    int                                                 _nextId;
+    int                                                 _clock;
     ByzantineNetwork<DS_bCoinMessage, DS_bCoin_Peer>    _peers;
     std::map<int,bCoinGroup>                            _groups;
     std::deque<bCoinTransactionRequest>                 _requestQueue;

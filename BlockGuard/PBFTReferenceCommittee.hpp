@@ -6,10 +6,6 @@
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
 
-////////////////////////////////
-// NetworkBGS takes on the role of the refrence/utility commitee
-//
-
 #ifndef PBFTReferenceCommittee_hpp
 #define PBFTReferenceCommittee_hpp
 
@@ -23,7 +19,7 @@
 
 struct transactionRequest{
     double securityLevel;
-    int id;
+    int submissionRound;
 };
 
 ////////////////////////

@@ -124,7 +124,6 @@ void syncBFT_Committee::preformComputation(){
             }
         }
         if (consensus){
-            std::cerr<<"++++++++++++++++++++++++++++++++++++++++++Consensus reached at iteration "<< std::to_string(committeePeers[0]->getClock())<<std::endl;
             //reset system-wide sync state
             syncBFTsystemState = 0;
         }

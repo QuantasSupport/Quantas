@@ -25,7 +25,7 @@ public:
 	int 									getFirstMinerIndex				(){return firstMinerIndex;}
 
 	void									preformComputation				();
-	void									initiate						();
+	void									initiate						(int submissionRound);
 	bool									checkForConsensus				();
 	void									propagateBlock					();
 

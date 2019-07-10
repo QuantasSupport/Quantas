@@ -16,6 +16,7 @@ DS_bCoin_Peer::DS_bCoin_Peer(const std::string id) : Peer<DS_bCoinMessage>(id){
 	committeeNeighbours = _neighbors;
 	minedBlock = nullptr;
 	_busy = false;
+    submissionRound = -1;
 }
 
 DS_bCoin_Peer::DS_bCoin_Peer(const DS_bCoin_Peer &rhs)  : Peer<DS_bCoinMessage>(rhs) {
@@ -26,6 +27,7 @@ DS_bCoin_Peer::DS_bCoin_Peer(const DS_bCoin_Peer &rhs)  : Peer<DS_bCoinMessage>(
 	committeeNeighbours = rhs.committeeNeighbours;
 	minedBlock = nullptr;
 	terminated = rhs.terminated;
+    submissionRound = rhs.submissionRound;
 }
 
 bool DS_bCoin_Peer::mineBlock() {
@@ -39,7 +41,7 @@ bool DS_bCoin_Peer::mineBlock() {
 		string newBlockHash = std::to_string(dag.getSize());
 
 		messageToSend.dagBlock = dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, _byzantine);
-        messageToSend.dagBlock.setSubmissionRound(startedMiningAt);
+        messageToSend.dagBlock.setSubmissionRound(submissionRound);
         messageToSend.dagBlock.setConfirmedRound(_clock);
         
 		minedBlock = new DAGBlock(messageToSend.dagBlock);
@@ -99,6 +101,8 @@ void DS_bCoin_Peer::receiveMsg(){
 				continue;
 			}
 			consensusTx = i.getMessage().message[0];
+            submissionRound = i.getMessage().submissionRound;
+            assert(submissionRound != -1);
 		}
 	}
 	_inStream.clear();
@@ -119,11 +123,12 @@ void DS_bCoin_Peer::sendBlock(){
 	}
 }
 
-void DS_bCoin_Peer::makeRequest(const vector<DS_bCoin_Peer *>& committeeMembers, const std::string& tx) {
+void DS_bCoin_Peer::makeRequest(const vector<DS_bCoin_Peer *>& committeeMembers, const std::string& tx, int submissionRound) {
 	DS_bCoinMessage txMessage;
 	txMessage.peerId = id();
 	txMessage.message.push_back(tx+"_"+id());
 	txMessage.txFlag = true;
+    txMessage.submissionRound = submissionRound;
 	for(auto &committeePeer: committeeMembers){
 
 		if(!(committeePeer->id()==id())){

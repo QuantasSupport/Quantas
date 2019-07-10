@@ -16,22 +16,19 @@
 #include "Network.hpp"
 #include "Peer.hpp"
 #include "ExamplePeer.hpp"
+// RefCom
+#include "refComExperiments.hpp"
 // SBFT
 #include "syncBFT_Peer.hpp"
 #include "syncBFT_Committee.hpp"
-#include "SBFTReferenceCommittee.hpp"
 // PBFT
 #include "PBFT_Peer.hpp"
 #include "PBFTPeer_Sharded.hpp"
-#include "PBFTReferenceCommittee.hpp"
 // POW
 #include "bCoin_Peer.hpp"
 #include "bCoin_Committee.hpp"
 #include "DS_bCoin_Peer.hpp"
-#include "bCoinReferenceCommittee.hpp"
 // UTIL
-#include "Sharded_PBFT_Experiments.hpp"
-#include "Sharded_POW_Experiments.hpp"
 #include "Logger.hpp"
 #include "Blockchain.hpp"
 
@@ -43,20 +40,8 @@ int shuffleByzantineInterval = 0;
 // util functions
 void buildInitialChain(std::vector<std::string>);
 std::set<std::string> getPeersForConsensus(int);
-int getNumberOfConfimedTransactionsBGS_PBFT(const std::vector<PBFTPeer_Sharded>&);
-int sumMessagesSentBGS(const PBFTReferenceCommittee&);
-void calculateResults(const PBFTReferenceCommittee system,std::ofstream &csv);
-double ratioOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
-double waitTimeOfSecLvl(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
-double waitTime(std::vector<std::pair<PBFT_Message,int> > globalLedger);
-int totalNumberOfDefeatedCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
-int totalNumberOfCorrectCommittees(std::vector<std::pair<PBFT_Message,int> > globalLedger, double secLvl);
-int defeatedTrnasactions(std::vector<std::pair<PBFT_Message,int> > globalLedger);
-
 
 void Example(std::ofstream &logFile);
-void PBFT(std::ofstream &out,int);
-void sbft_s();
 void syncBFT(const char ** argv);
 void bitcoin(std::ofstream &,int );
 void DS_bitcoin(const char ** argv);
@@ -81,24 +66,7 @@ int main(int argc, const char * argv[]) {
         }
         Example(out);
     }
-    else if (algorithm== "pbft"){
-        for(int delay = 1; delay < 10; delay++){
-            std::cout<< "PBFT"<<std::endl;
-            std::ofstream out;
-            out.open(filePath + "/PBFT_Delay"+std::to_string(delay) + ".log");
-            if ( out.fail() ){
-                std::cerr << "Error: could not open file" << std::endl;
-            }
-            for(int run = 0; run < 10; run++){
-                PBFT(out,delay);
-            }
-            out.close();
-            if(delay == 1){
-                delay = 0;
-            }
-        }
-
-    }else if (algorithm == "syncBFT") {
+    else if (algorithm == "syncBFT") {
 		//	Program arguments: syncBFT fileName 2 1 1 128 100 0.3 1
 		std::ofstream out;
 		int runs = std::stoi(argv[3]);
@@ -106,195 +74,11 @@ int main(int argc, const char * argv[]) {
 			syncBFT(argv);
 		}
 	}else if (algorithm == "pbft_s") {
-        std::cout<< "pbft_s"<<std::endl;
-        std::ofstream csv;
-        std::ofstream log;
-        log.open(filePath + "pbft_s.log");
-        if ( log.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + "pbft_s.log" << std::endl;
-        }
-
-        std::string file = filePath + "pbft_s";
-        csv.open(file + "1.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< file + ".log" << std::endl;
-        }
-        
-        csv<< "Delay,Fault,Confirmed/Submitted"<< std::endl;
-        for(int delay = 1; delay < 10; delay++){
-            double fault = 0.0;
-            while(fault <= 0.6){
-                //Sharded_PBFT(csv,log,delay,fault);
-                fault += 0.05;
-            }
-        }
-        csv.close();
-        
-        csv.open(filePath + "MOTIVATIONAL11_Sharded_PBFT.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-        }
-        MOTIVATIONAL11_Sharded_PBFT(csv,log);
-        csv.close();
-
-        csv.open(filePath + "MOTIVATIONAL12_Sharded_PBFT.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-        }
-        MOTIVATIONAL12_Sharded_PBFT(csv,log);
-        csv.close();
-
-        csv.open(filePath + "PARAMETER1_Sharded_PBFT.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-        }
-        PARAMETER1_Sharded_PBFT(csv, log);
-        csv.close();
-
-        for(int delay = 1; delay < 11; delay = delay + 2){
-            csv.open(filePath + "PARAMETER2_Sharded_PBFT_" + std::to_string(delay) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            PARAMETER2_Sharded_PBFT(csv, log, delay);
-            csv.close();
-        }
-
-        for(int delay = 1; delay < 11; delay = delay + 2){
-            csv.open(filePath + "ADAPTIVE11_Sharded_PBFT_" + std::to_string(delay) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE11_Sharded_PBFT(csv, log, delay);
-            csv.close();
-            csv.open(filePath + "ADAPTIVE21_Sharded_PBFT_" + std::to_string(delay) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE21_Sharded_PBFT(csv, log, delay);
-            csv.close();
-        }
-
-        for(double byz = 0; byz < 1; byz = byz + 0.2){
-            csv.open(filePath + "ADAPTIVE12_Sharded_PBFT_" + std::to_string(byz) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE12_Sharded_PBFT(csv, log, byz);
-            csv.close();
-            csv.open(filePath + "ADAPTIVE22_Sharded_PBFT_" + std::to_string(byz) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE22_Sharded_PBFT(csv, log, byz);
-            csv.close();
-        }
-
-        for(double byz = 0; byz < 1; byz = byz + 0.2){
-            csv.open(filePath + "ADAPTIVE3_Sharded_PBFT_" + std::to_string(byz) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE3_Sharded_PBFT(csv,log,byz);
-            csv.close();
-        }
-        log.close();
+        PBFT_refCom(filePath);
     }else if(algorithm == "pow_s"){
-        std::cout<< "pow_s"<<std::endl;
-        std::ofstream csv;
-        std::ofstream log;
-        log.open(filePath + "pow_s.log");
-        if ( log.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + "pow_s.log" << std::endl;
-        }
-        
-        std::string file = filePath + "pow_s";
-        csv.open(file + "1.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< file + ".log" << std::endl;
-        }
-        
-        csv<< "Delay,Fault,Confirmed/Submitted"<< std::endl;
-        for(int delay = 1; delay < 10; delay++){
-            double fault = 0.0;
-            while(fault <= 0.6){
-                //Sharded_POW(csv,log,delay,fault);
-                fault += 0.05;
-            }
-        }
-        csv.close();
-        
-        csv.open(filePath + "MOTIVATIONAL11_Sharded_POW.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-        }
-        MOTIVATIONAL11_Sharded_POW(csv,log);
-        csv.close();
-        
-        csv.open(filePath + "MOTIVATIONAL12_Sharded_POW.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-        }
-        MOTIVATIONAL12_Sharded_POW(csv,log);
-        csv.close();
-        
-        csv.open(filePath + "PARAMETER1_Sharded_POW.csv");
-        if ( csv.fail() ){
-            std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-        }
-        PARAMETER1_Sharded_POW(csv, log);
-        csv.close();
-        
-        for(int delay = 1; delay < 11; delay = delay + 2){
-            csv.open(filePath + "PARAMETER2_Sharded_pow_" + std::to_string(delay) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            PARAMETER2_Sharded_POW(csv, log, delay);
-            csv.close();
-        }
-        
-        for(int delay = 1; delay < 11; delay = delay + 2){
-            csv.open(filePath + "ADAPTIVE11_Sharded_pow_" + std::to_string(delay) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE11_Sharded_POW(csv, log, delay);
-            csv.close();
-            csv.open(filePath + "ADAPTIVE21_Sharded_pow_" + std::to_string(delay) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE21_Sharded_POW(csv, log, delay);
-            csv.close();
-        }
-        
-        for(double byz = 0; byz < 1; byz = byz + 0.2){
-            csv.open(filePath + "ADAPTIVE12_Sharded_pow_" + std::to_string(byz) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE12_Sharded_POW(csv, log, byz);
-            csv.close();
-            csv.open(filePath + "ADAPTIVE22_Sharded_pow_" + std::to_string(byz) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE22_Sharded_POW(csv, log, byz);
-            csv.close();
-        }
-        
-        for(double byz = 0; byz < 1; byz = byz + 0.2){
-            csv.open(filePath + "ADAPTIVE3_Sharded_pow_" + std::to_string(byz) + ".csv");
-            if ( csv.fail() ){
-                std::cerr << "Error: could not open file: "<< filePath + ".csv" << std::endl;
-            }
-            ADAPTIVE3_Sharded_POW(csv,log,byz);
-            csv.close();
-        }
-        log.close();
+        POW_refCom(filePath);
     }else if(algorithm == "sbft_s"){
-        sbft_s();
+        SBFT_refCom(filePath);
     }else if (algorithm == "bitcoin") {
         std::ofstream out;
         bitcoin(out, 1);
@@ -360,55 +144,6 @@ void Example(std::ofstream &logFile){
                                                           //    your derived class so all methods that you add will be avalable via the -> operator
     }
     std::cout<< "Number of Messages: "<< numberOfMessages<< std::endl;
-}
-
-void PBFT(std::ofstream &out,int delay){
-    ByzantineNetwork<PBFT_Message, PBFT_Peer> system;
-    system.setLog(out);
-    system.setToRandom();
-    system.setMaxDelay(delay);
-    system.initNetwork(128);
-    for(int i = 0; i < system.size(); i++){
-        system[i]->setFaultTolerance(0.3);
-        system[i]->init();
-    }
-
-    int numberOfRequests = 0;
-    for(int i =-1; i < 1000; i++){
-        for(int i = 0; i < system.size(); i++){
-            if(system[i]->isPrimary()){
-                system.makeRequest(i);
-                numberOfRequests++;
-                break;
-            }
-        }
-        system.receive();
-        std::cout<< 'r'<< std::flush;
-        system.preformComputation();
-        std::cout<< 'p'<< std::flush;
-        system.transmit();
-        std::cout<< 't'<< std::flush;
-        system.log();
-    }
-
-    int min = (int)system[0]->getLedger().size();
-    int max = (int)system[0]->getLedger().size();
-    int totalMessages = system[0]->getMessageCount();
-    for(int i = 0; i < system.size(); i++){
-        //out<< "Peer ID:"<< system[i].id() << " Ledger Size:"<< system[i].getLedger().size()<< std::endl;
-        if(system[i]->getLedger().size() < min){
-            min = (int)system[i]->getLedger().size();
-        }
-        if(system[i]->getLedger().size() > max){
-            max = (int)system[i]->getLedger().size();
-        }
-        totalMessages += system[i]->getMessageCount();
-    }
-    out<< "Min Ledger:,"<< min<< std::endl;
-    out<< "Max Ledger:,"<< max<< std::endl;
-    out<< "Total Messages:,"<< totalMessages<< std::endl;
-    out<< "Total Request:,"<< numberOfRequests<<std::endl;
-    //std::cout<< std::endl;
 }
 
 void bitcoin(std::ofstream &out, int avgDelay){
@@ -644,7 +379,7 @@ void DS_bitcoin(const char ** argv){
 
 			if(!currentCommittees.empty()){
 				for(auto &committee: currentCommittees){
-					committee->initiate();
+					committee->initiate(i);
 				}
 				status = Mining;
 			}
@@ -987,84 +722,6 @@ void syncBFT(const char ** argv){
 
 }
 
-void sbft_s(){
-    std::cout<< std::endl<< "########################### SBFT_Sharded ###########################"<< std::endl;
-    SBFTReferenceCommittee system = SBFTReferenceCommittee();
-    system.setGroupSize(8);
-    system.setToRandom();
-    system.setMaxDelay(1);
-    system.setLog(std::cout);
-    system.initNetwork(256);
-    system.makeByzantines(256*0.5);
-
-    int numberOfRequests = 0;
-    auto tmp = system.activeCommittees();
-    for(int i =0; i < 1000; i++){
-        system.shuffleByzantines(256*0.5);
-        system.makeRequest();numberOfRequests++;
-        system.makeRequest();numberOfRequests++;
-        system.makeRequest();numberOfRequests++;
-
-        system.receive();
-        std::cout<< 'r'<< std::flush;
-        system.preformComputation();
-        std::cout<< 'p'<< std::flush;
-        system.transmit();
-        std::cout<< 't'<< std::flush;
-        //system.log();
-        
-    }
-
-    std::cout<<"\nsystem.getGlobalLedger().size():"<<system.getGlobalLedger().size()<< std::endl;
-    system.getGlobalLedger();
-}
-
-void Sharded_PBFT(std::ofstream &csv, std::ofstream &log,int delay, double fault){
-    std::cout<< std::endl<< "########################### PBFT_Sharded ###########################"<< std::endl;
-    PBFTReferenceCommittee system = PBFTReferenceCommittee();
-    system.setGroupSize(GROUP_SIZE);
-    system.setToRandom();
-    system.setMaxDelay(delay);
-    system.setLog(log);
-    system.setSquenceNumber(999);
-    system.initNetwork(PEER_COUNT);
-    system.setFaultTolerance(FAULT);
-    system.makeByzantines(256*fault);
-
-    int numberOfRequests = 0;
-    auto tmp = system.getCurrentCommittees();
-    for(int i =0; i < NUMBER_OF_ROUNDS; i++){
-        system.makeRequest();numberOfRequests++;
-        system.makeRequest();numberOfRequests++;
-        system.makeRequest();numberOfRequests++;
-
-         if(i%5 == 0){
-             system.shuffleByzantines(256*fault);
-         }
-
-        system.receive();
-        std::cout<< 'r'<< std::flush;
-        system.preformComputation();
-        std::cout<< 'p'<< std::flush;
-        system.transmit();
-        std::cout<< 't'<< std::flush;
-        system.log();
-        
-        if(i%100 == 0){
-            system.printNetworkOn();
-            system.log();
-            if(tmp == system.getCurrentCommittees()){
-                ;
-            }
-            tmp = system.getCurrentCommittees();
-            system.printNetworkOff();
-        }
-        
-    }
-    
-    csv<< delay<< ","<< fault<< ","<< (double(system.getGlobalLedger().size())/numberOfRequests)<< std::endl;
-    
-}
 
 //////////////////////////////////////////////
 // util functions

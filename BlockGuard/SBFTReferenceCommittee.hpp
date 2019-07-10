@@ -25,7 +25,7 @@ const std::string WAITING_FOR_TX     = "WAITING_FOR_TX";
 
 struct SBFTTransactionRequest{
     double securityLevel;
-    int id;
+    int submissionRound;
 };
 
 typedef std::vector<syncBFT_Peer*> SBFTGroup;
@@ -44,9 +44,9 @@ protected:
     double _securityLevel1;
     
     int                                                 _groupSize;
-    int                                                 _nextId;
     int                                                 _waitTime;
     int                                                 _clock;
+    int                                                 _totalSubmissions;
     ByzantineNetwork<syncBFTmessage, syncBFT_Peer>      _peers;
     std::deque<SBFTGroup>                               _groups;
     std::deque<SBFTTransactionRequest>                  _requestQueue;
@@ -91,6 +91,10 @@ public:
     int                                 secLevel3Defeated       ()const                                 {return _secLevel3Defeated;};
     int                                 secLevel2Defeated       ()const                                 {return _secLevel2Defeated;};
     int                                 secLevel1Defeated       ()const                                 {return _secLevel1Defeated;};
+    
+    int                                 getGroupSize            ()const                                 {return _groupSize;};
+    int                                 totalSubmissions        ()const                                 {return _totalSubmissions;};
+    int                                 size                    ()const                                 {return _peers.size();}
     
     std::vector<SBFTState>              activeCommittees        ()const                                 {return _activeCommittees;};
     
