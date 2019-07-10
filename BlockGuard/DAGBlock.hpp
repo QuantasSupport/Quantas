@@ -11,6 +11,7 @@
 #include <vector>
 #include <memory>
 #include <set>
+#include "PBFT_Peer.hpp"
 
 using std::vector;
 using std::string;
@@ -33,6 +34,8 @@ public:
 	DAGBlock                                                               	() = default;
 	DAGBlock																(const DAGBlock &);
 	DAGBlock&							operator=							(const DAGBlock &);
+    DAGBlock                                                                (const PBFT_Message msg);
+    
 	DAGBlock																(int, vector<string>, string, set<string> , string, bool);
 	~DAGBlock()= default;
     

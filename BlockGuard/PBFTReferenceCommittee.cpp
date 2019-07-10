@@ -416,10 +416,10 @@ PBFTReferenceCommittee& PBFTReferenceCommittee::operator=(const PBFTReferenceCom
 std::ostream& PBFTReferenceCommittee::printTo(std::ostream& out)const{
     out<< "-- REFERENCE COMMITTEE SETUP --"<< std::endl<< std::endl;
     out<< std::left;
-    out<< '\t'<< std::setw(LOG_WIDTH)<< "Current Round" << std::setw(LOG_WIDTH) << "Group Size" << std::setw(LOG_WIDTH) << "Number Of Groups"   << std::setw(LOG_WIDTH) << "Number Of Free Groups"  << std::setw(LOG_WIDTH) << "Number Of Busy Groups" << std::endl;
-    out<< '\t'<< std::setw(LOG_WIDTH)<< _currentRound   << std::setw(LOG_WIDTH) << _groupSize   << std::setw(LOG_WIDTH) << _groupIds.size()     << std::setw(LOG_WIDTH) << _freeGroups.size()       << std::setw(LOG_WIDTH) << _busyGroups.size()<< std::endl;
-    out<< '\t'<< std::setw(LOG_WIDTH)<<  "Request Queue Size"   << std::setw(LOG_WIDTH)<< "Next Committee Id"   << std::endl;
-    out<< '\t'<< std::setw(LOG_WIDTH)<< _requestQueue.size()    << std::setw(LOG_WIDTH)<< _nextCommitteeId      << std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<< "Current Round"         << std::setw(LOG_WIDTH) << "Group Size"         << std::setw(LOG_WIDTH) << "Number Of Groups"   << std::setw(LOG_WIDTH) << "Number Of Free Groups"  << std::setw(LOG_WIDTH) << "Number Of Busy Groups" << std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<< _currentRound           << std::setw(LOG_WIDTH) << _groupSize           << std::setw(LOG_WIDTH) << _groupIds.size()     << std::setw(LOG_WIDTH) << _freeGroups.size()       << std::setw(LOG_WIDTH) << _busyGroups.size()<< std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<<  "Request Queue Size"   << std::setw(LOG_WIDTH) << "Next Committee Id"  << std::endl;
+    out<< '\t'<< std::setw(LOG_WIDTH)<< _requestQueue.size()    << std::setw(LOG_WIDTH) << _nextCommitteeId     << std::endl;
     out<<std::endl;
     out<< '\t'<<"Current Committees:"<< std::endl;
     for(auto id = _currentCommittees.begin(); id != _currentCommittees.end(); id++){

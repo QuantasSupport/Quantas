@@ -195,7 +195,7 @@ void DS_bitcoin(const char ** argv){
 	n.buildInitialDAG();
 
 	std::vector<bCoin_Committee *> currentCommittees;
-	std::deque<std::string> txQueue;
+    std::deque<std::pair<int,std::string> > txQueue;
 
 	//	for printing security levels
 	std::vector<int> securityLevels;
@@ -254,7 +254,7 @@ void DS_bitcoin(const char ** argv){
 		if( i%txRate == 0  ){
 			//	create transactions every 5 iterations
 			//	insert a transaction to queue
-			txQueue.push_back("Tx_"+std::to_string(i));
+			txQueue.push_back(std::pair<int,std::string>(i,"Tx_"+std::to_string(i)));
 		}
 
 		if(status == Mining){
@@ -357,9 +357,8 @@ void DS_bitcoin(const char ** argv){
 					//create a committee if only a consensus group is formed.
 					if(!consensusGroup.empty()){
 						Logger::instance()->log("COMMITTEE FORMED\n");
-						bCoin_Committee *co = new bCoin_Committee(consensusGroup, p, txQueue.front(), securityLevel);
+						bCoin_Committee *co = new bCoin_Committee(consensusGroup, p, txQueue.front().second, securityLevel);
 						concurrentGroupCount++;
-						txQueue.pop_front();
 						currentCommittees.push_back(co);
 						consensusGroups.push_back(consensusGroup);
 						securityLevelCount[securityLevel]++;
@@ -379,8 +378,9 @@ void DS_bitcoin(const char ** argv){
 
 			if(!currentCommittees.empty()){
 				for(auto &committee: currentCommittees){
-					committee->initiate(i);
+					committee->initiate(txQueue.front().first);
 				}
+                txQueue.pop_front();
 				status = Mining;
 			}
 

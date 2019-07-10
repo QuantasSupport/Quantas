@@ -13,11 +13,12 @@
 #include "DAGBlock.hpp"
 #include "params.hpp"
 
-double ratioOfSecLvl(std::vector<DAGBlock> globalLedger, double secLvl);
-double waitTimeOfSecLvl(std::vector<DAGBlock> globalLedger, double secLvl);
-double waitTime(std::vector<DAGBlock> globalLedger);
-int totalNumberOfDefeatedCommittees(std::vector<DAGBlock> globalLedger, double secLvl);
-int defeatedTrnasactions(std::vector<DAGBlock> globalLedger);
-int totalNumberOfCorrectCommittees(std::vector<DAGBlock> globalLedger, double secLvl);
+double  ratioOfSecLvl                   (std::vector<DAGBlock> globalLedger, double secLvl);
+double  waitTimeOfSecLvl                (std::vector<DAGBlock> globalLedger, double secLvl);
+double  waitTime                        (std::vector<DAGBlock> globalLedger);
+int     totalNumberOfDefeatedCommittees (std::vector<DAGBlock> globalLedger, double secLvl);
+int     defeatedTrnasactions            (std::vector<DAGBlock> globalLedger);
+int     totalNumberOfCorrectCommittees  (std::vector<DAGBlock> globalLedger, double secLvl);
+int     getRollingAvgWaitTime           (std::vector<DAGBlock> globalLedger, int secLevel, int rounds);
 
 #endif /* metrics_hpp */
