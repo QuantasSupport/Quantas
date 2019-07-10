@@ -992,13 +992,15 @@ void sbft_s(){
     SBFTReferenceCommittee system = SBFTReferenceCommittee();
     system.setGroupSize(8);
     system.setToRandom();
-    system.setMaxDelay(5);
+    system.setMaxDelay(1);
     system.setLog(std::cout);
     system.initNetwork(256);
+    system.makeByzantines(256*0.5);
 
     int numberOfRequests = 0;
     auto tmp = system.activeCommittees();
     for(int i =0; i < 1000; i++){
+        system.shuffleByzantines(256*0.5);
         system.makeRequest();numberOfRequests++;
         system.makeRequest();numberOfRequests++;
         system.makeRequest();numberOfRequests++;

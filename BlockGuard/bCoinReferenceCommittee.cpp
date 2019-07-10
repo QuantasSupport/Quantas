@@ -213,8 +213,8 @@ void bCoinReferenceCommittee::shuffleByzantines(int n){
 }
 
 void bCoinReferenceCommittee::receive(){
-    for(auto committee = _currentCommittees.begin(); committee != _currentCommittees.end(); committee++){
-        committee->receive();
+    for(int i = 0; i < _peers.size(); i++){
+        _peers[i]->receive();
     }
 };
 

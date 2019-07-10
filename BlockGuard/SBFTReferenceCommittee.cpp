@@ -10,7 +10,6 @@
 
 
 void SBFTReferenceCommittee::preformComputation(){
-    std::cout<< "groups:"<< _groups.size()<< std::endl;
     auto iter = _activeCommittees.begin();
     while(iter != _activeCommittees.end()){
         bool committeeDone = false;
