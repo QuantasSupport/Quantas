@@ -374,7 +374,6 @@ void ADAPTIVE12_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, double byza
     }
 }
 void ADAPTIVE21_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, int delay){
-    return ;
     std::string header = "Round, Confirmed/Submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
