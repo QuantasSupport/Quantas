@@ -39,7 +39,17 @@ run_pbft:
 	tmux new-session -d -s "7" ./BlockGuard.out pow_s ./../results7/
 	tmux new-session -d -s "8" ./BlockGuard.out pow_s ./../results8/
 
-clean_pbft:
+run_sbft:
+tmux new-session -d -s "1" ./BlockGuard.out sbft_s ./../results1/
+tmux new-session -d -s "2" ./BlockGuard.out sbft_s ./../results2/
+tmux new-session -d -s "3" ./BlockGuard.out sbft_s ./../results3/
+tmux new-session -d -s "4" ./BlockGuard.out sbft_s ./../results4/
+tmux new-session -d -s "5" ./BlockGuard.out sbft_s ./../results5/
+tmux new-session -d -s "6" ./BlockGuard.out sbft_s ./../results6/
+tmux new-session -d -s "7" ./BlockGuard.out sbft_s ./../results7/
+tmux new-session -d -s "8" ./BlockGuard.out sbft_s ./../results8/
+
+clean_results:
 	rm ./../results1/*
 	rm ./../results2/*
 	rm ./../results3/*

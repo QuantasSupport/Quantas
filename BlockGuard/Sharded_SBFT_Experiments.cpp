@@ -41,7 +41,6 @@ void calculateResults(const SBFTReferenceCommittee system, std::ofstream &csv){
 }
 
 void MOTIVATIONAL11_Sharded_SBFT(std::ofstream &csv, std::ofstream &log){
-    return;
     std::string header = "Committee Size, Defeated Transactions, Confirmed/Submitted";
     
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
@@ -81,7 +80,6 @@ void MOTIVATIONAL11_Sharded_SBFT(std::ofstream &csv, std::ofstream &log){
 }
 
 void MOTIVATIONAL12_Sharded_SBFT(std::ofstream &csv, std::ofstream &log){
-    return ;
     std::string header = "Committee Size, Defeated Transactions, Confirmed/Submitted";
     
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
@@ -238,7 +236,6 @@ void MOTIVATIONAL12_Sharded_SBFT(std::ofstream &csv, std::ofstream &log){
     
 }
 void PARAMETER1_Sharded_SBFT(std::ofstream &csv, std::ofstream &log){
-    return;
     std::string header = "Round, Confirmed/Submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
@@ -273,7 +270,6 @@ void PARAMETER1_Sharded_SBFT(std::ofstream &csv, std::ofstream &log){
 }
 
 void PARAMETER2_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, int delay){
-    return ;
     std::string header = "Round, Confirmed/Submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
@@ -309,7 +305,6 @@ void PARAMETER2_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, int delay){
 }
 
 void ADAPTIVE11_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, int delay){
-    return ;
     std::string header = "Round, Confirmed/Submitted";
     csv<< header<< std::endl;
     for(int r = 0; r < NUMBER_OF_RUNS; r++){
