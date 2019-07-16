@@ -23,32 +23,19 @@
 ///////////////////////////////////////////
 // MOTIVATIONAL
 //
-void CommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log);
+void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log);
 
 ///////////////////////////////////////////
 // PARAMETER
 //
-void ThroughputTimeline(std::ofstream &csv, std::ofstream &log);
+void SBFTThroughputTimeline(std::ofstream &csv, std::ofstream &log);
 
 ///////////////////////////////////////////
 // ADAPTIVE SECURITY PERFORMACE GRAPHS
 //
-void WaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log);
-void WaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log);
+void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log);
+void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log);
 
-void DefeatedTransactionVsByzantine(std::ofstream &csv, std::ofstream &log);
-
-///////////////////////////////////////////
-// drafts
-//
-void MOTIVATIONAL11_Sharded_SBFT(std::ofstream &csv, std::ofstream &log);
-void MOTIVATIONAL12_Sharded_SBFT(std::ofstream &csv, std::ofstream &log);
-void PARAMETER1_Sharded_SBFT(std::ofstream &csv, std::ofstream &log);
-void PARAMETER2_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, int delay);
-void ADAPTIVE11_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, int delay);
-void ADAPTIVE12_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, double byzantine);
-void ADAPTIVE21_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, int delay);
-void ADAPTIVE22_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, double byzantine);
-void ADAPTIVE3_Sharded_SBFT(std::ofstream &csv, std::ofstream &log, double byzantine);
+void SBFTDefeatedTransactionVsByzantine(std::ofstream &csv, std::ofstream &log);
 
 #endif /* Sharded_SBFT_Experiments_hpp */

@@ -8,7 +8,7 @@
 
 #include "Sharded_PBFT_Experiments.hpp"
 
-void CommitteeSizeVsSecurity(std::ofstream &csv, std::ofstream &log){
+void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log){
     std::string header = "Committee Size, Ratio Defeated Committees, Confirmed/Submitted";
     csv<< header<< std::endl;
     
@@ -176,10 +176,10 @@ void CommitteeSizeVsSecurity(std::ofstream &csv, std::ofstream &log){
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
 //
-void WaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
+void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
     int delay = 0;
     std::string header = "Round, Confirmed/Submitted, Average Waiting Time,  delay";
-    csv<< header<< delay<< std::endl;
+    csv<< header<< std::endl;
     
     // delay 1
     delay = 1;
@@ -357,10 +357,10 @@ void WaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
 //
-void WaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log){
+void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log){
     double byzantine = 0.0;
     std::string header = "Round, Confirmed/Submitted, Byzantine";
-    csv<< header<< byzantine<< std::endl;
+    csv<< header<< std::endl;
     
     // byzantine 1/10
     byzantine = 0.09;

@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
-#include "./../BlockGuard/Network.hpp"
+#include "./../BlockGuard/Common/Network.hpp"
 #include "./../BlockGuard/ExamplePeer.hpp"
 
 void runNetworkTests    (std::string filepath);

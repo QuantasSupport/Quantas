@@ -29,20 +29,20 @@
 ///////////////////////////////////////////
 // MOTIVATIONAL
 //
-void CommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log);
+void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log);
 
 ///////////////////////////////////////////
 // PARAMETER
-//
-void ThroughputTimeline(std::ofstream &csv, std::ofstream &log);
+// 
+void PBFTThroughputTimeline(std::ofstream &csv, std::ofstream &log);
 
 ///////////////////////////////////////////
 // ADAPTIVE SECURITY PERFORMACE GRAPHS
 //
-void WaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log);
-void WaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log);
+void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log);
+void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log);
 
-void DefeatedTransactionVsByzantine(std::ofstream &csv, std::ofstream &log);
+void PBFTDefeatedTransactionVsByzantine(std::ofstream &csv, std::ofstream &log);
 
 ///////////////////////////////////////////
 // util

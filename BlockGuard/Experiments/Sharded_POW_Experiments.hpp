@@ -29,32 +29,19 @@
 ///////////////////////////////////////////
 // MOTIVATIONAL
 //
-void CommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log);
+void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log);
 
 ///////////////////////////////////////////
 // PARAMETER
 //
-void ThroughputTimeline(std::ofstream &csv, std::ofstream &log);
+void PoWThroughputTimeline(std::ofstream &csv, std::ofstream &log);
 
 ///////////////////////////////////////////
 // ADAPTIVE SECURITY PERFORMACE GRAPHS
 //
-void WaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log);
-void WaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log);
+void PoWWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log);
+void PoWWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log);
 
-void DefeatedTransactionVsByzantine(std::ofstream &csv, std::ofstream &log);
-
-///////////////////////////////////////////
-// drafts
-//
-void MOTIVATIONAL11_Sharded_POW(std::ofstream &csv, std::ofstream &log);
-void MOTIVATIONAL12_Sharded_POW(std::ofstream &csv, std::ofstream &log);
-void PARAMETER1_Sharded_POW(std::ofstream &csv, std::ofstream &log);
-void PARAMETER2_Sharded_POW(std::ofstream &csv, std::ofstream &log, int delay);
-void ADAPTIVE11_Sharded_POW(std::ofstream &csv, std::ofstream &log, int delay);
-void ADAPTIVE12_Sharded_POW(std::ofstream &csv, std::ofstream &log, double byzantine);
-void ADAPTIVE21_Sharded_POW(std::ofstream &csv, std::ofstream &log, int delay);
-void ADAPTIVE22_Sharded_POW(std::ofstream &csv, std::ofstream &log, double byzantine);
-void ADAPTIVE3_Sharded_POW(std::ofstream &csv, std::ofstream &log, double byzantine);
+void PoWDefeatedTransactionVsByzantine(std::ofstream &csv, std::ofstream &log);
 
 #endif /* Sharded_POW_Experiments_hpp */

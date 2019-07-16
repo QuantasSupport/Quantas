@@ -7,10 +7,6 @@
 
 #include "DAGBlock.hpp"
 
-DAGBlock::DAGBlock (const PBFT_Message msg){
-    
-}
-
 DAGBlock::DAGBlock(int index, std::vector<string> prevHashes, string DAGBlockHash, set<string> publishersId, string data = "", bool byzantine= false) {
 	this->publishers        = std::move(publishersId);
 	this->previousHashes    = std::move(prevHashes);
