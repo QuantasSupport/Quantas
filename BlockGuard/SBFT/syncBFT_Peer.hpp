@@ -11,7 +11,7 @@
 #include <queue>
 
 #include "./../Common/Peer.hpp"
-#include "DAG.hpp"
+#include "./../Common/DAG.hpp"
 
 struct proposal{
 	std::vector<vector<string>> 					status;

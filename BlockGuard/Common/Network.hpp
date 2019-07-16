@@ -20,7 +20,7 @@
 #include <ctime>
 #include <memory>
 #include "./../Common/Peer.hpp"
-#include "DAG.hpp"
+#include "./../Common/DAG.hpp"
 
 static const std::string                POISSON = "POISSON";
 static const std::string                RANDOM  = "RANDOM";
