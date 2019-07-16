@@ -13,24 +13,24 @@
 #include <chrono>
 #include <random>
 
-#include "Network.hpp"
-#include "Peer.hpp"
+#include "./Common/Network.hpp"
+#include "./Common/Peer.hpp"
 #include "ExamplePeer.hpp"
 // RefCom
-#include "refComExperiments.hpp"
+#include "./Experiments/refComExperiments.hpp"
 // SBFT
-#include "syncBFT_Peer.hpp"
-#include "syncBFT_Committee.hpp"
+#include "./SBFT/syncBFT_Peer.hpp"
+#include "./SBFT/syncBFT_Committee.hpp"
 // PBFT
-#include "PBFT_Peer.hpp"
-#include "PBFTPeer_Sharded.hpp"
+#include "./PBFT/PBFT_Peer.hpp"
+#include "./PBFT/PBFTPeer_Sharded.hpp"
 // POW
-#include "bCoin_Peer.hpp"
-#include "bCoin_Committee.hpp"
-#include "DS_bCoin_Peer.hpp"
+#include "./bCoin/bCoin_Peer.hpp"
+#include "./bCoin/bCoin_Committee.hpp"
+#include "./bCoin/DS_bCoin_Peer.hpp"
 // UTIL
-#include "Logger.hpp"
-#include "Blockchain.hpp"
+#include "./Common/Logger.hpp"
+#include "./Common/Blockchain.hpp"
 
 const int peerCount = 10;
 const int blockChainLength = 100;
