@@ -98,6 +98,7 @@ void PBFTPeer_Sharded::commitRequest(){
         viewChange(_committeeMembers);
     }else if(!_currentRequest.byzantine && correctCommitMsg >= faultyPeers()){
         commit.defeated = false;
+        commit.securityLevel = _committeeMembers.size()+1;
         _ledger.push_back(commit);
         _committeeSizes.push_back(_committeeMembers.size()+1);// +1 for self
         _currentRequest = PBFT_Message();

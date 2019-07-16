@@ -78,7 +78,30 @@ int main(int argc, const char * argv[]) {
     }else if(algorithm == "pow_s"){
         POW_refCom(filePath);
     }else if(algorithm == "sbft_s"){
-        SBFT_refCom(filePath);
+//        SBFT_refCom(filePath);
+        SBFTReferenceCommittee system = SBFTReferenceCommittee();
+        system.setGroupSize(GROUP_SIZE);
+        system.setToRandom();
+        system.setMaxDelay(1);
+        system.setLog(std::cout);
+        system.makeByzantines(PEER_COUNT*0.9);
+        system.initNetwork(PEER_COUNT);
+        
+        int totalSub = 0;
+        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
+            system.shuffleByzantines(PEER_COUNT*0.9);
+            system.makeRequest(system.securityLevel1());
+            system.makeRequest(system.securityLevel1());
+            system.makeRequest(system.securityLevel1());
+            
+            totalSub = totalSub + 3;
+            system.receive();
+            std::cout<< 'r'<< std::flush;
+            system.preformComputation();
+            std::cout<< 'p'<< std::flush;
+            system.transmit();
+            std::cout<< 't'<< std::flush;
+        }
     }else if (algorithm == "bitcoin") {
         std::ofstream out;
         bitcoin(out, 1);
@@ -526,17 +549,25 @@ void syncBFT(const char ** argv){
     int waitTime = 2 * n.maxDelay();
 
     for(int i = 0; i<iterationCount; i++){
+        /////////////////////////////////////////////////
+        // collect metrics
+        //
         if(i % 100 == 0){
             //    saturation point calculation, keep track of confirmed count, look at the dag of any peer to find the chain size. i.e. number of confirmed blocks
             //    number of transactions introduced will be 100/txRate
             confirmationRate[i] = ((double)(n[0]->getDAG().getSize() - prevConfirmationSize))/(100);
             prevConfirmationSize = n[0]->getDAG().getSize();
         }
-
+        /////////////////////////////////////////////////
+        // queue transactions
+        //
         if( i%txRate == 0  ){
             txQueue.push_back("Tx_"+std::to_string(i));
         }
         Logger::instance()->log("----------------------------------------------------------Iteration "+std::to_string(i)+"\n");
+        /////////////////////////////////////////////////
+        // phase 1 waiting for tx
+        //
         if(status == WAITING_FOR_TX){
 //            wait for max delay until all committees receive their transactions
             if(waitTime >=0 ){
@@ -554,6 +585,9 @@ void syncBFT(const char ** argv){
                 waitTime = 2*n.maxDelay();
             }
 
+        /////////////////////////////////////////////////
+        // phase 2 working on consensus
+        //
         }else if(status == MINING){
             waitTime--;
 
@@ -623,6 +657,9 @@ void syncBFT(const char ** argv){
                 status =COLLECTING;
                 collectInterval = 2 * n.maxDelay();
             }
+        /////////////////////////////////////////////////
+        // phase 3 working on collcetcing
+        //
         }else if(status == COLLECTING){
             //    make sure no peer is busy
             for(int a = 0; a< n.size();a++){
@@ -654,7 +691,9 @@ void syncBFT(const char ** argv){
 				Logger::instance()->log("Shuffling "+std::to_string(shuffleCount)+" Peers.\n");
 				n.shuffleByzantines (shuffleCount);
             }
-
+            /////////////////////////////////////////////////
+            // adding new committees
+            //
             if(!txQueue.empty()){
                 //    select a random peer
                 int randIndex;
@@ -686,7 +725,9 @@ void syncBFT(const char ** argv){
 
 //            change status after waiting for all peers to get their transaction
             status = WAITING_FOR_TX;
-
+            /////////////////////////////////////////////////
+            // restart/start consensus for each committee
+            //
             if(!currentCommittees.empty()){
                 Logger::instance()->log("INITIATING " + std::to_string(currentCommittees.size()) + " COMMITTEES\n");
                 for(auto &committee: currentCommittees){

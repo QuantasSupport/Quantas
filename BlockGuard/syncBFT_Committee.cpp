@@ -50,6 +50,7 @@ void syncBFT_Committee::receiveTx(){
 int syncBFT_Committee::incrementSyncBFTsystemState() {
     if(syncBFTsystemState == 3) {
         changeLeader = true;
+        std::cout<< "changeLeader"<< std::endl;
         syncBFTsystemState=0;
     }
     else
@@ -58,7 +59,6 @@ int syncBFT_Committee::incrementSyncBFTsystemState() {
     for(auto & committeePeer : committeePeers){
         committeePeer->syncBFTsystemState = syncBFTsystemState;
     }
-    
     return syncBFTsystemState;
 }
 

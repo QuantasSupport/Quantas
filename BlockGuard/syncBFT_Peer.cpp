@@ -411,6 +411,7 @@ void syncBFT_Peer::notify(){
 	{
 		if (pair.second >= (committeeSize - 1)/2 +1){
 			committed = true;
+            std::cout<< "committed"<< committed << std::endl;
 		}
 	}
 	if(committed){

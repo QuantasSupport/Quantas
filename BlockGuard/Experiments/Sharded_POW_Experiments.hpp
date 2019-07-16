@@ -25,10 +25,28 @@
 #include "params.hpp"
 #include "metrics.hpp"
 
-const static std::string s_pow_header = "Total Request:,Max Ledger:,Ratio Defeated To Honest 1,Ratio Defeated To Honest 2,Ratio Defeated To Honest 3,Ratio Defeated To Honest 4,Ratio Defeated To Honest 5,Average Waiting Time 1,Average Waiting Time 2,Average Waiting Time 3 ,Average Waiting Time 4,Average Waiting Time 5, total honest 1, total honest 2, total honest 3, total honest 4, total honest 5, total defeated 1, total defeated 2, total defeated 3, total defeated 4, total defeated 5\n";
 
-void Sharded_POW(std::ofstream &csv, std::ofstream &log,int,double);
+///////////////////////////////////////////
+// MOTIVATIONAL
+//
+void CommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log);
 
+///////////////////////////////////////////
+// PARAMETER
+//
+void ThroughputTimeline(std::ofstream &csv, std::ofstream &log);
+
+///////////////////////////////////////////
+// ADAPTIVE SECURITY PERFORMACE GRAPHS
+//
+void WaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log);
+void WaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log);
+
+void DefeatedTransactionVsByzantine(std::ofstream &csv, std::ofstream &log);
+
+///////////////////////////////////////////
+// drafts
+//
 void MOTIVATIONAL11_Sharded_POW(std::ofstream &csv, std::ofstream &log);
 void MOTIVATIONAL12_Sharded_POW(std::ofstream &csv, std::ofstream &log);
 void PARAMETER1_Sharded_POW(std::ofstream &csv, std::ofstream &log);

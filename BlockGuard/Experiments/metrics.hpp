@@ -16,6 +16,7 @@
 double  ratioOfSecLvl                   (std::vector<DAGBlock> globalLedger, double secLvl);
 double  waitTimeOfSecLvl                (std::vector<DAGBlock> globalLedger, double secLvl);
 double  waitTime                        (std::vector<DAGBlock> globalLedger);
+double  waitTimeRolling                 (std::vector<DAGBlock> globalLedger, int fromRound);
 int     totalNumberOfDefeatedCommittees (std::vector<DAGBlock> globalLedger, double secLvl);
 int     defeatedTrnasactions            (std::vector<DAGBlock> globalLedger);
 int     totalNumberOfCorrectCommittees  (std::vector<DAGBlock> globalLedger, double secLvl);

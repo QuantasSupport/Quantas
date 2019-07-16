@@ -15,7 +15,7 @@
 #include <cassert>
 #include <list>
 #include "Peer.hpp"
-
+#include "DAGBlock.hpp"
 
 //
 // PBFT Message defintion
@@ -64,7 +64,8 @@ struct PBFT_Message{
     // status info
     bool                byzantine;
     bool                defeated;
-
+    int                 securityLevel;
+    
     PBFT_Message(){
         submission_round= 0;
         client_id       = "";
@@ -73,11 +74,12 @@ struct PBFT_Message{
         type            = "";
         operation       = ' ';
         result          = -1;
-        commit_round           = -1;
+        commit_round    = -1;
         phase           = "";
         sequenceNumber  = -1;
         byzantine       = false;
         defeated        = false;
+        securityLevel   = -1;
     }
 
     bool operator==(const PBFT_Message& rhs)
@@ -92,6 +94,21 @@ struct PBFT_Message{
                 operands        == rhs.operands         &&
                 result          == rhs.result
                );
+    }
+    
+    DAGBlock toDAGBlock()
+    {
+        DAGBlock block = DAGBlock();
+        block.setSecruityLevel(securityLevel);
+        block.setSubmissionRound(submission_round);
+        block.setConfirmedRound(commit_round);
+        block.setIndex(sequenceNumber);
+        block.setPreviousHashes(std::vector<std::string>());
+        block.setHash("PBFT");
+        block.setPublishers(set<string>());
+        block.setData(std::to_string(result));
+        block.setByzantine(defeated);
+        return block;
     }
 };
 
