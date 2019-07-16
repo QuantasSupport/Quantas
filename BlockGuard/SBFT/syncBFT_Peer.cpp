@@ -5,7 +5,7 @@
 #include "syncBFT_Peer.hpp"
 #include <cassert>
 #include <utility>
-#include "Logger.hpp"
+#include "./../Common/Logger.hpp"
 //#include "hash.hpp"
 
 
