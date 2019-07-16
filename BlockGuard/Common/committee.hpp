@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <iostream>
 #include <vector>
-#include "Peer.hpp"
+#include "./../Common/Peer.hpp"
 
 template<class peer_type>
 class Committee {

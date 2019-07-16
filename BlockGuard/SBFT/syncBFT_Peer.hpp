@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <queue>
 
-#include "Peer.hpp"
+#include "./../Common/Peer.hpp"
 #include "DAG.hpp"
 
 struct proposal{

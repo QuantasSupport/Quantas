@@ -7,7 +7,7 @@
 #include <utility>
 #include <random>
 #include <deque>
-#include "Peer.hpp"
+#include "./../Common/Peer.hpp"
 #include "DAG.hpp"
 
 struct DS_bCoinMessage {

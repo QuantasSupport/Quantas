@@ -19,7 +19,7 @@
 #include <chrono>
 #include <ctime>
 #include <memory>
-#include "Peer.hpp"
+#include "./../Common/Peer.hpp"
 #include "DAG.hpp"
 
 static const std::string                POISSON = "POISSON";

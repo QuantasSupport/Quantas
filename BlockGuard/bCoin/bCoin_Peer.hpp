@@ -7,7 +7,7 @@
 
 #include <random>
 
-#include "Peer.hpp"
+#include "./../Common/Peer.hpp"
 #include "Blockchain.hpp"
 
 struct bCoinMessage {

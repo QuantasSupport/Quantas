@@ -14,7 +14,7 @@
 #include <assert.h>
 #include <cassert>
 #include <list>
-#include "Peer.hpp"
+#include "./../Common/Peer.hpp"
 #include "DAGBlock.hpp"
 
 //
