@@ -21,8 +21,8 @@
 #include <iostream>
 #include <chrono>
 #include <random>
-#include "PBFTReferenceCommittee.hpp"
-#include "params.hpp"
+#include "./../PBFT/PBFTReferenceCommittee.hpp"
+#include "./../params.hpp"
 #include "metrics.hpp"
 
 

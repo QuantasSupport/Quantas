@@ -21,7 +21,7 @@
 #include <iostream>
 #include <chrono>
 #include <random>
-#include "bCoinReferenceCommittee.hpp"
+#include "./../bCoin/bCoinReferenceCommittee.hpp"
 #include "params.hpp"
 #include "metrics.hpp"
 

@@ -16,9 +16,9 @@
 #include <iostream>
 #include <chrono>
 #include <random>
-#include "SBFTReferenceCommittee.hpp"
+#include "./../SBFT/SBFTReferenceCommittee.hpp"
 #include "metrics.hpp"
-#include "params.hpp"
+#include "./../params.hpp"
 
 ///////////////////////////////////////////
 // MOTIVATIONAL
