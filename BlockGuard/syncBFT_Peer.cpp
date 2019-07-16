@@ -6,6 +6,7 @@
 #include <cassert>
 #include <utility>
 #include "Logger.hpp"
+//#include "hash.hpp"
 
 
 syncBFT_Peer::syncBFT_Peer(std::string id) : Peer<syncBFTmessage>(id){
@@ -102,10 +103,13 @@ void syncBFT_Peer::createBlock(const std::set<std::string>& publishers){
 	for (auto const& s : hashesToConnectTo) { newBlockString += "_" + s;}
 
 	newBlockString += "_" + consensusTx;
+
+//	use this for proper hashing
+//	string newBlockHash = sha256(newBlockString);
 	string newBlockHash = std::to_string(dag.getSize());
 
-	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, _byzantine));
-    minedBlock->setSubmissionRound(_clock);
+	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, faultyBlock));
+	minedBlock->setSubmissionRound(_clock);
     minedBlock->setSecruityLevel(committeeNeighbours.size() + 1);
 }
 
@@ -130,7 +134,7 @@ void syncBFT_Peer::currentStatusSend(){
 	sMessage.type = "STATUS";
 	sMessage.iter = std::to_string(iter);
 	assert(!acceptedStates.empty());
-	sMessage.message = {std::to_string(iter), "STATUS", acceptedStates.back().value, acceptedStates.back().valueAcceptedAt};
+	sMessage.message = {std::to_string(iter), "STATUS", acceptedStates.back().value, acceptedStates.back().valueAcceptedAt, std::to_string(isByzantine())};
 	sMessage.cc = acceptedStates.back().cc;
 	sMessage.statusCert = "Cert_"+_id;
 	Packet<syncBFTmessage> newMessage(std::to_string(iter), leaderId, _id);
@@ -160,6 +164,31 @@ void syncBFT_Peer::propose(){
 
 	//	concatenate notify messages
 	_inStream.insert(_inStream.end(), notifyMessagesPacket.begin(), notifyMessagesPacket.end());
+
+	//	distinguish honest and faulty messages
+	std::unordered_map<string, int> msgMap;
+	for(auto & i: _inStream){
+		msgMap[i.getMessage().message[4]]++;
+	}
+	std::string dominantMsg;
+	//	find dominant message to propose
+	for(const auto& a: msgMap){
+		if(a.second>=(committeeSize - 1)/2 +1){
+			dominantMsg = a.first;
+			break;
+		}
+	}
+
+	if(isByzantine ()){
+		if(dominantMsg == "1")
+			//	the proposal is faulty
+			valueFromLeader = "VALUE";
+		else
+			valueFromLeader = "CONFLICTING_VALUE";
+	}
+
+	assert(!dominantMsg.empty());
+
 	for(auto & i : _inStream){
 
 		Logger::instance()->log(id() + " RECEIVED " + i.getMessage().type + " MESSAGE FROM " + i.getMessage().peerId + "\n");
@@ -168,13 +197,17 @@ void syncBFT_Peer::propose(){
 			break;
 		}
 		if(isValidStatus(i.getMessage())){
-			if(i.getMessage().type == "STATUS"){
-				P.status.push_back(i.getMessage().message);
-			}else if(i.getMessage().type == "NOTIFY"){
-				P.notify.push_back(i.getMessage().message);
+			if(i.getMessage().message[4]==dominantMsg) {
+				if (i.getMessage().type == "STATUS") {
+					P.status.push_back(i.getMessage().message);
+				} else if (i.getMessage().type == "NOTIFY") {
+					P.notify.push_back(i.getMessage().message);
+				}
 			}
 		}
 	}
+
+	assert((P.size()>= (committeeSize - 1)/2 +1));
 
 	_inStream.clear();
 
@@ -190,7 +223,7 @@ void syncBFT_Peer::propose(){
 	}
 	if(!prevAcceptedValue){
 		for(auto &s: P.status){
-			assert(s.size() == 4);
+			assert(s.size() == 5);
 			if(s[3]!="0"){
 				prevAcceptedValue = true;
 			}
@@ -201,6 +234,12 @@ void syncBFT_Peer::propose(){
 	proposalMessage.type = "PROPOSE";
 	proposalMessage.iter = std::to_string(iter);
 	proposalMessage.P.clear();
+
+	if(dominantMsg == "1"){
+		proposalMessage.faulty = true;
+		//	set this for leader too
+		faultyBlock = true;
+	}
 
 	if(!prevAcceptedValue){
 		/*
@@ -270,9 +309,6 @@ void syncBFT_Peer::commitFromLeader(){
 	}
 
 	commitMessage.P.clear();
-	if(isByzantine ()){
-		valueFromLeader = "CONFLICTING_VALUE";
-	}
 
 	commitMessage.type = "FORWARD_PROPOSAL_AND_COMMIT";
 	commitMessage.value = valueFromLeader;
@@ -333,6 +369,9 @@ void syncBFT_Peer::commit(){
 
 		populateOutStream(messageToForward);
 
+	}
+	if(messageToForward.faulty){
+		faultyBlock = true;
 	}
 	setSyncBFTState(3);
 }
@@ -488,6 +527,7 @@ void syncBFT_Peer::refreshSyncBFT(){
 		_channel.second.clear();
 	}
 	consensusTx.clear();
+	faultyBlock = false;
 }
 
 void syncBFT_Peer::refreshInstream(){
