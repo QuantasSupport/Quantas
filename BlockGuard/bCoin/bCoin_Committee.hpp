@@ -7,7 +7,7 @@
 
 
 #include "DS_bCoin_Peer.hpp"
-#include "committee.hpp"
+#include "./../Common/committee.hpp"
 
 static std::vector<int> someByzantineCount;
 static std::vector<int> moreThanHalfByzantineCount;

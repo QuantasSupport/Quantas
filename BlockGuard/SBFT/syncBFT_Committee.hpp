@@ -7,7 +7,7 @@
 
 
 #include "syncBFT_Peer.hpp"
-#include "committee.hpp"
+#include "./../Common/committee.hpp"
 
 class syncBFT_Committee : public Committee<syncBFT_Peer>{
 private:
