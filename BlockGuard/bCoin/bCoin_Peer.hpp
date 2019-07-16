@@ -8,7 +8,7 @@
 #include <random>
 
 #include "./../Common/Peer.hpp"
-#include "Blockchain.hpp"
+#include "./../Common/Blockchain.hpp"
 
 struct bCoinMessage {
     std::string 							peerId;
