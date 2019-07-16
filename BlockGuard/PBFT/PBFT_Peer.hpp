@@ -65,7 +65,9 @@ struct PBFT_Message{
     bool                byzantine;
     bool                defeated;
     int                 securityLevel;
-    
+	DAGBlock			dagBlock;
+	bool 				dagBlockMsg = false;
+
     PBFT_Message(){
         submission_round= 0;
         client_id       = "";

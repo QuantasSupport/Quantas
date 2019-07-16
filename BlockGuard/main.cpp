@@ -24,6 +24,9 @@
 // PBFT
 #include "./PBFT/PBFT_Peer.hpp"
 #include "./PBFT/PBFTPeer_Sharded.hpp"
+#include "./PBFT/DS_PBFT_Peer.hpp"
+#include "./PBFT/DS_PBFT.hpp"
+#include "./PBFT/PBFT_Committee.hpp"
 // POW
 #include "./bCoin/bCoin_Peer.hpp"
 #include "./bCoin/bCoin_Committee.hpp"
@@ -45,6 +48,7 @@ void Example(std::ofstream &logFile);
 void syncBFT(const char ** argv);
 void bitcoin(std::ofstream &,int );
 void DS_bitcoin(const char ** argv);
+void run_DS_PBFT(const char ** argv);
 
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
@@ -111,6 +115,13 @@ int main(int argc, const char * argv[]) {
 		int runs = std::stoi(argv[3]);
 		for(int i = 0; i< runs; i++){
 			DS_bitcoin(argv);
+		}
+    }else if (algorithm == "DS_PBFT") {
+		//	Program arguments: DS_PBFT asdf 1 1 1 64 100 0.7 1
+		std::ofstream out;
+		int runs = std::stoi(argv[3]);
+		for(int i = 0; i< runs; i++){
+			run_DS_PBFT(argv);
 		}
     }
 
@@ -762,6 +773,163 @@ void syncBFT(const char ** argv){
         delete committee;
     }
 
+}
+
+void run_DS_PBFT(const char ** argv){
+	std::string filePath	= 	argv[2];
+	int delay 			= 	std::stoi(argv[4]);
+	int byzantineOrNot 		= 	std::stoi(argv[5]);
+	int peersCount 			= 	std::stoi(argv[6]);
+	int iterationCount 		= 	std::stoi(argv[7]);
+	double tolerance 		= 	std::stod(argv[8]);
+	int txRate 				= 	std::stoi(argv[9]);
+
+	Logger::setLogFileName(filePath + "_"+std::to_string(std::chrono::system_clock::now().time_since_epoch().count())+"_"+argv[1]+"_delay"+std::to_string(delay)+"_peerCount"+std::to_string(peersCount)
+						   +"_iterationCount"+std::to_string(iterationCount)+"_tolerance"+std::to_string(tolerance)+"_txRate"+std::to_string(txRate)+".txt");
+
+	int numberOfPeers = peersCount;
+	double fault = 0.3;
+
+
+	//	for printing security levels
+	std::vector<int> securityLevels;
+	securityLevels.push_back(peersCount/16);
+	securityLevels.push_back(peersCount/8);
+	securityLevels.push_back(peersCount/4);
+	securityLevels.push_back(peersCount/2);
+	securityLevels.push_back(peersCount/1);
+
+
+	std::cout<< std::endl<< "########################### DS_PBFT ###########################"<< std::endl;
+	DS_PBFT instance = DS_PBFT();
+	instance.setToRandom();
+	instance.setMaxDelay(delay);
+	instance.setSquenceNumber(999);
+	instance.initNetwork(numberOfPeers);
+	instance.setFaultTolerance(FAULT);
+	instance.setDelay(delay);
+	instance.makeByzantines(numberOfPeers*tolerance);
+
+	std::map<int, double> confirmationPerIteration;
+	int prevConfirmationSize = peersCount + 1;
+
+	instance.status = COLLECTING;
+	int numberOfRequests = 0;
+	for(int i =0; i < iterationCount; i++){
+		//	saturation point calculation, keep track of confirmed count, look at the dag of any peer to find the chain size. i.e. number of confirmed blocks
+		//	number of transactions introduced will be 1/txRate
+//		confirmation rate, rolling average
+		confirmationPerIteration[i] = (double)(instance[0]->getDAG().getSize() - prevConfirmationSize);
+		prevConfirmationSize = instance[0]->getDAG().getSize();
+
+		if(i%txRate == 0){
+			Logger::instance()->log("Making a request\n");
+			instance.makeRequest();numberOfRequests++;
+		}
+
+		Logger::instance()->log("------------------ITERATION-----------------\n");
+		instance.run(i);
+//		instance.receive();
+//		std::cout<< 'r'<< std::flush;
+//		instance.preformComputation();
+//		std::cout<< 'p'<< std::flush;
+//		instance.transmit();
+//		std::cout<< 't'<< std::flush;
+	}
+
+
+	Logger::instance()->log("FINALLY\n");
+
+
+	for(int i =0; i<instance.size();i++){
+		Logger::instance()->log("PEER " + std::to_string(i) + " DAG SIZE IS " + std::to_string(instance[i]->getDAG().getSize())+"\n");
+	}
+
+	Logger::instance()->log("CONFIRMATION COUNT = " + std::to_string(instance[0]->getDAG().getSize() - numberOfPeers - 1)+"\n");
+
+	Logger::instance()->log("DEFEATED COMMITTEES COUNT \n");
+
+	std::map<int, int> defeatedCommitteesBySecurityLevel;
+	for_each( instance.defeatedCommittees.begin(), instance.defeatedCommittees.end(), [&defeatedCommitteesBySecurityLevel]( int val ){ defeatedCommitteesBySecurityLevel[val]++; } );
+
+
+	for(auto l : securityLevels){
+		if(defeatedCommitteesBySecurityLevel.count(l)){
+			Logger::instance()->log(std::to_string(l) + " " + std::to_string(defeatedCommitteesBySecurityLevel[l]) + "\n");
+		} else
+			Logger::instance()->log(std::to_string(l) + " 0\n");
+	}
+
+	Logger::instance()->log("TOTAL COMMITTEES COUNT \n");
+
+	std::map<int, int> totalCommitteesBySecurityLevel;
+	for_each( instance.totalCommittees.begin(), instance.totalCommittees.end(), [&totalCommitteesBySecurityLevel]( int val ){ totalCommitteesBySecurityLevel[val]++; } );
+
+
+	for(auto l : securityLevels){
+		if(totalCommitteesBySecurityLevel.count(l)){
+			Logger::instance()->log(std::to_string(l) + " " + std::to_string(totalCommitteesBySecurityLevel[l]) + "\n");
+		} else
+			Logger::instance()->log(std::to_string(l) + " 0\n");
+	}
+
+	Logger::instance()->log("RATIO OF DEFEATED COMMITTEES\n");
+	for(auto l : securityLevels){
+		if(defeatedCommitteesBySecurityLevel.count(l)){
+			Logger::instance()->log(std::to_string(l) +  " " + std::to_string((double)defeatedCommitteesBySecurityLevel[l]/totalCommitteesBySecurityLevel[l]) + "\n");
+		} else
+			Logger::instance()->log(std::to_string(l) + " 0\n");
+	}
+
+	Logger::instance()->log("CONFIRMATION RATE, ROLLING TIMELINE\n");
+	for(auto cr : confirmationPerIteration){
+		Logger::instance()->log(std::to_string(cr.first) + ": " + std::to_string(cr.second) + "\n");
+	}
+	int rangeStart = 0;
+	std::vector<double> rollingAvgThroughputTimeline;
+	for(rangeStart=0;(rangeStart+100)<=iterationCount;rangeStart++){
+		int rangeEnd = rangeStart + 100;
+		double confirmations = 0;
+		for(int i = rangeStart; i<rangeEnd; i++){
+			confirmations+= confirmationPerIteration[i];
+		}
+		rollingAvgThroughputTimeline.push_back(confirmations/(100.0/txRate));
+	}
+
+	for(auto timeline: rollingAvgThroughputTimeline){
+		Logger::instance()->log("ROLLING TIMELINE THROUGHPUT  " + std::to_string(timeline)+"\n");
+	}
+
+	std::map<int, std::vector<PBFT_Message>>::iterator iit;
+
+	for(iit = instance.confirmedMessagesPerIteration.begin();iit!= instance.confirmedMessagesPerIteration.end();iit++){
+		Logger::instance()->log("Iteration "+std::to_string(iit->first)+"\n");
+		for(const auto& msg:iit->second){
+			Logger::instance()->log(std::to_string(iit->first)+" - "+ std::to_string(msg.submission_round) + " = " + std::to_string(iit->first - msg.submission_round) + "\n");
+		}
+	}
+
+//	rolling average waiting time
+	std::vector<double> rollingAvgWaitTime;
+	for(rangeStart=0;(rangeStart+100)<=iterationCount;rangeStart++){
+		int rangeEnd = rangeStart + 100;
+		int confirmed = 0;
+		double waitTime = 0;
+		for(iit = instance.confirmedMessagesPerIteration.begin();iit!= instance.confirmedMessagesPerIteration.end();iit++){
+			if( rangeStart < iit->first && iit->first <= rangeEnd){
+				for(const auto& msg:iit->second){
+					confirmed++;
+					waitTime+=  iit->first - msg.submission_round;
+				}
+			}
+		}
+		rollingAvgWaitTime.push_back(waitTime/confirmed);
+	}
+
+	Logger::instance()->log("ROLLING AVERAGE Throughput\n");
+	for(auto waitTime: rollingAvgWaitTime){
+		Logger::instance()->log("ROLLING THROUGHPUT " + std::to_string(waitTime)+"\n");
+	}
 }
 
 
