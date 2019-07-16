@@ -35,6 +35,7 @@ public:
 	bool 									getConsensusFlag				()                                  {return consensusFlag;};
 	double									getByzantineRatio				()                                  {return byzantineRatio;};
 	std::string								getCommitteeId					()                                  {return cId;}
+	int										getSecurityLevel				()									{return securityLevel;}
     peer_type*                              get                             (int i)                             {return operator[](i);};
     peer_type*                              get                             (int i)const                        {return operator[](i);};
     
