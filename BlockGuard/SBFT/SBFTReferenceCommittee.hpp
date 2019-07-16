@@ -16,7 +16,7 @@
 #include <random>
 #include "syncBFT_Peer.hpp"
 #include "syncBFT_Committee.hpp"
-#include "ByzantineNetwork.hpp"
+#include "./../Common/ByzantineNetwork.hpp"
 
 //phase mining or collecting
 const std::string MINING             = "MINING";

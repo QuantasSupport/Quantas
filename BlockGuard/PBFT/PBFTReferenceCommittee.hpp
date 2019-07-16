@@ -9,7 +9,7 @@
 #ifndef PBFTReferenceCommittee_hpp
 #define PBFTReferenceCommittee_hpp
 
-#include "ByzantineNetwork.hpp"
+#include "./../Common/ByzantineNetwork.hpp"
 #include "PBFTPeer_Sharded.hpp"
 #include <iostream>
 #include <random>

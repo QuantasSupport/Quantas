@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <set>
 #include "DS_bCoin_Peer.hpp"
-#include "ByzantineNetwork.hpp"
+#include "./../Common/ByzantineNetwork.hpp"
 #include "bCoin_Committee.hpp"
 
 struct bCoinTransactionRequest{
