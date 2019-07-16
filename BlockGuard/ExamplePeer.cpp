@@ -7,8 +7,8 @@
 //
 
 #include "ExamplePeer.hpp"
-#include "Peer.hpp"
-#include "Packet.hpp"
+#include "./Common/Peer.hpp"
+#include "./Common/Packet.hpp"
 #include <iostream>
 
 //
