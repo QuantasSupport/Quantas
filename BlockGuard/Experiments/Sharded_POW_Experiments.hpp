@@ -22,7 +22,7 @@
 #include <chrono>
 #include <random>
 #include "./../bCoin/bCoinReferenceCommittee.hpp"
-#include "params.hpp"
+#include "./../params.hpp"
 #include "metrics.hpp"
 
 
