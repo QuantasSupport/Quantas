@@ -18,7 +18,8 @@ private:
 	std::vector<std::string> 				leaderIdCandidates;
 	int 									firstMinerIndex     = -1;
     int                                     clock               = -1;
-    
+	bool									defeated = false;
+
 public:
 	syncBFT_Committee														(std::vector<syncBFT_Peer *> , syncBFT_Peer *, std::string , int);
 	syncBFT_Committee														(const syncBFT_Committee&);
@@ -36,6 +37,7 @@ public:
 	void 									leaderChange					();
 	void									refreshPeers					();
 	void									initiate						();
+	bool 									getDefeated						()																		{return defeated;}
 
 };
 

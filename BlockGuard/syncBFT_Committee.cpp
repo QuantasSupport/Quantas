@@ -133,8 +133,11 @@ void syncBFT_Committee::preformComputation(){
 
 void syncBFT_Committee::initiate(){
     dynamic_cast<syncBFT_Peer *>(senderPeer)->makeRequest(committeePeers, tx);
-    
-    for(int i = 0 ; i< committeePeers.size(); i++){
+	int byzantineCount = 0;
+	for(int i = 0 ; i< committeePeers.size(); i++){
+		if(committeePeers[i]->isByzantine()){
+			byzantineCount++;
+		}
         std::map<std::string, Peer<syncBFTmessage>* > neighbours;    //previous group is dissolved when new group is selected
         for(int j = 0; j< committeePeers.size(); j++){
             if(i != j){
@@ -143,4 +146,7 @@ void syncBFT_Committee::initiate(){
         }
         dynamic_cast<syncBFT_Peer *> (committeePeers[i])->setCommitteeNeighbours(neighbours);
     }
+	if(byzantineCount>= (size() - 1)/2 +1){
+		defeated = true;
+	}
 }
