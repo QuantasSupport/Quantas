@@ -8,7 +8,7 @@
 #include <random>
 #include <deque>
 #include "./../Common/Peer.hpp"
-#include "DAG.hpp"
+#include "./../Common/DAG.hpp"
 
 struct DS_bCoinMessage {
 	std::string 							peerId ;
