@@ -103,8 +103,17 @@ void syncBFT_Peer::createBlock(const std::set<std::string>& publishers){
 
 	newBlockString += "_" + consensusTx;
 	string newBlockHash = std::to_string(dag.getSize());
-
-	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, _byzantine));
+    
+    
+    int numberOfByz = 0;
+    for(auto neighbour = committeeNeighbours.begin(); neighbour != committeeNeighbours.end(); neighbour++){
+        if(neighbour->second->isByzantine()){
+            numberOfByz++;
+        }
+    }
+    double halfCommittee = (committeeNeighbours.size() +1)*0.5;
+    bool defeatedTX = numberOfByz > halfCommittee;
+	minedBlock = new DAGBlock(dag.createBlock(dag.getSize(), hashesToConnectTo, newBlockHash, {id()}, consensusTx, defeatedTX));
     minedBlock->setSubmissionRound(_clock);
     minedBlock->setSecruityLevel(committeeNeighbours.size() + 1);
 }
@@ -372,6 +381,7 @@ void syncBFT_Peer::notify(){
 	{
 		if (pair.second >= (committeeSize - 1)/2 +1){
 			committed = true;
+            std::cout<< "committed"<< committed << std::endl;
 		}
 	}
 	if(committed){

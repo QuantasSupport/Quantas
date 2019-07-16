@@ -52,6 +52,25 @@ double waitTime(std::vector<DAGBlock> globalLedger){
     }
 }
 
+double waitTimeRolling(std::vector<DAGBlock> globalLedger, int fromRound){
+    if(globalLedger.size() == 0){
+        return -1;
+    }
+    
+    double averageWaitTime = 0;
+    double sumOfWaitingTime = 0;
+    double totalNumberOfTrnasactions = 0;
+    for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){
+        if(entry->getConfirmedRound() >= fromRound){
+            sumOfWaitingTime += entry->getConfirmedRound() - entry->getSubmissionRound();
+            totalNumberOfTrnasactions++;
+        }
+    }
+    averageWaitTime = sumOfWaitingTime/totalNumberOfTrnasactions;
+    
+    return averageWaitTime;
+}
+
 int totalNumberOfDefeatedCommittees(std::vector<DAGBlock> globalLedger, double secLvl){
     int total = 0;
     for(auto entry = globalLedger.begin(); entry != globalLedger.end(); entry++){

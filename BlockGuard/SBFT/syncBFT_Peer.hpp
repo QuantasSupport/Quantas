@@ -150,16 +150,16 @@ public:
     DAG                                             getDAG                                      ()const                                             { return this->dag; }
 	std::map<std::string, Peer<syncBFTmessage>* > 	getCommitteeNeighbours						()                                                  { return committeeNeighbours; }
 	std::string 									getLeaderId									()                                                  { return leaderId; }
-	bool 											getTerminationFlag							() const                                            { return terminated; }
+	bool 											getTerminationFlag							()const                                             { return terminated; }
 	std::string 									getConsensusTx								()                                                  { return consensusTx; }
 	bool 											isTerminated								()                                                  { return terminated; }
     bool                                            isValidProposal                             (const syncBFTmessage &message) const               { return message.peerId == leaderId; }
     bool                                            isValidNotify                               (const syncBFTmessage &message) const               { return true; }
     bool                                            isValidStatus                               (const syncBFTmessage &message) const               { return true; }
+    bool                                            isLeader                                    ()const                                             { return leaderId == _id; }
     
     // mutators
 	void 											createBlock									(const std::set<std::string>&);
-	bool 											isLeader									()                                                  { return leaderId == _id; }
 	void 											run											();
 	void 											currentStatusSend							();
 	void 											propose										();

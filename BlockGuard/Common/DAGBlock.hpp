@@ -11,7 +11,6 @@
 #include <vector>
 #include <memory>
 #include <set>
-#include "PBFT_Peer.hpp"
 
 using std::vector;
 using std::string;
@@ -34,7 +33,6 @@ public:
 	DAGBlock                                                               	() = default;
 	DAGBlock																(const DAGBlock &);
 	DAGBlock&							operator=							(const DAGBlock &);
-    DAGBlock                                                                (const PBFT_Message msg);
     
 	DAGBlock																(int, vector<string>, string, set<string> , string, bool);
 	~DAGBlock()= default;
@@ -43,6 +41,14 @@ public:
     void                                setSecruityLevel                    (int s)                                                     {secruityLevel = s;};
     void                                setSubmissionRound                  (int s)                                                     {submissionRound = s;};
     void                                setConfirmedRound                   (int c)                                                     {confirmedRound = c;};
+    void                                setIndex                            (int i)                                                     {index = i;};
+    void                                setPreviousHashes                   (std::vector<string> ph)                                    {previousHashes = ph;};
+    void                                setHash                             (string h)                                                  {hash = h;};
+    void                                setPublishers                       (set<string> p)                                             {publishers = p;};
+    void                                setData                             (string d)                                                  {data = d;};
+    void                                setByzantine                        (bool b)                                                    {byzantine = b;};
+    
+    
     
     // getters
 	std::vector<string> 				getPreviousHashes					() const;
