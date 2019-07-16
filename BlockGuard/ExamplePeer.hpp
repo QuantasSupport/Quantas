@@ -9,7 +9,7 @@
 #ifndef ExamplePeer_hpp
 #define ExamplePeer_hpp
 
-#include "Peer.hpp"
+#include "./Common/Peer.hpp"
 
 //
 // Example of a message body type
