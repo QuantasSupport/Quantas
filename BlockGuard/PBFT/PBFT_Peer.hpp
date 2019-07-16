@@ -15,7 +15,7 @@
 #include <cassert>
 #include <list>
 #include "./../Common/Peer.hpp"
-#include "DAGBlock.hpp"
+#include "./../Common/DAGBlock.hpp"
 
 //
 // PBFT Message defintion

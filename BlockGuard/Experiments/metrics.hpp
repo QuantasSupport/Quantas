@@ -10,7 +10,7 @@
 #define metrics_hpp
 
 #include <stdio.h>
-#include "DAGBlock.hpp"
+#include "./../Common/DAGBlock.hpp"
 #include "params.hpp"
 
 double  ratioOfSecLvl                   (std::vector<DAGBlock> globalLedger, double secLvl);
