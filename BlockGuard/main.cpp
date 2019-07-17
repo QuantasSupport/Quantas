@@ -82,30 +82,7 @@ int main(int argc, const char * argv[]) {
     }else if(algorithm == "pow_s"){
         POW_refCom(filePath);
     }else if(algorithm == "sbft_s"){
-//        SBFT_refCom(filePath);
-        SBFTReferenceCommittee system = SBFTReferenceCommittee();
-        system.setGroupSize(GROUP_SIZE);
-        system.setToRandom();
-        system.setMaxDelay(1);
-        system.setLog(std::cout);
-        system.makeByzantines(PEER_COUNT*0.9);
-        system.initNetwork(PEER_COUNT);
-        
-        int totalSub = 0;
-        for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.shuffleByzantines(PEER_COUNT*0.9);
-            system.makeRequest(system.securityLevel1());
-            system.makeRequest(system.securityLevel1());
-            system.makeRequest(system.securityLevel1());
-            
-            totalSub = totalSub + 3;
-            system.receive();
-            std::cout<< 'r'<< std::flush;
-            system.preformComputation();
-            std::cout<< 'p'<< std::flush;
-            system.transmit();
-            std::cout<< 't'<< std::flush;
-        }
+        SBFT_refCom(filePath);
     }else if (algorithm == "bitcoin") {
         std::ofstream out;
         bitcoin(out, 1);
