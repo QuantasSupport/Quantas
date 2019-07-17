@@ -12,7 +12,8 @@ clean:
 	clear
 
 build: preBuild
-	clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lssl -lcrypto
+	#clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out -lssl -lcrypto
+	clang++ -std=c++14 ./BlockGuard/*.cpp *.o -o ./BlockGuard.out
 
 preBuild:
 	clang++ -std=c++14 ./BlockGuard/Common/*.cpp -c
