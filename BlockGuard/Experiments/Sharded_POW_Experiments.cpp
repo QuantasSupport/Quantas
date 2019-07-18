@@ -9,7 +9,7 @@
 #include "Sharded_POW_Experiments.hpp"
 
 void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log){
-    std::string header = "Committee Size, Ratio Defeated Committees, Confirmed/Submitted";
+    std::string header = "Committee Size,totalDef,totalHonest, Ratio Defeated Committees, Confirmed/Submitted";
     csv<< header<< std::endl;
 
     // sec lvl 1
@@ -41,7 +41,7 @@ void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &l
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< secLvel*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
     } // end loop runs
 
     // sec lvl 2
@@ -73,7 +73,7 @@ void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &l
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< secLvel*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
     } // end loop runs
 
     // sec lvl 3
@@ -105,7 +105,7 @@ void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &l
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< secLvel*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
     } // end loop runs
 
     // sec lvl 4
@@ -137,7 +137,7 @@ void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &l
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< secLvel*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
     } // end loop runs
 
     // sec lvl 5
@@ -169,7 +169,7 @@ void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &l
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< secLvel*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
     } // end loop runs
 }
 
@@ -189,8 +189,8 @@ void PoWWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setToRandom();
         system.setMaxDelay(delay);
         system.setLog(log);
-        system.makeByzantines(NUMBER_OF_BYZ);
         system.initNetwork(PEER_COUNT);
+        system.makeByzantines(NUMBER_OF_BYZ);
 
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -232,8 +232,8 @@ void PoWWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setToRandom();
         system.setMaxDelay(delay);
         system.setLog(log);
-        system.makeByzantines(NUMBER_OF_BYZ);
         system.initNetwork(PEER_COUNT);
+        system.makeByzantines(NUMBER_OF_BYZ);
 
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -275,8 +275,8 @@ void PoWWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setToRandom();
         system.setMaxDelay(delay);
         system.setLog(log);
-        system.makeByzantines(NUMBER_OF_BYZ);
         system.initNetwork(PEER_COUNT);
+        system.makeByzantines(NUMBER_OF_BYZ);
 
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -318,8 +318,8 @@ void PoWWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setToRandom();
         system.setMaxDelay(delay);
         system.setLog(log);
-        system.makeByzantines(NUMBER_OF_BYZ);
         system.initNetwork(PEER_COUNT);
+        system.makeByzantines(NUMBER_OF_BYZ);
 
         int totalSub = 0;
         int prvConfirmed = 0;
