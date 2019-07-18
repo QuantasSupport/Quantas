@@ -41,7 +41,7 @@ void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &l
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< system.securityLevel1()*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
     } // end loop runs
 
     // sec lvl 2
@@ -73,7 +73,7 @@ void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &l
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< system.securityLevel1()*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
     } // end loop runs
 
     // sec lvl 3
@@ -105,7 +105,7 @@ void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &l
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< system.securityLevel1()*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
     } // end loop runs
 
     // sec lvl 4
@@ -137,7 +137,7 @@ void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &l
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< system.securityLevel1()*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
     } // end loop runs
 
     // sec lvl 5
@@ -169,7 +169,7 @@ void PoWCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &l
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< system.securityLevel1()*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(system.getGlobalLedger().size()) / totalSub<<std::endl;
     } // end loop runs
 }
 
