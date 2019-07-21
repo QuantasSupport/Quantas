@@ -37,7 +37,7 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
@@ -67,7 +67,7 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
@@ -97,7 +97,7 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
@@ -127,7 +127,7 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
@@ -157,7 +157,7 @@ void SBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
         double totalHonest = system.getGlobalLedger().size() - totalNumberOfDefeatedCommittees(system.getGlobalLedger(),secLvel);
@@ -199,7 +199,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -240,7 +240,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -281,7 +281,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -322,7 +322,7 @@ void SBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -372,7 +372,7 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -413,7 +413,7 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -454,7 +454,7 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -495,7 +495,7 @@ void SBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = system.getGlobalLedger().size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;

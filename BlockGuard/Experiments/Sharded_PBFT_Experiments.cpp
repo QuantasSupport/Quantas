@@ -35,7 +35,7 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
@@ -66,7 +66,7 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
@@ -97,7 +97,7 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
@@ -128,7 +128,7 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
@@ -159,7 +159,7 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
@@ -202,7 +202,7 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -244,7 +244,7 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -286,7 +286,7 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -328,7 +328,7 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -379,7 +379,7 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -421,7 +421,7 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -463,7 +463,7 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -505,7 +505,7 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
