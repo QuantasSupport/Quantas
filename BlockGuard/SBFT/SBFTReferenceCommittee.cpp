@@ -240,7 +240,7 @@ SBFTReferenceCommittee::SBFTReferenceCommittee(){
     _groupSize = -1;
     _totalSubmissions = 0;
     _waitTime = -1;
-    _clock = -1;
+    _clock = 0;
     _peers = ByzantineNetwork<syncBFTmessage, syncBFT_Peer>();
     _groups = std::deque<SBFTGroup>();
     _requestQueue = std::deque<SBFTTransactionRequest>();

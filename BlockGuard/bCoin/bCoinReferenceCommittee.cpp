@@ -22,7 +22,7 @@ bCoinReferenceCommittee::bCoinReferenceCommittee (){
     _groups = std::map<int,bCoinGroup>();
     _requestQueue = std::deque<bCoinTransactionRequest>();
     _currentCommittees = std::vector<bCoin_Committee>();
-    
+    _clock = 0;
 
     _log = nullptr;
     _printNetwork = false;

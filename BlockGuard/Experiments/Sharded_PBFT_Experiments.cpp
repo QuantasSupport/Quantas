@@ -27,8 +27,6 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
             totalSub = totalSub + 3;
             system.receive();
@@ -59,8 +57,6 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
             system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
             totalSub = totalSub + 3;
@@ -93,8 +89,6 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
             totalSub = totalSub + 3;
             system.receive();
@@ -126,8 +120,6 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
             totalSub = totalSub + 3;
             system.receive();
@@ -158,8 +150,6 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
             system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
             totalSub = totalSub + 3;
@@ -204,8 +194,6 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
             totalSub = totalSub + 3;
             system.receive();
@@ -247,8 +235,6 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest();
-            system.makeRequest();
             system.makeRequest();
             
             totalSub = totalSub + 3;
@@ -292,8 +278,6 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
             totalSub = totalSub + 3;
             system.receive();
@@ -335,8 +319,6 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            system.makeRequest();
-            system.makeRequest();
             system.makeRequest();
             
             totalSub = totalSub + 3;
@@ -389,8 +371,6 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
             totalSub = totalSub + 3;
             system.receive();
@@ -432,8 +412,6 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
-            system.makeRequest();
-            system.makeRequest();
             system.makeRequest();
             
             totalSub = totalSub + 3;
@@ -477,8 +455,6 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
             totalSub = totalSub + 3;
             system.receive();
@@ -520,8 +496,6 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         int prvSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
-            system.makeRequest();
-            system.makeRequest();
             system.makeRequest();
             
             totalSub = totalSub + 3;
