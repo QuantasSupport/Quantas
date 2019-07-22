@@ -26,9 +26,10 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
+            system.makeRequest(secLvel);
             totalSub++;
+            
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
@@ -57,8 +58,8 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
+            system.makeRequest(secLvel);
             totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -88,8 +89,8 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
+            system.makeRequest(secLvel);
             totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -119,8 +120,8 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
+            system.makeRequest(secLvel);
             totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
@@ -150,8 +151,8 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
+            system.makeRequest(secLvel);
             totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
