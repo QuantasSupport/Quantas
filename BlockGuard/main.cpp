@@ -649,6 +649,7 @@ void syncBFT(const char ** argv){
         // phase 3 working on collcetcing
         //
         }else if(status == COLLECTING){
+			waitTime = 2*n.maxDelay();
             //    make sure no peer is busy
             for(int a = 0; a< n.size();a++){
                 assert(n[a]->isTerminated());
