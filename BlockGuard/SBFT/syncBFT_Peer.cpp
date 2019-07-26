@@ -179,14 +179,6 @@ void syncBFT_Peer::propose(){
 		}
 	}
 
-	if(isByzantine ()){
-		if(dominantMsg == "1")
-			//	the proposal is faulty
-			valueFromLeader = "VALUE";
-		else
-			valueFromLeader = "CONFLICTING_VALUE";
-	}
-
 	assert(!dominantMsg.empty());
 
 	for(auto & i : _inStream){
@@ -309,6 +301,10 @@ void syncBFT_Peer::commitFromLeader(){
 	}
 
 	commitMessage.P.clear();
+
+	if(isByzantine() && !faultyBlock){
+		valueFromLeader = "CONFLICTING_VALUE";
+	}
 
 	commitMessage.type = "FORWARD_PROPOSAL_AND_COMMIT";
 	commitMessage.value = valueFromLeader;
@@ -436,8 +432,25 @@ void syncBFT_Peer::notify(){
 		bcMessage.type="NOTIFY";
 		bcMessage.message = {std::to_string(iter), "NOTIFY",valueFromLeader};
 		bcMessage.cc.clear ();
-		bcMessage.cc = cc;
-		bcMessage.iter = std::to_string(iter);
+
+        std::stringstream ss;
+        for(size_t i = 0; i < cc.commit.size(); ++i)
+        {
+            for(size_t j = 0; j< cc.commit[i].size();++j){
+                if(i != 0){
+                    ss<<" ";
+                }
+                ss<<cc.commit[i][j];
+            }
+        }
+        std::string ccString = ss.str();
+
+//        std::string ccHash = sha256(ccString);
+        std::string ccHash = "SAMPLE";
+
+        bcMessage.ccHash = ccHash;
+
+        bcMessage.iter = std::to_string(iter);
 		bcMessage.value = valueFromLeader;
 
 		populateOutStream(bcMessage);

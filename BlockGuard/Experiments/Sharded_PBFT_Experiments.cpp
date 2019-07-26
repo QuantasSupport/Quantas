@@ -9,7 +9,7 @@
 #include "Sharded_PBFT_Experiments.hpp"
 
 void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &log){
-    std::string header = "Committee Size, Ratio Defeated Committees, Confirmed/Submitted";
+    std::string header = "Committee Size,totalDef,totalHonest, Ratio Defeated Committees, Confirmed/Submitted";
     csv<< header<< std::endl;
     
     // sec lvl 1
@@ -20,28 +20,28 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
+        system.setFaultTolerance(FAULT);
         int secLvel = system.securityLevel1();
         
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            totalSub = totalSub + 3;
+            system.makeRequest(secLvel);
+            totalSub++;
+            
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< system.securityLevel1()*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<<std::endl;
     } // end loop runs
     
     // sec lvl 2
@@ -52,28 +52,27 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
+        system.setFaultTolerance(FAULT);
         int secLvel = system.securityLevel2();
         
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            totalSub = totalSub + 3;
+            system.makeRequest(secLvel);
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< system.securityLevel1()*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<<std::endl;
     } // end loop runs
     
     // sec lvl 3
@@ -84,28 +83,27 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
+        system.setFaultTolerance(FAULT);
         int secLvel = system.securityLevel3();
         
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            totalSub = totalSub + 3;
+            system.makeRequest(secLvel);
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< system.securityLevel1()*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<<std::endl;
     } // end loop runs
     
     // sec lvl 4
@@ -116,28 +114,27 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
+        system.setFaultTolerance(FAULT);
         int secLvel = system.securityLevel4();
         
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            totalSub = totalSub + 3;
+            system.makeRequest(secLvel);
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< system.securityLevel1()*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<<std::endl;
     } // end loop runs
     
     // sec lvl 5
@@ -148,28 +145,27 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
+        system.setFaultTolerance(FAULT);
         int secLvel = system.securityLevel5();
         
         system.makeByzantines(NUMBER_OF_BYZ);
         int totalSub = 0;
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
-            system.makeRequest(secLvel);
             system.shuffleByzantines(NUMBER_OF_BYZ);
-            totalSub = totalSub + 3;
+            system.makeRequest(secLvel);
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
         }
         double totalDef = totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double totalHonest = PBFTLedgerToDag(system.getGlobalLedger()).size() - totalNumberOfDefeatedCommittees(PBFTLedgerToDag(system.getGlobalLedger()),secLvel);
         double ratioOfDefToHonest = totalDef / totalHonest;
-        csv<< system.securityLevel1()*GROUP_SIZE<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<<std::endl;
+        csv<< secLvel*GROUP_SIZE<< ","<<totalDef << ","<< totalHonest<< ","<< ratioOfDefToHonest << ","<< double(PBFTLedgerToDag(system.getGlobalLedger()).size()) / totalSub<<std::endl;
     } // end loop runs
 }
 
@@ -189,8 +185,9 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setToRandom();
         system.setMaxDelay(delay);
         system.setLog(log);
-        system.makeByzantines(NUMBER_OF_BYZ);
         system.initNetwork(PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        system.makeByzantines(NUMBER_OF_BYZ);
         
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -198,17 +195,15 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
-            totalSub = totalSub + 3;
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -232,8 +227,9 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setToRandom();
         system.setMaxDelay(delay);
         system.setLog(log);
-        system.makeByzantines(NUMBER_OF_BYZ);
         system.initNetwork(PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        system.makeByzantines(NUMBER_OF_BYZ);
         
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -241,17 +237,15 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
-            totalSub = totalSub + 3;
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -275,8 +269,9 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setToRandom();
         system.setMaxDelay(delay);
         system.setLog(log);
-        system.makeByzantines(NUMBER_OF_BYZ);
         system.initNetwork(PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        system.makeByzantines(NUMBER_OF_BYZ);
         
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -284,17 +279,15 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
-            totalSub = totalSub + 3;
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -318,8 +311,9 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setToRandom();
         system.setMaxDelay(delay);
         system.setLog(log);
-        system.makeByzantines(NUMBER_OF_BYZ);
         system.initNetwork(PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        system.makeByzantines(NUMBER_OF_BYZ);
         
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -327,17 +321,15 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(NUMBER_OF_BYZ);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
-            totalSub = totalSub + 3;
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -370,8 +362,9 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         system.setToRandom();
         system.setToOne();
         system.setLog(log);
-        system.makeByzantines(PEER_COUNT*byzantine);
         system.initNetwork(PEER_COUNT);
+        system.setFaultTolerance(FAULT);
+        system.makeByzantines(PEER_COUNT*byzantine);
         
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -379,17 +372,15 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
-            totalSub = totalSub + 3;
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -413,8 +404,9 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         system.setToRandom();
         system.setToOne();
         system.setLog(log);
-        system.makeByzantines(PEER_COUNT*byzantine);
         system.initNetwork(PEER_COUNT);
+        system.makeByzantines(PEER_COUNT*byzantine);
+        system.setFaultTolerance(FAULT);
         
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -422,17 +414,15 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
-            totalSub = totalSub + 3;
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -456,8 +446,9 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         system.setToRandom();
         system.setToOne();
         system.setLog(log);
-        system.makeByzantines(PEER_COUNT*byzantine);
         system.initNetwork(PEER_COUNT);
+        system.makeByzantines(PEER_COUNT*byzantine);
+        system.setFaultTolerance(FAULT);
         
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -465,17 +456,15 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
-            totalSub = totalSub + 3;
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
@@ -499,8 +488,9 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         system.setToRandom();
         system.setToOne();
         system.setLog(log);
-        system.makeByzantines(PEER_COUNT*byzantine);
         system.initNetwork(PEER_COUNT);
+        system.makeByzantines(PEER_COUNT*byzantine);
+        system.setFaultTolerance(FAULT);
         
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -508,17 +498,15 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         for(int i = 0; i < NUMBER_OF_ROUNDS; i++){
             system.shuffleByzantines(PEER_COUNT*byzantine);
             system.makeRequest();
-            system.makeRequest();
-            system.makeRequest();
             
-            totalSub = totalSub + 3;
+            totalSub++;
             system.receive();
             std::cout<< 'r'<< std::flush;
             system.preformComputation();
             std::cout<< 'p'<< std::flush;
             system.transmit();
             std::cout<< 't'<< std::flush;
-            system.log();
+            
             if(i%100 == 0){
                 double last100RoundCon = PBFTLedgerToDag(system.getGlobalLedger()).size() - prvConfirmed;
                 double last100RoundSub = totalSub - prvSub;
