@@ -34,6 +34,7 @@
 // UTIL
 #include "./Common/Logger.hpp"
 #include "./Common/Blockchain.hpp"
+#include "MarkPBFT_peer.hpp"
 
 const int peerCount = 10;
 const int blockChainLength = 100;
@@ -49,6 +50,8 @@ void syncBFT(const char ** argv);
 void bitcoin(std::ofstream &,int );
 void DS_bitcoin(const char ** argv);
 void run_DS_PBFT(const char ** argv);
+void markPBFT(const std::string&);
+void smartShard(const std::string&);
 
 int main(int argc, const char * argv[]) {
     srand((float)time(NULL));
@@ -100,7 +103,12 @@ int main(int argc, const char * argv[]) {
 		for(int i = 0; i< runs; i++){
 			run_DS_PBFT(argv);
 		}
-    }
+	}else if (algorithm == "markpbft") {
+		markPBFT(filePath);
+	}
+	else if (algorithm == "smartshard") {
+		smartShard(filePath);
+	}
 
     return 0;
 }
@@ -964,4 +972,255 @@ std::set<std::string> getPeersForConsensus(int securityLevel) {
     }
 
     return peersForConsensus;
+}
+
+void smartShard(const std::string& filePath) {
+	int numshardsmin = 5;
+	int numshardsmax = 16;
+
+	int delay = 10;
+	double fault_tolerance = .333333;
+	int numrounds = 1000;
+	int requestPerRound = 1;
+	int roundstoRequest = 10;
+
+	int numTest = 10;
+
+	std::ofstream out;
+	std::ofstream summary;
+	summary.open(filePath + "/summary.log");
+	summary << "shards, confirmations, avgWaitTime" << std::endl;
+
+	for (int numshards = numshardsmin; numshards <= numshardsmax; ++numshards) {
+		int peerspershard = numshards - 1;
+		out.open(filePath + "/smart shard," + std::to_string(numshards) + " shards.log");
+
+
+		int totalConfirmations = 0;
+		int totalWaitTime = 0;
+		for (int test = 0; test < numTest; ++test)
+		{
+
+			std::map<int, ByzantineNetwork<markPBFT_message, markPBFT_peer>> system;
+
+			// Initialize networks
+			for (int i = 0; i < numshards; ++i) {
+
+				system[i].setLog(out);
+				system[i].setToRandom();
+				system[i].setMaxDelay(delay);
+				system[i].initNetwork(peerspershard);
+				system[i][rand() % peerspershard]->setPrimary(true);
+
+				for (int j = 0; j < peerspershard; ++j) {
+
+					system[i][j]->setFaultTolerance(fault_tolerance);
+					system[i][j]->setRequestPerRound(requestPerRound);
+					system[i][j]->setRoundsToRequest(roundstoRequest);
+					system[i][j]->setMaxWait();
+				}
+			}
+
+			// Run for specified number of rounds
+			for (int i = 0; i < numrounds; ++i) {
+				for (int j = 0; j < numshards; ++j) {
+					for (int k = 0; k < peerspershard; ++k)
+						system[j][k]->makeRequest();
+					//system[j].log();
+				}
+			}
+			
+			// Count Confirmations
+			int avgWaitTime = 0;
+			int confirmations = 0;
+			for (int i = 0; i < numshards; ++i)
+				for (int j = 0; j < peerspershard; ++j) {
+					confirmations += system[i][j]->getLedger().size();
+					for (auto e : system[i][j]->getLedger()) {
+						auto messageNum = e.first;
+						messageNum.erase(0, 5);
+						int messageNumInt = std::stoi(messageNum);
+
+						int waitTime = e.second - (messageNumInt * roundstoRequest)+roundstoRequest;
+						//std::cout << messageNumInt << ": " << e.second << ": " << waitTime << std::endl;
+						avgWaitTime += waitTime;
+					}
+				}
+			avgWaitTime = avgWaitTime / confirmations;
+			//std::cout << avgWaitTime;
+			totalConfirmations += confirmations;
+			totalWaitTime += avgWaitTime;
+		}
+
+		out.close();
+		summary << numshards << ", " << totalConfirmations/numTest << ", " << totalWaitTime/numTest << std::endl;
+	}
+	summary.close();
+
+}
+
+void markPBFT(const std::string& filePath) {
+	std::cout << "markPBFT" << std::endl;
+
+	std::ofstream summary;
+	summary.open(filePath + "/summary.log");
+
+	summary << "test,rounds,requests per round,rounds till requests,delay setting,network size,confirmations,message count,request sent,vote changes,force changes,num byzantine\n";
+
+	int initNetworkSize = 8;
+	int maxNetworkSize = 8;
+	int initDelay = 1;
+	int maxDelay = 1;
+	int numTests = 1;
+	int initRequestPerRound = 1;
+	int maxRequestPerRoound = 1;
+	int initRoundstoRequest = 5;
+	int maxRoundstoRequest = 5;
+	double fault_tolerance = .333333;
+	int initByzantine = 0;
+	int maxByzantine = 0;
+
+	int viewChangeMult = 5;
+	bool enableViewChange = false;
+
+	int rounds = 1000;
+
+	for (int networkSize = initNetworkSize; networkSize <= maxNetworkSize; networkSize = networkSize * 2) {
+		for (int delay = initDelay; delay <= maxDelay; delay += 1) {
+
+			for (int requestPerRound = initRequestPerRound; requestPerRound <= maxRequestPerRoound; ++requestPerRound) {
+				for (int roundstoRequest = initRoundstoRequest; roundstoRequest <= maxRoundstoRequest; ++roundstoRequest) {
+					for (int numByzantine = initByzantine; numByzantine <= maxByzantine; ++numByzantine) {
+
+						int totalLatency = 0;
+						long totalMessages = 0;
+						int numConfirmations = 0;
+						int totalRequests = 0;
+						int totalVoteChanges = 0;
+						int totalForceChanges = 0;
+
+						for (int test = 1; test <= numTests; ++test) {
+
+
+							std::ofstream out;
+							out.open(filePath + "/markPBFT_Delay" + std::to_string(delay) + "networksize_" +
+								std::to_string(networkSize) + "requests_" + std::to_string(requestPerRound) + "delayrequest_" + std::to_string(roundstoRequest)
+								+ "byzantine_" + std::to_string(numByzantine) + "Test" + std::to_string(test) + ".log");
+
+							if (out.fail())
+								std::cerr << "failed to open log file";
+
+
+							ByzantineNetwork<markPBFT_message, markPBFT_peer> system;
+							system.setLog(out);
+							system.setToRandom();
+							system.setMaxDelay(delay);
+							system.initNetwork(networkSize);
+
+							system.makeByzantines(numByzantine);
+
+							// PBFT selects random primary
+							int primaryIndex = rand() % networkSize;
+							system[primaryIndex]->setPrimary(true);
+
+							// Set Parameters in network
+							for (int i = 0; i < networkSize; ++i) {
+								system[i]->setFaultTolerance(fault_tolerance);
+								system[i]->setRequestPerRound(requestPerRound);
+								system[i]->setRoundsToRequest(roundstoRequest);
+								system[i]->setMaxWait();
+
+							}
+
+							// Used to monitor notes wanting view change
+							int forceCount = 0;
+							int voteChanges = 0;
+							int forceChanges = 0;
+
+							// Process rounds for every in in network
+							for (int i = 0; i < rounds; ++i) {
+								for (int j = 0; j < networkSize; ++j)
+									system.makeRequest(j);
+
+								if (enableViewChange) {
+									// Check votes towards view change
+									int voteCount = 0;
+									for (int k = 0; k < networkSize; ++k)
+										if (system[k]->getVote()) {
+											++voteCount;
+										}
+
+									// Check conditions for view change
+									if (voteCount > (int)(2 * (fault_tolerance * networkSize)) || (forceCount++ > delay * viewChangeMult)) {
+										if (voteCount > (int)(2 * (fault_tolerance * networkSize)))
+											++voteChanges;
+										if (forceCount > delay * viewChangeMult)
+											++forceChanges;
+										while (system[primaryIndex]->isPrimary())
+											primaryIndex = rand() % networkSize;
+										system[primaryIndex]->setPrimary(true);
+										voteCount = 0;
+										forceCount = 0;
+									}
+
+								}
+								system.log();
+							}
+
+							// Following is used for logging
+
+							// Get Ledgers
+							std::map<std::string, int> ledger;
+
+							for (int i = 0; i < networkSize; ++i)
+								ledger.insert(system[i]->getLedger().begin(), system[i]->getLedger().end());
+
+							out << "--Ledger--\nrequest\t\tround found\n";
+							for (auto itr = ledger.begin(); itr != ledger.end(); ++itr) {
+								out << itr->first << "\t\t" << itr->second << std::endl;
+
+								totalLatency += itr->second;
+							}
+
+							if (ledger.empty()) {
+								out << "--Ledger--\n\trequest\t\tround found\n\tMessage not agreed, increase round count" << std::endl;
+								//	summary << "not found,";
+							}
+
+							int messageSum = 0;
+							int requestSum = 0;
+							int byzantineSum = 0;
+							for (int i = 0; i < networkSize; ++i) {
+								messageSum += system[i]->getMessageCount();
+								requestSum += system[i]->getRequests().size();
+								if (system[i]->isByzantine())
+									++byzantineSum;
+							}
+
+
+							out << "--Total Message Count--\t--Total Requests--\t--Byzantine Sum--\n\t" << messageSum << "\t\t\t"
+								<< requestSum << "\t\t\t" << byzantineSum << std::endl;
+							//summary << messageSum << std::endl;
+
+							totalRequests += requestSum;
+							totalMessages += messageSum;
+							numConfirmations += ledger.size();
+							totalVoteChanges += voteChanges;
+							totalForceChanges += forceChanges;
+
+
+							if (out)
+								out.close();
+						}
+						summary << std::fixed << "averages," << rounds << ',' << requestPerRound << ',' << roundstoRequest << ',' << delay << ','
+							<< networkSize << ',' << (float)numConfirmations / numTests << ',' << (float)totalMessages / numTests <<
+							',' << (float)totalRequests / numTests << ',' << (float)totalVoteChanges / numTests << ','
+							<< (float)totalForceChanges / numTests << ',' << numByzantine << std::endl;
+					}
+				}
+			}
+		}
+
+	}
+	summary.close();
 }
