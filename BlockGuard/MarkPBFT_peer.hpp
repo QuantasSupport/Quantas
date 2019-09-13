@@ -47,6 +47,7 @@ private:
 	int _roundsToRequest;
 	int _remainingRoundstoRequest;
 	double _faultTolerance;
+	int _shard;
 
 	// For view Change
 
@@ -66,6 +67,8 @@ private:
 	std::map<std::string, int> _ledger; // First value is messageID, second is delay to receive
 
 public:
+	void setShard(int shardNum) { _shard=shardNum; }
+	int getShard() const { return _shard; };
 	bool getVote() { return _voteChange; }
 	void resetVote() { _voteChange = false; _viewCounter = 0; }
 	void setMaxWait();

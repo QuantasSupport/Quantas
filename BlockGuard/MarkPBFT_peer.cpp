@@ -1,3 +1,9 @@
+//	Contains markpbft peer and message classes
+//	Created by Mark Gardner for distributed consensus research
+//	9/6/2019
+//	
+
+
 #include "MarkPBFT_peer.hpp"
 #include <string>
 #include "Common/Peer.hpp"
@@ -16,6 +22,7 @@ bool markPBFT_message::operator==(const markPBFT_message& rhs) {
 		);
 }
 
+// Used to set max wait before deciding peer might be byzantine
 void markPBFT_peer::setMaxWait() {
 	_maxWait = 0;
 	for (auto e : _neighbors)
@@ -172,7 +179,7 @@ void markPBFT_peer::makeRequest() {
 			else
 				++_receivedMsgLog[inmsg.id()][prepare];
 
-			if (_receivedMsgLog[inmsg.id()][prepare] > (int)(2 * (_faultTolerance * _neighbors.size()))) {
+			if (_receivedMsgLog[inmsg.id()][prepare] > (int)(2 * (_faultTolerance * _neighbors.size())+1)) {
 				_state = prepare;
 				markPBFT_message commitMSG;
 				commitMSG.creator_id = _id;
@@ -201,14 +208,14 @@ void markPBFT_peer::makeRequest() {
 
 
 
-			if (_receivedMsgLog[inmsg.id()][commit] > (int)(2 * (_faultTolerance * _neighbors.size()))) {
+			if (_receivedMsgLog[inmsg.id()][commit] > (int)(2 * (_faultTolerance * _neighbors.size())+1)) {
 				_state = commit;
 				markPBFT_message replyMSG;
 				replyMSG.creator_id = _id;
 				replyMSG.client_id = _id;
 				replyMSG.type = reply;
 
-				// Primary is client, send reply to client 
+				// Primary is client, send reply to client/self 
 				if (isPrimary()) {
 					Packet<markPBFT_message> outPacket(inmsg.id(), _id, _id);
 					outPacket.setBody(replyMSG);
