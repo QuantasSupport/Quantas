@@ -119,8 +119,6 @@ void markPBFT_peer::makeRequest() {
 
 	//Process messages
 	while (!_inStream.empty()) {
-		//Packet<markPBFT_message> inmsg("");
-
 		auto inmsg = _inStream.front();
 		_inStream.erase(_inStream.begin());
 
@@ -134,7 +132,7 @@ void markPBFT_peer::makeRequest() {
 				++_receivedMsgLog[inmsg.id()][reply];
 
 
-			if (_receivedMsgLog[inmsg.id()][reply] > (int)(2 * (_faultTolerance * _neighbors.size()))) {
+			if (_receivedMsgLog[inmsg.id()][reply] > (int)(2 * (_faultTolerance * (_neighbors.size()-1))+1)) {
 				_ledger.insert(std::make_pair(inmsg.id(), _roundCount));
 
 			}
@@ -169,7 +167,7 @@ void markPBFT_peer::makeRequest() {
 			_prepareSent.insert(inmsg.id());
 			transmit();
 
-			return;
+		
 		}
 
 
@@ -179,7 +177,7 @@ void markPBFT_peer::makeRequest() {
 			else
 				++_receivedMsgLog[inmsg.id()][prepare];
 
-			if (_receivedMsgLog[inmsg.id()][prepare] > (int)(2 * (_faultTolerance * _neighbors.size())+1)) {
+			if (_receivedMsgLog[inmsg.id()][prepare] >= (int)(2 * (_faultTolerance * (_neighbors.size()-1))+1)) {
 				_state = prepare;
 				markPBFT_message commitMSG;
 				commitMSG.creator_id = _id;
@@ -193,7 +191,6 @@ void markPBFT_peer::makeRequest() {
 				}
 				_commitSent.insert(inmsg.id());
 				transmit();
-				return;
 
 			}
 		}
@@ -208,7 +205,7 @@ void markPBFT_peer::makeRequest() {
 
 
 
-			if (_receivedMsgLog[inmsg.id()][commit] > (int)(2 * (_faultTolerance * _neighbors.size())+1)) {
+			if (_receivedMsgLog[inmsg.id()][commit] >= (int)(2 * (_faultTolerance *( _neighbors.size()-1))+1)) {
 				_state = commit;
 				markPBFT_message replyMSG;
 				replyMSG.creator_id = _id;
@@ -235,7 +232,6 @@ void markPBFT_peer::makeRequest() {
 					}
 				_replySent.insert(inmsg.id());
 				transmit();
-				return;
 			}
 
 		}
@@ -250,14 +246,12 @@ void markPBFT_peer::makeRequest() {
 				++_receivedMsgLog[inmsg.id()][reply];
 
 
-			if (_receivedMsgLog[inmsg.id()][reply] > 2 * (_faultTolerance * _neighbors.size())) {
+			if (_receivedMsgLog[inmsg.id()][reply] > 2 * (_faultTolerance * (_neighbors.size()-1)+1)) {
 				_ledger.insert(std::make_pair(inmsg.id(), _roundCount));
-				return;
 			}
 
 		}
 
 	}
 	transmit();
-	return;
 }

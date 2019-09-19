@@ -35,6 +35,7 @@
 #include "./Common/Logger.hpp"
 #include "./Common/Blockchain.hpp"
 #include "MarkPBFT_peer.hpp"
+#include "SmartShard.hpp"
 
 const int peerCount = 10;
 const int blockChainLength = 100;
@@ -975,88 +976,50 @@ std::set<std::string> getPeersForConsensus(int securityLevel) {
 }
 
 void smartShard(const std::string& filePath) {
-	int numshardsmin = 5;
-	int numshardsmax = 16;
-
-	int delay = 10;
-	double fault_tolerance = .333333;
-	int numrounds = 1000;
+	
+	int minDelay = 1;
+	int maxDelay = 10;
+	int minShards = 4;
+	int maxShards = 10;
+	double faultTolerance = .333334;
+	int numRounds = 1000;
 	int requestPerRound = 1;
-	int roundstoRequest = 10;
+	int roundstoRequest = 1;
+	int tests = 1;
 
-	int numTest = 10;
-
-	std::ofstream out;
 	std::ofstream summary;
 	summary.open(filePath + "/summary.log");
-	summary << "shards, confirmations, avgWaitTime" << std::endl;
+	summary << "delay, shards, confirmations" << std::endl;
 
-	for (int numshards = numshardsmin; numshards <= numshardsmax; ++numshards) {
-		int peerspershard = numshards - 1;
-		out.open(filePath + "/smart shard," + std::to_string(numshards) + " shards.log");
+	for (int delay = minDelay; delay <= maxDelay; delay += 5) {
+		for (int numShards = minShards; numShards <= maxShards; ++numShards) {
 
+			int totalConfirmations = 0;
 
-		int totalConfirmations = 0;
-		int totalWaitTime = 0;
-		for (int test = 0; test < numTest; ++test)
-		{
+			for (int i = 0; i < tests; ++i) {
+				std::ofstream out;
+				out.open(filePath + "/smart shard_" + "delay_" + std::to_string(delay) + "_shards_" + std::to_string(numShards) + "_test_" + std::to_string(i) + ".log");
 
-			std::map<int, ByzantineNetwork<markPBFT_message, markPBFT_peer>> system;
+				SmartShard system(numShards, out, delay);
 
-			// Initialize networks
-			for (int i = 0; i < numshards; ++i) {
+				system.setFaultTolerance(faultTolerance);
+				system.setRequestsPerRound(requestPerRound);
+				system.setRoundsToRequest(roundstoRequest);
+				system.setMaxWait();
 
-				system[i].setLog(out);
-				system[i].setToRandom();
-				system[i].setMaxDelay(delay);
-				system[i].initNetwork(peerspershard);
-				system[i][rand() % peerspershard]->setPrimary(true);
+				system.run(numRounds);
 
-				for (int j = 0; j < peerspershard; ++j) {
+				totalConfirmations += system.getConfirmationCount();
+				out.close();
 
-					system[i][j]->setFaultTolerance(fault_tolerance);
-					system[i][j]->setRequestPerRound(requestPerRound);
-					system[i][j]->setRoundsToRequest(roundstoRequest);
-					system[i][j]->setMaxWait();
-				}
 			}
+			summary << delay << ", " << numShards << ", " << totalConfirmations / tests << std::endl;
 
-			// Run for specified number of rounds
-			for (int i = 0; i < numrounds; ++i) {
-				for (int j = 0; j < numshards; ++j) {
-					for (int k = 0; k < peerspershard; ++k)
-						system[j][k]->makeRequest();
-					//system[j].log();
-				}
-			}
-			
-			// Count Confirmations
-			int avgWaitTime = 0;
-			int confirmations = 0;
-			for (int i = 0; i < numshards; ++i)
-				for (int j = 0; j < peerspershard; ++j) {
-					confirmations += system[i][j]->getLedger().size();
-					for (auto e : system[i][j]->getLedger()) {
-						auto messageNum = e.first;
-						messageNum.erase(0, 5);
-						int messageNumInt = std::stoi(messageNum);
-
-						int waitTime = e.second - (messageNumInt * roundstoRequest)+roundstoRequest;
-						//std::cout << messageNumInt << ": " << e.second << ": " << waitTime << std::endl;
-						avgWaitTime += waitTime;
-					}
-				}
-			avgWaitTime = avgWaitTime / confirmations;
-			//std::cout << avgWaitTime;
-			totalConfirmations += confirmations;
-			totalWaitTime += avgWaitTime;
 		}
-
-		out.close();
-		summary << numshards << ", " << totalConfirmations/numTest << ", " << totalWaitTime/numTest << std::endl;
+		if (delay == 1)
+			--delay;
 	}
 	summary.close();
-
 }
 
 void markPBFT(const std::string& filePath) {
@@ -1067,8 +1030,8 @@ void markPBFT(const std::string& filePath) {
 
 	summary << "test,rounds,requests per round,rounds till requests,delay setting,network size,confirmations,message count,request sent,vote changes,force changes,num byzantine\n";
 
-	int initNetworkSize = 8;
-	int maxNetworkSize = 8;
+	int initNetworkSize = 1;
+	int maxNetworkSize = 10;
 	int initDelay = 1;
 	int maxDelay = 1;
 	int numTests = 1;
@@ -1085,7 +1048,7 @@ void markPBFT(const std::string& filePath) {
 
 	int rounds = 1000;
 
-	for (int networkSize = initNetworkSize; networkSize <= maxNetworkSize; networkSize = networkSize * 2) {
+	for (int networkSize = initNetworkSize; networkSize <= maxNetworkSize; networkSize = networkSize +1) {
 		for (int delay = initDelay; delay <= maxDelay; delay += 1) {
 
 			for (int requestPerRound = initRequestPerRound; requestPerRound <= maxRequestPerRoound; ++requestPerRound) {

@@ -89,15 +89,24 @@ public:
 				std::cerr << "peer " << i << " does not exist";
 			return _peers[i]; }
 
-		void run(int rounds) {
+		void run(int rounds, int churn = 0, int churnRate = 100) {
 			
 			for (int i = 0; i < rounds; ++i) {
-				if (i % 50 == 0)
-					makeByzantine(rand() % _peers.size());
-				if (i % 100 == 0)
+				/*
+				if (i % 50 == 0 && i%churnRate != 0) {
+					for (int j = 0; j < churn; ++j) {
+						int choice = rand() % _peers.size();
+						while (isByzantine(choice) == true) {
+							choice = rand() % _peers.size();
+						}
+						makeByzantine(choice);
+					}
+				}
+
+				if (i % churnRate == 0)
 					for (int j = 0; j < _peers.size(); ++j)
 						makeCorrect(j);
-						
+				*/		
 				for (auto e : _system) {
 					for (int j = 0; j < _peerspershard; ++j)
 						(*e)[j]->makeRequest();
@@ -129,6 +138,17 @@ public:
 				std::cerr << "peer does not exist making correct";
 			for (auto e : _peers[peer])
 				e->makeCorrect();
+		}
+
+		bool isByzantine(int peer) {
+			auto it = _peers.find(peer);
+			if (it == _peers.end())
+				std::cerr << "peer does not exist finding byzantine";
+			return ((*_peers[peer].begin())->isByzantine());
+		}
+
+		int shardCount() {
+			return _system.size();
 		}
 
 private:
