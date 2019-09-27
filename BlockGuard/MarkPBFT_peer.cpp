@@ -102,7 +102,6 @@ void markPBFT_peer::makeRequest() {
 
 				_state = preprepare;
 			}
-			transmit();
 			_remainingRoundstoRequest = 0;
 		}
 	}
@@ -132,7 +131,8 @@ void markPBFT_peer::makeRequest() {
 				++_receivedMsgLog[inmsg.id()][reply];
 
 
-			if (_receivedMsgLog[inmsg.id()][reply] > (int)(2 * (_faultTolerance * (_neighbors.size()-1))+1)) {
+			if ((_receivedMsgLog[inmsg.id()][reply] >= (int)(2 * (_faultTolerance * _neighbors.size())+1)) && 
+				((int)(_faultTolerance * _neighbors.size()) != 0)) {
 				_ledger.insert(std::make_pair(inmsg.id(), _roundCount));
 
 			}
@@ -165,19 +165,19 @@ void markPBFT_peer::makeRequest() {
 			selfPacket.setBody(prepareMSG);
 			_inStream.push_back(selfPacket);
 			_prepareSent.insert(inmsg.id());
-			transmit();
 
 		
 		}
 
-
+ 
 		if (inmsg.getMessage().type == prepare && (_commitSent.find(inmsg.id()) == _commitSent.end())) {
 			if (_receivedMsgLog[inmsg.id()].find(prepare) == _receivedMsgLog[inmsg.id()].end())
 				_receivedMsgLog[inmsg.id()][prepare] = 1;
 			else
 				++_receivedMsgLog[inmsg.id()][prepare];
 
-			if (_receivedMsgLog[inmsg.id()][prepare] >= (int)(2 * (_faultTolerance * (_neighbors.size()-1))+1)) {
+			if ((_receivedMsgLog[inmsg.id()][prepare] >= (int)(2 * (_faultTolerance * _neighbors.size())+1)) &&
+				((int)(_faultTolerance * _neighbors.size()) != 0)) {
 				_state = prepare;
 				markPBFT_message commitMSG;
 				commitMSG.creator_id = _id;
@@ -190,7 +190,6 @@ void markPBFT_peer::makeRequest() {
 					_outStream.push_back(outPacket);
 				}
 				_commitSent.insert(inmsg.id());
-				transmit();
 
 			}
 		}
@@ -205,7 +204,8 @@ void markPBFT_peer::makeRequest() {
 
 
 
-			if (_receivedMsgLog[inmsg.id()][commit] >= (int)(2 * (_faultTolerance *( _neighbors.size()-1))+1)) {
+			if ((_receivedMsgLog[inmsg.id()][commit] >= (int)(2 * (_faultTolerance * _neighbors.size())+1)) &&
+				((int)(_faultTolerance * _neighbors.size()) != 0)) {
 				_state = commit;
 				markPBFT_message replyMSG;
 				replyMSG.creator_id = _id;
@@ -231,7 +231,6 @@ void markPBFT_peer::makeRequest() {
 						}
 					}
 				_replySent.insert(inmsg.id());
-				transmit();
 			}
 
 		}
@@ -246,12 +245,40 @@ void markPBFT_peer::makeRequest() {
 				++_receivedMsgLog[inmsg.id()][reply];
 
 
-			if (_receivedMsgLog[inmsg.id()][reply] > 2 * (_faultTolerance * (_neighbors.size()-1)+1)) {
+			if ((_receivedMsgLog[inmsg.id()][reply] > 2 * (_faultTolerance * _neighbors.size()+1)) &&
+				((int)(_faultTolerance * _neighbors.size()) != 0)) {
 				_ledger.insert(std::make_pair(inmsg.id(), _roundCount));
 			}
 
 		}
 
 	}
-	transmit();
+}
+
+void markPBFT_peer::makeRequest(markPBFT_message requestMSG) {
+	if (requestMSG.requestGoal == _shard) {}
+	// Create message to primary or self if primary
+	std::string toID;
+
+	if (isPrimary()&&requestMSG.requestGoal == _shard)
+		toID = _id;
+
+	std::map<std::string, Peer<markPBFT_message>*>::iterator targetPeer;
+	if (requestMSG.requestGoal == _shard && !isPrimary()) {
+		targetPeer = std::find_if(_neighbors.begin(), _neighbors.end(), [&](std::pair< std::string, Peer<markPBFT_message>*> a) {return static_cast<markPBFT_peer*>(a.second)->isPrimary(); });
+		toID = (targetPeer->second)->id();
+	}
+	else {
+		targetPeer = std::find_if(_neighbors.begin(), _neighbors.end(), [&](std::pair< std::string, Peer<markPBFT_message>*> a) {
+			return static_cast<markPBFT_peer*>(a.second)->getShard() == requestMSG.requestGoal; });
+		toID = (targetPeer->second)->id();
+	}
+	Packet<markPBFT_message> outPacket(requestMSG.client_id, toID, _id);
+	outPacket.setBody(requestMSG);
+	if (isPrimary() && requestMSG.requestGoal == _shard)
+		outPacket.setDelay(1, 0);
+	else
+		outPacket.setDelay((targetPeer->second)->getDelayToNeighbor(_id), (targetPeer->second)->getDelayToNeighbor(_id) - 1);
+	_outStream.push_back(outPacket);
+
 }

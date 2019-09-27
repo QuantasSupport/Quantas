@@ -92,7 +92,7 @@ public:
 		void run(int rounds, int churn = 0, int churnRate = 100) {
 			
 			for (int i = 0; i < rounds; ++i) {
-				/*
+				
 				if (i % 50 == 0 && i%churnRate != 0) {
 					for (int j = 0; j < churn; ++j) {
 						int choice = rand() % _peers.size();
@@ -106,10 +106,14 @@ public:
 				if (i % churnRate == 0)
 					for (int j = 0; j < _peers.size(); ++j)
 						makeCorrect(j);
-				*/		
+						
 				for (auto e : _system) {
 					for (int j = 0; j < _peerspershard; ++j)
 						(*e)[j]->makeRequest();
+				}
+				for(auto e:_system){
+					for (int j = 0; j < _peerspershard; ++j)
+						(*e)[j]->transmit();
 					e->log();
 				}
 			}
@@ -149,6 +153,28 @@ public:
 
 		int shardCount() {
 			return _system.size();
+		}
+
+		void makeRequest(int forQuorum = -1, int toQuorum = -1, int toPeer = -1) {
+			if (forQuorum == -1) {
+				forQuorum = rand() % _shards;
+			}
+
+			if (toQuorum == -1) {
+				toQuorum = rand() % _shards;
+			}
+
+			if (toPeer == -1) {
+				toPeer == rand() % _peerspershard;
+			}
+
+			markPBFT_message requestMSG;
+			requestMSG.creator_id = "MAGIC";
+			requestMSG.type = "REQUEST";
+			requestMSG.requestGoal = forQuorum;
+
+			(*_system[toQuorum])[toPeer]->makeRequest(requestMSG);
+
 		}
 
 private:

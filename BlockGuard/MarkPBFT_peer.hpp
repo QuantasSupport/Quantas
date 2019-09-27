@@ -12,11 +12,13 @@ static const std::string prepare = "PREPARE";
 static const std::string commit = "COMMIT";
 static const std::string reply = "REPLY";
 static const std::string view_change = "VIEW_CHANGE";
+static const std::string request = "REQUEST";
 
 struct markPBFT_message {
 	std::string         client_id;
 	// this is the peer that created the message
 	std::string         creator_id;
+	int				requestGoal;
 	int                 view;
 	std::string         type;
 	char                operation;
@@ -95,6 +97,7 @@ public:
 	void setPrimary(bool status) ;
 	void makeRequest() ;
 	void preformComputation() {}
+	void makeRequest(markPBFT_message);
 
 	~markPBFT_peer() {}
 };

@@ -978,43 +978,47 @@ std::set<std::string> getPeersForConsensus(int securityLevel) {
 void smartShard(const std::string& filePath) {
 	
 	int minDelay = 1;
-	int maxDelay = 10;
-	int minShards = 4;
-	int maxShards = 10;
+	int maxDelay = 1;
+	int minShards = 5;
+	int maxShards = 5;
+	int minChurn = 0;
+	int maxChurn = 0;
+
 	double faultTolerance = .333334;
 	int numRounds = 1000;
 	int requestPerRound = 1;
 	int roundstoRequest = 1;
-	int tests = 1;
+	int tests = 10;
 
 	std::ofstream summary;
 	summary.open(filePath + "/summary.log");
-	summary << "delay, shards, confirmations" << std::endl;
+	summary << "delay, shards, confirmations, churn" << std::endl;
 
 	for (int delay = minDelay; delay <= maxDelay; delay += 5) {
 		for (int numShards = minShards; numShards <= maxShards; ++numShards) {
+			for (int churn = minChurn; churn <= maxChurn; ++churn) {
 
-			int totalConfirmations = 0;
+				int totalConfirmations = 0;
 
-			for (int i = 0; i < tests; ++i) {
-				std::ofstream out;
-				out.open(filePath + "/smart shard_" + "delay_" + std::to_string(delay) + "_shards_" + std::to_string(numShards) + "_test_" + std::to_string(i) + ".log");
+				for (int i = 0; i < tests; ++i) {
+					std::ofstream out;
+					out.open(filePath + "void/smart shard_" + "delay_" + std::to_string(delay) + "_shards_" + std::to_string(numShards) + "_test_" + std::to_string(i) + ".log");
 
-				SmartShard system(numShards, out, delay);
+					SmartShard system(numShards, out, delay);
 
-				system.setFaultTolerance(faultTolerance);
-				system.setRequestsPerRound(requestPerRound);
-				system.setRoundsToRequest(roundstoRequest);
-				system.setMaxWait();
+					system.setFaultTolerance(faultTolerance);
+					system.setRequestsPerRound(requestPerRound);
+					system.setRoundsToRequest(roundstoRequest);
+					system.setMaxWait();
 
-				system.run(numRounds);
+					system.run(numRounds, churn, 100);
 
-				totalConfirmations += system.getConfirmationCount();
-				out.close();
+					totalConfirmations += system.getConfirmationCount();
+					out.close();
 
+				}
+				summary << delay << ", " << numShards << ", " << totalConfirmations / tests << ", " << churn << std::endl;
 			}
-			summary << delay << ", " << numShards << ", " << totalConfirmations / tests << std::endl;
-
 		}
 		if (delay == 1)
 			--delay;
