@@ -64,7 +64,6 @@ void markPBFT_peer::setPrimary(bool status) {
 
 void markPBFT_peer::makeRequest() {
 
-
 	++_roundCount;
 	receive();
 
@@ -116,30 +115,19 @@ void markPBFT_peer::makeRequest() {
 	else
 		_viewCounter = 0;
 
-	//Process messages
+    ////////////////////////////////////////////////////////////
+	// Process messages
+	////////////////////////////////////////////////////////////
+
+
 	while (!_inStream.empty()) {
+
+
 		auto inmsg = _inStream.front();
-		_inStream.erase(_inStream.begin());
-
-		if (inmsg.getMessage().type == reply && _ledger.find(inmsg.id()) == _ledger.end()) {
-
-			// Add count to replylog, if not increment it
-
-			if (_receivedMsgLog[inmsg.id()].find(reply) == _receivedMsgLog[inmsg.id()].end())
-				_receivedMsgLog[inmsg.id()][reply] = 1;
-			else
-				++_receivedMsgLog[inmsg.id()][reply];
+        _inStream.erase(_inStream.begin());
 
 
-			if ((_receivedMsgLog[inmsg.id()][reply] >= (int)(2 * (_faultTolerance * _neighbors.size())+1)) && 
-				((int)(_faultTolerance * _neighbors.size()) != 0)) {
-				_ledger.insert(std::make_pair(inmsg.id(), _roundCount));
-
-			}
-
-		}
-
-
+        // pre-prepare phase 2
 		if ((inmsg.getMessage().type == preprepare)) {
 
 			if (_receivedMsgLog[inmsg.id()].find(preprepare) == _receivedMsgLog[inmsg.id()].end())
@@ -169,7 +157,7 @@ void markPBFT_peer::makeRequest() {
 		
 		}
 
- 
+        // phase 3 prepare
 		if (inmsg.getMessage().type == prepare && (_commitSent.find(inmsg.id()) == _commitSent.end())) {
 			if (_receivedMsgLog[inmsg.id()].find(prepare) == _receivedMsgLog[inmsg.id()].end())
 				_receivedMsgLog[inmsg.id()][prepare] = 1;
@@ -195,7 +183,7 @@ void markPBFT_peer::makeRequest() {
 		}
 
 
-
+        // phase 4 commit
 		if (inmsg.getMessage().type == commit && (_replySent.find(inmsg.id()) == _replySent.end())) {
 			if (_receivedMsgLog[inmsg.id()].find(commit) == _receivedMsgLog[inmsg.id()].end())
 				_receivedMsgLog[inmsg.id()][commit] = 1;
@@ -235,22 +223,24 @@ void markPBFT_peer::makeRequest() {
 
 		}
 
-		if (inmsg.getMessage().type == reply && _ledger.find(inmsg.id()) == _ledger.end()) {
+        // phase 5 reply to primary (client)
+        if (inmsg.getMessage().type == reply && _ledger.find(inmsg.id()) == _ledger.end()) { // ledger is the list of messages gotten from other peers to this one
 
-			// Add count to replylog, if not increment it
+            // Add count to replylog, if not increment it
 
-			if (_receivedMsgLog[inmsg.id()].find(reply) == _receivedMsgLog[inmsg.id()].end())
-				_receivedMsgLog[inmsg.id()][reply] = 1;
-			else
-				++_receivedMsgLog[inmsg.id()][reply];
+            if (_receivedMsgLog[inmsg.id()].find(reply) == _receivedMsgLog[inmsg.id()].end())
+                _receivedMsgLog[inmsg.id()][reply] = 1; // counting votes as replies
+            else
+                ++_receivedMsgLog[inmsg.id()][reply];
 
 
-			if ((_receivedMsgLog[inmsg.id()][reply] > 2 * (_faultTolerance * _neighbors.size()+1)) &&
-				((int)(_faultTolerance * _neighbors.size()) != 0)) {
-				_ledger.insert(std::make_pair(inmsg.id(), _roundCount));
-			}
+            if ((_receivedMsgLog[inmsg.id()][reply] >= (int)(2 * (_faultTolerance * _neighbors.size())+1)) &&
+                ((int)(_faultTolerance * _neighbors.size()) != 0)) {
+                _ledger.insert(std::make_pair(inmsg.id(), _roundCount)); //
 
-		}
+            }
+
+        }
 
 	}
 }

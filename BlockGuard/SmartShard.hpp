@@ -40,11 +40,15 @@ public:
 
 			// Assign to virtual peer
 			int peer = 0;
-			for (int i = 0; i < _shards; ++i)
-				for (int j = i; j < _peerspershard; ++j) {
-					_peers[peer].insert((*_system[i])[j]);
-					_peers[peer].insert((*_system[j + 1])[i]);
-					++peer;
+			// goes thought each shard and links each peer to another shard one at a time.
+			for (int i = 0; i < _shards; ++i) // number of shards that we have
+				for (int j = i; j < _peerspershard; ++j) { // for each peer in a shard
+				    // shard matches peer index in other shards i.e. the first shard intersects every other shard on their first peer
+				    // i: origin shard index and peer index in all other shards, origin is the shard that is said to have the peer
+				    // j: j is the shard index that we iterate over
+					_peers[peer].insert((*_system[i])[j]); // takes the jth peer of the ith quorum and insert
+					_peers[peer].insert((*_system[j + 1])[i]); // takes the j+1 quorum (next one) and gets the ith peer
+					++peer; // moves to next peer in the current shard
 				}
 		}
 
@@ -178,11 +182,11 @@ public:
 		}
 
 private:
-	std::vector < ByzantineNetwork<markPBFT_message, markPBFT_peer>*> _system;
+	std::vector < ByzantineNetwork<markPBFT_message, markPBFT_peer>*> _system; // list of shards in the system
 	std::ostream* _out;
 	int _peerspershard;
 	int _shards;
-	std::map<int, std::set<markPBFT_peer*>> _peers;
+	std::map<int, std::set<markPBFT_peer*>> _peers; // peer id, to list of real peers that it is in the quorums (vir peers)
 
 
 };
