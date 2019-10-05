@@ -33,8 +33,8 @@ public:
                 _system[i]->setToRandom();
                 _system[i]->setMaxDelay(delay);
                 _system[i]->initNetwork(_peerspershard * quorumIntersection);
-                (*_system[i])[rand() % _peerspershard]->setPrimary(true);
-                for (int j = 0; j < _peerspershard; ++j)
+                (*_system[i])[rand() % _peerspershard* quorumIntersection]->setPrimary(true);
+                for (int j = 0; j < _peerspershard * quorumIntersection; ++j)
                     (*_system[i])[j]->setShard(i);
 
             }
@@ -42,15 +42,18 @@ public:
 
             int peer = 0; // Assign to virtual peer
             int peerIndex = 0; // peer index for shards
-            for (int vPeer = 0; vPeer < _peerspershard; vPeer++) {
-                for (int shard = 0; shard < _shards; ++shard) {
-                    for (int offset = 0; offset < quorumIntersection; offset++)
-                        _peers[peer].insert((*_system[shard])[peerIndex + offset]);
-                }
-                peer++;
-                peerIndex += quorumIntersection;
-            }
 
+			for (int shard = 0; shard < _system.size(); ++shard) {
+				for (int offset = 0; offset < quorumIntersection; ++offset) {
+					for (int vPeer = shard; vPeer < _peerspershard; ++vPeer) {
+						_peers[peer].insert((*_system[shard])[vPeer+_peerspershard*offset]);
+						_peers[peer].insert((*_system[vPeer + 1])[shard + offset * _peerspershard]);
+						++peer;
+					}
+				}
+			}
+			_peerspershard *= quorumIntersection;
+			std::cout << _peerspershard << std::endl;
         }
 
 
