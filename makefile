@@ -39,15 +39,15 @@ PBFTPeer_Sharded:
 PBFTReferenceCommittee:
 	clang++ -std=c++14 BlockGuard/PBFTReferenceCommittee.cpp -c --debug -o ./BlockGuard_Test/PBFTReferenceCommittee.o
 
-run_smart-shards
-    tmux new-session -d -s "1" ./BlockGuard.out smartshard ./../results1/
-    tmux new-session -d -s "2" ./BlockGuard.out smartshard ./../results1/
-    tmux new-session -d -s "3" ./BlockGuard.out smartshard ./../results1/
-    tmux new-session -d -s "4" ./BlockGuard.out smartshard ./../results1/
-    tmux new-session -d -s "5" ./BlockGuard.out smartshard ./../results1/
-    tmux new-session -d -s "6" ./BlockGuard.out smartshard ./../results1/
-    tmux new-session -d -s "7" ./BlockGuard.out smartshard ./../results1/
-    tmux new-session -d -s "8" ./BlockGuard.out smartshard ./../results1/
+run_smart-shards:
+	tmux new-session -d -s "1" ./BlockGuard.out smartshard ./../results1/
+	tmux new-session -d -s "2" ./BlockGuard.out smartshard ./../results1/
+	tmux new-session -d -s "3" ./BlockGuard.out smartshard ./../results1/
+	tmux new-session -d -s "4" ./BlockGuard.out smartshard ./../results1/
+	tmux new-session -d -s "5" ./BlockGuard.out smartshard ./../results1/
+	tmux new-session -d -s "6" ./BlockGuard.out smartshard ./../results1/
+	tmux new-session -d -s "7" ./BlockGuard.out smartshard ./../results1/
+	tmux new-session -d -s "8" ./BlockGuard.out smartshard ./../results1/
 
 run_pbft:
 	tmux new-session -d -s "1" ./BlockGuard.out pbft_s ./../results1/
