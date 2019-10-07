@@ -1002,10 +1002,10 @@ void smartShard(const std::string& filePath) {
 
 				for (int i = 0; i < tests; ++i) {
 					std::ofstream out;
-					out.open(filePath + "void/smart shard_" + "delay_" + std::to_string(delay) + "_shards_" + std::to_string(numShards) + "_test_" + std::to_string(i) + ".log");
+					out.open(filePath + "/smart shard_" + "delay_" + std::to_string(delay) + "_shards_" + std::to_string(numShards) + "_test_" + std::to_string(i) + ".log");
 
 
-					SmartShard system(numShards, out, delay, -1, 0, 2/* need to set up experiments for multi churn rate */);
+					SmartShard system(numShards, out, delay, -1, 0, 2);
 
 					system.setFaultTolerance(faultTolerance);
 					system.setRequestsPerRound(requestPerRound); // number of requests to make at one time

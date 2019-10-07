@@ -18,11 +18,11 @@ struct markPBFT_message {
 	std::string         client_id;
 	// this is the peer that created the message
 	std::string         creator_id;
-	int				requestGoal;
+	int				    requestGoal;
 	int                 view;
 	std::string         type;
 	char                operation;
-	std::pair<int, int>  operands;
+	std::pair<int, int> operands;
 	int                 result;
 	int                 round; // used instead of timestamp
 	std::string         highestID;
