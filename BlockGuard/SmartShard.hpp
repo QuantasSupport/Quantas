@@ -53,21 +53,7 @@ public:
 				}
 			}
 			_peerspershard *= quorumIntersection;
-			std::cout << _peerspershard << std::endl;
         }
-
-
-
-//                // goes thought each shard and links each peer to another shard one at a time.
-//			for (int i = 0; i < _shards; ++i) // number of shards that we have
-//				for (int j = i; j < _peerspershard; ++j) { // for each peer in a shard
-//				    // shard matches peer index in other shards i.e. the first shard intersects every other shard on their first peer
-//				    // i: origin shard index and peer index in all other shards, origin is the shard that is said to have the peer
-//				    // j: j is the shard index that we iterate over
-//					_peers[peer].insert((*_system[i])[j]); // takes the jth peer of the ith quorum and insert
-//					_peers[peer].insert((*_system[j + 1])[i]); // takes the j+1 quorum (next one) and gets the ith peer
-//					++peer; // moves to next peer in the current shard
-//				}
 
 
 
@@ -118,8 +104,7 @@ public:
 		void run(int rounds, int churn = 0, int churnRate = 100) {
 			
 			for (int i = 0; i < rounds; ++i) {
-
-			    if(i%churnRate == 0){
+			    if(i % churnRate == 0){
                     for(int i = 0; i < churn; i++){
                         churnCycle();
                     }
@@ -140,23 +125,63 @@ public:
 
 		void churnCycle(){
 	        assert(_numberOfPeersInReserve > -1);
+
             bool addingPeer = rand()%2;
             if(addingPeer){
                 if(_numberOfPeersInReserve == 0){
+
                     for(int peer = 0; peer < _peers.size(); peer++){
                         if(isByzantine(peer)){
                             makeCorrect(peer);
+							std::cerr << "dropped peer exists, adding to dropped\n";
+							std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
+							std::cerr << "num of dropped peers: ";
+							int droppedCount = 0;
+							for (int peer = 0; peer < _peers.size(); ++peer)
+								if (isByzantine(peer))
+									++droppedCount;
+							std::cerr << droppedCount << std::endl << std::endl;
                             return;
                         }
                     }
                 }
-                _numberOfPeersInReserve++;
+				_numberOfPeersInReserve++;
+				std::cerr << "no dropped peers, adding to reserve\n";
+				std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
+				std::cerr << "num of dropped peers: ";
+				int droppedCount = 0;
+				for (int peer = 0; peer < _peers.size(); ++peer)
+					if (isByzantine(peer))
+						++droppedCount;
+				std::cerr << droppedCount << std::endl<<std::endl;
+
             }else{
                 if(_numberOfPeersInReserve == 0){
                     int peerToDrop = rand()%_peers.size();
+					while (isByzantine(peerToDrop)) {
+						peerToDrop = rand() % _peers.size();
+					}
                     makeByzantine(peerToDrop);
+					std::cerr << "no reserve peers, dropping peer\n";
+
+					std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
+					std::cerr << "num of dropped peers: ";
+					int droppedCount = 0;
+					for (int peer = 0; peer < _peers.size(); ++peer)
+						if (isByzantine(peer))
+							++droppedCount;
+					std::cerr << droppedCount << std::endl << std::endl;
+
                 }else{
                     _numberOfPeersInReserve--;
+					std::cerr << "peers in reverse, removing from reserve\n";
+					std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
+					std::cerr << "num of dropped peers: ";
+					int droppedCount = 0;
+					for (int peer = 0; peer < _peers.size(); ++peer)
+						if (isByzantine(peer))
+							++droppedCount;
+					std::cerr << droppedCount << std::endl <<std::endl;
                 }
             }
 	    }
