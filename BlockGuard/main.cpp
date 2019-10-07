@@ -981,8 +981,8 @@ void smartShard(const std::string& filePath) {
 	int maxDelay = 1;
 	int minShards = 5;
 	int maxShards = 5;
-	int minChurn = 0;
-	int maxChurn = 0;
+	int minChurn = 1;
+	int maxChurn = 10;
 
 	double faultTolerance = .333334;
 	int numRounds = 1000;
@@ -1012,7 +1012,7 @@ void smartShard(const std::string& filePath) {
 					system.setRoundsToRequest(roundstoRequest); // number of times to make a request
 					system.setMaxWait();
 
-					system.run(numRounds, 10, 50);
+					system.run(numRounds, churn, 50);
 
 					system.printPeers();
 					//system.run(numRounds, churn, 100);
