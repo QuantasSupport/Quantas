@@ -41,13 +41,13 @@ PBFTReferenceCommittee:
 
 run_smart-shards:
 	tmux new-session -d -s "1" ./BlockGuard.out smartshard ./../results1/
-	tmux new-session -d -s "2" ./BlockGuard.out smartshard ./../results1/
-	tmux new-session -d -s "3" ./BlockGuard.out smartshard ./../results1/
-	tmux new-session -d -s "4" ./BlockGuard.out smartshard ./../results1/
-	tmux new-session -d -s "5" ./BlockGuard.out smartshard ./../results1/
-	tmux new-session -d -s "6" ./BlockGuard.out smartshard ./../results1/
-	tmux new-session -d -s "7" ./BlockGuard.out smartshard ./../results1/
-	tmux new-session -d -s "8" ./BlockGuard.out smartshard ./../results1/
+	tmux new-session -d -s "2" ./BlockGuard.out smartshard ./../results2/
+	tmux new-session -d -s "3" ./BlockGuard.out smartshard ./../results3/
+	tmux new-session -d -s "4" ./BlockGuard.out smartshard ./../results4/
+	tmux new-session -d -s "5" ./BlockGuard.out smartshard ./../results5/
+	tmux new-session -d -s "6" ./BlockGuard.out smartshard ./../results6/
+	tmux new-session -d -s "7" ./BlockGuard.out smartshard ./../results7/
+	tmux new-session -d -s "8" ./BlockGuard.out smartshard ./../results8/
 
 run_pbft:
 	tmux new-session -d -s "1" ./BlockGuard.out pbft_s ./../results1/
