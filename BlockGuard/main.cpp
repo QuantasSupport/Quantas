@@ -985,11 +985,13 @@ void smartShard(const std::string& filePath) {
 	int maxShards = 5;
 	int minChurn = 1;
 	int maxChurn = 10;
+	int numberOfRevives = 100;
+	int numberOfDrops = 100;
 
 	double faultTolerance = .333334;
 	int numRounds = 1000;
 	int requestPerRound = 1;
-	int roundstoRequest = 1;
+	int roundsToRequest = 1;
 	int tests = 1;
 
 	std::ofstream summary;
@@ -1011,18 +1013,11 @@ void smartShard(const std::string& filePath) {
 
 					system.setFaultTolerance(faultTolerance);
 					system.setRequestsPerRound(requestPerRound); // number of requests to make at one time
-					system.setRoundsToRequest(roundstoRequest); // number of times to make a request
+					system.setRoundsToRequest(roundsToRequest); // number of times to make a request
 					system.setMaxWait();
 
-//					system.run(numRounds, churn, 50);
                     int avgDeadPeers = 0;
                     for (int i = 0; i < numRounds; ++i) {
-                        if(i % 100 == 0){
-                            std::cout << "Churn--------------------------------> " << churn << std::endl;
-                            for(int i = 0; i < churn; i++){
-                                system.churnCycle();
-                            }
-                        }
 
                         for (auto e : system.getQuorums()) {
                             for (int j = 0; j < system.getShardSize(); ++j)
@@ -1036,13 +1031,11 @@ void smartShard(const std::string& filePath) {
                         avgDeadPeers += system.getByzantine();
                     }
 
-					system.printPeers();
-					//system.run(numRounds, churn, 100);
 
 					totalConfirmations += system.getConfirmationCount();
 					out.close();
 
-					summary << "Total dead peers: "<< avgDeadPeers/numRounds << std::endl;
+					summary << "Total dead peers: "<< avgDeadPeers/numRounds << " System Size: "<< system.size() <<  std::endl;
 
 				}
 				summary << delay << ", " << numShards << ", " << totalConfirmations / tests << ", " << churn << std::endl;

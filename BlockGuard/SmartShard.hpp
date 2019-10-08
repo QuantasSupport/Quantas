@@ -106,7 +106,6 @@ public:
 			for (int i = 0; i < rounds; ++i) {
 			    if(i % churnRate == 0){
                     for(int i = 0; i < churn; i++){
-                        churnCycle();
                     }
 			    }
 
@@ -123,69 +122,68 @@ public:
 
 		}
 
-		void churnCycle(){
-	        assert(_numberOfPeersInReserve > -1);
+		void revivePeer(){
+            assert(_numberOfPeersInReserve > -1);
+            if(_numberOfPeersInReserve == 0){
 
-            bool addingPeer = rand()%2;
-            if(addingPeer){
-                if(_numberOfPeersInReserve == 0){
-
-                    for(int peer = 0; peer < _peers.size(); peer++){
-                        if(isByzantine(peer)){
-                            makeCorrect(peer);
-							std::cerr << "dropped peer exists, adding to dropped\n";
-							std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
-							std::cerr << "num of dropped peers: ";
-							int droppedCount = 0;
-							for (int peer = 0; peer < _peers.size(); ++peer)
-								if (isByzantine(peer))
-									++droppedCount;
-							std::cerr << droppedCount << std::endl << std::endl;
-                            return;
-                        }
-                    }
-                }
-				_numberOfPeersInReserve++;
-				std::cerr << "no dropped peers, adding to reserve\n";
-				std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
-				std::cerr << "num of dropped peers: ";
-				int droppedCount = 0;
-				for (int peer = 0; peer < _peers.size(); ++peer)
-					if (isByzantine(peer))
-						++droppedCount;
-				std::cerr << droppedCount << std::endl<<std::endl;
-
-            }else{
-                if(_numberOfPeersInReserve == 0){
-                    if(getByzantine() == size()){
+                for(int peer = 0; peer < _peers.size(); peer++){
+                    if(isByzantine(peer)){
+                        makeCorrect(peer);
+                        std::cerr << "dropped peer exists, adding to dropped\n";
+                        std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
+                        std::cerr << "num of dropped peers: ";
+                        int droppedCount = 0;
+                        for (int peer = 0; peer < _peers.size(); ++peer)
+                            if (isByzantine(peer))
+                                ++droppedCount;
+                        std::cerr << droppedCount << std::endl << std::endl;
                         return;
                     }
-                    int peerToDrop = rand()%_peers.size();
-					while (isByzantine(peerToDrop)) {
-						peerToDrop = rand() % _peers.size();
-					}
-                    makeByzantine(peerToDrop);
-					std::cerr << "no reserve peers, dropping peer\n";
-
-					std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
-					std::cerr << "num of dropped peers: ";
-					int droppedCount = 0;
-					for (int peer = 0; peer < _peers.size(); ++peer)
-						if (isByzantine(peer))
-							++droppedCount;
-					std::cerr << droppedCount << std::endl << std::endl;
-
-                }else{
-                    _numberOfPeersInReserve--;
-					std::cerr << "peers in reverse, removing from reserve\n";
-					std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
-					std::cerr << "num of dropped peers: ";
-					int droppedCount = 0;
-					for (int peer = 0; peer < _peers.size(); ++peer)
-						if (isByzantine(peer))
-							++droppedCount;
-					std::cerr << droppedCount << std::endl <<std::endl;
                 }
+            }
+            _numberOfPeersInReserve++;
+            std::cerr << "no dropped peers, adding to reserve\n";
+            std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
+            std::cerr << "num of dropped peers: ";
+            int droppedCount = 0;
+            for (int peer = 0; peer < _peers.size(); ++peer)
+                if (isByzantine(peer))
+                    ++droppedCount;
+            std::cerr << droppedCount << std::endl<<std::endl;
+	    }
+
+	    void dropPeer(){
+            assert(_numberOfPeersInReserve > -1);
+
+            if(_numberOfPeersInReserve == 0){
+                if(getByzantine() == size()){
+                    return;
+                }
+                int peerToDrop = rand()%_peers.size();
+                while (isByzantine(peerToDrop)) {
+                    peerToDrop = rand() % _peers.size();
+                }
+                makeByzantine(peerToDrop);
+                std::cerr << "no reserve peers, dropping peer\n";
+
+                std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
+                std::cerr << "num of dropped peers: ";
+                int droppedCount = 0;
+                for (int peer = 0; peer < _peers.size(); ++peer)
+                    if (isByzantine(peer))
+                        ++droppedCount;
+                std::cerr << droppedCount << std::endl << std::endl;
+
+            }else{
+                _numberOfPeersInReserve--;
+                std::cerr << "peers in reverse, removing from reserve\n";
+                std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
+                std::cerr << "num of dropped peers: ";
+                int droppedCount = 0;
+                for (int peer = 0; peer < _peers.size(); ++peer)
+                    if (isByzantine(peer))
+                        ++droppedCount;
+                std::cerr << droppedCount << std::endl <<std::endl;
             }
 	    }
 
@@ -199,9 +197,16 @@ public:
 
 		int getConfirmationCount() {
 			int total = 0;
-			for (auto e : _system)
-				for (int i = 0; i < _peerspershard; ++i)
-					total += (*e)[i]->getLedger().size();
+			for (auto quorum : _system) {
+                int min = (*quorum)[0]->getLedger().size();
+                for (int i = 0; i < _peerspershard; ++i) {
+                    if (min > (*quorum)[i]->getLedger().size()) {
+                        min = (*quorum)[i]->getLedger().size();
+                    }
+                }
+                std::cout << "MIN:"<< min << std::endl;
+                total += min;
+            }
 			return total;
 		}
 
