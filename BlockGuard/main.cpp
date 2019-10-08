@@ -109,6 +109,8 @@ int main(int argc, const char * argv[]) {
 	}
 	else if (algorithm == "smartshard") {
 		smartShard(filePath);
+	}else{
+	    std::cout << algorithm << " not recognized"<< std::endl;
 	}
 
     return 0;
@@ -991,8 +993,8 @@ void smartShard(const std::string& filePath) {
 	int tests = 1;
 
 	std::ofstream summary;
-	summary.open(filePath + "/summary.log");
-	summary << "delay, shards, confirmations, churn" << std::endl;
+	summary.open(filePath + "/summary.csv");
+	summary << "delay, shards, confirmations, churn, total dead peers" << std::endl;
 
 	for (int delay = minDelay; delay <= maxDelay; delay += 5) {
 		for (int numShards = minShards; numShards <= maxShards; ++numShards) {
@@ -1005,20 +1007,42 @@ void smartShard(const std::string& filePath) {
 					out.open(filePath + "/smart shard_" + "delay_" + std::to_string(delay) + "_shards_" + std::to_string(numShards) + "_test_" + std::to_string(i) + ".log");
 
 
-					SmartShard system(numShards, out, delay, -1, 0, 2);
+					SmartShard system(numShards, out, delay, -1, 10, 2);
 
 					system.setFaultTolerance(faultTolerance);
 					system.setRequestsPerRound(requestPerRound); // number of requests to make at one time
 					system.setRoundsToRequest(roundstoRequest); // number of times to make a request
 					system.setMaxWait();
 
-					system.run(numRounds, churn, 50);
+//					system.run(numRounds, churn, 50);
+                    int avgDeadPeers = 0;
+                    for (int i = 0; i < numRounds; ++i) {
+                        if(i % 100 == 0){
+                            std::cout << "Churn--------------------------------> " << churn << std::endl;
+                            for(int i = 0; i < churn; i++){
+                                system.churnCycle();
+                            }
+                        }
+
+                        for (auto e : system.getQuorums()) {
+                            for (int j = 0; j < system.getShardSize(); ++j)
+                                (*e)[j]->makeRequest();
+                        }
+                        for(auto e: system.getQuorums()){
+                            for (int j = 0; j < system.getShardSize(); ++j)
+                                (*e)[j]->transmit();
+                            e->log();
+                        }
+                        avgDeadPeers += system.getByzantine();
+                    }
 
 					system.printPeers();
 					//system.run(numRounds, churn, 100);
 
 					totalConfirmations += system.getConfirmationCount();
 					out.close();
+
+					summary << "Total dead peers: "<< avgDeadPeers/numRounds << std::endl;
 
 				}
 				summary << delay << ", " << numShards << ", " << totalConfirmations / tests << ", " << churn << std::endl;

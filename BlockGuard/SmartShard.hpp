@@ -157,6 +157,9 @@ public:
 
             }else{
                 if(_numberOfPeersInReserve == 0){
+                    if(getByzantine() == size()){
+                        return;
+                    }
                     int peerToDrop = rand()%_peers.size();
 					while (isByzantine(peerToDrop)) {
 						peerToDrop = rand() % _peers.size();
@@ -184,6 +187,14 @@ public:
 					std::cerr << droppedCount << std::endl <<std::endl;
                 }
             }
+	    }
+
+	    int size(){
+	        int total = 0;
+	        for(auto s : _system){
+	            total += s->size();
+	        }
+	        return total;
 	    }
 
 		int getConfirmationCount() {
@@ -217,6 +228,14 @@ public:
 			return ((*_peers[peer].begin())->isByzantine());
 		}
 
+		int getByzantine(){
+	        int total = 0;
+	        for(auto s : _system){
+	            total += s->getByzantine().size();
+	        }
+	        return total;
+	    }
+
 		int shardCount() {
 			return _system.size();
 		}
@@ -242,6 +261,14 @@ public:
 			(*_system[toQuorum])[toPeer]->makeRequest(requestMSG);
 
 		}
+
+        std::vector < ByzantineNetwork<markPBFT_message, markPBFT_peer>*> getQuorums(){
+	        return _system;
+	    }
+
+	    int getShardSize(){
+	        return _peerspershard;
+	    }
 
 private:
 	std::vector < ByzantineNetwork<markPBFT_message, markPBFT_peer>*> _system; // list of shards in the system
