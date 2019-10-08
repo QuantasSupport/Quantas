@@ -79,7 +79,7 @@ public:
     virtual void					  setByzantineFlag		(bool f)                            {_byzantine = f;};
     virtual void                      makeCorrect           ()                                  {_byzantine = false;};
     virtual void                      makeByzantine         ()                                  {_byzantine = true;};
-
+    virtual void                      clearMessages                 ();
     // tells this peer to create a transation
     virtual void                      makeRequest           ()=0;
     // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
@@ -245,6 +245,16 @@ std::vector<std::string> Peer<message>::neighbors()const{
 template <class message>
 int Peer<message>::getDelayToNeighbor(std::string id)const{
     return _channelDelays.at(id);
+}
+
+template <class message>
+void Peer<message>::clearMessages(){
+    _inStream.clear();
+    _outStream.clear();
+
+    for(auto c : _channels){
+        c.second.clear();
+    }
 }
 
 template <class message>
