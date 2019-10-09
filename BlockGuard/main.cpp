@@ -1009,7 +1009,7 @@ void smartShard(const std::string& filePath) {
 					out.open(filePath + "/smart shard_" + "delay_" + std::to_string(delay) + "_shards_" + std::to_string(numShards) + "_test_" + std::to_string(i) + ".log");
 
 
-					SmartShard system(numShards, out, delay, -1, 10, 1);
+					SmartShard system(numShards, out, delay, -1, 10, 2);
 
 					system.setFaultTolerance(faultTolerance);
 					system.setRequestsPerRound(requestPerRound); // number of requests to make at one time
@@ -1036,7 +1036,8 @@ void smartShard(const std::string& filePath) {
 					out.close();
 
 					summary << "Total dead peers: "<< avgDeadPeers/numRounds << " System Size: "<< system.size() <<  std::endl;
-					//system.showLedger(std::cout);
+					system.showLedger(std::cout);
+					/*std::cerr << system.getTotalRequestCount() << std::endl;*/
 
 				}
 				summary << delay << ", " << numShards << ", " << totalConfirmations / tests << ", " << churn << std::endl;

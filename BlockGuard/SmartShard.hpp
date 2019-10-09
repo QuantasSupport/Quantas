@@ -13,6 +13,15 @@
 
 class SmartShard {
 public:
+	int getTotalRequestCount() {
+		int total = 0;
+		for (auto shard : _system) {
+			for (int peer = 0; peer < _peerspershard; ++peer) {
+				total += (*shard)[peer]->getRequestCount();
+			}
+		}
+		return total;
+	}
 	~SmartShard() {for (auto e : _system) delete e;}
 
 	//const int& shards, std::ostream& out, int delay, int peerspershard = -1, int reserveSize = 0, int quorumIntersection = 1)
@@ -113,6 +122,9 @@ public:
                     peerToDrop = rand() % _peers.size();
                 }
                 makeByzantine(peerToDrop);
+                for( auto p : _peers[peerToDrop]){
+                    p->clearMessages();
+                }
                 std::cerr << "no reserve peers, dropping peer\n";
 
                 std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
@@ -147,14 +159,14 @@ public:
 		int getConfirmationCount() {
 			int total = 0;
 			for (auto quorum : _system) {
-                int min = (*quorum)[0]->getLedger().size();
+                int max = (*quorum)[0]->getLedger().size();
                 for (int i = 0; i < _peerspershard; ++i) {
-                    if (min > (*quorum)[i]->getLedger().size()) {
-                        min = (*quorum)[i]->getLedger().size();
+                    if (max < (*quorum)[i]->getLedger().size()) {
+                        max = (*quorum)[i]->getLedger().size();
                     }
                 }
-                std::cout << "MIN:"<< min << std::endl;
-                total += min;
+                std::cout << "Max:"<< max << std::endl;
+                total += max;
             }
 			return total;
 		}

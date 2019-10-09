@@ -79,7 +79,7 @@ public:
     virtual void					  setByzantineFlag		(bool f)                            {_byzantine = f;};
     virtual void                      makeCorrect           ()                                  {_byzantine = false;};
     virtual void                      makeByzantine         ()                                  {_byzantine = true;};
-
+    virtual void                      clearMessages                 ();
     // tells this peer to create a transation
     virtual void                      makeRequest           ()=0;
     // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
@@ -209,30 +209,22 @@ void Peer<message>::transmit(){
 }
 
 template <class message>
-void Peer<message>::receive(){
-    _clock++;
-    for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
-        std::string neighborID = it->first;
-        if(!_channels.at(neighborID).empty()){
-			for (auto packet : _channels.at(neighborID)) {
-				if (packet.hasArrived())
-					_inStream.push_back(packet);
-
-				_channels.at(neighborID).erase(std::remove_if(_channels.at(neighborID).begin(), _channels.at(neighborID).end(), [](Packet<message>& testpacket) {
-					return testpacket.hasArrived(); }));
+void Peer<message>::receive() {
+	_clock++;
+	for (auto it = _neighbors.begin(); it != _neighbors.end(); ++it) {
+		std::string neighborID = it->first;
+		if (!_channels.at(neighborID).empty()) {
+			if (_channels.at(neighborID).front().hasArrived()) {
+				_inStream.push_back(_channels.at(neighborID).front());
+				_channels.at(neighborID).pop_front();
 			}
-			for (auto packet : _channels.at(neighborID)) {
-				packet.moveForward();
+			else {
+				_channels.at(neighborID).front().moveForward();
 			}
-           /* if(_channels.at(neighborID).front().hasArrived()){
-                _inStream.push_back(_channels.at(neighborID).front());
-                _channels.at(neighborID).pop_front();
-            }else{
-                _channels.at(neighborID).front().moveForward();
-            }*/
-        }
-    }
+		}
+	}
 }
+
 
 
 template <class message>
@@ -255,6 +247,16 @@ std::vector<std::string> Peer<message>::neighbors()const{
 template <class message>
 int Peer<message>::getDelayToNeighbor(std::string id)const{
     return _channelDelays.at(id);
+}
+
+template <class message>
+void Peer<message>::clearMessages(){
+    _inStream.clear();
+    _outStream.clear();
+
+    for(auto c : _channels){
+        c.second.clear();
+    }
 }
 
 template <class message>

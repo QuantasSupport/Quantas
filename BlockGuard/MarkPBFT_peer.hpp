@@ -50,6 +50,7 @@ private:
 	int _remainingRoundstoRequest;
 	double _faultTolerance;
 	int _shard;
+	int _requestQueue;
 
 	// For view Change
 
@@ -69,6 +70,7 @@ private:
 	std::map<std::string, int> _ledger; // First value is messageID, second is delay to receive
 
 public:
+	int getRequestCount() { return _requestQueue; }
 	void setShard(int shardNum) { _shard=shardNum; }
 	int getShard() const { return _shard; };
 	bool getVote() { return _voteChange; }
@@ -84,7 +86,7 @@ public:
 
 	markPBFT_peer(std::string id) : Peer<markPBFT_message>(id), _isPrimary(false), _faultTolerance(0.3), _messageID(0), _viewCounter(0), 
 		_voteChange(false), _state(idle), _roundCount(0), _prepareCount(0), _commitCount(0), _requestPerRound(1), _maxWait(0),
-		_roundsToRequest(1), _remainingRoundstoRequest(1)
+		_roundsToRequest(1), _remainingRoundstoRequest(1), _requestQueue(0)
 	{ 
 		//_printNeighborhood = true;
 	}

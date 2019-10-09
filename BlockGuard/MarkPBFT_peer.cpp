@@ -64,7 +64,7 @@ void markPBFT_peer::setPrimary(bool status) {
 
 
 void markPBFT_peer::makeRequest() {
-	
+
 	++_roundCount;
 	receive();
 
@@ -76,35 +76,6 @@ void markPBFT_peer::makeRequest() {
 			[](Packet<markPBFT_message> a) { return a.getMessage().type != reply; }), _inStream.end());
 		if (_inStream.empty())
 			return;
-	}
-
-	//	Primary behaves as client
-	if (isPrimary() && !isByzantine()) {
-		++_remainingRoundstoRequest;
-		if (_remainingRoundstoRequest >= _roundsToRequest) {
-			for (int i = 0; i < _requestPerRound; ++i) {
-				markPBFT_message preprepareMSG;
-				preprepareMSG.creator_id = _id;
-				preprepareMSG.client_id = _id;
-				preprepareMSG.type = preprepare;
-
-				std::string msgID =std::to_string(_roundCount) + _id + std::to_string(++_messageID);
-
-				for (auto e : _neighbors) {
-					Packet<markPBFT_message> outPacket(msgID, e.second->id(), _id);
-					outPacket.setBody(preprepareMSG);
-					outPacket.setDelay(e.second->getDelayToNeighbor(_id));
-					_outStream.push_back(outPacket);
-				}
-
-				_preprepareSent.insert(msgID);
-
-
-				_state = preprepare;
-			}
-			_remainingRoundstoRequest = 0;
-
-		}
 	}
 
 	// View Change
@@ -152,7 +123,6 @@ void markPBFT_peer::makeRequest() {
 			_inStream.push_back(selfPacket);
 			_prepareSent.insert(inmsg.id());
 
-		
 		}
 
         // phase 3 prepare
@@ -235,11 +205,48 @@ void markPBFT_peer::makeRequest() {
             if ((_receivedMsgLog[inmsg.id()][reply] >= (int)(2 * (_faultTolerance * _neighbors.size())+1)) &&
                 ((int)(_faultTolerance * _neighbors.size()) != 0)) {
                 _ledger.insert(std::make_pair(inmsg.id(), _roundCount)); //
-
+				_state = idle;
             }
 
         }
 
+	}
+
+	//	Primary behaves as client
+	if (isPrimary() && !isByzantine()) {
+		++_remainingRoundstoRequest;
+
+		// Add to request queue if interval is met
+		if (_remainingRoundstoRequest >= _roundsToRequest) {
+			for (int i = 0; i < _requestPerRound; ++i) {
+				++_requestQueue;
+				_remainingRoundstoRequest = 0;
+			}
+		}
+
+		// Send message if idle and message is in queue
+		if (_state == idle && _requestQueue > 0) {
+			--_requestQueue;
+
+			markPBFT_message preprepareMSG;
+			preprepareMSG.creator_id = _id;
+			preprepareMSG.client_id = _id;
+			preprepareMSG.type = preprepare;
+
+			std::string msgID = std::to_string(_roundCount) + _id + std::to_string(++_messageID);
+
+			for (auto e : _neighbors) {
+				Packet<markPBFT_message> outPacket(msgID, e.second->id(), _id);
+				outPacket.setBody(preprepareMSG);
+				outPacket.setDelay(e.second->getDelayToNeighbor(_id));
+				_outStream.push_back(outPacket);
+			}
+
+			_preprepareSent.insert(msgID);
+
+
+			_state = preprepare;
+		}
 	}
 }
 
