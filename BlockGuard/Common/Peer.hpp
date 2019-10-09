@@ -214,12 +214,22 @@ void Peer<message>::receive(){
     for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
         std::string neighborID = it->first;
         if(!_channels.at(neighborID).empty()){
-            if(_channels.at(neighborID).front().hasArrived()){
+			for (auto packet : _channels.at(neighborID)) {
+				if (packet.hasArrived())
+					_inStream.push_back(packet);
+
+				_channels.at(neighborID).erase(std::remove_if(_channels.at(neighborID).begin(), _channels.at(neighborID).end(), [](Packet<message>& testpacket) {
+					return testpacket.hasArrived(); }));
+			}
+			for (auto packet : _channels.at(neighborID)) {
+				packet.moveForward();
+			}
+           /* if(_channels.at(neighborID).front().hasArrived()){
                 _inStream.push_back(_channels.at(neighborID).front());
                 _channels.at(neighborID).pop_front();
             }else{
                 _channels.at(neighborID).front().moveForward();
-            }
+            }*/
         }
     }
 }

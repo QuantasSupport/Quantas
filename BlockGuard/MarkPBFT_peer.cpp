@@ -62,8 +62,9 @@ void markPBFT_peer::setPrimary(bool status) {
 	_isPrimary = status;
 }
 
-void markPBFT_peer::makeRequest() {
 
+void markPBFT_peer::makeRequest() {
+	
 	++_roundCount;
 	receive();
 
@@ -87,7 +88,7 @@ void markPBFT_peer::makeRequest() {
 				preprepareMSG.client_id = _id;
 				preprepareMSG.type = preprepare;
 
-				std::string msgID = _id + std::to_string(++_messageID);
+				std::string msgID =std::to_string(_roundCount) + _id + std::to_string(++_messageID);
 
 				for (auto e : _neighbors) {
 					Packet<markPBFT_message> outPacket(msgID, e.second->id(), _id);
@@ -102,6 +103,7 @@ void markPBFT_peer::makeRequest() {
 				_state = preprepare;
 			}
 			_remainingRoundstoRequest = 0;
+
 		}
 	}
 
@@ -119,9 +121,7 @@ void markPBFT_peer::makeRequest() {
 	// Process messages
 	////////////////////////////////////////////////////////////
 
-
 	while (!_inStream.empty()) {
-
 
 		auto inmsg = _inStream.front();
         _inStream.erase(_inStream.begin());
@@ -129,7 +129,6 @@ void markPBFT_peer::makeRequest() {
 
         // pre-prepare phase 2
 		if ((inmsg.getMessage().type == preprepare)) {
-
 			if (_receivedMsgLog[inmsg.id()].find(preprepare) == _receivedMsgLog[inmsg.id()].end())
 				_receivedMsgLog[inmsg.id()][preprepare] = 1;
 			else
@@ -144,7 +143,6 @@ void markPBFT_peer::makeRequest() {
 				outPacket.setBody(prepareMSG);
 
 				outPacket.setDelay(e.second->getDelayToNeighbor(_id), e.second->getDelayToNeighbor(_id) - 1);
-
 				_outStream.push_back(outPacket);
 			}
 			// send message to self, help solve 2f+1
