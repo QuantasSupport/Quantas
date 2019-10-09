@@ -113,9 +113,6 @@ public:
                     peerToDrop = rand() % _peers.size();
                 }
                 makeByzantine(peerToDrop);
-                for( auto p : _peers[peerToDrop]){
-                    p->clearMessages();
-                }
                 std::cerr << "no reserve peers, dropping peer\n";
 
                 std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
@@ -150,14 +147,14 @@ public:
 		int getConfirmationCount() {
 			int total = 0;
 			for (auto quorum : _system) {
-                int max = (*quorum)[0]->getLedger().size();
+                int min = (*quorum)[0]->getLedger().size();
                 for (int i = 0; i < _peerspershard; ++i) {
-                    if (max < (*quorum)[i]->getLedger().size()) {
-                        max = (*quorum)[i]->getLedger().size();
+                    if (min > (*quorum)[i]->getLedger().size()) {
+                        min = (*quorum)[i]->getLedger().size();
                     }
                 }
-                std::cout << "Max:"<< max << std::endl;
-                total += max;
+                std::cout << "MIN:"<< min << std::endl;
+                total += min;
             }
 			return total;
 		}
