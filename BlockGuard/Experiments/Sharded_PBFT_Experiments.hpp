@@ -22,7 +22,7 @@
 #include <chrono>
 #include <random>
 #include "./../PBFT/PBFTReferenceCommittee.hpp"
-#include "./../params.hpp"
+#include "params_Blockguard.hpp"
 #include "metrics.hpp"
 
 

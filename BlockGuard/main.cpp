@@ -9,7 +9,6 @@
 #include <iostream>
 #include <fstream>
 #include <set>
-#include <iostream>
 #include <chrono>
 #include <random>
 
@@ -34,8 +33,8 @@
 // UTIL
 #include "./Common/Logger.hpp"
 #include "./Common/Blockchain.hpp"
+#include "SmartShards_Experiments.h"
 #include "MarkPBFT_peer.hpp"
-#include "SmartShard.hpp"
 
 const int peerCount = 10;
 const int blockChainLength = 100;
@@ -166,6 +165,15 @@ void Example(std::ofstream &logFile){
                                                           //    your derived class so all methods that you add will be avalable via the -> operator
     }
     std::cout<< "Number of Messages: "<< numberOfMessages<< std::endl;
+}
+
+void smartShard(const std::string& filePath) {
+    std::ofstream summary;
+    std::ofstream log;
+    log.open(filePath + "/smartShards.log");
+    summary.open(filePath + "/summary.csv");
+    ChurnRateVsQuorumIntersection(summary,log);
+    summary.close();
 }
 
 void bitcoin(std::ofstream &out, int avgDelay){
@@ -795,7 +803,7 @@ void run_DS_PBFT(const char ** argv){
 	instance.setMaxDelay(delay);
 	instance.setSquenceNumber(999);
 	instance.initNetwork(numberOfPeers);
-	instance.setFaultTolerance(FAULT);
+	instance.setFaultTolerance(FAULT*2);
 	instance.setDelay(delay);
 	instance.makeByzantines(numberOfPeers*tolerance);
 
@@ -977,78 +985,6 @@ std::set<std::string> getPeersForConsensus(int securityLevel) {
     return peersForConsensus;
 }
 
-void smartShard(const std::string& filePath) {
-	
-	int minDelay = 1;
-	int maxDelay = 1;
-	int minShards = 5;
-	int maxShards = 5;
-	int minChurn = 1;
-	int maxChurn = 1;
-	int numberOfRevives = 100;
-	int numberOfDrops = 100;
-
-	double faultTolerance = .333334;
-	int numRounds = 1000;
-	int requestPerRound = 1;
-	int roundsToRequest = 1;
-	int tests = 1;
-
-	std::ofstream summary;
-	summary.open(filePath + "/summary.csv");
-	summary << "delay, shards, confirmations, churn, total dead peers" << std::endl;
-
-	for (int delay = minDelay; delay <= maxDelay; delay += 5) {
-		for (int numShards = minShards; numShards <= maxShards; ++numShards) {
-			for (int churn = minChurn; churn <= maxChurn; ++churn) {
-
-				int totalConfirmations = 0;
-
-				for (int i = 0; i < tests; ++i) {
-					std::ofstream out;
-					out.open(filePath + "/smart shard_" + "delay_" + std::to_string(delay) + "_shards_" + std::to_string(numShards) + "_test_" + std::to_string(i) + ".log");
-
-
-					SmartShard system(numShards, out, delay, -1, 10, 2);
-
-					system.setFaultTolerance(faultTolerance);
-					system.setRequestsPerRound(requestPerRound); // number of requests to make at one time
-					system.setRoundsToRequest(roundsToRequest); // number of times to make a request
-					system.setMaxWait();
-
-                    int avgDeadPeers = 0;
-                    for (int i = 0; i < numRounds; ++i) {
-
-                        for (auto e : system.getQuorums()) {
-                            for (int j = 0; j < system.getShardSize(); ++j)
-                                (*e)[j]->makeRequest();
-                        }
-                        for(auto e: system.getQuorums()){
-                            for (int j = 0; j < system.getShardSize(); ++j)
-                                (*e)[j]->transmit();
-                            e->log();
-                        }
-                        avgDeadPeers += system.getByzantine();
-                    }
-
-
-					totalConfirmations += system.getConfirmationCount();
-					out.close();
-
-					summary << "Total dead peers: "<< avgDeadPeers/numRounds << " System Size: "<< system.size() <<  std::endl;
-					system.showLedger(std::cout);
-					/*std::cerr << system.getTotalRequestCount() << std::endl;*/
-
-				}
-				summary << delay << ", " << numShards << ", " << totalConfirmations / tests << ", " << churn << std::endl;
-			}
-		}
-		if (delay == 1)
-			--delay;
-	}
-	summary.close();
-}
-
 void markPBFT(const std::string& filePath) {
 	std::cout << "markPBFT" << std::endl;
 
@@ -1214,3 +1150,56 @@ void markPBFT(const std::string& filePath) {
 	}
 	summary.close();
 }
+
+/*
+ summary << "delay, shards, confirmations, churn, total dead peers" << std::endl;
+
+	for (int delay = minDelay; delay <= maxDelay; delay += 5) {
+		for (int numShards = minShards; numShards <= maxShards; ++numShards) {
+			for (int churn = minChurn; churn <= maxChurn; ++churn) {
+
+				int totalConfirmations = 0;
+
+				for (int i = 0; i < tests; ++i) {
+					std::ofstream out;
+					out.open(filePath + "/smart shard_" + "delay_" + std::to_string(delay) + "_shards_" + std::to_string(numShards) + "_test_" + std::to_string(i) + ".log");
+
+
+					SmartShard system(numShards, out, delay, -1, 10, 2);
+
+					system.setFaultTolerance(faultTolerance);
+					system.setRequestsPerRound(requestPerRound); // number of requests to make at one time
+					system.setRoundsToRequest(roundsToRequest); // number of times to make a request
+					system.setMaxWait();
+
+                    int avgDeadPeers = 0;
+                    for (int i = 0; i < numRounds; ++i) {
+
+                        for (auto e : system.getQuorums()) {
+                            for (int j = 0; j < system.getShardSize(); ++j)
+                                (*e)[j]->makeRequest();
+                        }
+                        for(auto e: system.getQuorums()){
+                            for (int j = 0; j < system.getShardSize(); ++j)
+                                (*e)[j]->transmit();
+                            e->log();
+                        }
+                        avgDeadPeers += system.getByzantine();
+                    }
+
+
+					totalConfirmations += system.getConfirmationCount();
+					out.close();
+
+					summary << "Total dead peers: "<< avgDeadPeers/numRounds << " System Size: "<< system.size() <<  std::endl;
+					system.showLedger(std::cout);
+					/*std::cerr << system.getTotalRequestCount() << std::endl;
+
+            }
+            summary << delay << ", " << numShards << ", " << totalConfirmations / tests << ", " << churn << std::endl;
+        }
+    }
+    if (delay == 1)
+    --delay;
+}
+*/

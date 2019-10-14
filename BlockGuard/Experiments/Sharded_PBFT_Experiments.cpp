@@ -20,7 +20,7 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         int secLvel = system.securityLevel1();
         
         system.makeByzantines(NUMBER_OF_BYZ);
@@ -52,7 +52,7 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         int secLvel = system.securityLevel2();
         
         system.makeByzantines(NUMBER_OF_BYZ);
@@ -83,7 +83,7 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         int secLvel = system.securityLevel3();
         
         system.makeByzantines(NUMBER_OF_BYZ);
@@ -114,7 +114,7 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         int secLvel = system.securityLevel4();
         
         system.makeByzantines(NUMBER_OF_BYZ);
@@ -145,7 +145,7 @@ void PBFTCommitteeSizeVsSecurityAndThoughput(std::ofstream &csv, std::ofstream &
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         int secLvel = system.securityLevel5();
         
         system.makeByzantines(NUMBER_OF_BYZ);
@@ -186,7 +186,7 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setMaxDelay(delay);
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         system.makeByzantines(NUMBER_OF_BYZ);
         
         int totalSub = 0;
@@ -228,7 +228,7 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setMaxDelay(delay);
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         system.makeByzantines(NUMBER_OF_BYZ);
         
         int totalSub = 0;
@@ -270,7 +270,7 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setMaxDelay(delay);
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         system.makeByzantines(NUMBER_OF_BYZ);
         
         int totalSub = 0;
@@ -312,7 +312,7 @@ void PBFTWaitingTimeThroughputVsDelay(std::ofstream &csv, std::ofstream &log){
         system.setMaxDelay(delay);
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         system.makeByzantines(NUMBER_OF_BYZ);
         
         int totalSub = 0;
@@ -363,7 +363,7 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         system.setToOne();
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         system.makeByzantines(PEER_COUNT*byzantine);
         
         int totalSub = 0;
@@ -406,7 +406,7 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
         system.makeByzantines(PEER_COUNT*byzantine);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -448,7 +448,7 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
         system.makeByzantines(PEER_COUNT*byzantine);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         
         int totalSub = 0;
         int prvConfirmed = 0;
@@ -490,7 +490,7 @@ void PBFTWaitingTimeThroughputVsByzantine(std::ofstream &csv, std::ofstream &log
         system.setLog(log);
         system.initNetwork(PEER_COUNT);
         system.makeByzantines(PEER_COUNT*byzantine);
-        system.setFaultTolerance(FAULT);
+        system.setFaultTolerance(FAULT*2);
         
         int totalSub = 0;
         int prvConfirmed = 0;

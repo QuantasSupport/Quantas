@@ -83,7 +83,7 @@ public:
     peer_type*                          operator[]          (int);
     const peer_type*                    operator[]          (int)const;
     friend std::ostream&                operator<<          (std::ostream &out, const Network &system)      {return system.printTo(out);};
-	void 								makeRequest			(Peer<type_msg> * peer)				 { peer->makeRequest(); }
+	void 								makeRequest			(Peer<type_msg> * peer)				            { peer->makeRequest(); }
 	void 								buildInitialDAG		();
 	std::vector<peer_type *>			setPeersForConsensusDAG(Peer<type_msg> *,int);
 	int									pickSecurityLevel	(int);

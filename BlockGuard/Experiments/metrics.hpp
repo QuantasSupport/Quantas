@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "./../Common/DAGBlock.hpp"
-#include "./../params.hpp"
+#include "params_Blockguard.hpp"
 
 double  ratioOfSecLvl                   (std::vector<DAGBlock> globalLedger, double secLvl);
 double  waitTimeOfSecLvl                (std::vector<DAGBlock> globalLedger, double secLvl);
