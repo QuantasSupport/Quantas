@@ -8,6 +8,6 @@
 static const int PEER_COUNT = 256;  // 1024
 static const double FAULT = 0.333334;   // number of peers that need to be honest for PBFT to work (i.e. 2/3s)
 static const int NUMBER_OF_ROUNDS = 1000;
-static const int NUMBER_OF_RUNS = 1;
+static const int NUMBER_OF_RUNS = 10;
 
 #endif //DISTRIBUTED_CONSENSUS_ABSTRACT_SIMULATOR_PARAMS_COMMON_H

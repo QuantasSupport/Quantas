@@ -90,6 +90,9 @@ std::string intersectionWithHaltsAndJoins(int quorumIntersection, int numberOfJo
     int totalConfirmations = 0;
     int totalDeadPeers = 0;
 
+    std::deque<int> joinRounds = scheduleEvents(numberOfJoins);
+    std::deque<int> haltRounds = scheduleEvents(numberOfHalts);
+
     // --------------------------- number of experiments --------------------------- //
     for(int run = 0; run < NUMBER_OF_RUNS; run++) {
         SmartShard system(NUMBER_OF_SHARDS, log, MAX_DELAY, peersPerShard, RESERVE_SIZE, quorumIntersection);
@@ -100,10 +103,12 @@ std::string intersectionWithHaltsAndJoins(int quorumIntersection, int numberOfJo
 
         // --------------------------- number of rounds ------------------------------- //
         for (int round = 0; round < NUMBER_OF_ROUNDS; round++) {
-            for(int joins = 0; joins < numberOfJoins; joins++){
+            if(joinRounds.front() == round){
+                joinRounds.pop_front();
                 system.revivePeer();
             }
-            for(int halts = 0; halts < NUMBER_OF_HALTS; halts++){
+            if(haltRounds.front() == round){
+                haltRounds.pop_front();
                 system.dropPeer();
             }
 
@@ -136,4 +141,7 @@ std::deque<int> scheduleEvents(int numberOfEvents){
         schedule.push_back(randomRound);
     }
 
+    std::sort(schedule.begin(), schedule.end());
+
+    return schedule;
 }
