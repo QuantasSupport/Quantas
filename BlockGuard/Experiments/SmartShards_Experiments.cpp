@@ -93,7 +93,6 @@ void ChurnRateVsQuorumIntersection(std::ofstream &summary, std::ofstream &log){
 }
 
 std::string intersectionWithHaltsAndJoins(int numberOfShards, int numberOfJoins, int numberOfHalts, std::ofstream &log){
-
     /*
      * P = Number of Peers
      * S = Number of Shards
