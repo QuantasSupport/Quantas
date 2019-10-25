@@ -11,14 +11,35 @@
 #include <set>
 
 bool markPBFT_message::operator==(const markPBFT_message& rhs) {
+	std::string         client_id;
+	// this is the peer that created the message
+	std::string         creator_id;
+	int				    requestGoal;
+	int					creator_shard;
+	int                 view;
+	std::string         type;
+	char                operation;
+	std::pair<int, int> operands;
+	int                 result;
+	int                 round; // used instead of timestamp
+	std::string         highestID;
+	//////////////////////////////////////////
+	// phases info
+	std::string         phase;
+	int                 sequenceNumber;
 	return(
 		client_id == rhs.client_id &&
 		creator_id == rhs.creator_id &&
+		creator_shard == rhs.creator_shard &&
 		view == rhs.view &&
 		type == rhs.type &&
 		operation == rhs.operation &&
 		operands == rhs.operands &&
-		result == rhs.result
+		result == rhs.result &&
+		round == rhs.round &&
+		highestID == rhs.highestID &&
+		phase == rhs.phase &&
+		sequenceNumber == rhs.sequenceNumber
 		);
 }
 
@@ -108,6 +129,7 @@ void markPBFT_peer::makeRequest() {
 			prepareMSG.creator_id = _id;
 			prepareMSG.client_id = _id;
 			prepareMSG.type = prepare;
+			prepareMSG.creator_shard = _neighborShard;
 
 			for (auto e : _neighbors) {
 				Packet<markPBFT_message> outPacket(inmsg.id(), e.second->id(), _id);
@@ -126,19 +148,25 @@ void markPBFT_peer::makeRequest() {
 		}
 
         // phase 3 prepare
+		
 		if (inmsg.getMessage().type == prepare && (_commitSent.find(inmsg.id()) == _commitSent.end())) {
+			_msgShardCount[inmsg.id()][prepare].insert(inmsg.getMessage().creator_shard);
+			
+			
 			if (_receivedMsgLog[inmsg.id()].find(prepare) == _receivedMsgLog[inmsg.id()].end())
 				_receivedMsgLog[inmsg.id()][prepare] = 1;
 			else
 				++_receivedMsgLog[inmsg.id()][prepare];
 
 			if ((_receivedMsgLog[inmsg.id()][prepare] >= (int)(2 * (_faultTolerance * _neighbors.size())+1)) &&
-				((int)(_faultTolerance * _neighbors.size()) != 0)) {
+				((int)(_faultTolerance * _neighbors.size()) != 0) &&
+				_msgShardCount[inmsg.id()][prepare].size() >= _shardCount - 1 ) {
 				_state = prepare;
 				markPBFT_message commitMSG;
 				commitMSG.creator_id = _id;
 				commitMSG.client_id = _id;
 				commitMSG.type = commit;
+				commitMSG.creator_shard = _neighborShard;
 				for (auto e : _neighbors) {
 					Packet<markPBFT_message> outPacket(inmsg.id(), e.second->id(), _id);
 					outPacket.setBody(commitMSG);
@@ -153,6 +181,8 @@ void markPBFT_peer::makeRequest() {
 
         // phase 4 commit
 		if (inmsg.getMessage().type == commit && (_replySent.find(inmsg.id()) == _replySent.end())) {
+			_msgShardCount[inmsg.id()][commit].insert(inmsg.getMessage().creator_shard);
+
 			if (_receivedMsgLog[inmsg.id()].find(commit) == _receivedMsgLog[inmsg.id()].end())
 				_receivedMsgLog[inmsg.id()][commit] = 1;
 			else
@@ -161,12 +191,14 @@ void markPBFT_peer::makeRequest() {
 
 
 			if ((_receivedMsgLog[inmsg.id()][commit] >= (int)(2 * (_faultTolerance * _neighbors.size())+1)) &&
-				((int)(_faultTolerance * _neighbors.size()) != 0)) {
+				((int)(_faultTolerance * _neighbors.size()) != 0) &&
+				_msgShardCount[inmsg.id()][prepare].size() >= _shardCount - 1) {
 				_state = commit;
 				markPBFT_message replyMSG;
 				replyMSG.creator_id = _id;
 				replyMSG.client_id = _id;
 				replyMSG.type = reply;
+				replyMSG.creator_shard = _shard;
 
 				// Primary is client, send reply to client/self 
 				if (isPrimary()) {
@@ -213,39 +245,52 @@ void markPBFT_peer::makeRequest() {
 	}
 
 	//	Primary behaves as client
-	if (isPrimary() && !isByzantine()) {
-		++_remainingRoundstoRequest;
+	if (isPrimary()) {
 
-		// Add to request queue if interval is met
-		if (_remainingRoundstoRequest >= _roundsToRequest) {
-			for (int i = 0; i < _requestPerRound; ++i) {
-				++_requestQueue;
-				_remainingRoundstoRequest = 0;
-			}
+		// restart pbft if reply not received in adequate time
+		if (_state != idle)
+			++_waitcommit;
+		if (_waitcommit > _maxWait* 4) {
+			_state = idle;
+			_waitcommit = 0;
 		}
 
-		// Send message if idle and message is in queue
-		if (_state == idle && _requestQueue > 0) {
-			--_requestQueue;
+		if (!isByzantine()) {
+			++_remainingRoundstoRequest;
 
-			markPBFT_message preprepareMSG;
-			preprepareMSG.creator_id = _id;
-			preprepareMSG.client_id = _id;
-			preprepareMSG.type = preprepare;
-
-			std::string msgID = std::to_string(_roundCount) + _id + std::to_string(++_messageID);
-
-			for (auto e : _neighbors) {
-				Packet<markPBFT_message> outPacket(msgID, e.second->id(), _id);
-				outPacket.setBody(preprepareMSG);
-				outPacket.setDelay(e.second->getDelayToNeighbor(_id));
-				_outStream.push_back(outPacket);
+			// Add to request queue if interval is met
+			if (_remainingRoundstoRequest >= _roundsToRequest) {
+				for (int i = 0; i < _requestPerRound; ++i) {
+					++_requestQueue;
+					_remainingRoundstoRequest = 0;
+				}
 			}
 
-			_preprepareSent.insert(msgID);
+			// Send message if idle and message is in queue
 
+			if (_state == idle && _requestQueue > 0) {
+				--_requestQueue;
 
-			_state = preprepare;
+				markPBFT_message preprepareMSG;
+				preprepareMSG.creator_id = _id;
+				preprepareMSG.client_id = _id;
+				preprepareMSG.type = preprepare;
+				preprepareMSG.creator_shard = _shard;
+
+				std::string msgID = std::to_string(_roundCount) + _id + std::to_string(++_messageID);
+
+				for (auto e : _neighbors) {
+					Packet<markPBFT_message> outPacket(msgID, e.second->id(), _id);
+					outPacket.setBody(preprepareMSG);
+					outPacket.setDelay(e.second->getDelayToNeighbor(_id));
+					_outStream.push_back(outPacket);
+				}
+
+				_preprepareSent.insert(msgID);
+
+				_waitcommit = 0;
+				_state = preprepare;
+			}
 		}
 	}
 }

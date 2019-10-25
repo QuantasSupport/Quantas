@@ -5,6 +5,7 @@
 #include "Common/Peer.hpp"
 #include <map>
 #include <set>
+#include <list>
 
 static const std::string idle = "IDLE";
 static const std::string preprepare = "PREPREPARE";
@@ -19,6 +20,7 @@ struct markPBFT_message {
 	// this is the peer that created the message
 	std::string         creator_id;
 	int				    requestGoal;
+	int					creator_shard;
 	int                 view;
 	std::string         type;
 	char                operation;
@@ -51,12 +53,15 @@ private:
 	double _faultTolerance;
 	int _shard;
 	int _requestQueue;
+	int _shardCount;
+	int _neighborShard;
 
 	// For view Change
 
 	int _viewCounter;
 	int _maxWait;
 	bool _voteChange;
+	int _waitcommit;
 
 
 
@@ -68,8 +73,13 @@ private:
 	std::set<std::string> _commitSent;
 	std::set<std::string> _replySent;
 	std::map<std::string, int> _ledger; // First value is messageID, second is delay to receive
+	std::map < std::string, std::map<std::string, std::set<int>>> _msgShardCount; // map<msgID,map<messageType,list<shards>>>
 
 public:
+	void setNeighborShard(int a) { _neighborShard = a; }
+	int getNeighborShard() { return _neighborShard; }
+	void setShardCount(int a) { _shardCount = a; }
+	int getShardCount() { return _shardCount; }
 	int getRequestCount() { return _requestQueue; }
 	void setShard(int shardNum) { _shard=shardNum; }
 	int getShard() const { return _shard; };
@@ -85,8 +95,8 @@ public:
 	void setRoundsToRequest(int a);
 
 	markPBFT_peer(std::string id) : Peer<markPBFT_message>(id), _isPrimary(false), _faultTolerance(0.3), _messageID(0), _viewCounter(0), 
-		_voteChange(false), _state(idle), _roundCount(0), _prepareCount(0), _commitCount(0), _requestPerRound(1), _maxWait(0),
-		_roundsToRequest(1), _remainingRoundstoRequest(1), _requestQueue(0)
+		_voteChange(false), _state(idle), _roundCount(0), _prepareCount(0), _commitCount(0), _requestPerRound(1), _maxWait(0), _waitcommit(0),
+		_roundsToRequest(1), _remainingRoundstoRequest(1), _requestQueue(0), _neighborShard(0)
 	{ 
 		//_printNeighborhood = true;
 	}

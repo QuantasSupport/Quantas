@@ -17,8 +17,10 @@ SmartShard::SmartShard(const int& shards, std::ostream& out, int delay, int peer
 		_system[i]->setMaxDelay(delay);
 		_system[i]->initNetwork(_peerspershard * quorumIntersection);
 		(*_system[i])[rand() % _peerspershard * quorumIntersection]->setPrimary(true);
-		for (int j = 0; j < _peerspershard * quorumIntersection; ++j)
+		for (int j = 0; j < _peerspershard * quorumIntersection; ++j) {
 			(*_system[i])[j]->setShard(i);
+			(*_system[i])[j]->setShardCount(_shards);
+		}
 
 	}
 
@@ -36,6 +38,8 @@ SmartShard::SmartShard(const int& shards, std::ostream& out, int delay, int peer
 		}
 	}
 	_peerspershard *= quorumIntersection;
+
+	setNeighborShard();
 }
 
 void SmartShard::printPeers() {

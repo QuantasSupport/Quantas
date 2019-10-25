@@ -28,6 +28,13 @@ public:
 	SmartShard(const int&, std::ostream&, int, int, int, int);
 
 	void printPeers();
+
+	void setNeighborShard() {
+		for (auto e : _peers) {
+			(*e.second.begin())->setNeighborShard((*(--e.second.end()))->getShard());
+			(*(--e.second.end()))->setNeighborShard((*e.second.begin())->getShard());
+		}
+	}
 		
 	void setFaultTolerance(double);
 
