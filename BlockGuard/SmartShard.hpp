@@ -16,7 +16,7 @@ public:
 	int getTotalRequestCount() {
 		int total = 0;
 		for (auto shard : _system) {
-			for (int peer = 0; peer < _peerspershard; ++peer) {
+			for (int peer = 0; peer < _peersPerShard; ++peer) {
 				total += (*shard)[peer]->getRequestCount();
 			}
 		}
@@ -33,19 +33,19 @@ public:
 
 		void setRequestsPerRound(int requestPerRound) {
 			for (auto e : _system)
-				for (int i = 0; i < _peerspershard; ++i)
+				for (int i = 0; i < _peersPerShard; ++i)
 					(*e)[i]->setRequestPerRound(requestPerRound);
 		}
 
 		void setRoundsToRequest(int roundstoRequest) {
 			for (auto e : _system)
-				for (int i = 0; i < _peerspershard; ++i)
+				for (int i = 0; i < _peersPerShard; ++i)
 					(*e)[i]->setRoundsToRequest(roundstoRequest);
 		}
 
 		void setMaxWait() {
 			for (auto e : _system)
-				for (int i = 0; i < _peerspershard; ++i) {
+				for (int i = 0; i < _peersPerShard; ++i) {
 					(*e)[i]->setMaxWait();
 				}
 		}
@@ -68,11 +68,11 @@ public:
 				}
 
 				for (auto e : _system) {
-					for (int j = 0; j < _peerspershard; ++j)
+					for (int j = 0; j < _peersPerShard; ++j)
 						(*e)[j]->makeRequest();
 				}
 				for (auto e : _system) {
-					for (int j = 0; j < _peerspershard; ++j)
+					for (int j = 0; j < _peersPerShard; ++j)
 						(*e)[j]->transmit();
 					e->log();
 				}
@@ -112,21 +112,15 @@ public:
 
 	    void dropPeer(){
             assert(_numberOfPeersInReserve > -1);
+            if(getByzantine() == _peers.size()){return;}// all peers are dead
 
             if(_numberOfPeersInReserve == 0){
-                if(getByzantine() == size()){
-                    return;
-                }
                 int peerToDrop = rand()%_peers.size();
                 while (isByzantine(peerToDrop)) {
                     peerToDrop = rand() % _peers.size();
                 }
                 makeByzantine(peerToDrop);
-                for( auto p : _peers[peerToDrop]){
-                    p->clearMessages();
-                }
                 std::cerr << "no reserve peers, dropping peer\n";
-
                 std::cerr << "reserves: " << _numberOfPeersInReserve << std::endl;
                 std::cerr << "num of dropped peers: ";
                 int droppedCount = 0;
@@ -160,12 +154,11 @@ public:
 			int total = 0;
 			for (auto quorum : _system) {
                 int max = (*quorum)[0]->getLedger().size();
-                for (int i = 0; i < _peerspershard; ++i) {
+                for (int i = 0; i < _peersPerShard; ++i) {
                     if (max < (*quorum)[i]->getLedger().size()) {
                         max = (*quorum)[i]->getLedger().size();
                     }
                 }
-                std::cout << "Max:"<< max << std::endl;
                 total += max;
             }
 			return total;
@@ -176,8 +169,10 @@ public:
 		void makeByzantine(int peer) {
 			if (_peers.find(peer) == _peers.end())
 				std::cerr << "peer does not exist making byzantine";
-			for (auto e : _peers[peer])
-				e->makeByzantine();
+			for (auto e : _peers[peer]) {
+                e->makeByzantine();
+                e->clearMessages();
+            }
 		}
 
 		void makeCorrect(int peer) {
@@ -195,11 +190,11 @@ public:
 		}
 
 		int getByzantine(){
-	        int total = 0;
-	        for(auto s : _system){
-	            total += s->getByzantine().size();
-	        }
-	        return total;
+		    int total = 0;
+            for (int peer = 0; peer < _peers.size(); ++peer)
+                if (isByzantine(peer))
+                    ++total;
+            return total;
 	    }
 
 		int shardCount() {
@@ -216,7 +211,7 @@ public:
 			}
 
 			if (toPeer == -1) {
-				toPeer == rand() % _peerspershard;
+				toPeer == rand() % _peersPerShard;
 			}
 
 			markPBFT_message requestMSG;
@@ -233,12 +228,12 @@ public:
 	    }
 
 	    int getShardSize(){
-	        return _peerspershard;
+	        return _peersPerShard;
 	    }
 
 		void showLedger(std::ostream& out) {
 			for (auto shard : _system) {
-				for (int peer = 0; peer < _peerspershard; ++peer) {
+				for (int peer = 0; peer < _peersPerShard; ++peer) {
 					auto ledger = (*shard)[peer]->getLedger();
 					for (auto entry : ledger) {
 						out << entry.first << ": " << entry.second << std::endl;
@@ -250,7 +245,7 @@ public:
 private:
 	std::vector < ByzantineNetwork<markPBFT_message, markPBFT_peer>*> _system; // list of shards in the system
 	std::ostream* _out;
-	int _peerspershard;
+	int _peersPerShard;
 	int _shards;
 	int _numberOfPeersInReserve;
 	std::map<int, std::set<markPBFT_peer*>> _peers; // peer id, to list of real peers that it is in the quorums (vir peers)

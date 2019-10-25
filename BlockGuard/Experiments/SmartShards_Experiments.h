@@ -21,7 +21,7 @@
 void ChurnRateVsQuorumIntersection(std::ofstream &csv, std::ofstream &log);
 
 // intersection runs
-std::string intersectionWithHaltsAndJoins(int quorumIntersection,int numberOfJoins, int numberOfHalts, std::ofstream &log);
+std::string intersectionWithHaltsAndJoins(int numberOfShards, int numberOfJoins, int numberOfHalts, std::ofstream &log);
 
 // util
 // returns a list of rounds for for some event to happen, each event gets it's own round

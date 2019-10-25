@@ -13,136 +13,97 @@ void ChurnRateVsQuorumIntersection(std::ofstream &summary, std::ofstream &log){
      * I = 2P/S(S-1)
      */
 
-    int quorumIntersection = 1;
-    /* P = I*(S(S-1))/2
-     * P = 1*(5(4))/2
-     * P = 20/2
-     * P = 10
-     */
-    int numberOfPeers = 10;
+    int numberOfShards = NUMBER_OF_SHARDS;
+    summary << "5 Quorum, quorum Intersection " << std::endl;
+    summary << "confirmations, total dead peers, churnRate, Intersection" << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (0.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (1.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (2.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (3.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (4.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (5.0 / 5), PEER_COUNT, log) << std::endl;
+    
 
-    summary << "Quorum Intersection 1"<< std::endl;
-    summary << "confirmations, total dead peers, churnRate" << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (0.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (1.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (2.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (3.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (4.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (5.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (6.0 / 5), numberOfPeers, log) << std::endl;
 
-    quorumIntersection = 2;
-    /* P = I*(S(S-1))/2
-     * P = 2*(5(4))/2
-     * P = 40/2
-     * P = 20
-     */
-    numberOfPeers = 20;
+    numberOfShards++;
+    summary << "6 Quorum, quorum Intersection " << std::endl;
+    summary << "confirmations, total dead peers, churnRate, Intersection" << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (0.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (1.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (2.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (3.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (4.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (5.0 / 5), PEER_COUNT, log) << std::endl;
+    
 
-    summary << "Quorum Intersection 2"<< std::endl;
-    summary << "confirmations, total dead peers, churnRate" << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (0.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (1.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (2.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (3.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (4.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (5.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (6.0 / 5), numberOfPeers, log) << std::endl;
+    numberOfShards++;
+    summary << "7 Quorum, quorum Intersection " << std::endl;
+    summary << "confirmations, total dead peers, churnRate, Intersection" << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (0.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (1.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (2.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (3.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (4.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (5.0 / 5), PEER_COUNT, log) << std::endl;
+    
 
-    quorumIntersection = 3;
-    /* P = I*(S(S-1))/2
-     * P = 3*(5(4))/2
-     * P = 60/2
-     * P = 30
-     */
-    numberOfPeers = 30;
+    numberOfShards++;
+    summary << "8 Quorum, quorum Intersection " << std::endl;
+    summary << "confirmations, total dead peers, churnRate, Intersection" << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (0.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (1.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (2.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (3.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (4.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (5.0 / 5), PEER_COUNT, log) << std::endl;
+    
 
-    summary << "Quorum Intersection 3"<< std::endl;
-    summary << "confirmations, total dead peers, churnRate" << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (0.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (1.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (2.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (3.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (4.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (5.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (6.0 / 5), numberOfPeers, log) << std::endl;
+    numberOfShards++;
+    summary << "9 Quorum, quorum Intersection " << std::endl;
+    summary << "confirmations, total dead peers, churnRate, Intersection" << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (0.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (1.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (2.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (3.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (4.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (5.0 / 5), PEER_COUNT, log) << std::endl;
+    
 
-    quorumIntersection = 4;
-    /* P = I*(S(S-1))/2
-     * P = 4*(5(4))/2
-     * P = 80/2
-     * P = 40
-     */
-    numberOfPeers = 40;
+    numberOfShards++;
+    summary << "10 Quorum, quorum Intersection " << std::endl;
+    summary << "confirmations, total dead peers, churnRate, Intersection" << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (0.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (1.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (2.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (3.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (4.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (5.0 / 5), PEER_COUNT, log) << std::endl;
+    
 
-    summary << "Quorum Intersection 4"<< std::endl;
-    summary << "confirmations, total dead peers, churnRate" << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (0.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (1.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (2.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (3.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (4.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (5.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (6.0 / 5), numberOfPeers, log) << std::endl;
-
-    quorumIntersection = 5;
-    /* P = I*(S(S-1))/2
-     * P = 5*(5(4))/2
-     * P = 100/2
-     * P = 50
-     */
-    numberOfPeers = 50;
-
-    summary << "Quorum Intersection 5"<< std::endl;
-    summary << "confirmations, total dead peers, churnRate" << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (0.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (1.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (2.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (3.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (4.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (5.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (6.0 / 5), numberOfPeers, log) << std::endl;
-
-    quorumIntersection = 6;
-    /* P = I*(S(S-1))/2
-     * P = 6*(5(4))/2
-     * P = 120/2
-     * P = 60
-     */
-    numberOfPeers = 60;
-
-    summary << "Quorum Intersection 6"<< std::endl;
-    summary << "confirmations, total dead peers, churnRate" << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (0.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (1.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (2.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (3.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (4.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (5.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (6.0 / 5), numberOfPeers, log) << std::endl;
-
-    quorumIntersection = 7;
-    /* P = I*(S(S-1))/2
-     * P = 7*(5(4))/2
-     * P = 140/2
-     * P = 70
-     */
-    numberOfPeers = 70;
-
-    summary << "Quorum Intersection 7"<< std::endl;
-    summary << "confirmations, total dead peers, churnRate" << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (0.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (1.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (2.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (3.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (4.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (5.0 / 5), numberOfPeers, log) << std::endl;
-    summary << intersectionWithHaltsAndJoins(quorumIntersection, numberOfPeers * (6.0 / 5), numberOfPeers, log) << std::endl;
+    numberOfShards++;
+    summary << "11 Quorum, quorum Intersection " << std::endl;
+    summary << "confirmations, total dead peers, churnRate, Intersection" << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (0.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (1.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (2.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (3.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (4.0 / 5), PEER_COUNT, log) << std::endl;
+    summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (5.0 / 5), PEER_COUNT, log) << std::endl;
+    
 }
 
-std::string intersectionWithHaltsAndJoins(int quorumIntersection, int numberOfJoins, int numberOfHalts, std::ofstream &log){
+std::string intersectionWithHaltsAndJoins(int numberOfShards, int numberOfJoins, int numberOfHalts, std::ofstream &log){
 
-    int peersPerShard = -1; // not specified based on number of quorumIntersection
+    /*
+     * P = Number of Peers
+     * S = Number of Shards
+     * I = Number of Intersections
+     * P = I*(S(S-1))/2
+     * I = 2P/S(S-1)
+     */
+    int quorumIntersection = PEER_COUNT/((numberOfShards*(numberOfShards-1))/2); // I
+    int peerPerShard = quorumIntersection*(numberOfShards-1); // -1 for self
+    if(peerPerShard < 2){return "";}
     int totalConfirmations = 0;
     int totalDeadPeers = 0;
 
@@ -151,7 +112,7 @@ std::string intersectionWithHaltsAndJoins(int quorumIntersection, int numberOfJo
 
     // --------------------------- number of experiments --------------------------- //
     for(int run = 0; run < NUMBER_OF_RUNS; run++) {
-        SmartShard system(NUMBER_OF_SHARDS, log, MAX_DELAY, peersPerShard, RESERVE_SIZE, quorumIntersection);
+        SmartShard system(numberOfShards, log, MAX_DELAY, peerPerShard, RESERVE_SIZE, quorumIntersection);
         system.setFaultTolerance(FAULT);
         system.setRequestsPerRound(NUMBER_OF_REQUEST); // number of requests to make at one time
         system.setRoundsToRequest(ROUNDS_TO_MAKE_REQUEST); // number of times to make a request
@@ -160,6 +121,7 @@ std::string intersectionWithHaltsAndJoins(int quorumIntersection, int numberOfJo
 
         // --------------------------- number of rounds ------------------------------- //
         for (int round = 0; round < NUMBER_OF_ROUNDS; round++) {
+            std::cout << "Round:" << round << std::endl;
             if(joinRounds.front() == round){
                 joinRounds.pop_front();
                 system.revivePeer();
@@ -183,10 +145,14 @@ std::string intersectionWithHaltsAndJoins(int quorumIntersection, int numberOfJo
 
         totalConfirmations += system.getConfirmationCount();
     }
-    return std::to_string(totalConfirmations/NUMBER_OF_RUNS) + ", " + std::to_string(totalDeadPeers / (NUMBER_OF_ROUNDS * NUMBER_OF_RUNS)) + ", " + std::to_string(numberOfJoins) + ":" + std::to_string(numberOfHalts);
+    return std::to_string(totalConfirmations/NUMBER_OF_RUNS) +
+    ", " + std::to_string(totalDeadPeers / (NUMBER_OF_ROUNDS * NUMBER_OF_RUNS)) +
+    ", " + std::to_string(numberOfJoins) + ":" + std::to_string(numberOfHalts) +
+    ", " + std::to_string(quorumIntersection);
 }
 
 std::deque<int> scheduleEvents(int numberOfEvents){
+    assert(numberOfEvents <= NUMBER_OF_ROUNDS);
     std::deque<int> schedule = std::deque<int>();
     std::uniform_int_distribution<int> randomDistribution(1,NUMBER_OF_ROUNDS);
 

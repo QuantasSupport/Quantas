@@ -10,7 +10,7 @@
 static const int MAX_DELAY = 1;
 static const int NUMBER_OF_SHARDS = 5;
 //static const int NUMBER_OF_HALTS = 100;
-static const int RESERVE_SIZE = 5;
+static const int RESERVE_SIZE = double(PEER_COUNT)*0.2;
 static const int NUMBER_OF_REQUEST = 1;
 static const int ROUNDS_TO_MAKE_REQUEST = 1; // every this many rounds make NUMBER_OF_REQUEST
 

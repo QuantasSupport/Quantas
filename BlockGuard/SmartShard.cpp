@@ -1,13 +1,13 @@
 #include "SmartShard.hpp"
+#include "params_common.h"
 
 SmartShard::SmartShard(const int& shards, std::ostream& out, int delay, int peerspershard = -1, int reserveSize = 0, int quorumIntersection = 1) {
-	_numberOfPeersInReserve = reserveSize;
 	_out = &out;
 	_shards = shards;
 	if (peerspershard == -1)
-		_peerspershard = shards - 1;
+        _peersPerShard = shards - 1;
 	else
-		_peerspershard = peerspershard;
+        _peersPerShard = peerspershard;
 
 	// Initialize Quorums
 	for (int i = 0; i < _shards; ++i) {
@@ -15,27 +15,34 @@ SmartShard::SmartShard(const int& shards, std::ostream& out, int delay, int peer
 		_system[i]->setLog(*_out);
 		_system[i]->setToRandom();
 		_system[i]->setMaxDelay(delay);
-		_system[i]->initNetwork(_peerspershard * quorumIntersection);
-		(*_system[i])[rand() % _peerspershard * quorumIntersection]->setPrimary(true);
-		for (int j = 0; j < _peerspershard * quorumIntersection; ++j)
+		_system[i]->initNetwork(_peersPerShard);
+		(*_system[i])[rand() % _peersPerShard]->setPrimary(true);
+		for (int j = 0; j < _peersPerShard; ++j)
 			(*_system[i])[j]->setShard(i);
-
 	}
 
+    int vPeer = 0;
+    for(int quorum = 0; quorum < (_system.size()-1); quorum++){
+        int nextQuorum = quorum +1 ;
+        int offset = quorum*quorumIntersection;
+        for(int peer = offset; peer < _system[quorum]->size(); ) {
+            for (int intersectionPeer = 0; intersectionPeer < quorumIntersection; intersectionPeer++) {
+                assert((*_system[quorum])[peer] != NULL);
+                assert((*_system[nextQuorum])[intersectionPeer] != NULL);
+                _peers[vPeer].insert((*_system[quorum])[peer]);
+                _peers[vPeer].insert((*_system[nextQuorum])[quorum+intersectionPeer]);
+                vPeer++;
+                peer++;
+            }
+            nextQuorum++;
+        }
+    }
 
-	int peer = 0; // Assign to virtual peer
-	int peerIndex = 0; // peer index for shards
-
-	for (int shard = 0; shard < _system.size(); ++shard) {
-		for (int offset = 0; offset < quorumIntersection; ++offset) {
-			for (int vPeer = shard; vPeer < _peerspershard; ++vPeer) {
-				_peers[peer].insert((*_system[shard])[vPeer + _peerspershard * offset]);
-				_peers[peer].insert((*_system[vPeer + 1])[shard + offset * _peerspershard]);
-				++peer;
-			}
-		}
-	}
-	_peerspershard *= quorumIntersection;
+    if(shards*peerspershard < PEER_COUNT){
+        _numberOfPeersInReserve = reserveSize + (PEER_COUNT - (shards*peerspershard)); // add left over peers to reserve
+    }else {
+        _numberOfPeersInReserve = reserveSize;
+    }
 }
 
 void SmartShard::printPeers() {
@@ -49,7 +56,7 @@ void SmartShard::printPeers() {
 
 void SmartShard::setFaultTolerance(double tolerance) {
 	for (auto e : _system)
-		for (int i = 0; i < _peerspershard; ++i)
+		for (int i = 0; i < _peersPerShard; ++i)
 			(*e)[i]->setFaultTolerance(tolerance);
 
 }
