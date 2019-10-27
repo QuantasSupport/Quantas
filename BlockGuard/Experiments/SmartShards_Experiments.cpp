@@ -13,7 +13,7 @@ void ChurnRateVsQuorumIntersection(std::ofstream &summary, std::ofstream &log){
      * I = 2P/S(S-1)
      */
 
-    int numberOfShards = NUMBER_OF_SHARDS;
+    int numberOfShards = MAX_NUMBER_OF_SHARDS;
     summary << "5 Quorum, quorum Intersection " << std::endl;
     summary << "confirmations, total dead peers, churnRate, Intersection" << std::endl;
     summary << intersectionWithHaltsAndJoins(numberOfShards, PEER_COUNT * (0.0 / 5), PEER_COUNT, log) << std::endl;

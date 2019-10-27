@@ -29,7 +29,7 @@ public:
 
 	void printPeers();
 
-	void setNeighborShard() {
+	void setupShardNeighborhood() {
 		for (auto e : _peers) {
 			(*e.second.begin())->setNeighborShard((*(--e.second.end()))->getShard());
 			(*(--e.second.end()))->setNeighborShard((*e.second.begin())->getShard());
@@ -160,10 +160,10 @@ public:
 		int getConfirmationCount() {
 			int total = 0;
 			for (auto quorum : _system) {
-                int max = (*quorum)[0]->getLedger().size();
+                int max = (*quorum)[0]->ledger().size();
                 for (int i = 0; i < _peersPerShard; ++i) {
-                    if (max < (*quorum)[i]->getLedger().size()) {
-                        max = (*quorum)[i]->getLedger().size();
+                    if (max < (*quorum)[i]->ledger().size()) {
+                        max = (*quorum)[i]->ledger().size();
                     }
                 }
                 total += max;
@@ -241,7 +241,7 @@ public:
 		void showLedger(std::ostream& out) {
 			for (auto shard : _system) {
 				for (int peer = 0; peer < _peersPerShard; ++peer) {
-					auto ledger = (*shard)[peer]->getLedger();
+					auto ledger = (*shard)[peer]->ledger();
 					for (auto entry : ledger) {
 						out << entry.first << ": " << entry.second << std::endl;
 					}

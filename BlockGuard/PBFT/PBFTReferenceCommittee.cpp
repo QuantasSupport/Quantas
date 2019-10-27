@@ -429,8 +429,8 @@ std::ostream& PBFTReferenceCommittee::printTo(std::ostream& out)const{
 //        out<< '\t'<< std::setw(LOG_WIDTH)<< "Peer:"<< std::setw(LOG_WIDTH)<< "Current Phase:"<< std::setw(LOG_WIDTH)<< "Last Commit:"<< std::setw(LOG_WIDTH)<< "Current Committee"<< std::setw(LOG_WIDTH)<< "Current Primary"<< std::endl;
 //        for(auto group = committee.begin(); group != committee.end(); group++){
 //            for(auto peer = group->begin(); peer != group->end(); peer++ ){
-//                if((*peer)->getLedger().size() != 0){
-//                    out<< '\t'<< std::setw(LOG_WIDTH)<< (*peer)->id()<< std::setw(LOG_WIDTH)<< (*peer)->getPhase()<< std::setw(LOG_WIDTH)<< (*peer)->getLedger().end()->commit_round<< std::setw(LOG_WIDTH)<< (*peer)->getCommittee()<< std::setw(LOG_WIDTH)<< (*peer)->getPrimary()<<std::endl;
+//                if((*peer)->ledger().size() != 0){
+//                    out<< '\t'<< std::setw(LOG_WIDTH)<< (*peer)->id()<< std::setw(LOG_WIDTH)<< (*peer)->getPhase()<< std::setw(LOG_WIDTH)<< (*peer)->ledger().end()->commit_round<< std::setw(LOG_WIDTH)<< (*peer)->getCommittee()<< std::setw(LOG_WIDTH)<< (*peer)->getPrimary()<<std::endl;
 //                }else{
 //                    out<< '\t'<< std::setw(LOG_WIDTH)<< (*peer)->id()<< std::setw(LOG_WIDTH)<< (*peer)->getPhase()<< std::setw(LOG_WIDTH)<< "None"<< std::setw(LOG_WIDTH)<< (*peer)->getCommittee()<<std::endl;
 //                }

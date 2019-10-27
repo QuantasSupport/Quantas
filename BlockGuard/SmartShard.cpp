@@ -17,26 +17,32 @@ SmartShard::SmartShard(const int& shards, std::ostream& out, int delay, int peer
 		_system[i]->setMaxDelay(delay);
 		_system[i]->initNetwork(_peersPerShard);
 		(*_system[i])[rand() % _peersPerShard]->setPrimary(true);
-		for (int j = 0; j < _peersPerShard; ++j)
-			(*_system[i])[j]->setShard(i);
+		for (int j = 0; j < _peersPerShard; ++j) {
+            (*_system[i])[j]->setShard(i);
+            (*_system[i])[j]->setShardCount(_shards);
+        }
 	}
 
+	// map PBFT instances (called peers) to virtual peers (actual peers)
     int vPeer = 0;
     for(int quorum = 0; quorum < (_system.size()-1); quorum++){
         int nextQuorum = quorum +1 ;
         int offset = quorum*quorumIntersection;
-        for(int peer = offset; peer < _system[quorum]->size(); ) {
-            for (int intersectionPeer = 0; intersectionPeer < quorumIntersection; intersectionPeer++) {
-                assert((*_system[quorum])[peer] != NULL);
-                assert((*_system[nextQuorum])[intersectionPeer] != NULL);
-                _peers[vPeer].insert((*_system[quorum])[peer]);
-                _peers[vPeer].insert((*_system[nextQuorum])[quorum+intersectionPeer]);
+        for(int thisPBFTInstances = offset; thisPBFTInstances < _system[quorum]->size(); ) {
+            for (int otherPBFTInstances = 0; otherPBFTInstances < quorumIntersection; otherPBFTInstances++) {
+                markPBFT_peer* peerFromThisQuorum = (*_system[quorum])[thisPBFTInstances];
+                markPBFT_peer* peerFromOtherQuorum = (*_system[nextQuorum])[quorum + otherPBFTInstances];
+                assert(peerFromThisQuorum != NULL);
+                assert(peerFromOtherQuorum != NULL);
+                _peers[vPeer].insert(peerFromThisQuorum);
+                _peers[vPeer].insert(peerFromOtherQuorum);
                 vPeer++;
-                peer++;
+                thisPBFTInstances++;
             }
             nextQuorum++;
         }
     }
+    setupShardNeighborhood();
 
     if(shards*peerspershard < PEER_COUNT){
         _numberOfPeersInReserve = reserveSize + (PEER_COUNT - (shards*peerspershard)); // add left over peers to reserve
