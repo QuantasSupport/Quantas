@@ -218,7 +218,7 @@ public:
 			}
 
 			if (toPeer == -1) {
-				toPeer == rand() % _peersPerShard;
+				toPeer = rand() % _peersPerShard;
 			}
 
 			markPBFT_message requestMSG;

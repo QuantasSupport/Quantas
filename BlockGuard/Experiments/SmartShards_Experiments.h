@@ -13,10 +13,10 @@
 #include <string>
 #include <deque>
 
-#include "MarkPBFT_peer.hpp"
-#include "SmartShard.hpp"
-#include "params_SmartShards.h"
-#include "params_Blockguard.hpp"
+#include "./../MarkPBFT_peer.hpp"
+#include "./../SmartShard.hpp"
+#include "./../params_SmartShards.h"
+#include "./../params_Blockguard.hpp"
 
 void ChurnRateVsQuorumIntersection(std::ofstream &csv, std::ofstream &log);
 

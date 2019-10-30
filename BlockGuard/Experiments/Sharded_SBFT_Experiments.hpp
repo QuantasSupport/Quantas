@@ -18,7 +18,7 @@
 #include <random>
 #include "./../SBFT/SBFTReferenceCommittee.hpp"
 #include "metrics.hpp"
-#include "params_Blockguard.hpp"
+#include "./../params_Blockguard.hpp"
 
 ///////////////////////////////////////////
 // MOTIVATIONAL
