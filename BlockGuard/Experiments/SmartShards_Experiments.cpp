@@ -144,7 +144,7 @@ std::string intersectionWithHaltsAndJoins(int numberOfShards, int numberOfJoins,
 
         totalConfirmations += system.getConfirmationCount();
     }
-    return std::to_string(totalConfirmations/NUMBER_OF_RUNS) +
+    return std::to_string(totalConfirmations/ (NUMBER_OF_RUNS * NUMBER_OF_ROUNDS)) +
     ", " + std::to_string(totalDeadPeers / (NUMBER_OF_ROUNDS * NUMBER_OF_RUNS)) +
     ", " + std::to_string(numberOfJoins) + ":" + std::to_string(numberOfHalts) +
     ", " + std::to_string(quorumIntersection);
