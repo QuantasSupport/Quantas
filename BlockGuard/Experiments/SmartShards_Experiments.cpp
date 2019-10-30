@@ -132,7 +132,7 @@ std::string intersectionWithHaltsAndJoins(int numberOfShards, int numberOfJoins,
 
             for (auto e : system.getQuorums()) {
                 for (int j = 0; j < system.getShardSize(); ++j)
-                    (*e)[j]->makeRequest(); // does both send and preformComputation
+                    (*e)[j]->makeRequest(); // does both receive and preformComputation
             }
             for (auto e: system.getQuorums()) {
                 for (int j = 0; j < system.getShardSize(); ++j)
