@@ -1197,10 +1197,34 @@ void partition(const std::string& filePath) {
 	Network<PartitionBlockMessage, PartitionPeer> system;
 	system.setLog(logFile); // set the system to write log to file logFile
 	//system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays) 
+	system.setMaxDelay(avgDelay * 2 - 1);
 	system.setToPoisson();
 	system.setAvgDelay(avgDelay);
 	system.initNetwork(100);
 	PartitionPeer::doubleDelay = avgDelay * 2;
+	PartitionPeer::PostSplit = false;
+	PartitionPeer::NextblockIdNumber = 1;
+	for (int i = 0; i < 50; i++) {
+		std::vector<std::string> idList;
+		for (int k = 0; k < 50; k++) {
+			if (i != k) {
+				idList.push_back(system[k]->id());
+			}
+		}
+		system[i]->findPostSplitNeighbors(idList);
+		idList.clear();
+	}
+	for (int i = 50; i < 100; i++) {
+		std::vector<std::string> idList;
+		for (int k = 50; k < 100; k++) {
+			if (i != k) {
+				idList.push_back(system[k]->id());
+			}
+		}
+		system[i]->findPostSplitNeighbors(idList);
+		idList.clear();
+	}
+
 	for (int i = 0; i < 100; i++) {
 		std::cout << "-- Starting ROUND " << i + 1 << " --" << std::endl;
 		//logFile << "-- STARTING ROUND " << i + 1<< " --" << std::endl; // write in the log when the round started
@@ -1219,8 +1243,40 @@ void partition(const std::string& filePath) {
 		system.transmit(); // do the transmit phase of the round 
 		//system.log(); // log the system state
 
+		int preSplitThroughput = system[0]->blockChain.size() - 1;
+
+		int partition1Throughput = system[0]->postSplitBlockChain.size() - 1;
+		int partition2Throughput = system[50]->postSplitBlockChain.size() - 1;
+
+		for (int j = 0; j < 100; j++) {
+			int peerBlockLength = system[j]->blockChain[system[j]->preSplitTip].length;
+			if (peerBlockLength < preSplitThroughput) {
+				preSplitThroughput = peerBlockLength;
+			}
+			if (PartitionPeer::PostSplit && system[j]->postSplitTip > 0) {
+				int postSplitLength = system[j]->postSplitBlockChain[system[j]->postSplitTip].length;
+				if (j < 50) {
+					if (postSplitLength < partition1Throughput) {
+						partition1Throughput = postSplitLength;
+					}
+				}
+				else {
+					if (postSplitLength < partition2Throughput) {
+						partition2Throughput = postSplitLength;
+					}
+				}
+			}
+
+		}
+		int throughput = preSplitThroughput;
+		if (PartitionPeer::PostSplit) {
+			throughput += partition1Throughput + partition2Throughput;
+		}
+		std::cout << throughput << std::endl;
+		logFile << throughput << std::endl;
+
 		std::cout << "-- ENDING ROUND " << i + 1 << " --" << std::endl;
-		logFile << "-- ENDING ROUND " << i + 1 << " --" << std::endl; // log the end of a round
+		//logFile << "-- ENDING ROUND " << i + 1 << " --" << std::endl; // log the end of a round
 	}
 
 

@@ -1,7 +1,7 @@
 #ifndef PartitionPeer_hpp
 #define PartitionPeer_hpp
 
-#include "Common/Peer.hpp"
+#include "Peer.hpp"
 #include <string>
 #include <vector>
 #include <set>
@@ -49,11 +49,13 @@ public:
 	static int  		  doubleDelay;
 	static int  		  NextblockIdNumber;
 	static bool			  PostSplit;
+	std::map<std::string, Peer<PartitionBlockMessage>*> PostSplitNeighbors;
 	static bool PartitionTransactionSortFunc(Partitiontransaction i, Partitiontransaction j) {
 		return (i.priority < j.priority);
 	}
 	void                  preformComputation();
 	void				  intialSplitSetup();
+	void				  findPostSplitNeighbors(vector<string> idList);
 	std::set<int>		  findVerifTrans();
 	void                  linkUnlinkedBlocks();
 	bool 				  mineBlock();

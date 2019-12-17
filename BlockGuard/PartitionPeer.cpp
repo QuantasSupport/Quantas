@@ -1,5 +1,4 @@
 #include "PartitionPeer.hpp"
-#include "Packet.hpp"
 #include <iostream>
 
 int PartitionPeer::doubleDelay = 0;
@@ -69,6 +68,7 @@ void PartitionPeer::preformComputation() {
 					postSplitTip = postSplitBlockChain.size();
 					postSplitBlockChain.push_back(newBlock);
 					sendBlock(newBlock);
+					break;
 				}
 			}
 		}
@@ -81,6 +81,16 @@ void PartitionPeer::preformComputation() {
 void PartitionPeer::intialSplitSetup() {
 	postSplitBlockChain.push_back(blockChain[preSplitTip]);
 	postSplitBlockChain[0].length = 0;
+}
+
+void PartitionPeer::findPostSplitNeighbors(vector<string> idList) {
+	for (int i = 0; i < idList.size(); i++) {
+		for (auto it = _neighbors.begin(); it != _neighbors.end(); it++) {
+			if (idList[i] == it->first) {
+				PostSplitNeighbors[idList[i]] = it->second;
+			}
+		}
+	}
 }
 
 std::set<int> PartitionPeer::findVerifTrans() {
@@ -115,7 +125,7 @@ std::ostream& operator<< (std::ostream &out, const PartitionPeer &peer) {
 
 bool PartitionPeer::mineBlock() {
 
-	if (rand() % (doubleDelay * 100) == 0) {
+	if (rand() % (doubleDelay * 50) == 0) {
 		return true;
 	}
 	else {
@@ -136,18 +146,12 @@ void PartitionPeer::linkUnlinkedBlocks() {
 					blockChain[TipIndex].VerifIndex.push_back(blockChain.size());
 					blockChain.push_back(newBlock);
 					unlinkedBlocks.erase(it);
-					if (newBlock.length > blockChain[preSplitTip].length) {
+					if (newBlock.length > blockChain[preSplitTip].length || (newBlock.length == blockChain[preSplitTip].length && newBlock.blockIdNumber < blockChain[preSplitTip].blockIdNumber)) {
 						preSplitTip = blockChain.size() - 1;
 						if (PostSplit) {
 							postSplitBlockChain.clear();
 							postSplitBlockChain.push_back(blockChain[preSplitTip]);
-						}
-					}
-					else if (newBlock.length == blockChain[preSplitTip].length && newBlock.blockIdNumber < blockChain[preSplitTip].blockIdNumber) {
-						preSplitTip = blockChain.size() - 1;
-						if (PostSplit) {
-							postSplitBlockChain.clear();
-							postSplitBlockChain.push_back(blockChain[preSplitTip]);
+							postSplitBlockChain[0].length = 0;
 						}
 					}
 					it = unlinkedBlocks.begin();
@@ -193,18 +197,12 @@ bool PartitionPeer::checkInStrm() {
 						newBlock.TipIndex = TipIndex;
 						blockChain[TipIndex].VerifIndex.push_back(blockChain.size());
 						blockChain.push_back(newBlock);
-						if (newBlock.length > blockChain[preSplitTip].length) {
+						if (newBlock.length > blockChain[preSplitTip].length || (newBlock.length == blockChain[preSplitTip].length && newBlock.blockIdNumber < blockChain[preSplitTip].blockIdNumber)) {
 							preSplitTip = blockChain.size() - 1;
 							if (PostSplit) {
 								postSplitBlockChain.clear();
 								postSplitBlockChain.push_back(blockChain[preSplitTip]);
-							}
-						}
-						else if (newBlock.length == blockChain[preSplitTip].length && newBlock.blockIdNumber < blockChain[preSplitTip].blockIdNumber) {
-							preSplitTip = blockChain.size() - 1;
-							if (PostSplit) {
-								postSplitBlockChain.clear();
-								postSplitBlockChain.push_back(blockChain[preSplitTip]);
+								postSplitBlockChain[0].length = 0;
 							}
 						}
 						found = true;
@@ -264,11 +262,21 @@ void PartitionPeer::sendBlock(PartitionBlock minedBlock) {
 	PartitionBlockMessage message;
 	message.block = minedBlock;
 	message.mined = true;
-	for (auto it = _neighbors.begin(); it != _neighbors.end(); it++)
-	{
-		Packet<PartitionBlockMessage> newMessage(std::to_string(counter), it->first, _id);
-		newMessage.setBody(message);
-		_outStream.push_back(newMessage);
+	if (!PostSplit) {
+		for (auto it = _neighbors.begin(); it != _neighbors.end(); it++)
+		{
+			Packet<PartitionBlockMessage> newMessage(std::to_string(counter), it->first, _id);
+			newMessage.setBody(message);
+			_outStream.push_back(newMessage);
+		}
+	}
+	else {
+		for (auto it = PostSplitNeighbors.begin(); it != PostSplitNeighbors.end(); it++)
+		{
+			Packet<PartitionBlockMessage> newMessage(std::to_string(counter), it->first, _id);
+			newMessage.setBody(message);
+			_outStream.push_back(newMessage);
+		}
 	}
 }
 
@@ -280,10 +288,20 @@ void PartitionPeer::sendTransaction(int tranID) {
 	newTransaction.transBlock = message.block;
 	newTransaction.priority = (rand() % 5) + 1;
 	transactions.push_back(newTransaction);
-	for (auto it = _neighbors.begin(); it != _neighbors.end(); it++)
-	{
-		Packet<PartitionBlockMessage> newMessage(std::to_string(counter), it->first, _id);
-		newMessage.setBody(message);
-		_outStream.push_back(newMessage);
+	if (!PostSplit) {
+		for (auto it = _neighbors.begin(); it != _neighbors.end(); it++)
+		{
+			Packet<PartitionBlockMessage> newMessage(std::to_string(counter), it->first, _id);
+			newMessage.setBody(message);
+			_outStream.push_back(newMessage);
+		}
+	}
+	else {
+		for (auto it = PostSplitNeighbors.begin(); it != PostSplitNeighbors.end(); it++)
+		{
+			Packet<PartitionBlockMessage> newMessage(std::to_string(counter), it->first, _id);
+			newMessage.setBody(message);
+			_outStream.push_back(newMessage);
+		}
 	}
 }
