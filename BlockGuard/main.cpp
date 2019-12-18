@@ -57,7 +57,7 @@ void DS_bitcoin(const char** argv);
 void run_DS_PBFT(const char** argv);
 void markPBFT(const std::string&);
 void smartShard(const std::string&);
-void partition(const std::string&), int avgdelay;
+std::vector<double> partition(const std::string&, int avgdelay);
 
 int main(int argc, const char* argv[]) {
 	srand((float)time(NULL));
@@ -124,10 +124,24 @@ int main(int argc, const char* argv[]) {
 	}
 	else if (algorithm == "partition") {
 		for (int delay = 1; delay < 11; ++delay) {
+			std::vector<double> Throughput(100, 0);
+			
 			for (int loop = 0; loop < 100; ++loop) {
-				std::string truePath = filePath + "Delay" + std::to_string(delay) + "Test" + std::to_string(loop + 1);
-					partition(truePath, delay);
+				std::string truePath = filePath + "Delay" + std::to_string(delay);
+					 std::vector<double> T = partition(truePath, delay);
+					 for (int i = 0; i < 100; ++i) {
+						 Throughput[i] += T[i];
+					 }
 			}
+
+			std::ofstream logFile;
+			std::string file = truePath + ".txt";
+			logFile.open(file);
+
+			for (int i = 0; i < 100; ++i) {
+				logFile << Throughput[i]/10 << std::endl;
+			}
+			logFile.close();
 		}
 	}
 	else {
@@ -1194,7 +1208,7 @@ void markPBFT(const std::string& filePath) {
 	summary.close();
 }
 
-void partition(const std::string& filePath, int avgdelay) {
+std::vector<double> partition(const std::string& filePath, int avgdelay) {
 	std::ofstream logFile;
 	std::string file = filePath + ".txt";
 	logFile.open(file);
@@ -1230,7 +1244,7 @@ void partition(const std::string& filePath, int avgdelay) {
 		system[i]->findPostSplitNeighbors(idList);
 		idList.clear();
 	}
-
+	std::vector<double> Throughput(100);
 	for (int i = 0; i < 100; i++) {
 		std::cout << "-- Starting ROUND " << i + 1 << " --" << std::endl;
 		//logFile << "-- STARTING ROUND " << i + 1<< " --" << std::endl; // write in the log when the round started
@@ -1278,10 +1292,11 @@ void partition(const std::string& filePath, int avgdelay) {
 		if (PartitionPeer::PostSplit) {
 			throughput += partition1Throughput + partition2Throughput;
 		}
-		std::cout << throughput << std::endl;
-		logFile << throughput << std::endl;
+		Throughput[i] = throughput;
+		//std::cout << throughput << std::endl;
+		//logFile << throughput << std::endl;
 
-		std::cout << "-- ENDING ROUND " << i + 1 << " --" << std::endl;
+		//std::cout << "-- ENDING ROUND " << i + 1 << " --" << std::endl;
 		//logFile << "-- ENDING ROUND " << i + 1 << " --" << std::endl; // log the end of a round
 	}
 
@@ -1294,4 +1309,5 @@ void partition(const std::string& filePath, int avgdelay) {
 														  //    your derived class so all methods that you add will be avalable via the -> operator
 	}
 	std::cout << "Number of Messages: " << numberOfMessages << std::endl;
+	return Throughput;
 }
