@@ -22,10 +22,7 @@ void PartitionPeer::preformComputation() {
 	//std::cout << "Peer:" << _id << " preforming computation" << std::endl;
 	sortTransactions();
 	int foundNew = checkInStrm();
-	if (foundNew) {
-
-	}
-	else if (mineBlock()) {
+	if (mineBlock()) {
 		
 		std::set<int> Trans = findVerifTrans();
 		PartitionBlock newBlock;

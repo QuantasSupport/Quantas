@@ -124,7 +124,7 @@ int main(int argc, const char* argv[]) {
 	}
 	else if (algorithm == "partition") {
 		for (int delay = 1; delay < 11; ++delay) {
-			for (int loop = 0; loop < 10; ++loop) {
+			for (int loop = 0; loop < 100; ++loop) {
 				std::string truePath = filePath + "Delay" + std::to_string(delay) + "Test" + std::to_string(loop + 1);
 					partition(truePath, delay);
 			}
@@ -1231,11 +1231,11 @@ void partition(const std::string& filePath, int avgdelay) {
 		idList.clear();
 	}
 
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 100; i++) {
 		std::cout << "-- Starting ROUND " << i + 1 << " --" << std::endl;
 		//logFile << "-- STARTING ROUND " << i + 1<< " --" << std::endl; // write in the log when the round started
 		system[rand() % Peers]->sendTransaction(i + 1);
-		if (i == 500) {
+		if (i == 50) {
 			PartitionPeer::PostSplit = true;
 			for (int j = 0; j < Peers; j++) {
 				system[j]->intialSplitSetup();
