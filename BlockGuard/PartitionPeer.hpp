@@ -38,7 +38,6 @@ protected:
 
 public:
 	PartitionPeer(std::string);
-	PartitionPeer(const PartitionPeer &rhs);
 	~PartitionPeer();
 	vector<PartitionBlock> blockChain;
 	vector<PartitionBlock> postSplitBlockChain;
