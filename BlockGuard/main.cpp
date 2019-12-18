@@ -57,7 +57,7 @@ void DS_bitcoin(const char** argv);
 void run_DS_PBFT(const char** argv);
 void markPBFT(const std::string&);
 void smartShard(const std::string&);
-void partition(const std::string&);
+void partition(const std::string&), int avgdelay;
 
 int main(int argc, const char* argv[]) {
 	srand((float)time(NULL));
@@ -123,7 +123,12 @@ int main(int argc, const char* argv[]) {
 		smartShard(filePath);
 	}
 	else if (algorithm == "partition") {
-		partition(filePath);
+		for (int delay = 1; delay < 11; ++delay) {
+			for (int loop = 0; loop < 10; ++loop) {
+				std::string truePath = filePath + "Delay" + std::to_string(delay) + "Test" + std::to_string(loop + 1);
+					partition(truePath, delay);
+			}
+		}
 	}
 	else {
 		std::cout << algorithm << " not recognized" << std::endl;
@@ -1189,7 +1194,7 @@ void markPBFT(const std::string& filePath) {
 	summary.close();
 }
 
-void partition(const std::string& filePath) {
+void partition(const std::string& filePath, int avgdelay) {
 	std::ofstream logFile;
 	std::string file = filePath + ".txt";
 	logFile.open(file);
@@ -1200,11 +1205,12 @@ void partition(const std::string& filePath) {
 	system.setMaxDelay(avgDelay * 2 - 1);
 	system.setToPoisson();
 	system.setAvgDelay(avgDelay);
-	system.initNetwork(100);
+	int Peers = 100;
+	system.initNetwork(Peers);
 	PartitionPeer::doubleDelay = avgDelay * 2;
 	PartitionPeer::PostSplit = false;
 	PartitionPeer::NextblockIdNumber = 1;
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < Peers / 2; i++) {
 		std::vector<std::string> idList;
 		for (int k = 0; k < 50; k++) {
 			if (i != k) {
@@ -1214,7 +1220,7 @@ void partition(const std::string& filePath) {
 		system[i]->findPostSplitNeighbors(idList);
 		idList.clear();
 	}
-	for (int i = 50; i < 100; i++) {
+	for (int i = Peers / 2; i < Peers; i++) {
 		std::vector<std::string> idList;
 		for (int k = 50; k < 100; k++) {
 			if (i != k) {
@@ -1225,13 +1231,13 @@ void partition(const std::string& filePath) {
 		idList.clear();
 	}
 
-	for (int i = 0; i < 100; i++) {
+	for (int i = 0; i < 1000; i++) {
 		std::cout << "-- Starting ROUND " << i + 1 << " --" << std::endl;
 		//logFile << "-- STARTING ROUND " << i + 1<< " --" << std::endl; // write in the log when the round started
-		system[rand() % 100]->sendTransaction(i + 1);
-		if (i == 50) {
+		system[rand() % Peers]->sendTransaction(i + 1);
+		if (i == 500) {
 			PartitionPeer::PostSplit = true;
-			for (int j = 0; j < 100; j++) {
+			for (int j = 0; j < Peers; j++) {
 				system[j]->intialSplitSetup();
 			}
 		}
@@ -1248,14 +1254,14 @@ void partition(const std::string& filePath) {
 		int partition1Throughput = system[0]->postSplitBlockChain.size() - 1;
 		int partition2Throughput = system[50]->postSplitBlockChain.size() - 1;
 
-		for (int j = 0; j < 100; j++) {
+		for (int j = 0; j < Peers; j++) {
 			int peerBlockLength = system[j]->blockChain[system[j]->preSplitTip].length;
 			if (peerBlockLength < preSplitThroughput) {
 				preSplitThroughput = peerBlockLength;
 			}
 			if (PartitionPeer::PostSplit && system[j]->postSplitTip > 0) {
 				int postSplitLength = system[j]->postSplitBlockChain[system[j]->postSplitTip].length;
-				if (j < 50) {
+				if (j < Peers / 2) {
 					if (postSplitLength < partition1Throughput) {
 						partition1Throughput = postSplitLength;
 					}

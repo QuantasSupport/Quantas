@@ -38,7 +38,6 @@ protected:
 
 public:
 	PartitionPeer(std::string);
-	PartitionPeer(const PartitionPeer &rhs);
 	~PartitionPeer();
 	vector<PartitionBlock> blockChain;
 	vector<PartitionBlock> postSplitBlockChain;
@@ -57,7 +56,7 @@ public:
 	void				  intialSplitSetup();
 	void				  findPostSplitNeighbors(vector<string> idList);
 	std::set<int>		  findVerifTrans();
-	void                  linkUnlinkedBlocks();
+	bool                  linkUnlinkedBlocks(bool foundLonger);
 	bool 				  mineBlock();
 	bool                  checkInStrm();
 	void				  sortTransactions();
