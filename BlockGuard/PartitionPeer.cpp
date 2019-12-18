@@ -8,10 +8,6 @@ PartitionPeer::~PartitionPeer() {
 
 }
 
-PartitionPeer::PartitionPeer(const PartitionPeer &rhs) : Peer<PartitionBlockMessage>(rhs) {
-	counter = rhs.counter;
-}
-
 PartitionPeer::PartitionPeer(std::string id) : Peer(id) {
 	counter = 0;
 	PartitionBlock Genesis;
