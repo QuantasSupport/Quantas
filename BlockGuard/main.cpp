@@ -124,9 +124,9 @@ int main(int argc, const char* argv[]) {
 	}
 	else if (algorithm == "partition") {
 		for (int delay = 1; delay < 11; ++delay) {
-			std::vector<double> Throughput(100, 0);
-			std::string truePath = filePath + "Delay" + std::to_string(delay);
 			int rounds = 200;
+			std::vector<double> Throughput(rounds, 0);
+			std::string truePath = filePath + "Delay" + std::to_string(delay);
 			int experiments = 1000;
 			for (int loop = 0; loop < experiments; ++loop) {
 				std::cout << "-- Starting Test " << loop + 1 << " Delay " << delay << " --" << std::endl;
