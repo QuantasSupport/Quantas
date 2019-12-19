@@ -57,7 +57,7 @@ void DS_bitcoin(const char** argv);
 void run_DS_PBFT(const char** argv);
 void markPBFT(const std::string&);
 void smartShard(const std::string&);
-std::vector<double> partition(const std::string&, int avgdelay);
+std::vector<double> partition(const std::string&, int avgdelay, int rounds);
 
 int main(int argc, const char* argv[]) {
 	srand((float)time(NULL));
@@ -125,11 +125,13 @@ int main(int argc, const char* argv[]) {
 	else if (algorithm == "partition") {
 		for (int delay = 1; delay < 11; ++delay) {
 			std::vector<double> Throughput(100, 0);
-			
-			for (int loop = 0; loop < 100; ++loop) {
-				std::string truePath = filePath + "Delay" + std::to_string(delay);
-					 std::vector<double> T = partition(truePath, delay);
-					 for (int i = 0; i < 100; ++i) {
+			std::string truePath = filePath + "Delay" + std::to_string(delay);
+			int rounds = 200;
+			int experiments = 1000;
+			for (int loop = 0; loop < experiments; ++loop) {
+				std::cout << "-- Starting Test " << loop + 1 << " Delay " << delay << " --" << std::endl;
+				std::vector<double> T = partition(truePath, delay, rounds);
+					 for (int i = 0; i < rounds; ++i) {
 						 Throughput[i] += T[i];
 					 }
 			}
@@ -138,8 +140,8 @@ int main(int argc, const char* argv[]) {
 			std::string file = truePath + ".txt";
 			logFile.open(file);
 
-			for (int i = 0; i < 100; ++i) {
-				logFile << Throughput[i]/10 << std::endl;
+			for (int i = 0; i < rounds; ++i) {
+				logFile << Throughput[i]/experiments << std::endl;
 			}
 			logFile.close();
 		}
@@ -1208,11 +1210,10 @@ void markPBFT(const std::string& filePath) {
 	summary.close();
 }
 
-std::vector<double> partition(const std::string& filePath, int avgdelay) {
+std::vector<double> partition(const std::string& filePath, int avgDelay, int rounds) {
 	std::ofstream logFile;
 	std::string file = filePath + ".txt";
 	logFile.open(file);
-	int avgDelay = 1;
 	Network<PartitionBlockMessage, PartitionPeer> system;
 	system.setLog(logFile); // set the system to write log to file logFile
 	//system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays) 
@@ -1226,7 +1227,7 @@ std::vector<double> partition(const std::string& filePath, int avgdelay) {
 	PartitionPeer::NextblockIdNumber = 1;
 	for (int i = 0; i < Peers / 2; i++) {
 		std::vector<std::string> idList;
-		for (int k = 0; k < 50; k++) {
+		for (int k = 0; k < Peers / 2; k++) {
 			if (i != k) {
 				idList.push_back(system[k]->id());
 			}
@@ -1236,7 +1237,7 @@ std::vector<double> partition(const std::string& filePath, int avgdelay) {
 	}
 	for (int i = Peers / 2; i < Peers; i++) {
 		std::vector<std::string> idList;
-		for (int k = 50; k < 100; k++) {
+		for (int k = Peers / 2; k < Peers; k++) {
 			if (i != k) {
 				idList.push_back(system[k]->id());
 			}
@@ -1244,12 +1245,12 @@ std::vector<double> partition(const std::string& filePath, int avgdelay) {
 		system[i]->findPostSplitNeighbors(idList);
 		idList.clear();
 	}
-	std::vector<double> Throughput(100);
-	for (int i = 0; i < 100; i++) {
-		std::cout << "-- Starting ROUND " << i + 1 << " --" << std::endl;
+	std::vector<double> Throughput(rounds);
+	for (int i = 0; i < rounds; i++) {
+		//std::cout << "-- Starting ROUND " << i + 1 << " --" << std::endl;
 		//logFile << "-- STARTING ROUND " << i + 1<< " --" << std::endl; // write in the log when the round started
 		system[rand() % Peers]->sendTransaction(i + 1);
-		if (i == 50) {
+		if (i == rounds / 2) {
 			PartitionPeer::PostSplit = true;
 			for (int j = 0; j < Peers; j++) {
 				system[j]->intialSplitSetup();

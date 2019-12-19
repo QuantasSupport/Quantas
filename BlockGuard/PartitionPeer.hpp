@@ -1,7 +1,7 @@
 #ifndef PartitionPeer_hpp
 #define PartitionPeer_hpp
 
-#include "Peer.hpp"
+#include "./Common/Peer.hpp"
 #include <string>
 #include <vector>
 #include <set>

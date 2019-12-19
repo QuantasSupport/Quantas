@@ -10,9 +10,10 @@
 *.dSYM
 *.o
 /.vs
+.vs/
 *.sln
 *.vcxproj
 *.filters
 *.user
-/Debug
-/enc_temp_folder
+Debug/
+enc_temp_folder/
