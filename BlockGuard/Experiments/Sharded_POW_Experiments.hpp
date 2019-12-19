@@ -14,7 +14,6 @@
 #ifndef Sharded_POW_Experiments_hpp
 #define Sharded_POW_Experiments_hpp
 
-#include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include <set>

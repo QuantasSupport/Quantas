@@ -57,21 +57,21 @@ void POW_refCom(std::string filePath){
     if ( log.fail() ){
         std::cerr << "Error: could not open file: "<< filePath + "POWCommitteeSizeVsSecurityAndThoughput.csv" << std::endl;
     }
-    PoWCommitteeSizeVsSecurityAndThoughput(csv,log);
+//    PoWCommitteeSizeVsSecurityAndThoughput(csv,log);
     csv.close();
     
     csv.open(filePath + "POWWaitingTimeThroughputVsDelay.csv");
     if ( log.fail() ){
         std::cerr << "Error: could not open file: "<< filePath + "POWWaitingTimeThroughputVsDelay.csv" << std::endl;
     }
-    PoWWaitingTimeThroughputVsDelay(csv,log);
+//    PoWWaitingTimeThroughputVsDelay(csv,log);
     csv.close();
     
     csv.open(filePath + "POWWaitingTimeThroughputVsByzantine.csv");
     if ( log.fail() ){
         std::cerr << "Error: could not open file: "<< filePath + "POWWaitingTimeThroughputVsByzantine.csv" << std::endl;
     }
-    PoWWaitingTimeThroughputVsByzantine(csv,log);
+//    PoWWaitingTimeThroughputVsByzantine(csv,log);
     csv.close();
     
     
@@ -91,21 +91,21 @@ void SBFT_refCom(std::string filePath){
     if ( log.fail() ){
         std::cerr << "Error: could not open file: "<< filePath + "SBFTCommitteeSizeVsSecurityAndThoughput.csv" << std::endl;
     }
-    SBFTCommitteeSizeVsSecurityAndThoughput(csv,log);
+//    SBFTCommitteeSizeVsSecurityAndThoughput(csv,log);
     csv.close();
     
     csv.open(filePath + "SBFTWaitingTimeThroughputVsDelay.csv");
     if ( log.fail() ){
         std::cerr << "Error: could not open file: "<< filePath + "SBFTWaitingTimeThroughputVsDelay.csv" << std::endl;
     }
-    SBFTWaitingTimeThroughputVsDelay(csv,log);
+//    SBFTWaitingTimeThroughputVsDelay(csv,log);
     csv.close();
     
     csv.open(filePath + "SBFTWaitingTimeThroughputVsByzantine.csv");
     if ( log.fail() ){
         std::cerr << "Error: could not open file: "<< filePath + "SBFTWaitingTimeThroughputVsByzantine.csv" << std::endl;
     }
-    SBFTWaitingTimeThroughputVsByzantine(csv,log);
+//    SBFTWaitingTimeThroughputVsByzantine(csv,log);
     csv.close();
     
     

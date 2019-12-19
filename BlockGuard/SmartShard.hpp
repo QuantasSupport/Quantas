@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <set>
+#include <cassert>
 #include "MarkPBFT_peer.hpp"
 #include "Common/ByzantineNetwork.hpp"
 

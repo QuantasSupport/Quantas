@@ -304,42 +304,42 @@ std::string sha256(const std::string& str);
 
 template<class type_msg, class peer_type>
 void Network<type_msg,peer_type>::buildInitialDAG() {
-	std::cerr << "Building initial dag" << std::endl;
-	std::shared_ptr<DAG> preBuiltDAG  = std::make_shared<DAG>(true);
-//	each peer will create a block initially
-	std::vector<int> blockPeers;
-
-	for(int i = 0; i<_peers.size(); i++){
-		blockPeers.push_back(i);
-	}
-	//blockchain index starts from 1;
-	int blockCount = 1;
-	std::string prevHash = "genesisHash";
-	while (blockCount <= _peers.size()) {
-		std::set<std::string> publishers;
-		int randPeer = rand()%blockPeers.size();
-		int index = blockPeers[randPeer];
-		blockPeers.erase(blockPeers.begin() + randPeer);
-
-		std::string peerId = _peers[index]->id();
-//		std::string blockHash = sha256(prevHash+"_"+peerId);
-		std::string blockHash = std::to_string(blockCount);
-		publishers.insert(peerId);
-
-		DAGBlock newBlock = preBuiltDAG->createBlock(blockCount, {prevHash}, blockHash, publishers, "Data" ,false);
-		//the initial dag does not contain byzantine blocks
-		preBuiltDAG->addBlockToDAG(newBlock, {prevHash}, false);
-		prevHash = blockHash;
-		blockCount++;
-	}
-
-	std::cerr<<"Prebuilt dag size is "<<preBuiltDAG->getSize()<<std::endl;
-//	preBuiltDAG->printGraph();
-	preBuiltDAG->setTips();
-
-	for(int i = 0; i<_peers.size();i++){
-		dynamic_cast<peer_type *> (_peers[i])->setDAG(*preBuiltDAG);
-	}
+//	std::cerr << "Building initial dag" << std::endl;
+//	std::shared_ptr<DAG> preBuiltDAG  = std::make_shared<DAG>(true);
+////	each peer will create a block initially
+//	std::vector<int> blockPeers;
+//
+//	for(int i = 0; i<_peers.size(); i++){
+//		blockPeers.push_back(i);
+//	}
+//	//blockchain index starts from 1;
+//	int blockCount = 1;
+//	std::string prevHash = "genesisHash";
+//	while (blockCount <= _peers.size()) {
+//		std::set<std::string> publishers;
+//		int randPeer = rand()%blockPeers.size();
+//		int index = blockPeers[randPeer];
+//		blockPeers.erase(blockPeers.begin() + randPeer);
+//
+//		std::string peerId = _peers[index]->id();
+////		std::string blockHash = sha256(prevHash+"_"+peerId);
+//		std::string blockHash = std::to_string(blockCount);
+//		publishers.insert(peerId);
+//
+//		DAGBlock newBlock = preBuiltDAG->createBlock(blockCount, {prevHash}, blockHash, publishers, "Data" ,false);
+//		//the initial dag does not contain byzantine blocks
+//		preBuiltDAG->addBlockToDAG(newBlock, {prevHash}, false);
+//		prevHash = blockHash;
+//		blockCount++;
+//	}
+//
+//	std::cerr<<"Prebuilt dag size is "<<preBuiltDAG->getSize()<<std::endl;
+////	preBuiltDAG->printGraph();
+//	preBuiltDAG->setTips();
+//
+//	for(int i = 0; i<_peers.size();i++){
+//		dynamic_cast<peer_type *> (_peers[i])->setDAG(*preBuiltDAG);
+//	}
 }
 
 template<class type_msg, class peer_type>
@@ -375,7 +375,7 @@ std::vector<peer_type *> Network<type_msg,peer_type>::setPeersForConsensusDAG(Pe
 		//	find first size()/2 unique peers
 		int uniquePeerCount = 0;
 		int uniquePeersIndex = 0 ;
-		std::vector<string> uniquePeers;
+		std::vector<std::string> uniquePeers;
 		do{
 			std::string peerId = sortedDAG[uniquePeersIndex];
 			if (std::find(uniquePeers.begin(), uniquePeers.end(), peerId) != uniquePeers.end())
@@ -392,7 +392,7 @@ std::vector<peer_type *> Network<type_msg,peer_type>::setPeersForConsensusDAG(Pe
 		std::cerr<<"THE INDEX WHERE "<<size()/2<<" UNIQUE PEERS WERE FOUND IS "<<uniquePeersIndex<<std::endl;
 		sortedDAG.resize(uniquePeersIndex+1);
 		std::cerr<<"AFTER SORTED DAG, SIZE"<<sortedDAG.size()<<std::endl;
-		std::vector<string> chosen;
+		std::vector<std::string> chosen;
 
 		while (peersForConsensus.size() < numOfPeers) {
 			if(chosen.size() + sortedDAG.size() < numOfPeers){
@@ -445,8 +445,8 @@ template<class type_msg, class peer_type>
 void Network<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
 	int shuffled = 0;
 	//find list of byzantineFlag peers
-	vector<int> byzantineIndex;
-	vector<int> nonByzantineIndex;
+	std::vector<int> byzantineIndex;
+	std::vector<int> nonByzantineIndex;
 
 	for(int i = 0; i<_peers.size();i++){
 		if(_peers[i]->isByzantine()){
