@@ -151,4 +151,4 @@
 //	}
 //}
 
-#endif //PBFT_Committee_hpp
+#endif PBFT_Committee_hpp
