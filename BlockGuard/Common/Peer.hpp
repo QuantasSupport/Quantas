@@ -80,13 +80,13 @@ public:
     virtual void                      makeCorrect           ()                                  {_byzantine = false;};
     virtual void                      makeByzantine         ()                                  {_byzantine = true;};
     virtual void                      clearMessages         ();
-    // tells this peer to create a transation
+    // tells this peer to create a transaction
     virtual void                      makeRequest           ()=0;
     // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
     void                              receive               ();
     // send a message to this peer
     void                              send                  (Packet<message>);
-    // sends all messages in _outStream to thsere respective targets
+    // sends all messages in _outStream to there respective targets
     void                              transmit              ();
     // preform one step of the Consensus message with the messages in inStream
     virtual void                      preformComputation    ()=0;
