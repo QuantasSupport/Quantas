@@ -79,7 +79,7 @@ public:
     virtual void					  setByzantineFlag		(bool f)                            {_byzantine = f;};
     virtual void                      makeCorrect           ()                                  {_byzantine = false;};
     virtual void                      makeByzantine         ()                                  {_byzantine = true;};
-    virtual void                      clearMessages                 ();
+    virtual void                      clearMessages         ();
     // tells this peer to create a transation
     virtual void                      makeRequest           ()=0;
     // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
