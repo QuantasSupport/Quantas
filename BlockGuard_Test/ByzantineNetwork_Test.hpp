@@ -13,6 +13,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 #include "../BlockGuard/ExamplePeer.hpp"
 #include "../BlockGuard/Common/ByzantineNetwork.hpp"
 

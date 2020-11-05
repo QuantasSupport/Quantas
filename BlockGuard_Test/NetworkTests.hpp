@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 #include "./../BlockGuard/Common/Network.hpp"
 #include "./../BlockGuard/ExamplePeer.hpp"
 
