@@ -71,7 +71,7 @@ public:
 	virtual bool					  isBusy				()									{return _busy; }
     std::deque<Packet<message> >      getInStream           ()const                             {return _inStream;};
     std::deque<Packet<message> >      getOutStream          ()const                             {return _outStream;};
-    
+    std::deque<Packet<message> >*     getChannelFrom        (const std::string id)              {return &(_channels.at(id));};
     
     // mutators
     void                              removeNeighbor        (const Peer &neighbor)              {_neighbors.erase(neighbor);};
@@ -213,15 +213,15 @@ void Peer<message>::receive() {
 	_clock++;
 	for (auto it = _neighbors.begin(); it != _neighbors.end(); ++it) {
 		std::string neighborID = it->first;
-		if (!_channels.at(neighborID).empty()) {
-			if (_channels.at(neighborID).front().hasArrived()) {
-				_inStream.push_back(_channels.at(neighborID).front());
-				_channels.at(neighborID).pop_front();
-			}
-			else {
-				_channels.at(neighborID).front().moveForward();
-			}
-		}
+
+        for(auto msg = _channels.at(neighborID).begin(); msg != _channels.at(neighborID).end(); msg++){
+            msg->moveForward();
+        }
+        
+        while(!_channels.at(neighborID).empty() && _channels.at(neighborID).front().hasArrived()){
+            _inStream.push_back(_channels.at(neighborID).front());
+            _channels.at(neighborID).pop_front();
+        }
 	}
 }
 

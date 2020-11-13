@@ -44,25 +44,25 @@ public:
     // setters
     void        setSource       (std::string s){_sourceId = s;};
     void        setTarget       (std::string t){_targetId = t;};
-    void        setDelay        (int delayMax, int delayMin = 0);
+    void        setDelay        (int delayMax, int delayMin = 1);
     void        setBody         (const content c){_body = c;};
     
     // getters
-    std::string id              (){return _id;};
-    std::string targetId        (){return _targetId;};
-    std::string sourceId        (){return _sourceId;};
-    bool        hasArrived      (){return !(bool)(_delay);};
-    content     getMessage      (){return _body;};
-    int         getDelay        (){return _delay;};
+    std::string id              ()const {return _id;};
+    std::string targetId        ()const {return _targetId;};
+    std::string sourceId        ()const {return _sourceId;};
+    bool        hasArrived      ()const {return !(bool)(_delay);};
+    content     getMessage      ()const {return _body;};
+    int         getDelay        ()const {return _delay;};
     
     // mutators
-    void        moveForward     (){_delay--;};
+    void        moveForward     (){_delay = _delay > 0 ? _delay-1 : 0;};
     
     //void
     
     Packet&     operator=       (const Packet<content> &rhs);
-    bool        operator==      (const Packet<content> &rhs);
-    bool        operator!=      (const Packet<content> &rhs);
+    bool        operator==      (const Packet<content> &rhs) const;
+    bool        operator!=      (const Packet<content> &rhs) const;
     
 };
 
@@ -100,7 +100,7 @@ Packet<content>::~Packet(){
 
 template <class content>
 void Packet<content>::setDelay(int maxDelay, int minDelay){
-    std::uniform_int_distribution<int> uniformDist(minDelay,(maxDelay - 1));
+    std::uniform_int_distribution<int> uniformDist(minDelay, maxDelay);
     _delay = uniformDist(RANDOM_GENERATOR); // max is not included so delay 1 is next round delay 2 is one round waiting and then receve in the following round
 }
 
@@ -115,13 +115,13 @@ Packet<content>& Packet<content>::operator=(const Packet<content> &rhs){
 }
 
 template<class content>
-bool Packet<content>::operator==(const Packet<content> &rhs){
+bool Packet<content>::operator== (const Packet<content> &rhs)const{
     return _id == rhs._id;
 }
 
 template<class content>
-bool Packet<content>::operator!=(const Packet<content> &rhs){
-    return !(*this == rhs);
+bool Packet<content>::operator!= (const Packet<content> &rhs)const{
+    return !(_id == rhs._id);
 }
 
 #endif /* Message_hpp */

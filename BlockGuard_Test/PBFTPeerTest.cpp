@@ -1225,7 +1225,7 @@ void multiRequest(std::ostream &log){
     assert(a.getRequestLog()[0].client_id           == "B");
     assert(a.getRequestLog()[0].view                == 0);
     assert(a.getRequestLog()[0].type                == REQUEST);
-    assert(a.getRequestLog()[0].commit_round               == 0);
+    assert(a.getRequestLog()[0].commit_round        == 0);
     assert(a.getRequestLog()[0].phase               == IDEAL);
     assert(a.getRequestLog()[0].result              == 0);
     

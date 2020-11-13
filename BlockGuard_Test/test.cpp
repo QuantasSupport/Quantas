@@ -13,6 +13,7 @@
 #include "PBFTReferenceCommittee_Test.hpp"
 #include "ByzantineNetwork_Test.hpp"
 #include "NetworkTests.hpp"
+#include "Peer_Test.hpp"
 
 #include <string>
 
@@ -30,6 +31,7 @@ int main(int argc, const char * argv[]){
         RunPBFTRefComTest(filePath);
         RunByzantineNetworkTest(filePath);
         runNetworkTests(filePath);
+        RunPeerTests(filePath);
     }else if(testOption == "pbft"){
         RunPBFT_Tests(filePath);
     }else if (testOption == "s_pbft"){
@@ -40,6 +42,8 @@ int main(int argc, const char * argv[]){
         RunByzantineNetworkTest(filePath);
     }else if(testOption == "network"){
         runNetworkTests(filePath);
+    }else if(testOption == "peer"){
+        RunPeerTests(filePath);
     }
 
     return 0;
