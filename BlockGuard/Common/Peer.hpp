@@ -214,14 +214,14 @@ void Peer<message>::receive() {
 	for (auto it = _neighbors.begin(); it != _neighbors.end(); ++it) {
 		std::string neighborID = it->first;
 
-        for(auto msg = _channels.at(neighborID).begin(); msg != _channels.at(neighborID).end(); msg++){
-            msg->moveForward();
-        }
-        
-        while(!_channels.at(neighborID).empty() && _channels.at(neighborID).front().hasArrived()){
-            _inStream.push_back(_channels.at(neighborID).front());
-            _channels.at(neighborID).pop_front();
-        }
+		for(auto msg = _channels.at(neighborID).begin(); msg != _channels.at(neighborID).end(); msg++){
+		    msg->moveForward();
+		}
+
+		while(!_channels.at(neighborID).empty() && _channels.at(neighborID).front().hasArrived()){
+		    _inStream.push_back(_channels.at(neighborID).front());
+		    _channels.at(neighborID).pop_front();
+		}
 	}
 }
 
