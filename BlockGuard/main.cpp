@@ -19,16 +19,6 @@
 #include "./Common/ByzantineNetwork.hpp"
 // UTIL
 #include "./Common/Logger.hpp"
-#include "./Common/Blockchain.hpp"
-
-const int peerCount = 10;
-const int blockChainLength = 100;
-Blockchain* blockchain;
-int shuffleByzantineInterval = 0;
-
-// util functions
-void buildInitialChain(std::vector<std::string>);
-std::set<std::string> getPeersForConsensus(int);
 
 void Example(std::ofstream& logFile);
 
