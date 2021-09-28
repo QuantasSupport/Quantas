@@ -44,86 +44,85 @@ namespace blockguard{
     class Peer{
     protected:
         string                             _id;
-        bool                                    _byzantine;
-        bool									_busy;
-        int                                     _clock;
+        bool                               _byzantine;
+        bool                               _busy;
+        int                                _clock;
         
         // type abbreviations
         typedef deque<Packet<message> >    aChannel;
         typedef string                     peerId;
         map<peerId,aChannel>               _channels;// list of chanels between this peer and others
         map<peerId,int>                    _channelDelays;// list of channels and there delays
-        map<string, Peer<message>* >  _neighbors; // peers this peer has a link to
+        map<string, Peer<message>* >       _neighbors; // peers this peer has a link to
         deque<Packet<message> >            _inStream;// messages that have arrived at this peer
         deque<Packet<message> >            _outStream;// messages waiting to be sent by this peer
         
         // metrics
-        int                                     _numberOfMessagesSent;
+        int                                _numberOfMessagesSent;
         
         // logging
         ostream                            *_log;
-        bool                                    _printNeighborhood;
+        bool                               _printNeighborhood;
         
     public:
-        Peer                                                    ();
-        Peer                                                    (string);
-        Peer                                                    (const Peer &);
-        virtual ~Peer                                           ()=0;
+        Peer                                                     ();
+        Peer                                                     (string);
+        Peer                                                     (const Peer &);
+        virtual ~Peer                                            ()=0;
         // Setters
-        void                              setID                 (string id)                    {_id = id;};
-        void                              setLogFile            (ostream &o)                   {_log = &o;};
-        void                              printNeighborhoodOn   ()                                  {_printNeighborhood = true;}
-        void                              printNeighborhoodOff  ()                                  {_printNeighborhood = false;}
-        virtual void                      setBusy               (bool busy)                         {_busy = busy;}
+        void                               setID                 (string id)                         {_id = id;};
+        void                               setLogFile            (ostream &o)                        {_log = &o;};
+        void                               printNeighborhoodOn   ()                                  {_printNeighborhood = true;}
+        void                               printNeighborhoodOff  ()                                  {_printNeighborhood = false;}
+        virtual void                       setBusy               (bool busy)                         {_busy = busy;}
         // getters
-        vector<string>          neighbors             ()const;
-        string                       id                    ()const                             {return _id;};
-        bool                              isNeighbor            (string id)const;
-        int                               getDelayToNeighbor    (string id)const;
-        int                               getMessageCount       ()const                             {return _numberOfMessagesSent;};
-        int                               getClock              ()const                             {return _clock;};
-        virtual bool					  isByzantine			()const                             {return _byzantine;};
-        virtual bool					  isBusy				()									{return _busy; }
-        deque<Packet<message> >      getInStream           ()const                             {return _inStream;};
-        deque<Packet<message> >      getOutStream          ()const                             {return _outStream;};
-        deque<Packet<message> >*     getChannelFrom        (const string id)              {return &(_channels.at(id));};
+        vector<string>                     neighbors             ()const;
+        string                             id                    ()const                             {return _id;};
+        bool                               isNeighbor            (string id)const;
+        int                                getDelayToNeighbor    (string id)const;
+        int                                getMessageCount       ()const                             {return _numberOfMessagesSent;};
+        int                                getClock              ()const                             {return _clock;};
+        virtual bool					   isByzantine			 ()const                             {return _byzantine;};
+        virtual bool					   isBusy				 ()									 {return _busy; }
+        deque<Packet<message> >            getInStream           ()const                             {return _inStream;};
+        deque<Packet<message> >            getOutStream          ()const                             {return _outStream;};
+        deque<Packet<message> >*           getChannelFrom        (const string id)                   {return &(_channels.at(id));};
         
         // mutators
-        void                              removeNeighbor        (const Peer &neighbor)              {_neighbors.erase(neighbor);};
-        void                              addNeighbor           (Peer &newNeighbor, int delay);
-        virtual void					  setByzantineFlag		(bool f)                            {_byzantine = f;};
-        virtual void                      makeCorrect           ()                                  {_byzantine = false;};
-        virtual void                      makeByzantine         ()                                  {_byzantine = true;};
-        virtual void                      clearMessages         ();
+        void                               removeNeighbor        (const Peer &neighbor)              {_neighbors.erase(neighbor);};
+        void                               addNeighbor           (Peer &newNeighbor, int delay);
+        virtual void					   setByzantineFlag		 (bool f)                            {_byzantine = f;};
+        virtual void                       makeCorrect           ()                                  {_byzantine = false;};
+        virtual void                       makeByzantine         ()                                  {_byzantine = true;};
+        virtual void                       clearMessages         ();
         // tells this peer to create a transaction
-        virtual void                      makeRequest           ()=0;
+        virtual void                       makeRequest           ()=0;
         // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
-        void                              receive               ();
+        void                               receive               ();
         // send a message to this peer
-        void                              send                  (Packet<message>);
+        void                               send                  (Packet<message>);
         // sends all messages in _outStream to there respective targets
-        void                              transmit              ();
+        void                               transmit              ();
         // preform one step of the Consensus message with the messages in inStream
-        virtual void                      preformComputation    ()=0;
+        virtual void                       preformComputation    ()=0;
 
-        void                              log                   ()const;
-        ostream&                     printTo               (ostream&)const;
-        Peer&                             operator=             (const Peer&);
+        void                               log                   ()const;
+        ostream&                           printTo               (ostream&)const;
+        Peer&                              operator=             (const Peer&);
 
         // == and != compare all attributes 
-        bool                              operator==            (const Peer &rhs)const              {return (_id == rhs._id);};
-        bool                              operator!=            (const Peer &rhs)const              {return !(*this == rhs);};
+        bool                               operator==            (const Peer &rhs)const              {return (_id == rhs._id);};
+        bool                               operator!=            (const Peer &rhs)const              {return !(*this == rhs);};
         // greater and less then are based on peer id (standard string comparison)
-        bool                              operator<=            (const Peer &rhs)const              {return (_id <= rhs._id);};
-        bool                              operator<             (const Peer &rhs)const              {return (_id < rhs._id);};
-        bool                              operator>=            (const Peer &rhs)const              {return (_id >= rhs._id);};
-        bool                              operator>             (const Peer &rhs)const              {return (_id > rhs._id);};
-        bool                              operator<=            (const string &rhs)const       {return (_id <= rhs);};
-        bool                              operator<             (const string &rhs)const       {return (_id < rhs);};
-        bool                              operator>=            (const string &rhs)const       {return (_id >= rhs);};
-        bool                              operator>             (const string &rhs)const       {return (_id > rhs);};
-
-        friend ostream&              operator<<            (ostream&, const Peer&);
+        bool                               operator<=            (const Peer &rhs)const              {return (_id <= rhs._id);};
+        bool                               operator<             (const Peer &rhs)const              {return (_id < rhs._id);};
+        bool                               operator>=            (const Peer &rhs)const              {return (_id >= rhs._id);};
+        bool                               operator>             (const Peer &rhs)const              {return (_id > rhs._id);};
+        bool                               operator<=            (const string &rhs)const            {return (_id <= rhs);};
+        bool                               operator<             (const string &rhs)const            {return (_id < rhs);};
+        bool                               operator>=            (const string &rhs)const            {return (_id >= rhs);};
+        bool                               operator>             (const string &rhs)const            {return (_id > rhs);};
+        friend ostream&                    operator<<            (ostream&, const Peer&);
     };
 
     //

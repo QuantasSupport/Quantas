@@ -33,9 +33,9 @@ namespace blockguard{
         Packet(){};
         
     protected:
-        string                 _id; // message id
-        string                 _targetId; // traget node id
-        string                 _sourceId; // source node id
+        string                      _id; // message id
+        string                      _targetId; // traget node id
+        string                      _sourceId; // source node id
         
         content                     _body;
         
@@ -54,9 +54,9 @@ namespace blockguard{
         void        setBody         (const content c){_body = c;};
         
         // getters
-        string id              ()const {return _id;};
-        string targetId        ()const {return _targetId;};
-        string sourceId        ()const {return _sourceId;};
+        string      id              ()const {return _id;};
+        string      targetId        ()const {return _targetId;};
+        string      sourceId        ()const {return _sourceId;};
         bool        hasArrived      ()const {return !(bool)(_delay);};
         content     getMessage      ()const {return _body;};
         int         getDelay        ()const {return _delay;};
