@@ -11,6 +11,8 @@
 
 #include "Network.hpp"
 
+using blockguard::Network;
+
 template<class type_msg, class peer_type>
 class ByzantineNetwork : public  Network<type_msg,peer_type>{
 protected:
