@@ -43,17 +43,17 @@ namespace blockguard{
     template <class message>
     class Peer{
     protected:
-        string                             _id;
+            // type abbreviations
+        typedef deque<Packet<message> >    aChannel;
+        typedef long                       peerId;
+
+        peerId                             _id;
         bool                               _byzantine;
         bool                               _busy;
         int                                _clock;
-        
-        // type abbreviations
-        typedef deque<Packet<message> >    aChannel;
-        typedef string                     peerId;
         map<peerId,aChannel>               _channels;// list of chanels between this peer and others
         map<peerId,int>                    _channelDelays;// list of channels and there delays
-        map<string, Peer<message>* >       _neighbors; // peers this peer has a link to
+        map<peerId, Peer<message>* >       _neighbors; // peers this peer has a link to
         deque<Packet<message> >            _inStream;// messages that have arrived at this peer
         deque<Packet<message> >            _outStream;// messages waiting to be sent by this peer
         
@@ -66,20 +66,20 @@ namespace blockguard{
         
     public:
         Peer                                                     ();
-        Peer                                                     (string);
+        Peer                                                     (peerId);
         Peer                                                     (const Peer &);
         virtual ~Peer                                            ()=0;
         // Setters
-        void                               setID                 (string id)                         {_id = id;};
+        void                               setID                 (peerId id)                           {_id = id;};
         void                               setLogFile            (ostream &o)                        {_log = &o;};
         void                               printNeighborhoodOn   ()                                  {_printNeighborhood = true;}
         void                               printNeighborhoodOff  ()                                  {_printNeighborhood = false;}
         virtual void                       setBusy               (bool busy)                         {_busy = busy;}
         // getters
-        vector<string>                     neighbors             ()const;
-        string                             id                    ()const                             {return _id;};
-        bool                               isNeighbor            (string id)const;
-        int                                getDelayToNeighbor    (string id)const;
+        vector<long>                       neighbors             ()const;
+        long                               id                    ()const                             {return _id;};
+        bool                               isNeighbor            (peerId id)const;
+        int                                getDelayToNeighbor    (peerId id)const;
         int                                getMessageCount       ()const                             {return _numberOfMessagesSent;};
         int                                getClock              ()const                             {return _clock;};
         virtual bool					   isByzantine			 ()const                             {return _byzantine;};
@@ -118,10 +118,10 @@ namespace blockguard{
         bool                               operator<             (const Peer &rhs)const              {return (_id < rhs._id);};
         bool                               operator>=            (const Peer &rhs)const              {return (_id >= rhs._id);};
         bool                               operator>             (const Peer &rhs)const              {return (_id > rhs._id);};
-        bool                               operator<=            (const string &rhs)const            {return (_id <= rhs);};
-        bool                               operator<             (const string &rhs)const            {return (_id < rhs);};
-        bool                               operator>=            (const string &rhs)const            {return (_id >= rhs);};
-        bool                               operator>             (const string &rhs)const            {return (_id > rhs);};
+        bool                               operator<=            (const peerId &rhs)const              {return (_id <= rhs);};
+        bool                               operator<             (const peerId &rhs)const              {return (_id < rhs);};
+        bool                               operator>=            (const peerId &rhs)const              {return (_id >= rhs);};
+        bool                               operator>             (const peerId &rhs)const              {return (_id > rhs);};
         friend ostream&                    operator<<            (ostream&, const Peer&);
     };
 
@@ -131,10 +131,10 @@ namespace blockguard{
 
     template <class message>
     Peer<message>::Peer(){
-        _id = "NO ID";
+        _id = -1;
         _inStream = deque<Packet<message> >();
         _outStream = deque<Packet<message> >();
-        _neighbors = map<string, Peer<message>* >();
+        _neighbors = map<peerId, Peer<message>* >();
         _channelDelays = map<peerId,int>();
         _channels = map<peerId,aChannel>();
         _log = &cout;
@@ -146,11 +146,11 @@ namespace blockguard{
     }
 
     template <class message>
-    Peer<message>::Peer(string id){
+    Peer<message>::Peer(peerId id){
         _id = id;
         _inStream = deque<Packet<message> >();
         _outStream = deque<Packet<message> >();
-        _neighbors = map<string, Peer<message>* >();
+        _neighbors = map<peerId, Peer<message>* >();
         _channelDelays = map<peerId,int>();
         _channels = map<peerId,aChannel>();
         _log = &cout;
@@ -213,7 +213,7 @@ namespace blockguard{
                 outMessage.setDelay(1);
                 _inStream.push_back(outMessage);
             }else{
-                string targetId = outMessage.targetId();
+                peerId targetId = outMessage.targetId();
                 int maxDelay = _channelDelays.at(targetId);
                 outMessage.setDelay(maxDelay);
                 _neighbors[targetId]->send(outMessage);
@@ -226,7 +226,7 @@ namespace blockguard{
     void Peer<message>::receive() {
         _clock++;
         for (auto it = _neighbors.begin(); it != _neighbors.end(); ++it) {
-            string neighborID = it->first;
+            peerId neighborID = it->first;
 
             for(auto msg = _channels.at(neighborID).begin(); msg != _channels.at(neighborID).end(); msg++){
                 msg->moveForward();
@@ -242,7 +242,7 @@ namespace blockguard{
 
 
     template <class message>
-    bool Peer<message>::isNeighbor(string id)const{
+    bool Peer<message>::isNeighbor(peerId id)const{
         if(_neighbors.find(id) != _neighbors.end()){
             return true;
         }
@@ -250,8 +250,8 @@ namespace blockguard{
     }
 
     template <class message>
-    vector<string> Peer<message>::neighbors()const{
-        vector<string> neighborIds = vector<string>();
+    vector<long> Peer<message>::neighbors()const{
+        vector<peerId> neighborIds = vector<peerId>();
         for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
             neighborIds.push_back(it->first);
         }
@@ -259,7 +259,7 @@ namespace blockguard{
     }
 
     template <class message>
-    int Peer<message>::getDelayToNeighbor(string id)const{
+    int Peer<message>::getDelayToNeighbor(peerId id)const{
         return _channelDelays.at(id);
     }
 
@@ -307,7 +307,7 @@ namespace blockguard{
         if(_printNeighborhood){
             out<< "\t"<< setw(LOG_WIDTH)<< "Neighbor ID"<< setw(LOG_WIDTH)<< "Delay"<< setw(LOG_WIDTH)<< "Messages In Channel"<< endl;
             for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
-                string neighborId = it->first;
+                peerId neighborId = it->first;
                 out<< "\t"<< setw(LOG_WIDTH)<< neighborId<< setw(LOG_WIDTH)<< getDelayToNeighbor(neighborId)<< setw(LOG_WIDTH)<<  _channels.at(neighborId).size()<< endl;
             }
         }

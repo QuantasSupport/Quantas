@@ -12,7 +12,7 @@
 #include <iostream>
 
 namespace blockguard {
-    
+
     using std::cout; 
     using std::to_string; 
     using std::ostream;
@@ -30,7 +30,7 @@ namespace blockguard {
         counter = rhs.counter;
     }
 
-    ExamplePeer::ExamplePeer(string id) : Peer(id){
+    ExamplePeer::ExamplePeer(long id) : Peer(id){
         counter =0;
     }
 
@@ -40,7 +40,7 @@ namespace blockguard {
         ExampleMessage message;
         message.message = "Message: " + to_string(counter)  + " Hello From ";
         message.aPeerId = _id;
-        Packet<ExampleMessage> newMessage(to_string(counter), _id,_id);
+        Packet<ExampleMessage> newMessage(counter, _id,_id);
         newMessage.setBody(message);
         _outStream.push_back(newMessage);
         
@@ -49,7 +49,7 @@ namespace blockguard {
             ExampleMessage message;
             message.message = "Message: " + to_string(counter)  + " Hello From ";
             message.aPeerId = _id;
-            Packet<ExampleMessage> newMessage(to_string(counter), it->first,_id);
+            Packet<ExampleMessage> newMessage(counter, it->first,_id);
             newMessage.setBody(message);
             _outStream.push_back(newMessage);
         }

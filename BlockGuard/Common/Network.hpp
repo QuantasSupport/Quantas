@@ -41,17 +41,17 @@ namespace blockguard{
     class Network{
     protected:
 
-        vector<Peer<type_msg>*>        _peers;
+        vector<Peer<type_msg>*>             _peers;
         int                                 _avgDelay;
         int                                 _maxDelay;
         int                                 _minDelay;
-        string                         _distribution;
+        string                              _distribution;
 
-        ostream                         *_log;
+        ostream                             *_log;
 
-        string                         createId            ();
-        bool                                idTaken             (string);
-        string                         getUniqueId         ();
+        // string                              createId            ();
+        // bool                                idTaken             (string);
+        // string                              getUniqueId         ();
         void                                addEdges            (Peer<type_msg>*);
         int                                 getDelay            ();
         peer_type*							getPeerById			(string);
@@ -76,7 +76,7 @@ namespace blockguard{
         int                                 maxDelay            ()const                                         {return _maxDelay;};
         int                                 avgDelay            ()const                                         {return _avgDelay;};
         int                                 minDelay            ()const                                         {return _minDelay;};
-        string                         distribution        ()const                                         {return _distribution;};
+        string                              distribution        ()const                                         {return _distribution;};
 
 
         //mutators
@@ -84,17 +84,17 @@ namespace blockguard{
         void                                preformComputation  ();
         void                                transmit            ();
         void                                makeRequest         (int i)                                         {_peers[i]->makeRequest();};
-        void                                shuffleByzantines   (int);
+        // void                                shuffleByzantines   (int);
 
         // logging and debugging
-        ostream&                       printTo             (ostream&)const;
+        ostream&                            printTo             (ostream&)const;
         void                                log                 ()const                                         {printTo(*_log);};
 
         // operators
         Network&                            operator=           (const Network&);
         peer_type*                          operator[]          (int);
         const peer_type*                    operator[]          (int)const;
-        friend ostream&                operator<<          (ostream &out, const Network &system)      {return system.printTo(out);};
+        friend ostream&                     operator<<          (ostream &out, const Network &system)      {return system.printTo(out);};
         void 								makeRequest			(Peer<type_msg> * peer)				            { peer->makeRequest(); }
         int									pickSecurityLevel	(int);
 
@@ -147,47 +147,47 @@ namespace blockguard{
         }
     }
 
-    template<class type_msg, class peer_type>
-    string Network<type_msg,peer_type>::createId(){
-        char firstPos = '*';
-        char secondPos = '*';
-        char thirdPos = '*';
-        char fourthPos = '*';
-        char fifthPos = '*';
+    // template<class type_msg, class peer_type>
+    // string Network<type_msg,peer_type>::createId(){
+    //     char firstPos = '*';
+    //     char secondPos = '*';
+    //     char thirdPos = '*';
+    //     char fourthPos = '*';
+    //     char fifthPos = '*';
 
-        uniform_int_distribution<int> uniformDist(0,25);
-        // add 'A' to shift char into rnage of upper case letters
-        firstPos = uniformDist(RANDOM_GENERATOR) + 'A';
-        secondPos = uniformDist(RANDOM_GENERATOR) + 'A';
-        thirdPos = uniformDist(RANDOM_GENERATOR) + 'A';
-        fourthPos = uniformDist(RANDOM_GENERATOR) + 'A';
-        fifthPos = uniformDist(RANDOM_GENERATOR) + 'A';
+    //     uniform_int_distribution<int> uniformDist(0,25);
+    //     // add 'A' to shift char into rnage of upper case letters
+    //     firstPos = uniformDist(RANDOM_GENERATOR) + 'A';
+    //     secondPos = uniformDist(RANDOM_GENERATOR) + 'A';
+    //     thirdPos = uniformDist(RANDOM_GENERATOR) + 'A';
+    //     fourthPos = uniformDist(RANDOM_GENERATOR) + 'A';
+    //     fifthPos = uniformDist(RANDOM_GENERATOR) + 'A';
 
-        string id = "";
-        id = id + firstPos + secondPos + thirdPos + fourthPos + fifthPos;
-        return id;
-    }
+    //     string id = "";
+    //     id = id + firstPos + secondPos + thirdPos + fourthPos + fifthPos;
+    //     return id;
+    // }
 
-    template<class type_msg, class peer_type>
-    bool Network<type_msg,peer_type>::idTaken(string id){
-        for(int i = 0; i < _peers.size(); i++){
-            if(_peers[i]->id() == id){
-                return true;
-            }
-        }
-        return false;
-    }
+    // template<class type_msg, class peer_type>
+    // bool Network<type_msg,peer_type>::idTaken(string id){
+    //     for(int i = 0; i < _peers.size(); i++){
+    //         if(_peers[i]->id() == id){
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
-    template<class type_msg, class peer_type>
-    string Network<type_msg,peer_type>::getUniqueId(){
-        string id = createId();
+    // template<class type_msg, class peer_type>
+    // string Network<type_msg,peer_type>::getUniqueId(){
+    //     string id = createId();
 
-        while(idTaken(id)){
-            id = createId();
-        }
+    //     while(idTaken(id)){
+    //         id = createId();
+    //     }
         
-        return id;
-    }
+    //     return id;
+    // }
 
     template<class type_msg, class peer_type>
     void Network<type_msg,peer_type>::addEdges(Peer<type_msg> *peer){
@@ -225,7 +225,7 @@ namespace blockguard{
     template<class type_msg, class peer_type>
     void Network<type_msg,peer_type>::initNetwork(int numberOfPeers){
         for(int i = 0; i < numberOfPeers; i++){
-            _peers.push_back(new peer_type(getUniqueId()));
+            _peers.push_back(new peer_type(i));
         }
         for(int i = 0; i < _peers.size(); i++){
             addEdges(_peers[i]);
@@ -310,37 +310,37 @@ namespace blockguard{
         return nullptr;
     }
 
-    template<class type_msg, class peer_type>
-    void Network<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
-        int shuffled = 0;
-        //find list of byzantineFlag peers
-        vector<int> byzantineIndex;
-        vector<int> nonByzantineIndex;
+    // template<class type_msg, class peer_type>
+    // void Network<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
+    //     int shuffled = 0;
+    //     //find list of byzantineFlag peers
+    //     vector<int> byzantineIndex;
+    //     vector<int> nonByzantineIndex;
 
-        for(int i = 0; i<_peers.size();i++){
-            if(_peers[i]->isByzantine()){
-                byzantineIndex.push_back (i);
-            }else if(!_peers[i]->isByzantine()){
-                nonByzantineIndex.push_back (i);
-            }
-        }
+    //     for(int i = 0; i<_peers.size();i++){
+    //         if(_peers[i]->isByzantine()){
+    //             byzantineIndex.push_back (i);
+    //         }else if(!_peers[i]->isByzantine()){
+    //             nonByzantineIndex.push_back (i);
+    //         }
+    //     }
 
-        if(nonByzantineIndex.size() == 0){
-            return;
-        }
-        while (shuffled<shuffleCount){
-            //find list of byzantineFlag peers
-            int byzantineShuffleIndex = static_cast<int>(rand() % byzantineIndex.size());
-            int nonByzantineShuffleIndex = static_cast<int>(rand() % nonByzantineIndex.size());
-            _peers[byzantineIndex[byzantineShuffleIndex]]->setByzantineFlag(false);
-            _peers[nonByzantineIndex[nonByzantineShuffleIndex]]->setByzantineFlag(true);
-            byzantineIndex.erase(byzantineIndex.begin ()+byzantineShuffleIndex);
-            nonByzantineIndex.erase(nonByzantineIndex.begin ()+nonByzantineShuffleIndex);
-            shuffled++;
-            if(nonByzantineIndex.size()==0 || byzantineIndex.size() == 0){
-                return;
-            }
-        }
-    }
+    //     if(nonByzantineIndex.size() == 0){
+    //         return;
+    //     }
+    //     while (shuffled<shuffleCount){
+    //         //find list of byzantineFlag peers
+    //         int byzantineShuffleIndex = static_cast<int>(rand() % byzantineIndex.size());
+    //         int nonByzantineShuffleIndex = static_cast<int>(rand() % nonByzantineIndex.size());
+    //         _peers[byzantineIndex[byzantineShuffleIndex]]->setByzantineFlag(false);
+    //         _peers[nonByzantineIndex[nonByzantineShuffleIndex]]->setByzantineFlag(true);
+    //         byzantineIndex.erase(byzantineIndex.begin ()+byzantineShuffleIndex);
+    //         nonByzantineIndex.erase(nonByzantineIndex.begin ()+nonByzantineShuffleIndex);
+    //         shuffled++;
+    //         if(nonByzantineIndex.size()==0 || byzantineIndex.size() == 0){
+    //             return;
+    //         }
+    //     }
+    // }
 }
 #endif /* Network_hpp */

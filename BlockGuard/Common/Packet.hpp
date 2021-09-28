@@ -33,30 +33,30 @@ namespace blockguard{
         Packet(){};
         
     protected:
-        string                      _id; // message id
-        string                      _targetId; // traget node id
-        string                      _sourceId; // source node id
+        long                        _id; // message id
+        long                        _targetId; // traget node id
+        long                        _sourceId; // source node id
         
         content                     _body;
         
         int                         _delay; // delay of the message
         
     public:
-        Packet                      (string id);
-        Packet                      (string id, string to, string from);
+        Packet                      (long id);
+        Packet                      (long id, long to, long from);
         Packet                      (const Packet<content>&);
         ~Packet                     ();
         
         // setters
-        void        setSource       (string s){_sourceId = s;};
-        void        setTarget       (string t){_targetId = t;};
+        void        setSource       (long s){_sourceId = s;};
+        void        setTarget       (long t){_targetId = t;};
         void        setDelay        (int delayMax, int delayMin = 1);
         void        setBody         (const content c){_body = c;};
         
         // getters
-        string      id              ()const {return _id;};
-        string      targetId        ()const {return _targetId;};
-        string      sourceId        ()const {return _sourceId;};
+        long        id              ()const {return _id;};
+        long        targetId        ()const {return _targetId;};
+        long        sourceId        ()const {return _sourceId;};
         bool        hasArrived      ()const {return !(bool)(_delay);};
         content     getMessage      ()const {return _body;};
         int         getDelay        ()const {return _delay;};
@@ -73,16 +73,16 @@ namespace blockguard{
     };
 
     template<class content>
-    Packet<content>::Packet(string id){
+    Packet<content>::Packet(long id){
         _id = id;
-        _sourceId = "";
-        _targetId = "";
+        _sourceId = -1;
+        _targetId = -1;
         _body = content();
         _delay = 0;
     }
 
     template<class content>
-    Packet<content>::Packet(string id, string to ,string from){
+    Packet<content>::Packet(long id, long to ,long from){
         _id = id;
         _sourceId = from;
         _targetId = to;

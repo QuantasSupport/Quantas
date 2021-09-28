@@ -12,7 +12,7 @@
 #include "./Common/Peer.hpp"
 
 namespace blockguard{
-    
+
     using std::string; 
     using std::ostream;
 
@@ -34,19 +34,19 @@ namespace blockguard{
         int counter;
     public:
         // methods that must be defined when deriving from Peer
-        ExamplePeer                             (string);
+        ExamplePeer                             (long);
         ExamplePeer                             (const ExamplePeer &rhs);
         ~ExamplePeer                            ();
         void                 preformComputation ();
         void                 makeRequest        (){};
         void                 log                ()const{printTo(*_log);};
-        ostream&        printTo            (ostream&)const;
-        friend ostream& operator<<         (ostream&, const ExamplePeer&);
+        ostream&             printTo            (ostream&)const;
+        friend ostream&      operator<<         (ostream&, const ExamplePeer&);
 
         // its normally a good idea to make some getters and setters for a peer to enable testing 
         //  of the peers state durring an experment and to get metrics. 
-        int                  getCounter()const                                      {return counter;};
-        void                 setCounter(int c)                                      {counter = c;};
+        int                  getCounter         ()const     {return counter;};
+        void                 setCounter         (int c)     {counter = c;};
     };
 }
 #endif /* ExamplePeer_hpp */
