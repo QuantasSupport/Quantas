@@ -20,7 +20,12 @@
 // UTIL
 #include "./Common/Logger.hpp"
 
-using std::cout; using std::ofstream; using std::string; using std::cerr; 
+using std::cout; 
+using std::ofstream; 
+using std::string; 
+using std::cerr; 
+using blockguard::ExamplePeer; 
+using blockguard::ExampleMessage;
 
 void Example(ofstream& logFile);
 

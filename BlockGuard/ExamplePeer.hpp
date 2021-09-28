@@ -11,36 +11,41 @@
 
 #include "./Common/Peer.hpp"
 
-//
-// Example of a message body type
-//
-struct ExampleMessage{
-    
-    std::string aPeerId;
-    std::string message;
-    
-};
+namespace blockguard{
+    using std::string; 
+    using std::ostream;
 
-//
-// Example Peer used for network testing
-//
-class ExamplePeer : public Peer<ExampleMessage>{
-protected:
-    int counter;
-public:
-    // methods that must be defined when deriving from Peer
-    ExamplePeer                             (std::string);
-    ExamplePeer                             (const ExamplePeer &rhs);
-    ~ExamplePeer                            ();
-    void                 preformComputation ();
-    void                 makeRequest        (){};
-    void                 log                ()const{printTo(*_log);};
-    std::ostream&        printTo            (std::ostream&)const;
-    friend std::ostream& operator<<         (std::ostream&, const ExamplePeer&);
+    //
+    // Example of a message body type
+    //
+    struct ExampleMessage{
+        
+        string aPeerId;
+        string message;
+        
+    };
 
-    // its normally a good idea to make some getters and setters for a peer to enable testing 
-    //  of the peers state durring an experment and to get metrics. 
-    int                  getCounter()const                                      {return counter;};
-    void                 setCounter(int c)                                      {counter = c;};
-};
+    //
+    // Example Peer used for network testing
+    //
+    class ExamplePeer : public Peer<ExampleMessage>{
+    protected:
+        int counter;
+    public:
+        // methods that must be defined when deriving from Peer
+        ExamplePeer                             (string);
+        ExamplePeer                             (const ExamplePeer &rhs);
+        ~ExamplePeer                            ();
+        void                 preformComputation ();
+        void                 makeRequest        (){};
+        void                 log                ()const{printTo(*_log);};
+        ostream&        printTo            (ostream&)const;
+        friend ostream& operator<<         (ostream&, const ExamplePeer&);
+
+        // its normally a good idea to make some getters and setters for a peer to enable testing 
+        //  of the peers state durring an experment and to get metrics. 
+        int                  getCounter()const                                      {return counter;};
+        void                 setCounter(int c)                                      {counter = c;};
+    };
+}
 #endif /* ExamplePeer_hpp */

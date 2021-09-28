@@ -11,60 +11,68 @@
 #include "./Common/Packet.hpp"
 #include <iostream>
 
-//
-// Example Peer definitions
-//
-ExamplePeer::~ExamplePeer(){
-    
-}
+namespace blockguard {
+    using std::cout; 
+    using std::to_string; 
+    using std::ostream;
+    using std::string;
+    using std::endl;
 
-ExamplePeer::ExamplePeer(const ExamplePeer &rhs) : Peer<ExampleMessage>(rhs){
-    counter = rhs.counter;
-}
+    //
+    // Example Peer definitions
+    //
+    ExamplePeer::~ExamplePeer(){
+        
+    }
 
-ExamplePeer::ExamplePeer(std::string id) : Peer(id){
-    counter =0;
-}
+    ExamplePeer::ExamplePeer(const ExamplePeer &rhs) : Peer<ExampleMessage>(rhs){
+        counter = rhs.counter;
+    }
 
-void ExamplePeer::preformComputation(){
-    std::cout<< "Peer:"<< _id<< " preforming computation"<<std::endl;
-    
-    ExampleMessage message;
-    message.message = "Message: " + std::to_string(counter)  + " Hello From ";
-    message.aPeerId = _id;
-    Packet<ExampleMessage> newMessage(std::to_string(counter), _id,_id);
-    newMessage.setBody(message);
-    _outStream.push_back(newMessage);
-    
-    for (auto it = _neighbors.begin(); it != _neighbors.end(); it++ )
-    {
+    ExamplePeer::ExamplePeer(string id) : Peer(id){
+        counter =0;
+    }
+
+    void ExamplePeer::preformComputation(){
+        cout<< "Peer:"<< _id<< " preforming computation"<<endl;
+        
         ExampleMessage message;
-        message.message = "Message: " + std::to_string(counter)  + " Hello From ";
+        message.message = "Message: " + to_string(counter)  + " Hello From ";
         message.aPeerId = _id;
-        Packet<ExampleMessage> newMessage(std::to_string(counter), it->first,_id);
+        Packet<ExampleMessage> newMessage(to_string(counter), _id,_id);
         newMessage.setBody(message);
         _outStream.push_back(newMessage);
+        
+        for (auto it = _neighbors.begin(); it != _neighbors.end(); it++ )
+        {
+            ExampleMessage message;
+            message.message = "Message: " + to_string(counter)  + " Hello From ";
+            message.aPeerId = _id;
+            Packet<ExampleMessage> newMessage(to_string(counter), it->first,_id);
+            newMessage.setBody(message);
+            _outStream.push_back(newMessage);
+        }
+        
+        for(int i = 0; i < _inStream.size(); i++){
+            cout << endl << _id<< " has receved a message from "<< _inStream[i].sourceId()<< endl;
+            cout << "  MESSAGE "<< _inStream[i].id() <<  ":"<< _inStream[i].getMessage().message<<  _inStream[i].getMessage().aPeerId<< endl;
+        }
+        cout << endl;
+        _inStream.clear();
+        counter++;
     }
-    
-    for(int i = 0; i < _inStream.size(); i++){
-        std::cout << std::endl << _id<< " has receved a message from "<< _inStream[i].sourceId()<< std::endl;
-        std::cout << "  MESSAGE "<< _inStream[i].id() <<  ":"<< _inStream[i].getMessage().message<<  _inStream[i].getMessage().aPeerId<< std::endl;
+
+    ostream& ExamplePeer::printTo(ostream &out)const{
+        Peer<ExampleMessage>::printTo(out);
+        
+        out<< _id<< endl;
+        out<< "counter:"<< counter<< endl;
+        
+        return out;
     }
-    std::cout << std::endl;
-    _inStream.clear();
-    counter++;
-}
 
-std::ostream& ExamplePeer::printTo(std::ostream &out)const{
-    Peer<ExampleMessage>::printTo(out);
-    
-    out<< _id<< std::endl;
-    out<< "counter:"<< counter<< std::endl;
-    
-    return out;
-}
-
-std::ostream& operator<< (std::ostream &out, const ExamplePeer &peer){
-    peer.printTo(out);
-    return out;
+    ostream& operator<< (ostream &out, const ExamplePeer &peer){
+        peer.printTo(out);
+        return out;
+    }
 }
