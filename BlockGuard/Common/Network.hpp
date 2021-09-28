@@ -147,48 +147,6 @@ namespace blockguard{
         }
     }
 
-    // template<class type_msg, class peer_type>
-    // string Network<type_msg,peer_type>::createId(){
-    //     char firstPos = '*';
-    //     char secondPos = '*';
-    //     char thirdPos = '*';
-    //     char fourthPos = '*';
-    //     char fifthPos = '*';
-
-    //     uniform_int_distribution<int> uniformDist(0,25);
-    //     // add 'A' to shift char into rnage of upper case letters
-    //     firstPos = uniformDist(RANDOM_GENERATOR) + 'A';
-    //     secondPos = uniformDist(RANDOM_GENERATOR) + 'A';
-    //     thirdPos = uniformDist(RANDOM_GENERATOR) + 'A';
-    //     fourthPos = uniformDist(RANDOM_GENERATOR) + 'A';
-    //     fifthPos = uniformDist(RANDOM_GENERATOR) + 'A';
-
-    //     string id = "";
-    //     id = id + firstPos + secondPos + thirdPos + fourthPos + fifthPos;
-    //     return id;
-    // }
-
-    // template<class type_msg, class peer_type>
-    // bool Network<type_msg,peer_type>::idTaken(string id){
-    //     for(int i = 0; i < _peers.size(); i++){
-    //         if(_peers[i]->id() == id){
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // }
-
-    // template<class type_msg, class peer_type>
-    // string Network<type_msg,peer_type>::getUniqueId(){
-    //     string id = createId();
-
-    //     while(idTaken(id)){
-    //         id = createId();
-    //     }
-        
-    //     return id;
-    // }
-
     template<class type_msg, class peer_type>
     void Network<type_msg,peer_type>::addEdges(Peer<type_msg> *peer){
         for(int i = 0; i < _peers.size(); i++){
@@ -309,38 +267,5 @@ namespace blockguard{
         }
         return nullptr;
     }
-
-    // template<class type_msg, class peer_type>
-    // void Network<type_msg,peer_type>::shuffleByzantines(int shuffleCount){
-    //     int shuffled = 0;
-    //     //find list of byzantineFlag peers
-    //     vector<int> byzantineIndex;
-    //     vector<int> nonByzantineIndex;
-
-    //     for(int i = 0; i<_peers.size();i++){
-    //         if(_peers[i]->isByzantine()){
-    //             byzantineIndex.push_back (i);
-    //         }else if(!_peers[i]->isByzantine()){
-    //             nonByzantineIndex.push_back (i);
-    //         }
-    //     }
-
-    //     if(nonByzantineIndex.size() == 0){
-    //         return;
-    //     }
-    //     while (shuffled<shuffleCount){
-    //         //find list of byzantineFlag peers
-    //         int byzantineShuffleIndex = static_cast<int>(rand() % byzantineIndex.size());
-    //         int nonByzantineShuffleIndex = static_cast<int>(rand() % nonByzantineIndex.size());
-    //         _peers[byzantineIndex[byzantineShuffleIndex]]->setByzantineFlag(false);
-    //         _peers[nonByzantineIndex[nonByzantineShuffleIndex]]->setByzantineFlag(true);
-    //         byzantineIndex.erase(byzantineIndex.begin ()+byzantineShuffleIndex);
-    //         nonByzantineIndex.erase(nonByzantineIndex.begin ()+nonByzantineShuffleIndex);
-    //         shuffled++;
-    //         if(nonByzantineIndex.size()==0 || byzantineIndex.size() == 0){
-    //             return;
-    //         }
-    //     }
-    // }
 }
 #endif /* Network_hpp */
