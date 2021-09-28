@@ -1,4 +1,5 @@
 *~
+*.log
 *.gch
 *.pbxproj
 *.xcbkptlist
