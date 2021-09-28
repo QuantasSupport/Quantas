@@ -12,6 +12,7 @@
 #include "./Common/Peer.hpp"
 
 namespace blockguard{
+    
     using std::string; 
     using std::ostream;
 

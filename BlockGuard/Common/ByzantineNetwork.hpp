@@ -12,6 +12,7 @@
 #include "Network.hpp"
 
 using blockguard::Network;
+using blockguard::LOG_WIDTH;
 
 template<class type_msg, class peer_type>
 class ByzantineNetwork : public  Network<type_msg,peer_type>{

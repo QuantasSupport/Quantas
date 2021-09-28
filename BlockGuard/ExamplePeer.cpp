@@ -12,6 +12,7 @@
 #include <iostream>
 
 namespace blockguard {
+    
     using std::cout; 
     using std::to_string; 
     using std::ostream;
