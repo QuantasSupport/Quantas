@@ -19,6 +19,8 @@ namespace blockguard{
     using std::default_random_engine;
     using std::string;
     using std::uniform_int_distribution;
+    
+    static const long NO_PEER_ID = -1;  // number used to indicate invalid peer id or un init peer id
 
     //
     //Base Message Class
@@ -75,8 +77,8 @@ namespace blockguard{
     template<class content>
     Packet<content>::Packet(long id){
         _id = id;
-        _sourceId = -1;
-        _targetId = -1;
+        _sourceId = NO_PEER_ID;
+        _targetId = NO_PEER_ID;
         _body = content();
         _delay = 0;
     }

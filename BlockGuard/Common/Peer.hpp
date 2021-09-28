@@ -33,9 +33,8 @@ namespace blockguard{
     using std::setw;
     using std::boolalpha;
 
-    // var used for column width in loggin
-    static const int LOG_WIDTH = 27;
-    using blockguard::LOG_WIDTH;
+    
+    static const int  LOG_WIDTH  = 27;  // var used for column width in loggin
 
     //
     // Base Peer class
@@ -131,7 +130,7 @@ namespace blockguard{
 
     template <class message>
     Peer<message>::Peer(){
-        _id = -1;
+        _id = NO_PEER_ID;
         _inStream = deque<Packet<message> >();
         _outStream = deque<Packet<message> >();
         _neighbors = map<peerId, Peer<message>* >();
