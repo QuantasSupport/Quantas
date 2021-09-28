@@ -17,8 +17,6 @@
 #include "./Common/Peer.hpp"
 #include "ExamplePeer.hpp"
 #include "./Common/ByzantineNetwork.hpp"
-// UTIL
-#include "./Common/Logger.hpp"
 
 using std::cout; 
 using std::ofstream; 
