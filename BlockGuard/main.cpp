@@ -20,36 +20,38 @@
 // UTIL
 #include "./Common/Logger.hpp"
 
-void Example(std::ofstream& logFile);
+using std::cout; using std::ofstream; using std::string; using std::cerr; 
+
+void Example(ofstream& logFile);
 
 int main(int argc, const char* argv[]) {
 	srand((float)time(NULL));
 	if (argc < 3) {
-		std::cerr << "Error: need algorithm and output path" << std::endl;
+		cerr << "Error: need algorithm and output path" << std::endl;
 		return 0;
 	}
 
 
-	std::string algorithm = argv[1];
-	std::string filePath = argv[2];
+	string algorithm = argv[1];
+	string filePath = argv[2];
 
 	if (algorithm == "example") {
-		std::ofstream out;
-		std::string file = filePath + "/example.log";
+		ofstream out;
+		string file = filePath + "/example.log";
 		out.open(file);
 		if (out.fail()) {
-			std::cerr << "Error: could not open file" << file << std::endl;
+			cerr << "Error: could not open file" << file << std::endl;
 		}
 		Example(out);
 	}
 	else {
-		std::cout << algorithm << " not recognized" << std::endl;
+		cout << algorithm << " not recognized" << std::endl;
 	}
 
 	return 0;
 }
 
-void Example(std::ofstream& logFile) {
+void Example(ofstream& logFile) {
 	ByzantineNetwork<ExampleMessage, ExamplePeer> system;
 	system.setLog(logFile); // set the system to write log to file logFile
 	system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
@@ -70,13 +72,13 @@ void Example(std::ofstream& logFile) {
 	}
 
 	system = ByzantineNetwork<ExampleMessage, ExamplePeer>(); // clear old setup by creating a fresh object
-	system.setLog(std::cout); // set the system to write log to terminal
+	system.setLog(cout); // set the system to write log to terminal
 	system.setToRandom();
 	system.setMaxDelay(10);
 	system.initNetwork(3);
 
 	for (int i = 0; i < 3; i++) {
-		std::cout << "-- STARTING ROUND " << i << " --" << std::endl; // print outwhen the round started
+		cout << "-- STARTING ROUND " << i << " --" << std::endl; // print outwhen the round started
 
 		system.receive();
 		system.log(); // log now goes to the terminal
@@ -85,7 +87,7 @@ void Example(std::ofstream& logFile) {
 		system.transmit();
 		system.log();
 
-		std::cout << "-- ENDING ROUND " << i << " --" << std::endl; // print out the end of a round
+		cout << "-- ENDING ROUND " << i << " --" << std::endl; // print out the end of a round
 	}
 
 	// The base peer class tracks number of messages sent by a(1) peer. To calculate the total number of messages that where in the system we need
@@ -98,5 +100,5 @@ void Example(std::ofstream& logFile) {
 														  //    Use the -> to call method on the peer instance. The Network class will also cast the instance to
 														  //    your derived class so all methods that you add will be avalable via the -> operator
 	}
-	std::cout << "Number of Messages: " << numberOfMessages << std::endl;
+	cout << "Number of Messages: " << numberOfMessages << std::endl;
 }
