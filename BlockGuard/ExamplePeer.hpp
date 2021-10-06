@@ -9,7 +9,7 @@
 #ifndef ExamplePeer_hpp
 #define ExamplePeer_hpp
 
-#include "./Common/Peer.hpp"
+#include "./Common/Channel.hpp"
 
 namespace blockguard{
 
@@ -27,13 +27,13 @@ namespace blockguard{
     };
 
     //
-    // Example Peer used for network testing
+    // Example Channel used for network testing
     //
-    class ExamplePeer : public Peer<ExampleMessage>{
+    class ExamplePeer : public Channel<ExampleMessage>{
     protected:
         int counter;
     public:
-        // methods that must be defined when deriving from Peer
+        // methods that must be defined when deriving from Channel
         ExamplePeer                             (long);
         ExamplePeer                             (const ExamplePeer &rhs);
         ~ExamplePeer                            ();

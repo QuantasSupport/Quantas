@@ -20,22 +20,22 @@ namespace blockguard {
     using std::endl;
 
     //
-    // Example Peer definitions
+    // Example Channel definitions
     //
     ExamplePeer::~ExamplePeer(){
         
     }
 
-    ExamplePeer::ExamplePeer(const ExamplePeer &rhs) : Peer<ExampleMessage>(rhs){
+    ExamplePeer::ExamplePeer(const ExamplePeer &rhs) : Channel<ExampleMessage>(rhs){
         counter = rhs.counter;
     }
 
-    ExamplePeer::ExamplePeer(long id) : Peer(id){
+    ExamplePeer::ExamplePeer(long id) : Channel(id){
         counter =0;
     }
 
     void ExamplePeer::preformComputation(){
-        cout<< "Peer:"<< _id<< " preforming computation"<<endl;
+        cout<< "Channel:"<< _id<< " preforming computation"<<endl;
         
         ExampleMessage message;
         message.message = "Message: " + to_string(counter)  + " Hello From ";
@@ -64,7 +64,7 @@ namespace blockguard {
     }
 
     ostream& ExamplePeer::printTo(ostream &out)const{
-        Peer<ExampleMessage>::printTo(out);
+        Channel<ExampleMessage>::printTo(out);
         
         out<< _id<< endl;
         out<< "counter:"<< counter<< endl;

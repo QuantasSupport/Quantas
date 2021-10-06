@@ -11,8 +11,8 @@ clean:
 	clear
 	clear
 
-build: 
-	clang++ -std=c++14 ./BlockGuard/*.cpp -o ./BlockGuard.out
+build: ExamplePeer
+	clang++ -std=c++14 ./BlockGuard/*.cpp --debug -o ./BlockGuard.out
 
 test: ExamplePeer
 	clang++ -std=c++14 ./BlockGuard_Test/*.cpp ./BlockGuard_Test/*.o --debug -o ./BlockGuard_Test.out
