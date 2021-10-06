@@ -7,7 +7,7 @@
 //
 
 #include "ExamplePeer.hpp"
-#include "./Common/Peer.hpp"
+#include "./Common/Interface.hpp"
 #include "./Common/Packet.hpp"
 #include <iostream>
 
@@ -26,16 +26,16 @@ namespace blockguard {
         
     }
 
-    ExamplePeer::ExamplePeer(const ExamplePeer &rhs) : Channel<ExampleMessage>(rhs){
+    ExamplePeer::ExamplePeer(const ExamplePeer &rhs) : Interface<ExampleMessage>(rhs){
         counter = rhs.counter;
     }
 
-    ExamplePeer::ExamplePeer(long id) : Channel(id){
+    ExamplePeer::ExamplePeer(long id) : Interface(id){
         counter =0;
     }
 
     void ExamplePeer::preformComputation(){
-        cout<< "Channel:"<< _id<< " preforming computation"<<endl;
+        cout<< "Interface:"<< _id<< " preforming computation"<<endl;
         
         ExampleMessage message;
         message.message = "Message: " + to_string(counter)  + " Hello From ";
@@ -64,7 +64,7 @@ namespace blockguard {
     }
 
     ostream& ExamplePeer::printTo(ostream &out)const{
-        Channel<ExampleMessage>::printTo(out);
+        Interface<ExampleMessage>::printTo(out);
         
         out<< _id<< endl;
         out<< "counter:"<< counter<< endl;

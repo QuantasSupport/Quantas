@@ -1,5 +1,5 @@
 //
-//  ExamplePeer.hpp
+//  ExampleInterface.hpp
 //  BlockGuard
 //
 //  Created by Kendric Hood on 3/15/19.
@@ -9,7 +9,7 @@
 #ifndef ExamplePeer_hpp
 #define ExamplePeer_hpp
 
-#include "./Common/Channel.hpp"
+#include "./Common/Interface.hpp"
 
 namespace blockguard{
 
@@ -27,13 +27,13 @@ namespace blockguard{
     };
 
     //
-    // Example Channel used for network testing
+    // Example Interface used for network testing
     //
-    class ExamplePeer : public Channel<ExampleMessage>{
+    class ExamplePeer : public Interface<ExampleMessage>{
     protected:
         int counter;
     public:
-        // methods that must be defined when deriving from Channel
+        // methods that must be defined when deriving from Interface
         ExamplePeer                             (long);
         ExamplePeer                             (const ExamplePeer &rhs);
         ~ExamplePeer                            ();

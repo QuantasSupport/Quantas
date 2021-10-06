@@ -20,7 +20,7 @@ void TestPeer::makeRequest(){
 
 void TestPeer::preformComputation(){
     for(auto it = _inStream.begin(); it != _inStream.end(); it++){
-        std::cout << "Test Peer " << _id << " got a message from " << it->sourceId() << std::endl;
+        std::cout << "Test Interface " << _id << " got a message from " << it->sourceId() << std::endl;
     }
     _inStream.clear();
 }

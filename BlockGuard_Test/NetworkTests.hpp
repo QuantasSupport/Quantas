@@ -14,7 +14,7 @@
 #include <fstream>
 #include <cassert>
 #include "./../BlockGuard/Common/Network.hpp"
-#include "./../BlockGuard/ExamplePeer.hpp"
+#include "./../BlockGuard/ExampleInterface.hpp"
 
 void runNetworkTests    (std::string filepath);
 

@@ -14,7 +14,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
-#include "../BlockGuard/ExamplePeer.hpp"
+#include "../BlockGuard/ExampleInterface.hpp"
 #include "../BlockGuard/Common/ByzantineNetwork.hpp"
 
 void RunByzantineNetworkTest    (std::string filepath);

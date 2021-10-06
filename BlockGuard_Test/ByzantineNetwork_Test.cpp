@@ -7,7 +7,7 @@
 //
 
 #include "ByzantineNetwork_Test.hpp"
-#include "../BlockGuard/ExamplePeer.hpp"
+#include "../BlockGuard/ExampleInterface.hpp"
 
 static const int PEERS = 10; 
 

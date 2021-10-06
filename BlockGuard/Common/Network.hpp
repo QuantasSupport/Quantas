@@ -19,7 +19,7 @@
 #include <chrono>
 #include <ctime>
 #include <memory>
-#include "./../Common/Channel.hpp"
+#include "./../Common/Interface.hpp"
 
 namespace blockguard{
 
@@ -41,7 +41,7 @@ namespace blockguard{
     class Network{
     protected:
 
-        vector<Channel<type_msg>*>             _peers;
+        vector<Interface<type_msg>*>        _peers;
         int                                 _avgDelay;
         int                                 _maxDelay;
         int                                 _minDelay;
@@ -52,7 +52,7 @@ namespace blockguard{
         // string                              createId            ();
         // bool                                idTaken             (string);
         // string                              getUniqueId         ();
-        void                                addEdges            (Channel<type_msg>*);
+        void                                addEdges            (Interface<type_msg>*);
         int                                 getDelay            ();
         peer_type*							getPeerById			(string);
 
@@ -95,14 +95,14 @@ namespace blockguard{
         peer_type*                          operator[]          (int);
         const peer_type*                    operator[]          (int)const;
         friend ostream&                     operator<<          (ostream &out, const Network &system)      {return system.printTo(out);};
-        void 								makeRequest			(Channel<type_msg> * peer)				            { peer->makeRequest(); }
+        void 								makeRequest			(Interface<type_msg> * peer)				            { peer->makeRequest(); }
         int									pickSecurityLevel	(int);
 
     };
 
     template<class type_msg, class peer_type>
     Network<type_msg,peer_type>::Network(){
-        _peers = vector<Channel<type_msg>*>();
+        _peers = vector<Interface<type_msg>*>();
         _avgDelay = 1;
         _maxDelay = 1;
         _minDelay = 1;
@@ -120,7 +120,7 @@ namespace blockguard{
             delete _peers[i];
         }
 
-        _peers = vector<Channel<type_msg>*>();
+        _peers = vector<Interface<type_msg>*>();
         for(int i = 0; i < rhs._peers.size(); i++){
             _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
         }
@@ -148,7 +148,7 @@ namespace blockguard{
     }
 
     template<class type_msg, class peer_type>
-    void Network<type_msg,peer_type>::addEdges(Channel<type_msg> *peer){
+    void Network<type_msg,peer_type>::addEdges(Interface<type_msg> *peer){
         for(int i = 0; i < _peers.size(); i++){
             if(_peers[i]->id() != peer->id()){
                 if(!_peers[i]->isNeighbor(peer->id())){
@@ -236,7 +236,7 @@ namespace blockguard{
             delete _peers[i];
         }
 
-        _peers = vector<Channel<type_msg>*>();
+        _peers = vector<Interface<type_msg>*>();
         for(int i = 0; i < rhs._peers.size(); i++){
             _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
         }

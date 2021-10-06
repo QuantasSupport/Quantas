@@ -33,12 +33,12 @@ as well as empty message for testing
 */
 struct TestMessage{};
 
-class TestPeer : public Channel<TestMessage>{
+class TestPeer : public Interface<TestMessage>{
 public:
-    // methods that must be defined when deriving from Channel
-    TestPeer                                (): Channel<TestMessage>()                         {};
-    TestPeer                                (std::string id): Channel(id)                      {std::cout << "Default const called";};
-    TestPeer                                (const TestPeer &rhs): Channel<TestMessage>(rhs)   {std::cout << "Default const called";};
+    // methods that must be defined when deriving from Interface
+    TestPeer                                (): Interface<TestMessage>()                         {};
+    TestPeer                                (std::string id): Interface(id)                      {std::cout << "Default const called";};
+    TestPeer                                (const TestPeer &rhs): Interface<TestMessage>(rhs)   {std::cout << "Default const called";};
     ~TestPeer                               ()                                              {std::cout << "testPeer destructor called";};
     void                 preformComputation ();
     void                 makeRequest        ();

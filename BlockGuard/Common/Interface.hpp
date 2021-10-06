@@ -1,10 +1,9 @@
 //
-//  Peer.hpp
+//  Interface.hpp
 //  BlockGuard
 //
-//  Created by Kendric Hood on 3/8/19.
-//  Copyright © 2019 Kent State University. All rights reserved.
-//
+// This class represents a connection between to peers, this connection is called a Interface
+// The channel has a delay 
 
 #ifndef Peer_hpp
 #define Peer_hpp
@@ -40,19 +39,17 @@ namespace blockguard{
     // Base Peer class
     //
     template <class message>
-    class Channel{
+    class Interface{
     protected:
             // type abbreviations
         typedef deque<Packet<message> >    aChannel;
         typedef long                       peerId;
 
         peerId                             _id;
-        bool                               _byzantine;
-        bool                               _busy;
         int                                _clock;
         map<peerId,aChannel>               _channels;// list of chanels between this peer and others
         map<peerId,int>                    _channelDelays;// list of channels and there delays
-        map<peerId, Channel<message>* >       _neighbors; // peers this peer has a link to
+        map<peerId, Interface<message>* >  _neighbors; // peers this peer has a link to
         deque<Packet<message> >            _inStream;// messages that have arrived at this peer
         deque<Packet<message> >            _outStream;// messages waiting to be sent by this peer
         
@@ -64,16 +61,15 @@ namespace blockguard{
         bool                               _printNeighborhood;
         
     public:
-        Channel                                                     ();
-        Channel                                                     (peerId);
-        Channel                                                     (const Channel &);
-        virtual ~Channel                                            ()=0;
+        Interface                                                ();
+        Interface                                                (peerId);
+        Interface                                                (const Interface &);
+        virtual ~Interface                                       ()=0;
         // Setters
-        void                               setID                 (peerId id)                           {_id = id;};
+        void                               setID                 (peerId id)                         {_id = id;};
         void                               setLogFile            (ostream &o)                        {_log = &o;};
         void                               printNeighborhoodOn   ()                                  {_printNeighborhood = true;}
         void                               printNeighborhoodOff  ()                                  {_printNeighborhood = false;}
-        virtual void                       setBusy               (bool busy)                         {_busy = busy;}
         // getters
         vector<long>                       neighbors             ()const;
         long                               id                    ()const                             {return _id;};
@@ -81,59 +77,51 @@ namespace blockguard{
         int                                getDelayToNeighbor    (peerId id)const;
         int                                getMessageCount       ()const                             {return _numberOfMessagesSent;};
         int                                getClock              ()const                             {return _clock;};
-        virtual bool					   isByzantine			 ()const                             {return _byzantine;};
-        virtual bool					   isBusy				 ()									 {return _busy; }
         deque<Packet<message> >            getInStream           ()const                             {return _inStream;};
         deque<Packet<message> >            getOutStream          ()const                             {return _outStream;};
         deque<Packet<message> >*           getChannelFrom        (const string id)                   {return &(_channels.at(id));};
         
         // mutators
-        void                               removeNeighbor        (const Channel &neighbor)              {_neighbors.erase(neighbor);};
-        void                               addNeighbor           (Channel &newNeighbor, int delay);
-        virtual void					   setByzantineFlag		 (bool f)                            {_byzantine = f;};
-        virtual void                       makeCorrect           ()                                  {_byzantine = false;};
-        virtual void                       makeByzantine         ()                                  {_byzantine = true;};
-        virtual void                       clearMessages         ();
-        // tells this peer to create a transaction
-        virtual void                       makeRequest           ()=0;
+        void                               removeNeighbor        (const Interface &neighbor)         {_neighbors.erase(neighbor);};
+        void                               addNeighbor           (Interface &newNeighbor, int delay);
+
         // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
         void                               receive               ();
         // send a message to this peer
         void                               send                  (Packet<message>);
         // sends all messages in _outStream to there respective targets
         void                               transmit              ();
-        // preform one step of the Consensus message with the messages in inStream
-        virtual void                       preformComputation    ()=0;
+        
 
         void                               log                   ()const;
         ostream&                           printTo               (ostream&)const;
-        Channel&                              operator=             (const Channel&);
+        Interface&                         operator=             (const Interface&);
 
         // == and != compare all attributes 
-        bool                               operator==            (const Channel &rhs)const              {return (_id == rhs._id);};
-        bool                               operator!=            (const Channel &rhs)const              {return !(*this == rhs);};
+        bool                               operator==            (const Interface &rhs)const         {return (_id == rhs._id);};
+        bool                               operator!=            (const Interface &rhs)const         {return !(*this == rhs);};
         // greater and less then are based on peer id (standard string comparison)
-        bool                               operator<=            (const Channel &rhs)const              {return (_id <= rhs._id);};
-        bool                               operator<             (const Channel &rhs)const              {return (_id < rhs._id);};
-        bool                               operator>=            (const Channel &rhs)const              {return (_id >= rhs._id);};
-        bool                               operator>             (const Channel &rhs)const              {return (_id > rhs._id);};
-        bool                               operator<=            (const peerId &rhs)const              {return (_id <= rhs);};
-        bool                               operator<             (const peerId &rhs)const              {return (_id < rhs);};
-        bool                               operator>=            (const peerId &rhs)const              {return (_id >= rhs);};
-        bool                               operator>             (const peerId &rhs)const              {return (_id > rhs);};
-        friend ostream&                    operator<<            (ostream&, const Channel&);
+        bool                               operator<=            (const Interface &rhs)const         {return (_id <= rhs._id);};
+        bool                               operator<             (const Interface &rhs)const         {return (_id < rhs._id);};
+        bool                               operator>=            (const Interface &rhs)const         {return (_id >= rhs._id);};
+        bool                               operator>             (const Interface &rhs)const         {return (_id > rhs._id);};
+        bool                               operator<=            (const peerId &rhs)const            {return (_id <= rhs);};
+        bool                               operator<             (const peerId &rhs)const            {return (_id < rhs);};
+        bool                               operator>=            (const peerId &rhs)const            {return (_id >= rhs);};
+        bool                               operator>             (const peerId &rhs)const            {return (_id > rhs);};
+        friend ostream&                    operator<<            (ostream&, const Interface&);
     };
 
     //
-    // Base Channel definitions
+    // Base Interface definitions
     //
 
     template <class message>
-    Channel<message>::Channel(){
+    Interface<message>::Interface(){
         _id = NO_PEER_ID;
         _inStream = deque<Packet<message> >();
         _outStream = deque<Packet<message> >();
-        _neighbors = map<peerId, Channel<message>* >();
+        _neighbors = map<peerId, Interface<message>* >();
         _channelDelays = map<peerId,int>();
         _channels = map<peerId,aChannel>();
         _log = &cout;
@@ -145,11 +133,11 @@ namespace blockguard{
     }
 
     template <class message>
-    Channel<message>::Channel(peerId id){
+    Interface<message>::Interface(peerId id){
         _id = id;
         _inStream = deque<Packet<message> >();
         _outStream = deque<Packet<message> >();
-        _neighbors = map<peerId, Channel<message>* >();
+        _neighbors = map<peerId, Interface<message>* >();
         _channelDelays = map<peerId,int>();
         _channels = map<peerId,aChannel>();
         _log = &cout;
@@ -161,7 +149,7 @@ namespace blockguard{
     }
 
     template <class message>
-    Channel<message>::Channel(const Channel &rhs){
+    Interface<message>::Interface(const Interface &rhs){
         _id = rhs._id;
         _inStream = rhs._inStream;
         _outStream = rhs._outStream;
@@ -177,11 +165,11 @@ namespace blockguard{
     }
 
     template <class message>
-    Channel<message>::~Channel(){
+    Interface<message>::~Interface(){
     }
 
     template <class message>
-    void Channel<message>::addNeighbor(Channel<message> &newNeighbor, int delay){
+    void Interface<message>::addNeighbor(Interface<message> &newNeighbor, int delay){
         // grourd to make sure delay is at lest 1, less then 1 will couse errors when calculating delay (divisioin by 0)
         int edgeDelay = delay;
         if(edgeDelay < 1){
@@ -194,13 +182,13 @@ namespace blockguard{
 
     // called on recever
     template <class message>
-    void Channel<message>::send(Packet<message> outMessage){
+    void Interface<message>::send(Packet<message> outMessage){
         _channels.at(outMessage.sourceId()).push_back(outMessage);
     }
 
     // called on sender
     template <class message>
-    void Channel<message>::transmit(){
+    void Interface<message>::transmit(){
         // send all messages to there destantion peer channels  
         while(!_outStream.empty()){
             
@@ -222,7 +210,7 @@ namespace blockguard{
     }
 
     template <class message>
-    void Channel<message>::receive() {
+    void Interface<message>::receive() {
         _clock++;
         for (auto it = _neighbors.begin(); it != _neighbors.end(); ++it) {
             peerId neighborID = it->first;
@@ -241,7 +229,7 @@ namespace blockguard{
 
 
     template <class message>
-    bool Channel<message>::isNeighbor(peerId id)const{
+    bool Interface<message>::isNeighbor(peerId id)const{
         if(_neighbors.find(id) != _neighbors.end()){
             return true;
         }
@@ -249,7 +237,7 @@ namespace blockguard{
     }
 
     template <class message>
-    vector<long> Channel<message>::neighbors()const{
+    vector<long> Interface<message>::neighbors()const{
         vector<peerId> neighborIds = vector<peerId>();
         for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
             neighborIds.push_back(it->first);
@@ -258,12 +246,12 @@ namespace blockguard{
     }
 
     template <class message>
-    int Channel<message>::getDelayToNeighbor(peerId id)const{
+    int Interface<message>::getDelayToNeighbor(peerId id)const{
         return _channelDelays.at(id);
     }
 
     template <class message>
-    void Channel<message>::clearMessages(){
+    void Interface<message>::clearMessages(){
         _inStream.clear();
         _outStream.clear();
 
@@ -273,7 +261,7 @@ namespace blockguard{
     }
 
     template <class message>
-    Channel<message>& Channel<message>::operator=(const Channel<message> &rhs){
+    Interface<message>& Interface<message>::operator=(const Interface<message> &rhs){
         if(this == &rhs)
             return *this;
         _id = rhs._id;
@@ -293,18 +281,18 @@ namespace blockguard{
     }
 
     template <class message>
-    void Channel<message>::log()const{
+    void Interface<message>::log()const{
         printTo(*_log);
     }
 
     template <class message>
-    ostream& Channel<message>::printTo(ostream &out)const{
-        out<< "-- Channel ID:"<< _id<< " --"<< endl;
+    ostream& Interface<message>::printTo(ostream &out)const{
+        out<< "-- Interface ID:"<< _id<< " --"<< endl;
         out<< left;
         out<< "\t"<< setw(LOG_WIDTH)<< "In Stream Size"<< setw(LOG_WIDTH)<< "Out Stream Size"<< setw(LOG_WIDTH)<< "Message Count"<< setw(LOG_WIDTH)<< "Is Byzantine"<<endl;
         out<< "\t"<< setw(LOG_WIDTH)<< _inStream.size()<< setw(LOG_WIDTH)<< _outStream.size()<<setw(LOG_WIDTH)<< _numberOfMessagesSent<< setw(LOG_WIDTH)<<setw(LOG_WIDTH)<< boolalpha<<  _byzantine<<endl<<endl;
         if(_printNeighborhood){
-            out<< "\t"<< setw(LOG_WIDTH)<< "Neighbor ID"<< setw(LOG_WIDTH)<< "Delay"<< setw(LOG_WIDTH)<< "Messages In Channel"<< endl;
+            out<< "\t"<< setw(LOG_WIDTH)<< "Neighbor ID"<< setw(LOG_WIDTH)<< "Delay"<< setw(LOG_WIDTH)<< "Messages In Interface"<< endl;
             for (auto it=_neighbors.begin(); it!=_neighbors.end(); ++it){
                 peerId neighborId = it->first;
                 out<< "\t"<< setw(LOG_WIDTH)<< neighborId<< setw(LOG_WIDTH)<< getDelayToNeighbor(neighborId)<< setw(LOG_WIDTH)<<  _channels.at(neighborId).size()<< endl;
@@ -315,7 +303,7 @@ namespace blockguard{
     }
 
     template <class message>
-    ostream& operator<<(ostream &out, const Channel<message> &peer){
+    ostream& operator<<(ostream &out, const Interface<message> &peer){
         peer.printTo(out);
         return out;
     }

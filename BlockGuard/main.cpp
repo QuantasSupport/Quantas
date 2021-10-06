@@ -14,7 +14,7 @@
 #include <random>
 
 #include "./Common/Network.hpp"
-#include "./Common/Peer.hpp"
+#include "./Common/Interface.hpp"
 #include "ExamplePeer.hpp"
 #include "./Common/ByzantineNetwork.hpp"
 
