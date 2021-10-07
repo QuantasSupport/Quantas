@@ -1,5 +1,5 @@
 //
-//  Interface.hpp
+//  NetworkInterface.hpp
 //  BlockGuard
 //
 //  Created by Kendric Hood on 3/8/19.
@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <algorithm>
 #include "Packet.hpp"
+#include "NetworkInterface.hpp"
 
 namespace blockguard{
 
@@ -32,30 +33,38 @@ namespace blockguard{
     using std::endl;
     using std::setw;
     using std::boolalpha;
-
     
-    static const int  LOG_WIDTH  = 27;  // var used for column width in loggin
-
     //
     // Base Peer class
     //
     template <class message>
-    class Peer{
-    protected:
-        bool                               _busy;
-        bool                               _byzantine;
-
+    class Peer : public NetworkInterface<message>{
     public:
-        virtual void                       setBusy               (bool busy)                         {_busy = busy;}
-        virtual bool					   isByzantine			 ()const                             {return _byzantine;};
-        virtual bool					   isBusy				 ()									 {return _busy; }
-        virtual void					   setByzantineFlag		 (bool f)                            {_byzantine = f;};
-        virtual void                       makeCorrect           ()                                  {_byzantine = false;};
-        virtual void                       makeByzantine         ()                                  {_byzantine = true;};
-        virtual void                       clearMessages         ();
+        Peer                                                     ();
+        Peer                                                     (long);
+        Peer                                                     (const Peer &);
+        virtual ~Peer                                            ()=0;
         // tells this peer to create a transaction
         virtual void                       makeRequest           ()=0;
         // preform one step of the Consensus message with the messages in inStream
         virtual void                       preformComputation    ()=0;
+    };
+
+    template <class message>
+    Peer<message>::Peer(): NetworkInterface<message>(){
+    }
+
+    template <class message>
+    Peer<message>::Peer(long id): NetworkInterface<message>(id){
+    }
+
+    template <class message>
+    Peer<message>::Peer(const Peer &rhs){
+    }
+
+    template <class message>
+    Peer<message>::~Peer(){
     }
 }
+
+#endif 

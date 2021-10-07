@@ -14,9 +14,8 @@
 #include <random>
 
 #include "./Common/Network.hpp"
-#include "./Common/Interface.hpp"
+#include "./Common/NetworkInterface.hpp"
 #include "ExamplePeer.hpp"
-#include "./Common/ByzantineNetwork.hpp"
 
 using std::cout; 
 using std::ofstream; 
@@ -24,6 +23,7 @@ using std::string;
 using std::cerr; 
 using blockguard::ExamplePeer; 
 using blockguard::ExampleMessage;
+using blockguard::Network;
 
 void Example(ofstream& logFile);
 
@@ -55,7 +55,7 @@ int main(int argc, const char* argv[]) {
 }
 
 void Example(ofstream& logFile) {
-	ByzantineNetwork<ExampleMessage, ExamplePeer> system;
+	Network<ExampleMessage, ExamplePeer> system;
 	system.setLog(logFile); // set the system to write log to file logFile
 	system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
 	system.setMaxDelay(3); // set the max weight an edge can have to 3 (system will now pick randomly between [1, 3])
@@ -74,7 +74,7 @@ void Example(ofstream& logFile) {
 		logFile << "-- ENDING ROUND " << i << " --" << std::endl; // log the end of a round
 	}
 
-	system = ByzantineNetwork<ExampleMessage, ExamplePeer>(); // clear old setup by creating a fresh object
+	system = Network<ExampleMessage, ExamplePeer>(); // clear old setup by creating a fresh object
 	system.setLog(cout); // set the system to write log to terminal
 	system.setToRandom();
 	system.setMaxDelay(10);

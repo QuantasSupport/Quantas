@@ -7,7 +7,7 @@
 //
 
 #include "ExamplePeer.hpp"
-#include "./Common/Interface.hpp"
+#include "./Common/Peer.hpp"
 #include "./Common/Packet.hpp"
 #include <iostream>
 
@@ -26,30 +26,33 @@ namespace blockguard {
         
     }
 
-    ExamplePeer::ExamplePeer(const ExamplePeer &rhs) : Interface<ExampleMessage>(rhs){
-        counter = rhs.counter;
+    ExamplePeer::ExamplePeer(const ExamplePeer &rhs) : Peer<ExampleMessage>(rhs){
+        _counter = rhs._counter;
+        _numberOfMessagesSent = rhs._numberOfMessagesSent;
     }
 
-    ExamplePeer::ExamplePeer(long id) : Interface(id){
-        counter =0;
+    ExamplePeer::ExamplePeer(long id) : Peer(id){
+        _counter =0;
+        _numberOfMessagesSent =0;
     }
 
     void ExamplePeer::preformComputation(){
-        cout<< "Interface:"<< _id<< " preforming computation"<<endl;
+        cout<< "Peer:"<< _id << " preforming computation"<<endl;
         
         ExampleMessage message;
-        message.message = "Message: " + to_string(counter)  + " Hello From ";
+        message.message = "Message: it's me " + to_string(_id) + "!";
         message.aPeerId = _id;
-        Packet<ExampleMessage> newMessage(counter, _id,_id);
+        Packet<ExampleMessage> newMessage(_counter, _id,_id);
         newMessage.setBody(message);
         _outStream.push_back(newMessage);
         
         for (auto it = _neighbors.begin(); it != _neighbors.end(); it++ )
         {
             ExampleMessage message;
-            message.message = "Message: " + to_string(counter)  + " Hello From ";
+            message.message = "Message: " + to_string(_counter)  + " Hello From " + to_string(_id);
             message.aPeerId = _id;
-            Packet<ExampleMessage> newMessage(counter, it->first,_id);
+            cout << "SENDING TO " << it->first << endl;
+            Packet<ExampleMessage> newMessage(_counter, it->first,_id);
             newMessage.setBody(message);
             _outStream.push_back(newMessage);
         }
@@ -60,14 +63,14 @@ namespace blockguard {
         }
         cout << endl;
         _inStream.clear();
-        counter++;
+        _counter++;
     }
 
     ostream& ExamplePeer::printTo(ostream &out)const{
-        Interface<ExampleMessage>::printTo(out);
+        Peer<ExampleMessage>::printTo(out);
         
         out<< _id<< endl;
-        out<< "counter:"<< counter<< endl;
+        out<< "counter:"<< _counter<< endl;
         
         return out;
     }
