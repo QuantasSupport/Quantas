@@ -40,7 +40,7 @@ namespace blockguard{
     //
     template <class message>
     class NetworkInterface{
-    protected:
+    private:
         
         typedef deque<Packet<message> >                 aChannel;
 
@@ -52,46 +52,48 @@ namespace blockguard{
         deque<Packet<message> >                         _inStream;// messages that have arrived at this peer
         deque<Packet<message> >                         _outStream;// messages waiting to be sent by this peer
         
+         // send a message to this peer
+        void                               send                  (Packet<message>);
+
+    protected:
+        
         // logging
         ostream                                         *_log;
         bool                                            _printNeighborhood;
-        
+
     public:
         NetworkInterface                                         ();
         NetworkInterface                                         (interfaceId);
         NetworkInterface                                         (const NetworkInterface &);
         ~NetworkInterface                                        (){};
         // Setters
-        void                               setID                 (interfaceId id)                            {_id = id;};
-        void                               setLogFile            (ostream &o)                                {_log = &o;};
-        void                               printNeighborhoodOn   ()                                          {_printNeighborhood = true;}
-        void                               printNeighborhoodOff  ()                                          {_printNeighborhood = false;}
+        void                               setID                 (interfaceId id)                           {_id = id;};
+        void                               setLogFile            (ostream &o)                               {_log = &o;};
+        void                               printNeighborhoodOn   ()                                         {_printNeighborhood = true;}
+        void                               printNeighborhoodOff  ()                                         {_printNeighborhood = false;}
         
         // getters
         vector<long>                       neighbors             ()const;
-        long                               id                    ()const                                     {return _id;};
+        long                               id                    ()const                                    {return _id;};
         bool                               isNeighbor            (interfaceId id)const;
         int                                getDelayToNeighbor    (interfaceId id)const;
-        int                                getClock              ()const                                     {return _clock;};
-        deque<Packet<message> >            getInStream           ()const                                     {return _inStream;};
-        deque<Packet<message> >            getOutStream          ()const                                     {return _outStream;};
-        deque<Packet<message> >*           getChannelFrom        (const string id)                           {return &(_channels.at(id));};
-        
+        int                                getClock              ()const                                    {return _clock;};
+        size_t                             outStreamSize         ()const                                    {return _outStream.size();};
+        size_t                             inStreamSize          ()const                                    {return _inStream.size();};
+
         // mutators
-        void                               removeNeighbor        (const NetworkInterface &neighbor)          {_neighbors.erase(neighbor);};
+        void                               removeNeighbor        (const NetworkInterface &neighbor)         {_neighbors.erase(neighbor);};
         void                               addNeighbor           (NetworkInterface &newNeighbor, int delay);
         void                               clearMessages         ();
-        void                               addToOutSteam         ();
-
+        void                               pushToOutSteam        (Packet<message> outMsg)                   {_outStream.push_back(outMsg);};
+        Packet<message>                    popInStream           ();
 
         // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
         void                               receive               ();
-        // send a message to this peer
-        void                               send                  (Packet<message>);
+       
         // sends all messages in _outStream to there respective targets
         void                               transmit              ();
         
-
         void                               log                   ()const;
         ostream&                           printTo               (ostream&)const;
         NetworkInterface&                  operator=             (const NetworkInterface&);
@@ -243,6 +245,13 @@ namespace blockguard{
         for(auto c : _channels){
             c.second.clear();
         }
+    }
+
+    template <class message>
+    Packet<message> NetworkInterface<message>::popInStream(){
+        Packet<message> msg = _inStream.front();
+        _inStream.pop_front();
+        return msg;
     }
 
     template <class message>

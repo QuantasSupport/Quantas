@@ -37,39 +37,39 @@ namespace blockguard {
     }
 
     void ExamplePeer::preformComputation(){
-        cout<< "Peer:"<< _id << " preforming computation"<<endl;
+        cout<< "Peer:"<< id() << " preforming computation"<<endl;
         
         ExampleMessage message;
-        message.message = "Message: it's me " + to_string(_id) + "!";
-        message.aPeerId = _id;
-        Packet<ExampleMessage> newMessage(_counter, _id,_id);
+        message.message = "Message: it's me " + to_string(id()) + "!";
+        message.aPeerId = id();
+        Packet<ExampleMessage> newMessage(_counter, id(),id());
         newMessage.setBody(message);
-        _outStream.push_back(newMessage);
+        pushToOutSteam(newMessage);
         
-        for (auto it = _neighbors.begin(); it != _neighbors.end(); it++ )
+        for (int i = 0; i < neighbors().size(); i++ )
         {
             ExampleMessage message;
-            message.message = "Message: " + to_string(_counter)  + " Hello From " + to_string(_id);
-            message.aPeerId = _id;
-            cout << "SENDING TO " << it->first << endl;
-            Packet<ExampleMessage> newMessage(_counter, it->first,_id);
+            message.message = "Message: " + to_string(_counter)  + " Hello From " + to_string(id());
+            message.aPeerId = id();
+            cout << "SENDING TO " << neighbors()[i] << endl;
+            Packet<ExampleMessage> newMessage(_counter, neighbors()[i], id());
             newMessage.setBody(message);
-            _outStream.push_back(newMessage);
+            pushToOutSteam(newMessage);
         }
         
-        for(int i = 0; i < _inStream.size(); i++){
-            cout << endl << _id<< " has receved a message from "<< _inStream[i].sourceId()<< endl;
-            cout << "  MESSAGE "<< _inStream[i].id() <<  ":"<< _inStream[i].getMessage().message<<  _inStream[i].getMessage().aPeerId<< endl;
+        for(int i = 0; i < inStreamSize(); i++){
+            Packet<ExampleMessage> newMsg = popInStream();
+            cout << endl << id()<< " has receved a message from "<< newMsg.sourceId()<< endl;
+            cout << "  MESSAGE "<< newMsg.id() <<  ":"<< newMsg.getMessage().message<<  newMsg.getMessage().aPeerId<< endl;
         }
         cout << endl;
-        _inStream.clear();
         _counter++;
     }
 
     ostream& ExamplePeer::printTo(ostream &out)const{
         Peer<ExampleMessage>::printTo(out);
         
-        out<< _id<< endl;
+        out<< id()<< endl;
         out<< "counter:"<< _counter<< endl;
         
         return out;
