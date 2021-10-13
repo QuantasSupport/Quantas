@@ -42,6 +42,7 @@ namespace blockguard{
     protected:
 
         vector<Peer<type_msg>*>             _peers;
+
         int                                 _avgDelay;
         int                                 _maxDelay;
         int                                 _minDelay;

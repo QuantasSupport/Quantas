@@ -9,13 +9,13 @@
 #include <iostream>
 #include <fstream>
 #include <set>
-#include <iostream>
 #include <chrono>
 #include <random>
 
 #include "./Common/Network.hpp"
 #include "./Common/NetworkInterface.hpp"
 #include "ExamplePeer.hpp"
+#include "./Common/Simulation.hpp"
 
 using std::cout; 
 using std::ofstream; 
@@ -43,7 +43,7 @@ int main(int argc, const char* argv[]) {
 		string file = filePath + "/example.log";
 		out.open(file);
 		if (out.fail()) {
-			cerr << "Error: could not open file" << file << std::endl;
+			cerr << "Error: could not open file " << file << std::endl;
 		}
 		Example(out);
 	}
@@ -65,11 +65,11 @@ void Example(ofstream& logFile) {
 		logFile << "-- STARTING ROUND " << i << " --" << std::endl; // write in the log when the round started
 
 		system.receive(); // do the receive phase of the round
-		//system.log(); // log the system state
+		system.log(); // log the system state
 		system.preformComputation();  // do the preform computation phase of the round
-		//system.log();
+		system.log();
 		system.transmit(); // do the transmit phase of the round
-		//system.log();
+		system.log();
 
 		logFile << "-- ENDING ROUND " << i << " --" << std::endl; // log the end of a round
 	}
