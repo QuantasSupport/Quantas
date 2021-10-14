@@ -8,6 +8,12 @@
 
 #include "NetworkTests.hpp"
 
+using blockguard::LOG_WIDTH;
+using blockguard::Network;
+using blockguard::ExamplePeer;
+using blockguard::ExampleMessage;
+using blockguard::UNIFORM;
+
 void runNetworkTests(std::string filepath){
     
     std::ofstream log;
@@ -35,7 +41,7 @@ void testSize(std::ostream &log){
     assert(system.maxDelay()     == 1);
     assert(system.minDelay()     == 1);
     assert(system.avgDelay()     == 1);
-    assert(system.distribution() == RANDOM);
+    assert(system.distribution() == UNIFORM);
     assert(system.size()         == 1);
     
     system = Network<ExampleMessage, ExamplePeer>();
@@ -44,7 +50,7 @@ void testSize(std::ostream &log){
     assert(system.maxDelay()     == 1);
     assert(system.minDelay()     == 1);
     assert(system.avgDelay()     == 1);
-    assert(system.distribution() == RANDOM);
+    assert(system.distribution() == UNIFORM);
     assert(system.size()         == 100);
     
     system = Network<ExampleMessage, ExamplePeer>();
@@ -53,7 +59,7 @@ void testSize(std::ostream &log){
     assert(system.maxDelay()     == 1);
     assert(system.minDelay()     == 1);
     assert(system.avgDelay()     == 1);
-    assert(system.distribution() == RANDOM);
+    assert(system.distribution() == UNIFORM);
     assert(system.size()         == 1000);
     
     log<< std::endl<< "###############################"<< std::setw(LOG_WIDTH)<< std::left<<"!!!"<<"testSize Complete"<< std::setw(LOG_WIDTH)<< std::right<<"!!!"<<"###############################"<< std::endl;
@@ -64,7 +70,7 @@ void testIndex(std::ostream &log){
     system.initNetwork(1);
     system.setLog(log);
     system.log();
-    assert(system[0]->id()         != "");
+    assert(system[0]->id()         != -1);
     assert(system[0]->getCounter() == 0);
 
     system = Network<ExampleMessage, ExamplePeer>();
@@ -72,7 +78,7 @@ void testIndex(std::ostream &log){
     system.setLog(log);
     system.log();
     for(int i = 0; i < 100; i++){
-        assert(system[i]->id()                  != "");
+        assert(system[i]->id()                  != -1);
         assert(system[i]->getCounter()          == 0);
         assert(system[i]->neighbors().size()    == 99); // 100 - self
     }
@@ -82,7 +88,7 @@ void testIndex(std::ostream &log){
     system.setLog(log);
     system.log();
     for(int i = 0; i < 1000; i++){
-        assert(system[i]->id()                  != "");
+        assert(system[i]->id()                  != -1);
         assert(system[i]->getCounter()          == 0);
         assert(system[i]->neighbors().size()    == 999); // 5000 - self
     }
@@ -95,7 +101,7 @@ void testOneDelay(std::ostream &log){
     system.setLog(log);
     system.log();
     for(int i = 0; i < 100; i++){
-        assert(system[i]->id()                  != "");
+        assert(system[i]->id()                  != -1);
         assert(system[i]->getCounter()          == 0);
         assert(system[i]->neighbors().size()    == 99); // 100 - self
         for(int n = 0; n < system[i]->neighbors().size(); n++){
@@ -120,7 +126,7 @@ void testRandomDelay(std::ostream &log){
         
         system.log();
         for(int i = 0; i < 10; i++){
-            assert(system[i]->id()                  != "");
+            assert(system[i]->id()                  != -1);
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 100 - self
             for(int n = 0; n < system[i]->neighbors().size(); n++){
@@ -140,7 +146,7 @@ void testRandomDelay(std::ostream &log){
         system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
-            assert(system[i]->id()                  != "");
+            assert(system[i]->id()                  != -1);
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 100 - self
             for(int n = 0; n < system[i]->neighbors().size(); n++){
@@ -160,7 +166,7 @@ void testRandomDelay(std::ostream &log){
         system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
-            assert(system[i]->id()                  != "");
+            assert(system[i]->id()                  != -1);
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 100 - self
             for(int n = 0; n < system[i]->neighbors().size(); n++){
@@ -180,7 +186,7 @@ void testRandomDelay(std::ostream &log){
         system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
-            assert(system[i]->id()                  != "");
+            assert(system[i]->id()                  != -1);
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 100 - self
             for(int n = 0; n < system[i]->neighbors().size(); n++){
@@ -200,7 +206,7 @@ void testRandomDelay(std::ostream &log){
         system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
-            assert(system[i]->id()                  != "");
+            assert(system[i]->id()                  != -1);
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 100 - self
             for(int n = 0; n < system[i]->neighbors().size(); n++){
@@ -229,7 +235,7 @@ void testPoissonDelay(std::ostream &log){
         system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
-            assert(system[i]->id()                  != "");
+            assert(system[i]->id()                  != -1);
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 10 - self
             for(int n = 0; n < system[i]->neighbors().size(); n++){
@@ -252,7 +258,7 @@ void testPoissonDelay(std::ostream &log){
         system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
-            assert(system[i]->id()                  != "");
+            assert(system[i]->id()                  != -1);
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 10 - self
             for(int n = 0; n < system[i]->neighbors().size(); n++){
@@ -275,7 +281,7 @@ void testPoissonDelay(std::ostream &log){
         system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
-            assert(system[i]->id()                  != "");
+            assert(system[i]->id()                  != -1);
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 10 - self
             for(int n = 0; n < system[i]->neighbors().size(); n++){
@@ -298,7 +304,7 @@ void testPoissonDelay(std::ostream &log){
         system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
-            assert(system[i]->id()                  != "");
+            assert(system[i]->id()                  != -1);
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 10 - self
             for(int n = 0; n < system[i]->neighbors().size(); n++){
@@ -321,7 +327,7 @@ void testPoissonDelay(std::ostream &log){
         system.initNetwork(10);
         system.log();
         for(int i = 0; i < 10; i++){
-            assert(system[i]->id()                  != "");
+            assert(system[i]->id()                  != -1);
             assert(system[i]->getCounter()          == 0);
             assert(system[i]->neighbors().size()    == 9); // 10 - self
             for(int n = 0; n < system[i]->neighbors().size(); n++){

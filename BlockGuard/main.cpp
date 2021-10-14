@@ -57,7 +57,7 @@ int main(int argc, const char* argv[]) {
 void Example(ofstream& logFile) {
 	Network<ExampleMessage, ExamplePeer> system;
 	system.setLog(logFile); // set the system to write log to file logFile
-	system.setToRandom(); // set system to use a uniform random distribution of weights on edges (channel delays)
+	system.setToUniform(); // set system to use a uniform random distribution of weights on edges (channel delays)
 	system.setMaxDelay(3); // set the max weight an edge can have to 3 (system will now pick randomly between [1, 3])
 	system.initNetwork(5); // Initialize the system (create it) with 5 peers given the above settings
 
@@ -76,7 +76,7 @@ void Example(ofstream& logFile) {
 
 	system = Network<ExampleMessage, ExamplePeer>(); // clear old setup by creating a fresh object
 	system.setLog(cout); // set the system to write log to terminal
-	system.setToRandom();
+	system.setToUniform();
 	system.setMaxDelay(10);
 	system.initNetwork(3);
 

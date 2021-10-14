@@ -35,7 +35,7 @@ namespace blockguard{
 
 
     static const string                POISSON = "POISSON";
-    static const string                RANDOM  = "RANDOM";
+    static const string                UNIFORM = "UNIFORM";
     static const string                ONE     = "ONE";
     template<class type_msg, class peer_type>
     class Network{
@@ -64,7 +64,7 @@ namespace blockguard{
         void                                setMaxDelay         (int d)                                         {_maxDelay = d;};
         void                                setAvgDelay         (int d)                                         {_avgDelay = d;};
         void                                setMinDelay         (int d)                                         {_minDelay = d;};
-        void                                setToRandom         ()                                              {_distribution = RANDOM;};
+        void                                setToUniform        ()                                              {_distribution = UNIFORM;};
         void                                setToPoisson        ()                                              {_distribution = POISSON;};
         void                                setToOne            ()                                              {_distribution = ONE;};
         void                                setLog              (ostream&);
@@ -104,7 +104,7 @@ namespace blockguard{
         _avgDelay = 1;
         _maxDelay = 1;
         _minDelay = 1;
-        _distribution = RANDOM;
+        _distribution = UNIFORM;
         _log = &cout;
     }
 
@@ -164,7 +164,7 @@ namespace blockguard{
 
     template<class type_msg, class peer_type>
     int Network<type_msg,peer_type>::getDelay(){
-        if(_distribution == RANDOM){
+        if(_distribution == UNIFORM){
             uniform_int_distribution<int> randomDistribution(_minDelay,_maxDelay);
             return randomDistribution(RANDOM_GENERATOR);
         }

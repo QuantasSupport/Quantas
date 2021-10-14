@@ -8,7 +8,6 @@
 
 // run tests over classes
 
-#include "ByzantineNetwork_Test.hpp"
 #include "NetworkTests.hpp"
 #include "Peer_Test.hpp"
 
@@ -23,11 +22,8 @@ int main(int argc, const char * argv[]){
     std::string filePath = argv[2];
 
     if(testOption == "all"){
-        RunByzantineNetworkTest(filePath);
         runNetworkTests(filePath);
         RunPeerTests(filePath);
-    }else if(testOption == "b_network"){
-        RunByzantineNetworkTest(filePath);
     }else if(testOption == "network"){
         runNetworkTests(filePath);
     }else if(testOption == "peer"){

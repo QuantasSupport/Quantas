@@ -16,7 +16,9 @@
 #include <cassert>
 #include <stdio.h>
 #include <iomanip>
-#include "./../BlockGuard/Common/Channel.hpp"
+#include "./../Blockguard/Common/Peer.hpp"
+
+using blockguard::NetworkInterface;
 
 
 void RunPeerTests    (std::string filepath);
@@ -37,14 +39,14 @@ class TestPeer : public NetworkInterface<TestMessage>{
 public:
     // methods that must be defined when deriving from NetworkInterface
     TestPeer                                (): NetworkInterface<TestMessage>()                         {};
-    TestPeer                                (std::string id): NetworkInterface(id)                      {std::cout << "Default const called";};
+    TestPeer                                (long id): NetworkInterface(id)                             {std::cout << "Default const called";};
     TestPeer                                (const TestPeer &rhs): NetworkInterface<TestMessage>(rhs)   {std::cout << "Default const called";};
-    ~TestPeer                               ()                                              {std::cout << "testPeer destructor called";};
+    ~TestPeer                               ()                                                          {std::cout << "testPeer destructor called";};
     void                 preformComputation ();
     void                 makeRequest        ();
-    void                 log                ()const                                         {printTo(*_log);};
-    std::ostream&        printTo            (std::ostream &out)const                        {out << "TestPeer printTo called"; return out;};
-    friend std::ostream& operator<<         (std::ostream &out, const TestPeer &peer)       {out << "TestPeer passed to insertion (<<) operator"; peer.printTo(out); return out;};
+    void                 log                ()const                                                     {printTo(*_log);};
+    std::ostream&        printTo            (std::ostream &out)const                                    {out << "TestPeer printTo called"; return out;};
+    friend std::ostream& operator<<         (std::ostream &out, const TestPeer &peer)                   {out << "TestPeer passed to insertion (<<) operator"; peer.printTo(out); return out;};
 };
 
 
