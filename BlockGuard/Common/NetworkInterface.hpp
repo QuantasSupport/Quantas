@@ -31,6 +31,7 @@ namespace blockguard{
     using std::endl;
     using std::setw;
     using std::boolalpha;
+    using std::find;
 
     
     static const int  LOG_WIDTH  = 27;  // var used for column width in loggin
@@ -74,7 +75,7 @@ namespace blockguard{
         void                               printNeighborhoodOff  ()                                         {_printNeighborhood = false;}
         
         // getters
-        vector<interfaceId>                neighbors             ()const                                    {return _neighbors};
+        vector<interfaceId>                neighbors             ()const                                    {return _neighbors;};
         vector<interfaceId>                channels              ()const;                                   
         interfaceId                        id                    ()const                                    {return _id;};
         bool                               isNeighbor            (interfaceId id)const;
@@ -89,7 +90,7 @@ namespace blockguard{
         void                               clearMessages         ();
         void                               pushToOutSteam        (Packet<message> outMsg)                   {_outStream.push_back(outMsg);};
         Packet<message>                    popInStream           ();
-        void                               addNeighbor           (interfaceId neighborIdAdd)                {_neighbors.push_back(neighborIdAdd)};
+        void                               addNeighbor           (interfaceId neighborIdAdd)                {_neighbors.push_back(neighborIdAdd);};
         void                               removeNeighbor        (interfaceId neighborIdToRemove);
 
         // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
@@ -183,11 +184,11 @@ namespace blockguard{
     void NetworkInterface<message>::transmit(){
         // send all messages to there destantion peer channels  
         while(!_outStream.empty()){
-
+            Packet<message> outMessage(-1);
             do{
-                Packet<message> outMessage = _outStream.front();
+                outMessage = _outStream.front();
                 _outStream.pop_front();
-            }while(!isNeighbor(outMessage.sourceId)) // skip messages if they are not sent to a neighbor
+            }while(!isNeighbor(outMessage.sourceId())); // skip messages if they are not sent to a neighbor
 
             // if sent to self loop back next round
             if(_id == outMessage.targetId()){
@@ -222,7 +223,7 @@ namespace blockguard{
 
     template <class message>
     bool NetworkInterface<message>::isNeighbor(interfaceId id)const{
-        if(_neighbors.find(id) != _neighbors.end()){
+        if(find(_neighbors.begin(), _neighbors.end(), id) != _neighbors.end()){
             return true;
         }
         return false;
