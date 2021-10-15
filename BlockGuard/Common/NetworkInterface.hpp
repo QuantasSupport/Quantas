@@ -63,6 +63,9 @@ namespace blockguard{
         ostream                                         *_log;
         bool                                            _printNeighborhood;
 
+        // functions for peer
+        void                               broadcast             (message msg);
+
     public:
         NetworkInterface                                         ();
         NetworkInterface                                         (interfaceId);
@@ -118,9 +121,16 @@ namespace blockguard{
         friend ostream&                    operator<<            (ostream&, const NetworkInterface&);
     };
 
-    //
-    // Base NetworkInterface definitions
-    //
+    template <class message>
+    void NetworkInterface<message>::broadcast(message msg){
+        for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
+            Packet<message> outPacket = Packet<message>(-1);
+            outPacket.setSource(id());
+            outPacket.setTarget(*it);
+            outPacket.setBody(msg);
+            _outStream.push_back(outPacket);
+        }
+    }
 
     template <class message>
     NetworkInterface<message>::NetworkInterface(){
