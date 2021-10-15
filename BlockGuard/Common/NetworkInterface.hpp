@@ -184,11 +184,9 @@ namespace blockguard{
     void NetworkInterface<message>::transmit(){
         // send all messages to there destantion peer channels  
         while(!_outStream.empty()){
-            Packet<message> outMessage(-1);
-            do{
-                outMessage = _outStream.front();
-                _outStream.pop_front();
-            }while(!isNeighbor(outMessage.sourceId())); // skip messages if they are not sent to a neighbor
+            Packet<message> outMessage = _outStream.front();
+            _outStream.pop_front();
+            if(!isNeighbor(outMessage.targetId())){continue;}// skip messages if they are not sent to a neighbor
 
             // if sent to self loop back next round
             if(_id == outMessage.targetId()){
