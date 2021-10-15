@@ -38,7 +38,7 @@ namespace blockguard {
 			for (int j = 0; j < rounds; j++) {
 				system.receive(); // do the receive phase of the round
 				system.log(); // log the system state
-				system.preformComputation();  // do the preform computation phase of the round
+				system.performComputation();  // do the perform computation phase of the round
 				system.log();
 				system.transmit(); // do the transmit phase of the round
 				system.log();

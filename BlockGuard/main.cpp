@@ -66,7 +66,7 @@ void Example(ofstream& logFile) {
 
 		system.receive(); // do the receive phase of the round
 		system.log(); // log the system state
-		system.preformComputation();  // do the preform computation phase of the round
+		system.performComputation();  // do the perform computation phase of the round
 		system.log();
 		system.transmit(); // do the transmit phase of the round
 		system.log();
@@ -85,7 +85,7 @@ void Example(ofstream& logFile) {
 
 		system.receive();
 		system.log(); // log now goes to the terminal
-		system.preformComputation();
+		system.performComputation();
 		system.log();
 		system.transmit();
 		system.log();

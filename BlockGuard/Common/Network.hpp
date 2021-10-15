@@ -79,7 +79,7 @@ namespace blockguard{
 
         //mutators
         void                                receive             ();
-        void                                preformComputation  ();
+        void                                performComputation  ();
         void                                transmit            ();
         void                                makeRequest         (int i)                                         {_peers[i]->makeRequest();};
         // void                                shuffleByzantines   (int);
@@ -196,9 +196,9 @@ namespace blockguard{
     }
 
     template<class type_msg, class peer_type>
-    void Network<type_msg,peer_type>::preformComputation(){
+    void Network<type_msg,peer_type>::performComputation(){
         for(int i = 0; i < _peers.size(); i++){
-            _peers[i]->preformComputation();
+            _peers[i]->performComputation();
         }
     }
 

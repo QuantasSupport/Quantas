@@ -22,7 +22,7 @@ void TestPeer::makeRequest(){
 
 }
 
-void TestPeer::preformComputation(){
+void TestPeer::performComputation(){
     Packet<TestMessage> msg = popInStream();
     std::cout << "Test NetworkInterface " << id() << " got a message from " << msg.sourceId() << std::endl;
 }
@@ -166,8 +166,8 @@ void testRecTrans(std::ostream &log){
     // round one
     a.receive();
     b.receive();
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
     a.transmit();
     b.transmit();
 
@@ -193,8 +193,8 @@ void testRecTrans(std::ostream &log){
     // assert(b.getInStream().size() == 0);
     // assert(b.getOutStream().size() == 1);
 
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
 
     a.transmit();
     b.transmit();
@@ -214,8 +214,8 @@ void testRecTrans(std::ostream &log){
     // assert(b.getInStream().size() == 1);
     // assert(b.getOutStream().size() == 0);
 
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
 
     a.transmit();
     b.transmit();
@@ -229,8 +229,8 @@ void testRecTrans(std::ostream &log){
     // assert(b.getInStream().size() == 0);
     // assert(b.getOutStream().size() == 0);
 
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
 
     a.transmit();
     b.transmit();
@@ -261,8 +261,8 @@ void testRecTrans(std::ostream &log){
     // round one
     a.receive();
     b.receive();
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
     a.transmit();
     b.transmit();
 
@@ -275,8 +275,8 @@ void testRecTrans(std::ostream &log){
     // assert(b.getInStream().size() == 2);
     // assert(b.getOutStream().size() == 0);
 
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
     a.transmit();
     b.transmit();
 
@@ -294,8 +294,8 @@ void testRecTrans(std::ostream &log){
     // assert(b.getInStream().size() == 0);
     // assert(b.getOutStream().size() == 0);
     
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
     a.transmit();
     b.transmit();
     // b.getChannelFrom(id_a)->front().setDelay(2,2); // force delay on packet to be 2 rounds 
@@ -303,8 +303,8 @@ void testRecTrans(std::ostream &log){
     // round two
     a.receive();
     b.receive();
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
     a.transmit();
     b.transmit();
 
@@ -317,8 +317,8 @@ void testRecTrans(std::ostream &log){
     // assert(b.getInStream().size() == 2);
     // assert(b.getOutStream().size() == 0);
 
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
     a.transmit();
     b.transmit();
 
@@ -335,8 +335,8 @@ void testRecTrans(std::ostream &log){
     // round one
     a.receive();
     b.receive();
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
     a.transmit();
     b.transmit();
     // b.getChannelFrom(id_a)->at(1).setDelay(2,2); // force delay on packet to be 2 rounds 
@@ -351,8 +351,8 @@ void testRecTrans(std::ostream &log){
     // assert(b.getInStream().size() == 1);
     // assert(b.getOutStream().size() == 0);
 
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
     a.transmit();
     b.transmit();
 
@@ -366,8 +366,8 @@ void testRecTrans(std::ostream &log){
     // assert(b.getInStream().size() == 1);
     // assert(b.getOutStream().size() == 0);
 
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
     a.transmit();
     b.transmit();
 
@@ -381,8 +381,8 @@ void testRecTrans(std::ostream &log){
     // assert(b.getInStream().size() == 0);
     // assert(b.getOutStream().size() == 0);
 
-    a.preformComputation();
-    b.preformComputation();
+    a.performComputation();
+    b.performComputation();
     a.transmit();
     b.transmit();
 

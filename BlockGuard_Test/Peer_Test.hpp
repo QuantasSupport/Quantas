@@ -42,7 +42,7 @@ public:
     TestPeer                                (long id): NetworkInterface(id)                             {std::cout << "Default const called";};
     TestPeer                                (const TestPeer &rhs): NetworkInterface<TestMessage>(rhs)   {std::cout << "Default const called";};
     ~TestPeer                               ()                                                          {std::cout << "testPeer destructor called";};
-    void                 preformComputation ();
+    void                 performComputation ();
     void                 makeRequest        ();
     void                 log                ()const                                                     {printTo(*_log);};
     std::ostream&        printTo            (std::ostream &out)const                                    {out << "TestPeer printTo called"; return out;};

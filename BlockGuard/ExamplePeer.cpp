@@ -36,8 +36,8 @@ namespace blockguard {
         _numberOfMessagesSent =0;
     }
 
-    void ExamplePeer::preformComputation(){
-        cout<< "Peer:"<< id() << " preforming computation"<<endl;
+    void ExamplePeer::performComputation(){
+        cout<< "Peer:"<< id() << " performing computation"<<endl;
         
         ExampleMessage message;
         message.message = "Message: it's me " + to_string(id()) + "!";

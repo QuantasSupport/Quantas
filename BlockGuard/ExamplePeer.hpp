@@ -39,7 +39,7 @@ namespace blockguard{
         ExamplePeer                             (long);
         ExamplePeer                             (const ExamplePeer &rhs);
         ~ExamplePeer                            ();
-        void                 preformComputation ();
+        void                 performComputation ();
         void                 makeRequest        (){};
         
         // addintal method that have defulte implementation from Peer but can be overwritten
