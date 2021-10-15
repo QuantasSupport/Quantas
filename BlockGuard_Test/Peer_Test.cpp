@@ -143,7 +143,7 @@ void testNeighbor(std::ostream &log){
 
     TestPeer a = TestPeer(id_a);
     TestPeer b = TestPeer(id_b);
-    a.addNeighbor(b, 10);
+    a.addChannel(b, 10);
 
     assert(a.getDelayToNeighbor(id_b) == 10);
     assert(a.isNeighbor(id_b) == true);
@@ -172,8 +172,8 @@ void testRecTrans(std::ostream &log){
     b.transmit();
 
     // test basic msg send and receive 
-    a.addNeighbor(b, 1);
-    b.addNeighbor(a, 1);
+    a.addChannel(b, 1);
+    b.addChannel(a, 1);
 
     a.makeRequest();
     b.makeRequest();

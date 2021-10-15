@@ -155,8 +155,8 @@ namespace blockguard{
                     while(delay < 1 || delay > _maxDelay || delay < _minDelay){
                         delay = getDelay();
                     }
-                    peer->addNeighbor(*_peers[i], delay);
-                    _peers[i]->addNeighbor(*peer,delay);
+                    peer->addChannel(*_peers[i], delay);
+                    _peers[i]->addChannel(*peer,delay);
                 }
             }
         }
