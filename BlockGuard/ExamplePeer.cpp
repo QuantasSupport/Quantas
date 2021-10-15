@@ -38,25 +38,20 @@ namespace blockguard {
 
     void ExamplePeer::performComputation(){
         cout<< "Peer:"<< id() << " performing computation"<<endl;
-        
+
+        // Send message to self
         ExampleMessage message;
         message.message = "Message: it's me " + to_string(id()) + "!";
         message.aPeerId = id();
         Packet<ExampleMessage> newMessage(_counter, id(),id());
         newMessage.setBody(message);
         pushToOutSteam(newMessage);
-        
-        for (int i = 0; i < neighbors().size(); i++ )
-        {
-            ExampleMessage message;
-            message.message = "Message: " + to_string(_counter)  + " Hello From " + to_string(id());
-            message.aPeerId = id();
-            cout << "SENDING TO " << neighbors()[i] << endl;
-            Packet<ExampleMessage> newMessage(_counter, neighbors()[i], id());
-            newMessage.setBody(message);
-            pushToOutSteam(newMessage);
-        }
-        
+
+        // Send hello to everyone else
+        message.message = "Message: " + to_string(_counter) + " Hello From " + to_string(id());
+        message.aPeerId = id();
+        broadcast(message);
+
         for(int i = 0; i < inStreamSize(); i++){
             Packet<ExampleMessage> newMsg = popInStream();
             cout << endl << id()<< " has receved a message from "<< newMsg.sourceId()<< endl;
