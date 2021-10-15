@@ -13,7 +13,7 @@ namespace blockguard {
 	public:
 		// Name of log file, will have Test number appended
 		void setLog(string) { _log = log; };
-		void setToRandom() { system.setToRandom(); };
+		void setToRandom() { system.setToUniform(); };
 		void setMaxDelay(int max) { system.setMaxDelay(max); };
 		void setInitialPeers(int initialPeers) { _initialPeers = initialPeers; };
 		void setTotalPeers(int totalPeers) { _totalPeers = totalPeers; };
