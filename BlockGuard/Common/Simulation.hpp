@@ -28,7 +28,7 @@ namespace blockguard {
 
 	template<class type_msg, class peer_type>
 	void Simulation<type_msg, peer_type>::run(int tests, int rounds) {
-		for (int i = 0; i < tests; i++) {
+		for (int i = 1; i <= tests; i++) {
 			ofstream out;
 			if (_log == "cout") {
 				//out = &cout;
@@ -50,7 +50,7 @@ namespace blockguard {
 			
 			system.initNetwork(_totalPeers);
 			*system.getLog() << "-- STARTING Test " << i << " --" << std::endl; // write in the log when the test started
-			for (int j = 0; j < rounds; j++) {
+			for (int j = 1; j <= rounds; j++) {
 				out << "-- STARTING ROUND " << j << " --" << std::endl; // write in the log when the round started
 				system.receive(); // do the receive phase of the round
 				system.log(); // log the system state

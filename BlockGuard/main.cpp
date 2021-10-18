@@ -16,6 +16,7 @@
 #include "./Common/NetworkInterface.hpp"
 #include "./Common/Simulation.hpp"
 #include "ExamplePeer.hpp"
+#include "./Common/Json.hpp"
 
 using std::cout;
 using std::ofstream;
@@ -25,47 +26,61 @@ using blockguard::ExamplePeer;
 using blockguard::ExampleMessage;
 using blockguard::Network;
 using blockguard::Simulation;
+using nlohmann::json;
 
-void Example(string logFile);
+void Example(json inputs);
 
 int main(int argc, const char* argv[]) {
 	
 	srand((float)time(NULL));
-	if (argc < 3) {
-		cerr << "Error: need algorithm and output path" << std::endl;
+	if (argc < 2) {
+		cerr << "Error: need an input file" << std::endl;
+		return 0;
+	}
+	string fileName = argv[1];
+	std::ifstream inFile(fileName);
+	
+	if (inFile.fail()) {
+		cerr << "Error: need a valid input file" << std::endl;
 		return 0;
 	}
 
+	json config;
+	inFile >> config;
 
-	string algorithm = argv[1];
-	string filePath = argv[2];
+	cout << config << std::endl;
+	for (int i = 0; i < config["experiments"].size(); i++) {
+		json input = config["experiments"][i];
+		string algorithm = input["algorithm"];
 
-	if (algorithm == "example") {
-		Example(filePath);
+		if (algorithm == "example") {
+			Example(input);
+		}
+		else {
+			cout << algorithm << " not recognized" << std::endl;
+		}
 	}
-	else {
-		cout << algorithm << " not recognized" << std::endl;
-	}
+	
 
 	return 0;
 }
 
-void Example(string logFile) {
+void Example(json inputs) {
 	Simulation<ExampleMessage, ExamplePeer> sim;
-	sim.setLog(logFile);
+	sim.setLog(inputs["logFile"]);
 	sim.setToUniform();
-	sim.setMaxDelay(3);
-	sim.setInitialPeers(5);
-	sim.setTotalPeers(5);
-	sim.run(1, 3);
+	sim.setMaxDelay(inputs["maxDelay"]);
+	sim.setInitialPeers(inputs["initialPeers"]);
+	sim.setTotalPeers(inputs["totalPeers"]);
+	sim.run(inputs["tests"], inputs["rounds"]);
 
 	sim = Simulation<ExampleMessage, ExamplePeer>(); // clear old setup by creating a fresh object
-	sim.setLog("cout");
+	sim.setLog(inputs["logFile"]);
 	sim.setToUniform();
-	sim.setMaxDelay(10);
-	sim.setInitialPeers(3);
-	sim.setTotalPeers(3);
-	sim.run(1, 3);
+	sim.setMaxDelay(inputs["maxDelay"]);
+	sim.setInitialPeers(inputs["initialPeers"]);
+	sim.setTotalPeers(inputs["totalPeers"]);
+	sim.run(inputs["tests"], inputs["rounds"]);
 
 	
 }
