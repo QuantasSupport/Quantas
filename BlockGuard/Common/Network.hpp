@@ -158,7 +158,9 @@ namespace blockguard{
                         delay = getDelay();
                     }
                     peer->addChannel(*_peers[i], delay);
+                    peer->addNeighbor(_peers[i]->id());
                     _peers[i]->addChannel(*peer,delay);
+                    _peers[i]->addNeighbor(peer->id());
                 }
             }
         }
