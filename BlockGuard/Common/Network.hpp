@@ -20,6 +20,7 @@
 #include <ctime>
 #include <memory>
 #include "./../Common/Peer.hpp"
+#include "./Common/Json.hpp"
 
 namespace blockguard{
 
@@ -32,7 +33,7 @@ namespace blockguard{
     using std::endl;
     using std::left;
     using std::setw;
-
+    using nlohmann::json;
 
     static const string                POISSON = "POISSON";
     static const string                UNIFORM = "UNIFORM";
@@ -60,7 +61,10 @@ namespace blockguard{
         ~Network                                                ();
 
         // setters
-        void                                initNetwork         (int); // initialize network with peers
+        void                                initNetwork         (json); // initialize network with peers
+        void                                fullyConnect        (int);
+        void                                grid                (int, int);
+        void                                torus               (int, int);
         void                                setMaxDelay         (int d)                                         {_maxDelay = d;};
         void                                setAvgDelay         (int d)                                         {_avgDelay = d;};
         void                                setMinDelay         (int d)                                         {_minDelay = d;};
@@ -145,26 +149,21 @@ namespace blockguard{
             peer_type *p = dynamic_cast<peer_type*>(_peers[i]);
             p->setLogFile(out);
         }
-    }
+	}
 
-    template<class type_msg, class peer_type>
-    void Network<type_msg,peer_type>::addEdges(Peer<type_msg> *peer){
-        for(int i = 0; i < _peers.size(); i++){
-            if(_peers[i]->id() != peer->id()){
-                if(!_peers[i]->isNeighbor(peer->id())){
-                    int delay = getDelay();
-                    // guard agenst 0 and negative numbers
-                    while(delay < 1 || delay > _maxDelay || delay < _minDelay){
-                        delay = getDelay();
-                    }
-                    peer->addChannel(*_peers[i], delay);
-                    peer->addNeighbor(_peers[i]->id());
-                    _peers[i]->addChannel(*peer,delay);
-                    _peers[i]->addNeighbor(peer->id());
-                }
-            }
-        }
-    }
+	template<class type_msg, class peer_type>
+	void Network<type_msg, peer_type>::addEdges(Peer<type_msg>* peer) {
+		for (int i = 0; i < _peers.size() - 1; i++) {
+			int delay = getDelay();
+			// guard agenst 0 and negative numbers
+			while (delay < 1 || delay > _maxDelay || delay < _minDelay) {
+				delay = getDelay();
+			}
+            // Both directions have the same delay
+			peer->addChannel(*_peers[i], delay);
+			_peers[i]->addChannel(*peer, delay);
+		}
+	}
 
     template<class type_msg, class peer_type>
     int Network<type_msg,peer_type>::getDelay(){
@@ -182,13 +181,101 @@ namespace blockguard{
         return -1;
     }
 
+	template<class type_msg, class peer_type>
+	void Network<type_msg, peer_type>::initNetwork(json topology) {
+		for (int i = 0; i < topology["totalPeers"]; i++) {
+			_peers.push_back(new peer_type(i));
+			addEdges(_peers[i]);
+		}
+
+		if (topology["type"] == "complete") {
+			fullyConnect(topology["initialPeers"]);
+		}
+		else if (topology["type"] == "grid") {
+			grid(topology["height"], topology["width"]);
+		}
+		else if (topology["type"] == "torus") {
+            torus(topology["height"], topology["width"]);
+		}
+	}
+
     template<class type_msg, class peer_type>
-    void Network<type_msg,peer_type>::initNetwork(int numberOfPeers){
-        for(int i = 0; i < numberOfPeers; i++){
-            _peers.push_back(new peer_type(i));
+    void Network<type_msg, peer_type>::fullyConnect(int numberOfPeers) {
+        for (int i = 0; i < numberOfPeers; i++) {
+            // Activate peer
+            for (int j = i+1; j < numberOfPeers; j++) {
+                _peers[i]->addNeighbor(_peers[j]->id());
+                _peers[j]->addNeighbor(_peers[i]->id());
+            }
         }
-        for(int i = 0; i < _peers.size(); i++){
-            addEdges(_peers[i]);
+    }
+
+	template<class type_msg, class peer_type>
+	void Network<type_msg, peer_type>::grid(int height, int width) {
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
+				// Activate peer
+				int num = i * width + j;
+				if (i == 0) {
+					// Top row adds only left neighbor
+					if (j != 0) {
+						_peers[num]->addNeighbor(_peers[num - 1]->id());
+						_peers[num - 1]->addNeighbor(_peers[num]->id());
+					}
+				}
+				else {
+					// Left column adds only above neighbor
+					_peers[num]->addNeighbor(_peers[num - width]->id());
+					_peers[num - width]->addNeighbor(_peers[num]->id());
+					// All others add both left and above
+					if (j != 0) {
+						_peers[num]->addNeighbor(_peers[num - 1]->id());
+						_peers[num - 1]->addNeighbor(_peers[num]->id());
+					}
+				}
+			}
+		}
+	}
+
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::torus(int height, int width) {
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                // Activate peer
+                int num = i * width + j;
+                if (i == 0) {
+                    // Top row adds only left neighbor
+                    if (j != 0) {
+                        _peers[num]->addNeighbor(_peers[num - 1]->id());
+                        _peers[num - 1]->addNeighbor(_peers[num]->id());
+                    }
+                    // Right column creates torus
+                    if (j == width - 1) {
+                        _peers[num]->addNeighbor(_peers[num - j]->id());
+                        _peers[num - j]->addNeighbor(_peers[num]->id());
+                    }
+                }
+                else {
+                    // Left column adds only above neighbor
+                    _peers[num]->addNeighbor(_peers[num - width]->id());
+                    _peers[num - width]->addNeighbor(_peers[num]->id());
+                    // All others add both left and above
+                    if (j != 0) {
+                        _peers[num]->addNeighbor(_peers[num - 1]->id());
+                        _peers[num - 1]->addNeighbor(_peers[num]->id());
+                    }
+                    // Right column creates torus
+                    if (j == width - 1) {
+                        _peers[num]->addNeighbor(_peers[num - j]->id());
+                        _peers[num - j]->addNeighbor(_peers[num]->id());
+                    }
+                    // Bottom row creates torus
+                    if (i == height - 1) {
+                        _peers[num]->addNeighbor(_peers[j]->id());
+                        _peers[j]->addNeighbor(_peers[num]->id());
+                    }
+                }
+            }
         }
     }
 

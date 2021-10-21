@@ -19,12 +19,10 @@
 #include "./Common/Json.hpp"
 
 using std::cout;
-using std::ofstream;
 using std::string;
 using std::cerr;
 using blockguard::ExamplePeer;
 using blockguard::ExampleMessage;
-using blockguard::Network;
 using blockguard::Simulation;
 using nlohmann::json;
 
@@ -48,7 +46,6 @@ int main(int argc, const char* argv[]) {
 	json config;
 	inFile >> config;
 
-	cout << config << std::endl;
 	for (int i = 0; i < config["experiments"].size(); i++) {
 		json input = config["experiments"][i];
 		string algorithm = input["algorithm"];
@@ -67,20 +64,7 @@ int main(int argc, const char* argv[]) {
 
 void Example(json inputs) {
 	Simulation<ExampleMessage, ExamplePeer> sim;
-	sim.setLog(inputs["logFile"]);
-	sim.setToUniform();
-	sim.setMaxDelay(inputs["maxDelay"]);
-	sim.setInitialPeers(inputs["initialPeers"]);
-	sim.setTotalPeers(inputs["totalPeers"]);
-	sim.run(inputs["tests"], inputs["rounds"]);
 
-	sim = Simulation<ExampleMessage, ExamplePeer>(); // clear old setup by creating a fresh object
-	sim.setLog(inputs["logFile"]);
-	sim.setToUniform();
-	sim.setMaxDelay(inputs["maxDelay"]);
-	sim.setInitialPeers(inputs["initialPeers"]);
-	sim.setTotalPeers(inputs["totalPeers"]);
-	sim.run(inputs["tests"], inputs["rounds"]);
+	sim.run(inputs);
 
-	
 }

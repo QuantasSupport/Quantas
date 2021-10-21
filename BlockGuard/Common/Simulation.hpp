@@ -3,40 +3,38 @@
 
 #include "Network.hpp"
 #include "Peer.hpp"
+#include "./Common/Json.hpp"
 
 using std::ofstream;
+using nlohmann::json;
 
 namespace blockguard {
 	template<class type_msg, class peer_type>
 	class Simulation {
 	public:
 		// Name of log file, will have Test number appended
-		void setLog(string log) { _log = log; };
-		ofstream* getLog() { system.setLog; }
-		void setToUniform() { system.setToUniform(); };
-		void setMaxDelay(int max) { system.setMaxDelay(max); };
-		void setInitialPeers(int initialPeers) { _initialPeers = initialPeers; };
-		void setTotalPeers(int totalPeers) { _totalPeers = totalPeers; };
-		void run(int tests, int rounds);
+		void run(json);
 
 	private:
 		Network<type_msg, peer_type> system;
-		string _log;
-		int _initialPeers = 10;
-		int _totalPeers = 10;
+
+		ofstream* getLog() { system.setLog; }
+		void setToUniform() { system.setToUniform(); };
+		void setMaxDelay(int max) { system.setMaxDelay(max); };
 	};
 
 	template<class type_msg, class peer_type>
-	void Simulation<type_msg, peer_type>::run(int tests, int rounds) {
-		for (int i = 1; i <= tests; i++) {
+	void Simulation<type_msg, peer_type>::run(json config) {
+		for (int i = 1; i <= config["tests"]; i++) {
 			ofstream out;
-			if (_log == "cout") {
+			
+			if (config["logFile"] == "cout") {
 				//out = &cout;
 				system.setLog(cout);
 			}
 			else {
-				
-				string file = _log + "Test" + std::to_string(i) + ".log";
+				string file = config["logFile"];
+				file += "Test" + std::to_string(i) + ".log";
 				out.open(file);
 				if (out.fail()) {
 					cout << "Error: could not open file " << file << std::endl;
@@ -48,9 +46,12 @@ namespace blockguard {
 				
 			}
 			
-			system.initNetwork(_totalPeers);
+			system.setToUniform();
+			system.setMaxDelay(config["maxDelay"]);
+
+			system.initNetwork(config["topology"]);
 			*system.getLog() << "-- STARTING Test " << i << " --" << std::endl; // write in the log when the test started
-			for (int j = 1; j <= rounds; j++) {
+			for (int j = 1; j <= config["rounds"]; j++) {
 				out << "-- STARTING ROUND " << j << " --" << std::endl; // write in the log when the round started
 				system.receive(); // do the receive phase of the round
 				system.log(); // log the system state

@@ -5,8 +5,11 @@
       "logFile": "example1",
       "distribution": "uniform",
       "maxDelay": 3,
-      "initialPeers": 5,
-      "totalPeers": 5,
+      "topology": {
+        "type": "complete",
+        "initialPeers": 5,
+        "totalPeers": 5
+      },
       "tests": 1,
       "rounds": 3
     },
@@ -15,8 +18,11 @@
       "logFile": "cout",
       "distribution": "uniform",
       "maxDelay": 10,
-      "initialPeers": 3,
-      "totalPeers": 3,
+      "topology": {
+        "type": "complete",
+        "initialPeers": 3,
+        "totalPeers": 3
+      },
       "tests": 1,
       "rounds": 3
     }
