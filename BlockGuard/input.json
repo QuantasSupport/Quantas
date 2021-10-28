@@ -25,6 +25,23 @@
       },
       "tests": 1,
       "rounds": 3
+    },
+    {
+      "algorithm": "example",
+      "logFile": "cout",
+      "distribution": "uniform",
+      "maxDelay": 10,
+      "topology": {
+        "type": "userList",
+        "initialPeers": 3,
+        "totalPeers": 3,
+        "list": {
+          "0": [ 1, 2 ],
+          "1": [ 2 ]
+        }
+      },
+      "tests": 1,
+      "rounds": 3
     }
   ]
 }

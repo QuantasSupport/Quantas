@@ -63,8 +63,13 @@ namespace blockguard{
         // setters
         void                                initNetwork         (json); // initialize network with peers
         void                                fullyConnect        (int);
+        void                                star                (int);
         void                                grid                (int, int);
         void                                torus               (int, int);
+        void                                chain               (int);
+        void                                ring                (int);
+        void                                userList               (json);
+        
         void                                setMaxDelay         (int d)                                         {_maxDelay = d;};
         void                                setAvgDelay         (int d)                                         {_avgDelay = d;};
         void                                setMinDelay         (int d)                                         {_minDelay = d;};
@@ -191,12 +196,24 @@ namespace blockguard{
 		if (topology["type"] == "complete") {
 			fullyConnect(topology["initialPeers"]);
 		}
+        else if (topology["type"] == "star") {
+            star(topology["initialPeers"]);
+        }
 		else if (topology["type"] == "grid") {
 			grid(topology["height"], topology["width"]);
 		}
 		else if (topology["type"] == "torus") {
             torus(topology["height"], topology["width"]);
 		}
+        else if (topology["type"] == "chain") {
+            chain(topology["initialPeers"])
+        }
+        else if (topology["type"] == "ring") {
+            ring(topology["initialPeers"]);
+        }
+        else if (topology["type"] == "userList") {
+            userList(topology);
+        }
 	}
 
     template<class type_msg, class peer_type>
@@ -207,6 +224,16 @@ namespace blockguard{
                 _peers[i]->addNeighbor(_peers[j]->id());
                 _peers[j]->addNeighbor(_peers[i]->id());
             }
+        }
+    }
+
+    // Connects all peers to peer 0
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::star(int numberOfPeers) {
+        for (int i = 1; i < numberOfPeers; i++) {
+            // Activate peer
+            _peers[0]->addNeighbor(_peers[i]->id());
+            _peers[i]->addNeighbor(_peers[0]->id());
         }
     }
 
@@ -274,6 +301,39 @@ namespace blockguard{
                         _peers[num]->addNeighbor(_peers[j]->id());
                         _peers[j]->addNeighbor(_peers[num]->id());
                     }
+                }
+            }
+        }
+    }
+
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::chain(int numberOfPeers) {
+        for (int i = 1; i < numberOfPeers; i++) {
+            // Activate peer
+            _peers[i]->addNeighbor(_peers[i-1]->id());
+            _peers[i-1]->addNeighbor(_peers[i]->id());
+        }
+    }
+
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::ring(int numberOfPeers) {
+        for (int i = 1; i < numberOfPeers; i++) {
+            // Activate peer
+            _peers[i]->addNeighbor(_peers[i - 1]->id());
+            _peers[i - 1]->addNeighbor(_peers[i]->id());
+        }
+        _peers[0]->addNeighbor(_peers[numberOfPeers - 1]->id());
+        _peers[numberOfPeers - 1]->addNeighbor(_peers[0]->id());
+    }
+
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::userList(json topology) {
+        json list = topology["list"];
+        for (int i = 0; i < topology["totalPeers"]; i++) {
+            if (list.contains(std::to_string(i))) {
+                json comLinks = list[std::to_string(i)];
+                for (int j = 0; j < comLinks.size(); j++) {
+                    _peers[i]->addNeighbor(comLinks[j]);
                 }
             }
         }
