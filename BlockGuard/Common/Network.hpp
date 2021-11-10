@@ -21,6 +21,7 @@
 #include <memory>
 #include "./../Common/Peer.hpp"
 #include "./Common/Json.hpp"
+#include "Distribution.hpp"
 
 namespace blockguard{
 
@@ -28,31 +29,20 @@ namespace blockguard{
     using std::ostream;
     using std::vector;
     using std::cout;
-    using std::uniform_int_distribution;
-    using std::poisson_distribution;
     using std::endl;
     using std::left;
     using std::setw;
     using nlohmann::json;
 
-    static const string                POISSON = "POISSON";
-    static const string                UNIFORM = "UNIFORM";
-    static const string                ONE     = "ONE";
     template<class type_msg, class peer_type>
     class Network{
     protected:
 
         vector<Peer<type_msg>*>             _peers;
-
-        int                                 _avgDelay;
-        int                                 _maxDelay;
-        int                                 _minDelay;
-        string                              _distribution;
-
+        Distribution                        _distribution;
         ostream                             *_log;
 
         void                                addEdges            (Peer<type_msg>*);
-        int                                 getDelay            ();
         peer_type*							getPeerById			(string);
 
     public:
@@ -68,23 +58,17 @@ namespace blockguard{
         void                                torus               (int, int);
         void                                chain               (int);
         void                                ring                (int);
-        void                                userList               (json);
-        
-        void                                setMaxDelay         (int d)                                         {_maxDelay = d;};
-        void                                setAvgDelay         (int d)                                         {_avgDelay = d;};
-        void                                setMinDelay         (int d)                                         {_minDelay = d;};
-        void                                setToUniform        ()                                              {_distribution = UNIFORM;};
-        void                                setToPoisson        ()                                              {_distribution = POISSON;};
-        void                                setToOne            ()                                              {_distribution = ONE;};
+        void                                userList            (json);
+        void                                setDistribution     (json distribution)                             { _distribution.setDistribution(distribution); }
         void                                setLog              (ostream&);
         ostream*                            getLog              ()const                                         { return _log; }
 
         // getters
         int                                 size                ()const                                         {return (int)_peers.size();};
-        int                                 maxDelay            ()const                                         {return _maxDelay;};
-        int                                 avgDelay            ()const                                         {return _avgDelay;};
-        int                                 minDelay            ()const                                         {return _minDelay;};
-        string                              distribution        ()const                                         {return _distribution;};
+        int                                 maxDelay            ()const                                         {return _distribution.maxDelay();};
+        int                                 avgDelay            ()const                                         {return _distribution.avgDelay();};
+        int                                 minDelay            ()const                                         {return _distribution.minDelay();};
+        string                              type                ()const                                         {return _distribution.type();};
 
 
         //mutators
@@ -112,10 +96,7 @@ namespace blockguard{
     template<class type_msg, class peer_type>
     Network<type_msg,peer_type>::Network(){
         _peers = vector<Peer<type_msg>*>();
-        _avgDelay = 1;
-        _maxDelay = 1;
-        _minDelay = 1;
-        _distribution = UNIFORM;
+        _distribution = Distribution();
         _log = &cout;
     }
 
@@ -133,10 +114,7 @@ namespace blockguard{
         for(int i = 0; i < rhs._peers.size(); i++){
             _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
         }
-        _avgDelay = rhs._avgDelay;
-        _maxDelay = rhs._maxDelay;
-        _minDelay = rhs._minDelay;
-        _distribution = rhs._distribution;
+        _distribution = rhs.distribution;
         _log = rhs._log;
     }
 
@@ -159,32 +137,14 @@ namespace blockguard{
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::addEdges(Peer<type_msg>* peer) {
 		for (int i = 0; i < _peers.size() - 1; i++) {
-			int delay = getDelay();
-			// guard agenst 0 and negative numbers
-			while (delay < 1 || delay > _maxDelay || delay < _minDelay) {
-				delay = getDelay();
-			}
+			int delay = _distribution.getDelay();
+            
+			
             // Both directions have the same delay
 			peer->addChannel(*_peers[i], delay);
 			_peers[i]->addChannel(*peer, delay);
 		}
 	}
-
-    template<class type_msg, class peer_type>
-    int Network<type_msg,peer_type>::getDelay(){
-        if(_distribution == UNIFORM){
-            uniform_int_distribution<int> randomDistribution(_minDelay,_maxDelay);
-            return randomDistribution(RANDOM_GENERATOR);
-        }
-        if(_distribution == POISSON){
-            poisson_distribution<int> poissonDistribution(_avgDelay);
-            return poissonDistribution(RANDOM_GENERATOR);
-        }
-        if(_distribution == ONE){
-            return 1;
-        }
-        return -1;
-    }
 
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::initNetwork(json topology) {
@@ -206,7 +166,7 @@ namespace blockguard{
             torus(topology["height"], topology["width"]);
 		}
         else if (topology["type"] == "chain") {
-            chain(topology["initialPeers"])
+            chain(topology["initialPeers"]);
         }
         else if (topology["type"] == "ring") {
             ring(topology["initialPeers"]);
@@ -374,7 +334,7 @@ namespace blockguard{
         out<< "--- NETWROK SETUP ---"<< endl<< endl;
         out<< left;
         out<< '\t'<< setw(LOG_WIDTH)<< "Number of Peers"<< setw(LOG_WIDTH)<< "Distribution"<< setw(LOG_WIDTH)<< "Min Delay"<< setw(LOG_WIDTH)<< "Average Delay"<< setw(LOG_WIDTH)<< "Max Delay"<< endl;
-        out<< '\t'<< setw(LOG_WIDTH)<< _peers.size()<< setw(LOG_WIDTH)<< _distribution<< setw(LOG_WIDTH)<< _minDelay<< setw(LOG_WIDTH)<< _avgDelay<< setw(LOG_WIDTH)<< _maxDelay<< endl;
+        out<< '\t'<< setw(LOG_WIDTH)<< _peers.size()<< setw(LOG_WIDTH)<< type() << setw(LOG_WIDTH)<< minDelay() << setw(LOG_WIDTH)<< avgDelay()<< setw(LOG_WIDTH)<< maxDelay() << endl;
 
         for(int i = 0; i < _peers.size(); i++){
             peer_type *p = dynamic_cast<peer_type*>(_peers[i]);
@@ -398,11 +358,6 @@ namespace blockguard{
         for(int i = 0; i < rhs._peers.size(); i++){
             _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
         }
-
-        _avgDelay = rhs._avgDelay;
-        _maxDelay = rhs._maxDelay;
-        _minDelay = rhs._minDelay;
-        _distribution = rhs._distribution;
 
         return *this;
     }

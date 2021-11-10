@@ -19,8 +19,6 @@ namespace blockguard {
 		Network<type_msg, peer_type> system;
 
 		ofstream* getLog() { system.setLog; }
-		void setToUniform() { system.setToUniform(); };
-		void setMaxDelay(int max) { system.setMaxDelay(max); };
 	};
 
 	template<class type_msg, class peer_type>
@@ -46,8 +44,7 @@ namespace blockguard {
 				
 			}
 			
-			system.setToUniform();
-			system.setMaxDelay(config["maxDelay"]);
+			system.setDistribution(config["distribution"]);
 
 			system.initNetwork(config["topology"]);
 			*system.getLog() << "-- STARTING Test " << i << " --" << std::endl; // write in the log when the test started

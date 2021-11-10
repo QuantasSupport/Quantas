@@ -3,8 +3,10 @@
     {
       "algorithm": "example",
       "logFile": "example1",
-      "distribution": "uniform",
-      "maxDelay": 3,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
       "topology": {
         "type": "complete",
         "initialPeers": 5,
@@ -16,8 +18,10 @@
     {
       "algorithm": "example",
       "logFile": "cout",
-      "distribution": "uniform",
-      "maxDelay": 10,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 10
+      },
       "topology": {
         "type": "complete",
         "initialPeers": 3,
@@ -29,8 +33,10 @@
     {
       "algorithm": "example",
       "logFile": "cout",
-      "distribution": "uniform",
-      "maxDelay": 10,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 10
+      },
       "topology": {
         "type": "userList",
         "initialPeers": 3,
