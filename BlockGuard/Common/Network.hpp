@@ -20,7 +20,7 @@
 #include <ctime>
 #include <memory>
 #include "./../Common/Peer.hpp"
-#include "./Common/Json.hpp"
+#include "./../Common/Json.hpp"
 #include "Distribution.hpp"
 
 namespace blockguard{

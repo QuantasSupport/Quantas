@@ -3,7 +3,7 @@
 
 #include "Network.hpp"
 #include "Peer.hpp"
-#include "./Common/Json.hpp"
+#include "./../Common/Json.hpp"
 
 using std::ofstream;
 using nlohmann::json;
