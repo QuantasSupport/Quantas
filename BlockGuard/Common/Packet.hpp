@@ -59,7 +59,7 @@ namespace blockguard{
         void        setSource       (long s){_sourceId = s;};
         void        setTarget       (long t){_targetId = t;};
         void        setDelay        (int delayMax, int delayMin = 1);
-        void        setBody         (const content c){_body = c;};
+        void        setMessage      (const content c){_body = c;};
         
         // getters
         long        id              ()const {return _id;};
