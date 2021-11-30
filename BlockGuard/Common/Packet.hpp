@@ -1,10 +1,16 @@
 //
-//  Message.hpp
+//  Packet.hpp
 //  BlockGuard
 //
-//  Created by Kendric Hood on 3/8/19.
-//  Copyright © 2019 Kent State University. All rights reserved.
+// This is the class responsible for holding messages as they are sent from one peer to another (similar to a packet in a real network)
+// It is templated so that the user can define their own message (body, payload, etc.) they want to include in the packet. This allows
+// them to define what information is allowed in a single message between peers.
 //
+// A packet needs a source peer id (id of the network interface), target peer id (id of the network interface) and an id.
+// The Id of the packet is used for comparison of two packets. Structs can not be compared unless the user defines the equal to and not
+// equal operator. As such we do not expect or assume that the user does so. We define a packet ID to overcome this two packets with the
+// same id are regarded as equal.
+
 
 #ifndef Packet_hpp
 #define Packet_hpp
@@ -35,7 +41,7 @@ namespace blockguard{
         Packet(){};
         
     protected:
-        long                        _id; // message id
+        long                        _id; // message id 
         long                        _targetId; // traget node id
         long                        _sourceId; // source node id
         
