@@ -44,7 +44,7 @@ namespace blockguard {
         message.message = "Message: it's me " + to_string(id()) + "!";
         message.aPeerId = id();
         Packet<ExampleMessage> newMessage(_counter, id(),id());
-        newMessage.setBody(message);
+        newMessage.setMessage(message);
         pushToOutSteam(newMessage);
 
         // Send hello to everyone else
@@ -52,7 +52,7 @@ namespace blockguard {
         message.aPeerId = id();
         broadcast(message);
 
-        for(int i = 0; i < inStreamSize(); i++){
+        while(!inStreamEmpty()){
             Packet<ExampleMessage> newMsg = popInStream();
             cout << endl << id()<< " has receved a message from "<< newMsg.sourceId()<< endl;
             cout << "  MESSAGE "<< newMsg.id() <<  ":"<< newMsg.getMessage().message<<  newMsg.getMessage().aPeerId<< endl;

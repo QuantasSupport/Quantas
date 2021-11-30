@@ -11,15 +11,24 @@ using nlohmann::json;
 namespace blockguard {
 	template<class type_msg, class peer_type>
 	class Simulation {
+	private:
+		Network<type_msg, peer_type> 		system;
+		ostream                             *_log;
+
 	public:
 		// Name of log file, will have Test number appended
-		void run(json);
+		void 				run			(json);
 
-	private:
-		Network<type_msg, peer_type> system;
+		// logging functions
+		ostream& 			printTo		(ostream &out)const;
+        friend ostream&     operator<<  (ostream &out, const Simulation &sim)      {return sim.printTo(out);};
 
-		ofstream* getLog() { system.setLog; }
 	};
+
+	template<class type_msg, class peer_type>
+    ostream& Simulation<type_msg,peer_type>::printTo(ostream &out)const{
+        return out;
+    }
 
 	template<class type_msg, class peer_type>
 	void Simulation<type_msg, peer_type>::run(json config) {
@@ -47,20 +56,14 @@ namespace blockguard {
 			system.setDistribution(config["distribution"]);
 
 			system.initNetwork(config["topology"]);
-			*system.getLog() << "-- STARTING Test " << i << " --" << std::endl; // write in the log when the test started
 			for (int j = 1; j <= config["rounds"]; j++) {
-				out << "-- STARTING ROUND " << j << " --" << std::endl; // write in the log when the round started
 				system.receive(); // do the receive phase of the round
 				system.log(); // log the system state
 				system.performComputation();  // do the perform computation phase of the round
 				system.log();
 				system.transmit(); // do the transmit phase of the round
 				system.log();
-				*system.getLog() << "-- ENDING ROUND " << j << " --" << std::endl; // log the end of a round
 			}
-
-			*system.getLog() << "Number of Messages: " << system.getMessageCount() << std::endl;
-			*system.getLog() << "-- ENDING Test " << i << " --" << std::endl; // write in the log when the test ends
 		}
 	}
 

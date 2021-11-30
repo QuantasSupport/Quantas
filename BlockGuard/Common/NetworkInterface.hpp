@@ -86,6 +86,8 @@ namespace blockguard{
         int                                getClock              ()const                                    {return _clock;};
         size_t                             outStreamSize         ()const                                    {return _outStream.size();};
         size_t                             inStreamSize          ()const                                    {return _inStream.size();};
+        bool                               outStreamEmpty        ()const                                    {return _outStream.empty();};
+        bool                               inStreamEmpty         ()const                                    {return _inStream.empty();};
 
         // mutators
         void                               removeChannel         (const NetworkInterface &neighbor)         {_outBoundChannels.erase(neighbor);};
@@ -127,7 +129,7 @@ namespace blockguard{
             Packet<message> outPacket = Packet<message>(-1);
             outPacket.setSource(id());
             outPacket.setTarget(*it);
-            outPacket.setBody(msg);
+            outPacket.setMessage(msg);
             _outStream.push_back(outPacket);
         }
     }
