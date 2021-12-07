@@ -46,7 +46,7 @@ namespace blockguard{
         virtual ~Peer                                            ()=0;
         // tells this peer to create a transaction
         virtual void                       makeRequest           ()=0;
-        // perform one step of the Consensus message with the messages in inStream
+        // perform one step of the Algorithm with the messages in inStream
         virtual void                       performComputation    ()=0;
     };
 

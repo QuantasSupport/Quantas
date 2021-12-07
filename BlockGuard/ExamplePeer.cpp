@@ -28,12 +28,10 @@ namespace blockguard {
 
     ExamplePeer::ExamplePeer(const ExamplePeer &rhs) : Peer<ExampleMessage>(rhs){
         _counter = rhs._counter;
-        _numberOfMessagesSent = rhs._numberOfMessagesSent;
     }
 
     ExamplePeer::ExamplePeer(long id) : Peer(id){
         _counter =0;
-        _numberOfMessagesSent =0;
     }
 
     void ExamplePeer::performComputation(){

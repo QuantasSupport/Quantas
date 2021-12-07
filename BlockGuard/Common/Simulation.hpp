@@ -36,8 +36,7 @@ namespace blockguard {
 			ofstream out;
 			
 			if (config["logFile"] == "cout") {
-				//out = &cout;
-				system.setLog(cout);
+				system.setLog(cout); // Set the log file to the console
 			}
 			else {
 				string file = config["logFile"];
@@ -45,17 +44,17 @@ namespace blockguard {
 				out.open(file);
 				if (out.fail()) {
 					cout << "Error: could not open file " << file << std::endl;
-					system.setLog(cout);
+					system.setLog(cout); // If the file doesn't open set the log file to the console
 				}
 				else {
-					system.setLog(out);
+					system.setLog(out); // Otherwise set the log file to the user given file
 				}
 				
 			}
-			
+			// Configure the delay properties and initial topology of the network
 			system.setDistribution(config["distribution"]);
-
 			system.initNetwork(config["topology"]);
+
 			for (int j = 1; j <= config["rounds"]; j++) {
 				system.receive(); // do the receive phase of the round
 				system.log(); // log the system state

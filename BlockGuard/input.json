@@ -48,6 +48,21 @@
       },
       "tests": 1,
       "rounds": 3
+    },
+    {
+      "algorithm": "bitcoin",
+      "logFile": "cout",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 1,
+      "rounds": 100
     }
   ]
 }

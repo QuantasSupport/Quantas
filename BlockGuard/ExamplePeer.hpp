@@ -32,27 +32,28 @@ namespace blockguard{
     class ExamplePeer : public Peer<ExampleMessage>{
     protected:
         int _counter;
-        int _numberOfMessagesSent;
         
     public:
         // methods that must be defined when deriving from Peer
         ExamplePeer                             (long);
         ExamplePeer                             (const ExamplePeer &rhs);
         ~ExamplePeer                            ();
-        void                 performComputation ();
-        void                 makeRequest        (){};
-        
-        // addintal method that have defulte implementation from Peer but can be overwritten
-        void                 log                ()const{printTo(*_log);};
-        ostream&             printTo            (ostream&)const;
-        friend ostream&      operator<<         (ostream&, const ExamplePeer&);
 
-        int                 getMessageCount     (){return _numberOfMessagesSent;};
+        // perform one step of the Algorithm with the messages in inStream
+        void                 performComputation ();
+
+        // tells this peer to create a transaction
+        void                 makeRequest        (){};
 
         // its normally a good idea to make some getters and setters for a peer to enable testing 
         //  of the peers state durring an experment and to get metrics. 
         int                  getCounter         ()const     {return _counter;};
         void                 setCounter         (int c)     {_counter = c;};
+
+        // addintal method that have defulte implementation from Peer but can be overwritten
+        void                 log()const { printTo(*_log); };
+        ostream&             printTo(ostream&)const;
+        friend ostream& operator<<         (ostream&, const ExamplePeer&);
     };
 }
 #endif /* ExamplePeer_hpp */

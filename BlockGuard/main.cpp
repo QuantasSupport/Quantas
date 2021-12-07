@@ -16,6 +16,7 @@
 #include "./Common/NetworkInterface.hpp"
 #include "./Common/Simulation.hpp"
 #include "ExamplePeer.hpp"
+#include "BitcoinPeer.hpp"
 #include "./Common/Json.hpp"
 
 using std::cout;
@@ -23,10 +24,13 @@ using std::string;
 using std::cerr;
 using blockguard::ExamplePeer;
 using blockguard::ExampleMessage;
+using blockguard::BitcoinMessage;
+using blockguard::BitcoinPeer;
 using blockguard::Simulation;
 using nlohmann::json;
 
 void Example(json inputs);
+void Bitcoin(json inputs);
 
 int main(int argc, const char* argv[]) {
 	
@@ -53,6 +57,9 @@ int main(int argc, const char* argv[]) {
 		if (algorithm == "example") {
 			Example(input);
 		}
+		else if (algorithm == "bitcoin") {
+			Bitcoin(input);
+		}
 		else {
 			cout << algorithm << " not recognized" << std::endl;
 		}
@@ -67,4 +74,9 @@ void Example(json inputs) {
 
 	sim.run(inputs);
 
+}
+
+void Bitcoin(json inputs) {
+	Simulation<BitcoinMessage, BitcoinPeer> sim;
+	sim.run(inputs);
 }
