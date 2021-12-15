@@ -89,7 +89,6 @@ namespace blockguard{
         const peer_type*                    operator[]          (int)const;
         friend ostream&                     operator<<          (ostream &out, const Network &system)      {return system.printTo(out);};
         void 								makeRequest	        (Peer<type_msg> * peer)				            { peer->makeRequest(); }
-        int                                 pickSecurityLevel   (int);
 
     };
 
