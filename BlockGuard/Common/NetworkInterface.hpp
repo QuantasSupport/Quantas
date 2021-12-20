@@ -2,8 +2,33 @@
 //  NetworkNetworkInterface.hpp
 //  BlockGuard
 //
-// This class represents a connection between to peers, this connection is called a NetworkInterface
-// The channel has a delay 
+// This class represents a connection between a peer and it's neighbors. A peer 
+// is a derived class from the NetworkInterface class that adds algorithm specific details.
+// The NetworkInterface class handles sending and receiving of packets (messages) between peers.
+// It also tracks what interfaces (and thus peers) this NetworkInterface is able to communicate with. 
+//
+// This class is responsable for
+// * storeing all the inbound packets to this interface and tracking their delay (how many rounds until they are delivered)
+// * updating inbound packets delay (decreaseing the delay each round until it is delivered)
+// * storing a list of neighbors (a.k.a approved interfaces to send to)
+// * storing the maximum delay a packet can have when being sent to a neighbors interface
+// * sending packets to other interfaces (including assigning it a delay between 1 and the maximum)
+// * receiving delivered packets at this interface
+//
+// === TRANSMITING MESSAGES ===
+// Each instance of NetworkInterface has a list of references to it's neighbor's NetworkInterface 
+// and a list of the delays to thouse neighbor's interface. These are each stored in maps with
+// the neighbor's NetworkInterface ID as the key and either the reference to the interface or delay 
+// as the value. The connection between interfaces is called a channel. When transmit is run on a 
+// peer derivitive each packet in the outStream is sent. When a packet is sent, the target ID of 
+// the packet is used to look up the referenced interface and the delay associated with that interface. 
+// The packet delay is set between 1 and the delay between the two interfaces (the delay on the channel)
+// The method <<SEND>> is then called on the neighbor's interface (not this object but the instance of 
+// NetworkInterface in the target peer).
+//
+// === RECEIVING MESSAGES ===
+//
+//
 
 #ifndef NetworkInterface_hpp
 #define NetworkInterface_hpp
@@ -194,7 +219,7 @@ namespace blockguard{
     // called on sender
     template <class message>
     void NetworkInterface<message>::transmit(){
-        // send all messages to there destantion peer channels  
+        // send all messages to there destination peer channels  
         while(!_outStream.empty()){
             Packet<message> outMessage = _outStream.front();
             _outStream.pop_front();
