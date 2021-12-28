@@ -76,7 +76,6 @@ namespace blockguard{
         void                                performComputation  ();
         void                                transmit            ();
         void                                makeRequest         (int i)                                         {_peers[i]->makeRequest();};
-        int                                 getMessageCount();
         // void                                shuffleByzantines   (int);
 
         // logging and debugging
@@ -317,15 +316,6 @@ namespace blockguard{
         for(int i = 0; i < _peers.size(); i++){
             _peers[i]->transmit();
         }
-    }
-
-    template<class type_msg, class peer_type>
-    int Network<type_msg, peer_type>::getMessageCount() {
-        int numberOfMessages = 0;
-        for (int i = 0; i < _peers.size(); i++) {
-            numberOfMessages += _peers[i]->getClock();
-        }
-        return numberOfMessages;
     }
 
     template<class type_msg, class peer_type>

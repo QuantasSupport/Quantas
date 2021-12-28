@@ -27,6 +27,7 @@
 // NetworkInterface in the target peer).
 //
 // === RECEIVING MESSAGES ===
+// 
 //
 //
 
@@ -71,7 +72,6 @@ namespace blockguard{
         typedef deque<Packet<message> >                 aChannel;
 
         interfaceId                                     _id;
-        int                                             _clock;
         map<interfaceId,aChannel>                       _inBoundChannels;// channels from all other interfaces into this interface
         map<interfaceId,int>                            _outBoundChannelDelays;// list of channels delays by there target interface id
         map<interfaceId, NetworkInterface<message>* >   _outBoundChannels; // list of all other interfaces in the network (weather they are a neighbor or not) use send to send them a message
@@ -108,7 +108,6 @@ namespace blockguard{
         interfaceId                        id                    ()const                                    {return _id;};
         bool                               isNeighbor            (interfaceId id)const;
         int                                getDelayToNeighbor    (interfaceId id)const;
-        int                                getClock              ()const                                    {return _clock;};
         size_t                             outStreamSize         ()const                                    {return _outStream.size();};
         size_t                             inStreamSize          ()const                                    {return _inStream.size();};
         bool                               outStreamEmpty        ()const                                    {return _outStream.empty();};
@@ -169,7 +168,6 @@ namespace blockguard{
         _inBoundChannels = map<interfaceId,aChannel>();
         _log = &cout;
         _printNeighborhood = false;
-        _clock = 0;
     }
 
     template <class message>
@@ -182,7 +180,6 @@ namespace blockguard{
         _inBoundChannels = map<interfaceId,aChannel>();
         _log = &cout;
         _printNeighborhood = false;
-        _clock = 0;
     }
 
     template <class message>
@@ -195,7 +192,6 @@ namespace blockguard{
         _outBoundChannelDelays = rhs._outBoundChannelDelays;
         _log = rhs._log;
         _printNeighborhood = rhs._printNeighborhood;
-        _clock = rhs._clock;
     }
 
     template <class message>
@@ -240,7 +236,6 @@ namespace blockguard{
 
     template <class message>
     void NetworkInterface<message>::receive() {
-        _clock++;
         for (auto it = _neighbors.begin(); it != _neighbors.end(); ++it) {
             interfaceId neighborID = *it;
 
@@ -312,7 +307,6 @@ namespace blockguard{
         _outBoundChannelDelays = rhs._outBoundChannelDelays;
         _log = rhs._log;
         _printNeighborhood = rhs._printNeighborhood;
-        _clock = rhs._clock;
 
         return *this;
     }
