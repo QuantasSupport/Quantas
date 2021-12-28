@@ -241,8 +241,8 @@ namespace blockguard{
     template <class message>
     void NetworkInterface<message>::receive() {
         _clock++;
-        for (auto it = _outBoundChannels.begin(); it != _outBoundChannels.end(); ++it) {
-            interfaceId neighborID = it->first;
+        for (auto it = _neighbors.begin(); it != _neighbors.end(); ++it) {
+            interfaceId neighborID = *it;
 
             for(auto msg = _inBoundChannels.at(neighborID).begin(); msg != _inBoundChannels.at(neighborID).end(); msg++){
                 msg->moveForward();

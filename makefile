@@ -12,10 +12,10 @@ clean:
 	clear
 
 build: ExamplePeer
-	clang++ -std=c++14 ./BlockGuard/*.cpp --debug -D_GLIBCXX_DEBUG -o -f ./BlockGuard/Common -f ./BlockGuard/Logging ./BlockGuard.out
+	clang++ -std=c++14 ./BlockGuard/*.cpp --debug -D_GLIBCXX_DEBUG -o ./BlockGuard.out
 
 test: ExamplePeer
-	clang++ -std=c++14 ./BlockGuard_Test/*.cpp ./BlockGuard_Test/*.o --debug -D_GLIBCXX_DEBUG -o -f ./BlockGuard/Common -f ./BlockGuard/Logging ./BlockGuard_Test.out
+	clang++ -std=c++14 ./BlockGuard_Test/*.cpp ./BlockGuard_Test/*.o --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test.out
 
 ExamplePeer: 
-	clang++ -std=c++14 BlockGuard/ExamplePeer.cpp -c --debug -D_GLIBCXX_DEBUG -o -f ./BlockGuard/Common -f ./BlockGuard/Logging ./BlockGuard_Test/ExamplePeer.o
+	clang++ -std=c++14 BlockGuard/ExamplePeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/ExamplePeer.o
