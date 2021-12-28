@@ -46,9 +46,6 @@ namespace blockguard{
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation();
 
-        // tells this peer to create a transaction
-        void                 makeRequest() {};
-
         // gets the number of messages sent by this peer
         int                  getMessageCount() { return _numberOfMessagesSent; };
 

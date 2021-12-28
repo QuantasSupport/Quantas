@@ -42,9 +42,6 @@ namespace blockguard{
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation ();
 
-        // tells this peer to create a transaction
-        void                 makeRequest        (){};
-
         // its normally a good idea to make some getters and setters for a peer to enable testing 
         //  of the peers state durring an experment and to get metrics. 
         int                  getCounter         ()const     {return _counter;};
