@@ -31,7 +31,7 @@ namespace blockguard {
     }
 
     ExamplePeer::ExamplePeer(long id) : Peer(id){
-        _counter =0;
+        _counter = 0;
     }
 
     void ExamplePeer::performComputation(){

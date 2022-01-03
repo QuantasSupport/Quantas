@@ -8,28 +8,42 @@
 // It also tracks what interfaces (and thus peers) this NetworkInterface is able to communicate with. 
 //
 // This class is responsable for
-// * storeing all the inbound packets to this interface and tracking their delay (how many rounds until they are delivered)
+// * storeing all the inbound packets to this interface 
 // * updating inbound packets delay (decreaseing the delay each round until it is delivered)
 // * storing a list of neighbors (a.k.a approved interfaces to send to)
 // * storing the maximum delay a packet can have when being sent to a neighbors interface
 // * sending packets to other interfaces (including assigning it a delay between 1 and the maximum)
-// * receiving delivered packets at this interface
+// * storeing received packets at this interface
+//
+// === RECEIVING MESSAGES ===
+// Each instance of NetworkInterface has a list of its neighbors NetworkInterface ID <_neighbors>, 
+// and a hashmap <_inBoundChannels> with the ID of this NetworkInterface's neighbors as the key and a 
+// queue of inbound packets (or <aChannel>) as the value. When receive is called each packet in each 
+// channel has <<moveForward>> called. This decrements the delay on the packet (how many rounds the 
+// packet must wait until it's arrvied at it's target interface). Then the head of each channel has 
+// <<hasArrived>> called. This returns true is the packet has arrvied (delay == 0) and false otherwise.
+// If <<hasArrived>> is true then the packet is moved from the channel in <_inBoundChannels> to 
+// the NetworkInterface's <_inStream>. This repeats poping the head of the channel and pushing onto 
+// <_inStream> until a packet has not arrived. In this way all packets are received in the same order
+// they where sent. 
+//
+// Note: packets are received in the same order they where sent and only after all packets sent before
+// it have been received
+// 
 //
 // === TRANSMITING MESSAGES ===
 // Each instance of NetworkInterface has a list of references to it's neighbor's NetworkInterface 
-// and a list of the delays to thouse neighbor's interface. These are each stored in maps with
+// and a list of the delays to thouse neighbor's interface. These are each stored in hashmaps with
 // the neighbor's NetworkInterface ID as the key and either the reference to the interface or delay 
 // as the value. The connection between interfaces is called a channel. When transmit is run on a 
 // peer derivitive each packet in the outStream is sent. When a packet is sent, the target ID of 
 // the packet is used to look up the referenced interface and the delay associated with that interface. 
 // The packet delay is set between 1 and the delay between the two interfaces (the delay on the channel)
 // The method <<SEND>> is then called on the neighbor's interface (not this object but the instance of 
-// NetworkInterface in the target peer).
+// NetworkInterface in the target peer). <<SEND>> pushes the packet into the _inBoundChannel of the 
+// tagets Peers networkInterface
 //
-// === RECEIVING MESSAGES ===
-// 
-//
-//
+
 
 #ifndef NetworkInterface_hpp
 #define NetworkInterface_hpp
