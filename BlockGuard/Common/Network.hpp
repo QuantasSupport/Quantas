@@ -6,6 +6,12 @@
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
 
+// This class is responsible for setting up connections between peers and execution of a round. 
+// The underlaying data structure is a vector of peers(abstract class). It sets channel delays 
+// between peers when the network is initialized. These delays are between maximum and one. It 
+// is templated with a user defined message and peer class. 
+
+
 #ifndef Network_hpp
 #define Network_hpp
 

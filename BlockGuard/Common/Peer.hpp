@@ -6,6 +6,16 @@
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
 
+// peer is an abstract template class derived from the NetworkInterface class. 
+// It has the minimum functions that must be defined for the simulator to use a 
+// user defined peer. The methods listed in this abstract class are the only 
+// methods used in the network and simulation classes. Two methods 
+// (deconstructor and performComputation) must be defined by the user, that is 
+// they are pure virtual functions. All others can have empty body's. It is 
+// however unlikely the user will want to leave them empty. It is templated with 
+// a user defined message struct or class.
+
+
 #ifndef Peer_hpp
 #define Peer_hpp
 

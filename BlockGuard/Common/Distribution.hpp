@@ -6,6 +6,9 @@
 //  Copyright © 2019 Kent State University. All rights reserved.
 //
 
+// This class handles the destitution of channel delays in the network. The distribution can be uniform, Poisson or one. 
+
+
 #ifndef Distribution_hpp
 #define Distribution_hpp
 
