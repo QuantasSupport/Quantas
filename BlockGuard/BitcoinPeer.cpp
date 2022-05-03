@@ -2,22 +2,15 @@
 //  BitcoinPeer.cpp
 //  BlockGuard
 //
-//  Created by Kendric Hood on 3/15/19.
-//  Copyright © 2019 Kent State University. All rights reserved.
+//  Created by Joseph Oglio on 4/14/22.
+//  Copyright © 2022 Kent State University. All rights reserved.
 //
 
-#include "BitcoinPeer.hpp"
-#include "./Common/Peer.hpp"
-#include "./Common/Packet.hpp"
+
 #include <iostream>
+#include "BitcoinPeer.hpp"
 
 namespace blockguard {
-
-	using std::cout;
-	using std::to_string;
-	using std::ostream;
-	using std::string;
-	using std::endl;
 
 	int BitcoinPeer::currentTransaction = 1;
 
@@ -27,12 +20,10 @@ namespace blockguard {
 
 	BitcoinPeer::BitcoinPeer(const BitcoinPeer& rhs) : Peer<BitcoinMessage>(rhs) {
 		_counter = rhs._counter;
-		_numberOfMessagesSent = rhs._numberOfMessagesSent;
 	}
 
 	BitcoinPeer::BitcoinPeer(long id) : Peer(id) {
 		_counter = 0;
-		_numberOfMessagesSent = 0;
 	}
 
 	void BitcoinPeer::performComputation() {
@@ -45,7 +36,45 @@ namespace blockguard {
 		if (guardMineBlock())
 			mineBlock();
 
+		// increments round number
 		_counter++;
+	}
+
+	void BitcoinPeer::endOfRound(const vector<Peer<BitcoinMessage>*>& _peers) {
+		const vector<BitcoinPeer*> peers = reinterpret_cast<vector<BitcoinPeer*> const&>(_peers);
+		int length = peers[0]->blockChain.size();
+		int index = 0;
+		for (int i = 0; i < peers.size(); i++) {
+			if  (peers[i]->blockChain.size() < length) {
+				length = peers[i]->blockChain.size();
+				index = i;
+			}
+		}
+		LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].push_back(length - 1);
+		if (_counter == 0) {
+			// no blocks are confirmed in the first round
+			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].push_back(0);
+		}
+		else {
+			int prevIndex = LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].size() - 1;
+			int prevLength = LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"][prevIndex];
+			int prevLatency = LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"][prevIndex];
+			int newBlocks = length - prevLength;
+			if (newBlocks > 0) {
+				int tipMiner = peers[index]->blockChain[length - 1][0].tipMiner;
+				prevLatency += _counter - peers[index]->blockChain[length - 1][0].trans.roundSubmitted;
+				for (int i = 2; i <= newBlocks; i++) {
+					for (int j = 0; j < peers[index]->blockChain[length - i].size(); j++) {
+						if (tipMiner == peers[index]->blockChain[length - i][j].tipMiner) {
+							prevLatency += _counter - peers[index]->blockChain[length - i][j].trans.roundSubmitted;
+							tipMiner = peers[index]->blockChain[length - i][j].tipMiner;
+							break;
+						}
+					}
+				}
+				LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"].push_back(prevLatency);
+			}
+		}
 	}
 
 	void BitcoinPeer::checkInStrm() {
@@ -67,12 +96,13 @@ namespace blockguard {
 		do {
 			linked = false;
 			for (int i = 0; i < unlinkedBlocks.size(); i++) {
-				Block block = unlinkedBlocks[i];
+				BitcoinBlock block = unlinkedBlocks[i];
 				if (block.length - 1 < blockChain.size()) {
 					for (int j = 0; j < blockChain[block.length - 1].size(); j++) {
 						if (blockChain[block.length - 1][j].minerId == block.tipMiner) {
 							if (block.length > blockChain.size() - 1)
-								blockChain.push_back(vector<Block>());
+								blockChain.push_back(vector<BitcoinBlock>());
+
 							blockChain[block.length].push_back(block);
 							unlinkedBlocks.erase(unlinkedBlocks.begin() + i);
 							linked = true;
@@ -93,7 +123,8 @@ namespace blockguard {
 	void BitcoinPeer::submitTrans(int tranID) {
 		BitcoinMessage message;
 		message.mined = false;
-		message.block.trans = tranID;
+		message.block.trans.id = tranID;
+		message.block.trans.roundSubmitted = _counter;
 		broadcast(message);
 		currentTransaction++;
 	}
@@ -103,13 +134,13 @@ namespace blockguard {
 	}
 
 	void BitcoinPeer::mineBlock() {
-		Block newBlock = findNextTransaction();
-		if (newBlock.trans != -1) {
+		BitcoinBlock newBlock = findNextTransaction();
+		if (newBlock.trans.id != -1) {
 			newBlock.minerId = id();
 			newBlock.length = blockChain.size();
 			newBlock.tipMiner = blockChain[blockChain.size() - 1][0].minerId;
 
-			blockChain.push_back(vector<Block>());
+			blockChain.push_back(vector<BitcoinBlock>());
 			blockChain[blockChain.size() - 1].push_back(newBlock);
 
 			BitcoinMessage message;
@@ -119,19 +150,19 @@ namespace blockguard {
 		}
 	}
 
-	Block BitcoinPeer::findNextTransaction() {
-		Block nextTransaction;
+	BitcoinBlock BitcoinPeer::findNextTransaction() {
+		BitcoinBlock nextTransaction;
 		for (int i = 0; i < transactions.size(); ++i) {
 			bool next = true;
-			Block block = blockChain[blockChain.size() - 1][0];
-			if (transactions[i].trans == block.trans) {
+			BitcoinBlock block = blockChain[blockChain.size() - 1][0];
+			if (transactions[i].trans.id == block.trans.id) {
 				continue;
 			}
 			for (int k = blockChain.size() - 2; k > 0; --k) {
 				for (int j = 0; j < blockChain[k].size(); j++) {
 					if (blockChain[k][j].minerId == block.tipMiner) {
 						block = blockChain[k][j];
-						if (transactions[i].trans == block.trans)
+						if (transactions[i].trans.id == block.trans.id)
 							next = false;
 						break;
 					}

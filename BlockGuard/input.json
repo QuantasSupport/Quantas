@@ -2,7 +2,7 @@
   "experiments": [
     {
       "algorithm": "example",
-      "logFile": "example1",
+      "logFile": "example1.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 3

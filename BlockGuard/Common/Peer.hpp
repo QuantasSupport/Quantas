@@ -15,10 +15,9 @@
 #include <deque>
 #include <string>
 #include <iostream>
-#include <iomanip>
 #include <algorithm>
-#include "Packet.hpp"
 #include "NetworkInterface.hpp"
+#include "../Logging/LogWritter.hpp"
 
 namespace blockguard{
 
@@ -28,11 +27,7 @@ namespace blockguard{
     using std::ostream;
     using std::vector;
     using std::cout;
-    using std::ostream;
-    using std::left;
     using std::endl;
-    using std::setw;
-    using std::boolalpha;
     
     //
     // Base Peer class
@@ -46,6 +41,7 @@ namespace blockguard{
         virtual ~Peer                                            ()=0;
         // perform one step of the Algorithm with the messages in inStream
         virtual void                       performComputation    ()=0;
+        virtual void                       endOfRound            (const vector<Peer<message>*>& _peers) = 0;
     };
 
     template <class message>

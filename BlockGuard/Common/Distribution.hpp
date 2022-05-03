@@ -28,10 +28,10 @@ namespace blockguard{
     static const string                ONE     = "ONE";
     class Distribution {
     private:
-        int                                 _avgDelay;
-        int                                 _maxDelay;
-        int                                 _minDelay;
-        string                              _type;
+        int                                 _avgDelay = 1;
+        int                                 _maxDelay = 1;
+        int                                 _minDelay = 1;
+        string                              _type = ONE;
 
     public:
         Distribution                                                 ();

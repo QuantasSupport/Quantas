@@ -20,7 +20,6 @@
 #include <ctime>
 #include <memory>
 #include "./../Common/Peer.hpp"
-#include "./../Common/Json.hpp"
 #include "Distribution.hpp"
 
 namespace blockguard{
@@ -74,6 +73,7 @@ namespace blockguard{
         //mutators
         void                                receive             ();
         void                                performComputation  ();
+        void                                endOfRound          ();
         void                                transmit            ();
         void                                makeRequest         (int i)                                         {_peers[i]->makeRequest();};
         // void                                shuffleByzantines   (int);
@@ -146,6 +146,7 @@ namespace blockguard{
 
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::initNetwork(json topology) {
+        _peers.clear();
 		for (int i = 0; i < topology["totalPeers"]; i++) {
 			_peers.push_back(new peer_type(i));
 			addEdges(_peers[i]);
@@ -309,6 +310,11 @@ namespace blockguard{
         for(int i = 0; i < _peers.size(); i++){
             _peers[i]->performComputation();
         }
+    }
+
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::endOfRound() {
+        _peers[0]->endOfRound(_peers);
     }
 
     template<class type_msg, class peer_type>

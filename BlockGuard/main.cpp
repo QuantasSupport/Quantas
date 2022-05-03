@@ -12,25 +12,43 @@
 #include <chrono>
 #include <random>
 
-#include "./Common/Network.hpp"
-#include "./Common/NetworkInterface.hpp"
-#include "./Common/Simulation.hpp"
+#include "Common/Network.hpp"
+#include "Common/NetworkInterface.hpp"
+#include "Common/Simulation.hpp"
+#include "Common/Json.hpp"
 #include "ExamplePeer.hpp"
 #include "BitcoinPeer.hpp"
-#include "./Common/Json.hpp"
+#include "EthereumPeer.hpp"
+#include "PBFTPeer.hpp"
+#include "LinearChordPeer.hpp"
+#include "RaftPeer.hpp"
+#include "KademliaPeer.hpp"
+#include "AltBitPeer.hpp"
+#include "StableDataLinkPeer.hpp"
 
 using std::cout;
 using std::string;
 using std::cerr;
-using blockguard::ExamplePeer;
-using blockguard::ExampleMessage;
-using blockguard::BitcoinMessage;
-using blockguard::BitcoinPeer;
 using blockguard::Simulation;
 using nlohmann::json;
-
-void Example(json inputs);
-void Bitcoin(json inputs);
+using blockguard::ExamplePeer;
+using blockguard::ExampleMessage;
+using blockguard::BitcoinPeer;
+using blockguard::BitcoinMessage;
+using blockguard::EthereumPeer;
+using blockguard::EthereumPeerMessage;
+using blockguard::PBFTPeer;
+using blockguard::PBFTPeerMessage;
+using blockguard::RaftPeer;
+using blockguard::RaftPeerMessage;
+using blockguard::LinearChordPeer;
+using blockguard::LinearChordMessage;
+using blockguard::KademliaPeer;
+using blockguard::KademliaMessage;
+using blockguard::AltBitPeer;
+using blockguard::AltBitMessage;
+using blockguard::StableDataLinkPeer;
+using blockguard::StableDataLinkMessage;
 
 int main(int argc, const char* argv[]) {
 	
@@ -55,28 +73,45 @@ int main(int argc, const char* argv[]) {
 		string algorithm = input["algorithm"];
 
 		if (algorithm == "example") {
-			Example(input);
+			Simulation<ExampleMessage, ExamplePeer> sim;
+			sim.run(input);
 		}
 		else if (algorithm == "bitcoin") {
-			Bitcoin(input);
+			Simulation<BitcoinMessage, BitcoinPeer> sim;
+			sim.run(input);
+		}
+		else if (algorithm == "Ethereum") {
+			Simulation<EthereumPeerMessage, EthereumPeer> sim;
+			sim.run(input);
+		}
+		else if (algorithm == "PBFT") {
+			Simulation<PBFTPeerMessage, PBFTPeer> sim;
+			sim.run(input);
+		}
+		else if (algorithm == "Raft") {
+			Simulation<RaftPeerMessage, RaftPeer> sim;
+			sim.run(input);
+		}
+		else if (algorithm == "LinearChord") {
+			Simulation<LinearChordMessage, LinearChordPeer> sim;
+			sim.run(input);
+		}
+		else if (algorithm == "Kademlia") {
+			Simulation<KademliaMessage, KademliaPeer> sim;
+			sim.run(input);
+		}
+		else if (algorithm == "AltBit") {
+			Simulation<AltBitMessage, AltBitPeer> sim;
+			sim.run(input);
+		}
+		else if (algorithm == "StableDataLink") {
+			Simulation<StableDataLinkMessage, StableDataLinkPeer> sim;
+			sim.run(input);
 		}
 		else {
 			cout << algorithm << " not recognized" << std::endl;
 		}
 	}
-	
 
 	return 0;
-}
-
-void Example(json inputs) {
-	Simulation<ExampleMessage, ExamplePeer> sim;
-
-	sim.run(inputs);
-
-}
-
-void Bitcoin(json inputs) {
-	Simulation<BitcoinMessage, BitcoinPeer> sim;
-	sim.run(inputs);
 }

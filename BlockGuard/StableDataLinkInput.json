@@ -1,0 +1,49 @@
+{
+  "experiments": [
+    {
+      "algorithm": "StableDataLink",
+      "logFile": "StableDataLinkDelay1.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "totalPeers": 2
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "StableDataLink",
+      "logFile": "StableDataLinkDelay5.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 5
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "totalPeers": 2
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "StableDataLink",
+      "logFile": "StableDataLinkDelay10.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 10
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "totalPeers": 2
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}

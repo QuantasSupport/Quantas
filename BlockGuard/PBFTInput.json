@@ -1,0 +1,49 @@
+{
+  "experiments": [
+    {
+      "algorithm": "PBFT",
+      "logFile": "PBFTDelay1.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "PBFT",
+      "logFile": "PBFTDelay5.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 5
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "PBFT",
+      "logFile": "PBFTDelay10.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 10
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}

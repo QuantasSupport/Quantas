@@ -1,0 +1,184 @@
+{
+  "experiments": [
+    {
+      "algorithm": "Raft",
+      "logFile": "RaftDelay1.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "Raft",
+      "logFile": "RaftDelay10.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 10
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "Raft",
+      "logFile": "RaftDelay20.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 20
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "Raft",
+      "logFile": "RaftDelay30.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 30
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "Raft",
+      "logFile": "RaftDelay40.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 40
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "Raft",
+      "logFile": "RaftDelay50.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 50
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "PBFT",
+      "logFile": "PBFTDelay1.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "PBFT",
+      "logFile": "PBFTDelay10.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 10
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "PBFT",
+      "logFile": "PBFTDelay20.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 20
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "PBFT",
+      "logFile": "PBFTDelay30.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 30
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "PBFT",
+      "logFile": "PBFTDelay40.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 40
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "PBFT",
+      "logFile": "PBFTDelay50.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 50
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 1000
+    }
+  ]
+}
