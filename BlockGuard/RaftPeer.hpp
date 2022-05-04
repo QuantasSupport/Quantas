@@ -58,8 +58,13 @@ namespace blockguard{
         int                             requestsSatisfied = 0;
         // latency of satisfied requests
         int                             latency = 0;
+        // number of rounds to add to timeouts
+        const static int                timeOutSpacing = 100;
+        // max number of random rounds to add to timeouts 0 - (timeOutRandom - 1)
+        const static int                timeOutRandom = 5;
         // round to advance the term
-        int                             timeOutRound = 8;
+        int                             timeOutRound = 100;
+        
         // the term for this leader
         int                             term = 0;
         // current leader

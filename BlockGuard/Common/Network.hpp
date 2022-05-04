@@ -152,7 +152,10 @@ namespace blockguard{
 
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::initNetwork(json topology) {
-        _peers.clear();
+        for (int i = 0; i < _peers.size(); i++) {
+            delete _peers[i];
+        }
+        _peers = vector<Peer<type_msg>*>();
 		for (int i = 0; i < topology["totalPeers"]; i++) {
 			_peers.push_back(new peer_type(i));
 			addEdges(_peers[i]);

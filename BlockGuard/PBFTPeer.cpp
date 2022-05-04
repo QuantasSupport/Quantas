@@ -39,9 +39,11 @@ namespace blockguard {
 	}
 
 	void PBFTPeer::endOfRound(const vector<Peer<PBFTPeerMessage>*>& _peers) {
-		const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
-		double length = peers[0]->confirmedTrans.size();
-		LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"].push_back(latency / length);
+		if (_counter == 1000) {
+			const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
+			double length = peers[0]->confirmedTrans.size();
+			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"].push_back(latency / length);
+		}
 	}
 
 	void PBFTPeer::checkInStrm() {

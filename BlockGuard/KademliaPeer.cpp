@@ -76,14 +76,16 @@ namespace blockguard {
 	void KademliaPeer::endOfRound(const vector<Peer<KademliaMessage>*>& _peers) {
 		const vector<KademliaPeer*> peers = reinterpret_cast<vector<KademliaPeer*> const&>(_peers);
 		peers[rand() % neighbors().size() + 1]->submitTrans(currentTransaction);
-		double satisfied = 0;
-		double hops = 0;
-		for (int i = 0; i < peers.size(); i++) {
-			satisfied += peers[i]->requestsSatisfied;
-			hops += peers[i]->totalHops;
+		if (_counter == 1000) {
+			double satisfied = 0;
+			double hops = 0;
+			for (int i = 0; i < peers.size(); i++) {
+				satisfied += peers[i]->requestsSatisfied;
+				hops += peers[i]->totalHops;
+			}
+			//LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].push_back(satisfied);
+			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["averageHops"].push_back(hops / satisfied);
 		}
-		//LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].push_back(satisfied);
-		LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["averageHops"].push_back(hops / satisfied);
 	}
 
 	string KademliaPeer::getBinaryId(long id) {

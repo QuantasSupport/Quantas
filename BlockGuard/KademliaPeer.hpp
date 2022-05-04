@@ -56,7 +56,7 @@ namespace blockguard {
 		// the id of the next transaction to submit
 		static int                      currentTransaction;
 		// size of binary ids (must be greater than network size)
-		const static int				binaryIdSize = 7;
+		const static int				binaryIdSize = 10;
 		// list of nodes list of nodes in different trees than current node
 		vector<KademliaFinger> fingers;
 		// number of requests satisfied

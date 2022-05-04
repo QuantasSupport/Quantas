@@ -51,30 +51,6 @@ namespace blockguard {
 			}
 		}
 		LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].push_back(length - 1);
-		if (_counter == 0) {
-			// no blocks are confirmed in the first round
-			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].push_back(0);
-		}
-		else {
-			int prevIndex = LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].size() - 1;
-			int prevLength = LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"][prevIndex];
-			int prevLatency = LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"][prevIndex];
-			int newBlocks = length - prevLength;
-			if (newBlocks > 0) {
-				int tipMiner = peers[index]->blockChain[length - 1][0].tipMiner;
-				prevLatency += _counter - peers[index]->blockChain[length - 1][0].trans.roundSubmitted;
-				for (int i = 2; i <= newBlocks; i++) {
-					for (int j = 0; j < peers[index]->blockChain[length - i].size(); j++) {
-						if (tipMiner == peers[index]->blockChain[length - i][j].tipMiner) {
-							prevLatency += _counter - peers[index]->blockChain[length - i][j].trans.roundSubmitted;
-							tipMiner = peers[index]->blockChain[length - i][j].tipMiner;
-							break;
-						}
-					}
-				}
-				LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"].push_back(prevLatency);
-			}
-		}
 	}
 
 	void BitcoinPeer::checkInStrm() {

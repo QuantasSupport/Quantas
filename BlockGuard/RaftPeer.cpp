@@ -49,14 +49,16 @@ namespace blockguard {
 	}
 
 	void RaftPeer::endOfRound(const vector<Peer<RaftPeerMessage>*>& _peers) {
-		const vector<RaftPeer*> peers = reinterpret_cast<vector<RaftPeer*> const&>(_peers);
-		double satisfied = 0;
-		double lat = 0;
-		for (int i = 0; i < peers.size(); i++) {
-			satisfied += peers[i]->requestsSatisfied;
-			lat += peers[i]->latency;
+		if (_counter == 1000) {
+			const vector<RaftPeer*> peers = reinterpret_cast<vector<RaftPeer*> const&>(_peers);
+			double satisfied = 0;
+			double lat = 0;
+			for (int i = 0; i < peers.size(); i++) {
+				satisfied += peers[i]->requestsSatisfied;
+				lat += peers[i]->latency;
+			}
+			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"].push_back(lat / satisfied);
 		}
-		LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"].push_back(lat / satisfied);
 	}
 
 	void RaftPeer::checkInStrm() {
@@ -137,7 +139,7 @@ namespace blockguard {
 	}
 
 	void RaftPeer::resetTimer() {
-		timeOutRound = rand() % 5 + 20 + _counter;
+		timeOutRound = (rand() % timeOutRandom) + timeOutSpacing + _counter;
 	}
 
 	void RaftPeer::sendMessage(long peer, RaftPeerMessage message) {

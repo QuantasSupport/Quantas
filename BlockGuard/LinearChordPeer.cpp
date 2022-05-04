@@ -209,14 +209,16 @@ namespace blockguard {
 		const vector<LinearChordPeer*> peers = reinterpret_cast<vector<LinearChordPeer*> const&>(_peers);
 		numberOfNodes = peers.size();
 		peers[rand() % numberOfNodes]->submitTrans(currentTransaction);
-		double satisfied = 0;
-		double hops = 0;
-		for (int i = 0; i < peers.size(); i++) {
-			satisfied += peers[i]->requestsSatisfied;
-			hops += peers[i]->totalHops;
+		if (_counter == 1000) {
+			double satisfied = 0;
+			double hops = 0;
+			for (int i = 0; i < peers.size(); i++) {
+				satisfied += peers[i]->requestsSatisfied;
+				hops += peers[i]->totalHops;
+			}
+			//LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].push_back(satisfied);
+			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["averageHops"].push_back(hops / satisfied);
 		}
-		//LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].push_back(satisfied);
-		LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["averageHops"].push_back(hops / satisfied);
 	}
 
 	void LinearChordPeer::heartBeat() {

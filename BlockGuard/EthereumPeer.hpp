@@ -76,7 +76,7 @@ namespace blockguard{
         // vector of recieved transactions
         vector<EtherBlock>		   transactions;
         // rate at which to submit transactions ie 1 in x chance for all n nodes
-        int                   submitRate = 10;
+        int                   submitRate = 20;
         // rate at which to mine blocks ie 1 in x chance for all n nodes
         int                   mineRate = 40;
         // the id of the next transaction to submit
