@@ -75,14 +75,16 @@ namespace blockguard {
 	}
 	void AltBitPeer::endOfRound(const vector<Peer<AltBitMessage>*>& _peers) {
 		const vector<AltBitPeer*> peers = reinterpret_cast<vector<AltBitPeer*> const&>(_peers);
-		int satisfied = 0;
-		double messages = 0;
-		for (int i = 0; i < peers.size(); i++) {
-			satisfied += peers[i]->requestsSatisfied;
-			messages += peers[i]->messagesSent;
-		}
+		if (_counter == 100) {
+			int satisfied = 0;
+			double messages = 0;
+			for (int i = 0; i < peers.size(); i++) {
+				satisfied += peers[i]->requestsSatisfied;
+				messages += peers[i]->messagesSent;
+			}
 
-		LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["utility"].push_back(satisfied / messages);
+			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["utility"].push_back(satisfied / messages);
+		}
 	}
 
 	void AltBitPeer::sendMessage(long peer, AltBitMessage message) {

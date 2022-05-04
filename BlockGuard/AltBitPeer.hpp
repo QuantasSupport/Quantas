@@ -55,7 +55,7 @@ namespace blockguard {
 		// message number
 		int ns = 1;
 		// num / den = likelyhood of message getting lost
-		int messageLossDen = 4;
+		int messageLossDen = 2;
 		int messageLossNum = 1;
 		int timeOutRate = 4;
 		int previousMessageRound = 0;

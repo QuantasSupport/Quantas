@@ -1,0 +1,34 @@
+{
+  "experiments": [
+    {
+      "algorithm": "AltBit",
+      "logFile": "AltBit50.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "totalPeers": 2
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "StableDataLink",
+      "logFile": "StableDataLink50.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "totalPeers": 2
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}
