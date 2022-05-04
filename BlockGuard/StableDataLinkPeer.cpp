@@ -18,31 +18,33 @@ namespace blockguard {
 	}
 
 	StableDataLinkPeer::StableDataLinkPeer(const StableDataLinkPeer& rhs) : Peer<StableDataLinkMessage>(rhs) {
-		_counter = rhs._counter;
+		
 	}
 
 	StableDataLinkPeer::StableDataLinkPeer(long id) : Peer(id) {
-		_counter = 0;
+		
 	}
 
 	void StableDataLinkPeer::performComputation() {
 		if (alive) {
-			if (_counter == 0 && id() == 0) {
+			if (getRound() == 0 && id() == 0) {
 				submitTrans(currentTransaction);
 			}
-			if (previousMessageRound + timeOutRate < _counter) {// resend lost message
+			if (previousMessageRound + timeOutRate < getRound()) {// resend lost message
 				if (id() == 0) {
 					StableDataLinkMessage message;
 					message.action = "data";
-					message.roundSubmitted = _counter; // if message lost roundSubmitted isn't accurate
+					message.roundSubmitted = getRound(); // if message lost roundSubmitted isn't accurate
 					message.messageNum = currentTransaction - 1;
+					previousMessageRound = getRound();
 					sendMessage(1, message);
 				}
 				else {
 					StableDataLinkMessage message;
 					message.action = "ack";
-					message.roundSubmitted = _counter; // if message lost roundSubmitted isn't accurate
+					message.roundSubmitted = getRound(); // if message lost roundSubmitted isn't accurate
 					message.messageNum = currentTransaction - 1;
+					previousMessageRound = getRound();
 					sendMessage(0, message);
 				}
 			}
@@ -57,38 +59,40 @@ namespace blockguard {
 					ack++;
 					if (ack < 3 * c + 2) {
 						message.action = "data";
+						previousMessageRound = getRound();
 						sendMessage(1, message);
 					}
 					else {
 						requestsSatisfied++;
+						previousMessageRound = getRound();
 						submitTrans(currentTransaction);
 						ack = 0;
 					}
 				}
 				else if (message.action == "data") {
 					message.action = "ack";
+					previousMessageRound = getRound();
 					sendMessage(0, message);
 				}
 			}
 		}
-		_counter++;
 	}
 
 	void StableDataLinkPeer::endOfRound(const vector<Peer<StableDataLinkMessage>*>& _peers) {
 		const vector<StableDataLinkPeer*> peers = reinterpret_cast<vector<StableDataLinkPeer*> const&>(_peers);
-		if (_counter == 100) {
+		if (getRound() == 100) {
 			int satisfied = 0;
 			double messages = 0;
 			for (int i = 0; i < peers.size(); i++) {
 				satisfied += peers[i]->requestsSatisfied;
 				messages += peers[i]->messagesSent;
 			}
-			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["utility"].push_back(satisfied / messages);
+			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
 		}
 	}
 
 	void StableDataLinkPeer::sendMessage(long peer, StableDataLinkMessage message) {
-		Packet<StableDataLinkMessage> newMessage(_counter, peer, id());
+		Packet<StableDataLinkMessage> newMessage(getRound(), peer, id());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
 		messagesSent++;
@@ -97,7 +101,7 @@ namespace blockguard {
 	void StableDataLinkPeer::submitTrans(int tranID) {
 		StableDataLinkMessage message;
 		message.action = "data";
-		message.roundSubmitted = _counter;
+		message.roundSubmitted = getRound();
 		message.messageNum = tranID;
 		sendMessage(1, message);
 		currentTransaction++;
@@ -107,7 +111,7 @@ namespace blockguard {
 		Peer<StableDataLinkMessage>::printTo(out);
 
 		out << id() << std::endl;
-		out << "counter:" << _counter << std::endl;
+		out << "counter:" << getRound() << std::endl;
 
 		return out;
 	}

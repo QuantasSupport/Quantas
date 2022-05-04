@@ -18,31 +18,33 @@ namespace blockguard {
 	}
 
 	AltBitPeer::AltBitPeer(const AltBitPeer& rhs) : Peer<AltBitMessage>(rhs) {
-		_counter = rhs._counter;
+
 	}
 
 	AltBitPeer::AltBitPeer(long id) : Peer(id) {
-		_counter = 0;
+
 	}
 
 	void AltBitPeer::performComputation() {
 		if (alive) {
-			if (_counter == 0 && id() == 0) {
+			if (getRound() == 0 && id() == 0) {
 				submitTrans(currentTransaction);
 			}
-			if (previousMessageRound + timeOutRate < _counter) {// resend lost message
+			if (previousMessageRound + timeOutRate < getRound()) {// resend lost message
 				if (id() == 0) {
 					AltBitMessage message;
 					message.action = "data";
-					message.roundSubmitted = _counter; // if message lost roundSubmitted isn't accurate
+					message.roundSubmitted = getRound(); // if message lost roundSubmitted isn't accurate
 					message.messageNum = ns;
+					previousMessageRound = getRound();
 					sendMessage(1, message);
 				}
 				else {
 					AltBitMessage message;
 					message.action = "ack";
-					message.roundSubmitted = _counter; // if message lost roundSubmitted isn't accurate
+					message.roundSubmitted = getRound(); // if message lost roundSubmitted isn't accurate
 					message.messageNum = ns;
+					previousMessageRound = getRound();
 					sendMessage(0, message);
 				}
 			}
@@ -55,7 +57,7 @@ namespace blockguard {
 				}
 				if (message.action == "ack") {
 					if (message.messageNum == ns) {
-						previousMessageRound = _counter;
+						previousMessageRound = getRound();
 						requestsSatisfied++;
 						ns++;
 						submitTrans(currentTransaction);
@@ -63,19 +65,18 @@ namespace blockguard {
 
 				}
 				else if (message.action == "data") {
-					previousMessageRound = _counter;
+					previousMessageRound = getRound();
 					ns = message.messageNum;
 					message.action = "ack";
 					sendMessage(0, message);
 
 				}
 			}
-			_counter++;
 		}
 	}
 	void AltBitPeer::endOfRound(const vector<Peer<AltBitMessage>*>& _peers) {
 		const vector<AltBitPeer*> peers = reinterpret_cast<vector<AltBitPeer*> const&>(_peers);
-		if (_counter == 100) {
+		if (getRound() == 100) {
 			int satisfied = 0;
 			double messages = 0;
 			for (int i = 0; i < peers.size(); i++) {
@@ -83,12 +84,12 @@ namespace blockguard {
 				messages += peers[i]->messagesSent;
 			}
 
-			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["utility"].push_back(satisfied / messages);
+			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
 		}
 	}
 
 	void AltBitPeer::sendMessage(long peer, AltBitMessage message) {
-		Packet<AltBitMessage> newMessage(_counter, peer, id());
+		Packet<AltBitMessage> newMessage(getRound(), peer, id());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
 		messagesSent++;
@@ -97,7 +98,7 @@ namespace blockguard {
 	void AltBitPeer::submitTrans(int tranID) {
 		AltBitMessage message;
 		message.action = "data";
-		message.roundSubmitted = _counter;
+		message.roundSubmitted = getRound();
 		message.messageNum = ns;
 		sendMessage(1, message);
 		currentTransaction++;
@@ -107,7 +108,7 @@ namespace blockguard {
 		Peer<AltBitMessage>::printTo(out);
 
 		out << id() << std::endl;
-		out << "counter:" << _counter << std::endl;
+		out << "counter:" << getRound() << std::endl;
 
 		return out;
 	}

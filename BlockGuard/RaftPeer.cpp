@@ -18,22 +18,22 @@ namespace blockguard {
 	}
 
 	RaftPeer::RaftPeer(const RaftPeer& rhs) : Peer<RaftPeerMessage>(rhs) {
-		_counter = rhs._counter;
+		
 	}
 
 	RaftPeer::RaftPeer(long id) : Peer(id) {
-		_counter = 0;
+		
 	}
 
 	void RaftPeer::performComputation() {
 		if (true)
 			checkInStrm();
 
-		if (_counter == 0) {
+		if (getRound() == 0) {
 			submitTrans(currentTransaction);
 		}
 
-		if (timeOutRound <= _counter) {
+		if (timeOutRound <= getRound()) {
 			RaftPeerMessage newMsg;
 			newMsg.messageType = "elect";
 			newMsg.Id = id();
@@ -44,12 +44,10 @@ namespace blockguard {
 			resetTimer();
 			broadcast(newMsg);
 		}
-
-		_counter++;
 	}
 
 	void RaftPeer::endOfRound(const vector<Peer<RaftPeerMessage>*>& _peers) {
-		if (_counter == 1000) {
+		if (getRound() == 1000) {
 			const vector<RaftPeer*> peers = reinterpret_cast<vector<RaftPeer*> const&>(_peers);
 			double satisfied = 0;
 			double lat = 0;
@@ -83,7 +81,7 @@ namespace blockguard {
 				replys[Msg.trans].push_back(Msg.Id);
 				if (replys[Msg.trans].size() == neighbors().size() / 2) {
 					requestsSatisfied++;
-					latency += _counter - Msg.roundSubmitted;
+					latency += getRound() - Msg.roundSubmitted;
 					submitTrans(currentTransaction);
 				}
 			}
@@ -131,7 +129,7 @@ namespace blockguard {
 			message.trans = tranID;
 			message.Id = id();
 			message.termNum = term;
-			message.roundSubmitted = _counter;
+			message.roundSubmitted = getRound();
 			broadcast(message);
 			resetTimer();
 			currentTransaction++;
@@ -139,11 +137,11 @@ namespace blockguard {
 	}
 
 	void RaftPeer::resetTimer() {
-		timeOutRound = (rand() % timeOutRandom) + timeOutSpacing + _counter;
+		timeOutRound = (rand() % timeOutRandom) + timeOutSpacing + getRound();
 	}
 
 	void RaftPeer::sendMessage(long peer, RaftPeerMessage message) {
-		Packet<RaftPeerMessage> newMessage(_counter, peer, id());
+		Packet<RaftPeerMessage> newMessage(getRound(), peer, id());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
 	}
@@ -152,7 +150,7 @@ namespace blockguard {
 		Peer<RaftPeerMessage>::printTo(out);
 
 		out << id() << endl;
-		out << "counter:" << _counter << endl;
+		out << "counter:" << getRound() << endl;
 
 		return out;
 	}

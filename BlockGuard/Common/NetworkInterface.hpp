@@ -231,35 +231,36 @@ namespace blockguard{
     void NetworkInterface<message>::transmit(){
         // send all messages to there destination peer channels  
         while(!_outStream.empty()){
-            Packet<message> outMessage = _outStream.front();
-            _outStream.pop_front();
-            if(!isNeighbor(outMessage.targetId())){continue;}// skip messages if they are not sent to a neighbor
-
-            // if sent to self loop back next round
-            if(_id == outMessage.targetId()){
-                outMessage.setDelay(1);
-                _inStream.push_back(outMessage);
-            }else{
-                interfaceId targetId = outMessage.targetId();
-                int maxDelay = _outBoundChannelDelays.at(targetId);
-                outMessage.setDelay(maxDelay);
-                _outBoundChannels[targetId]->send(outMessage);
-            }
-        }
+			Packet<message> outMessage = _outStream.front();
+			_outStream.pop_front();
+			if (_id == outMessage.targetId()) {// if sent to self loop back next round
+				outMessage.setDelay(1);
+				_inStream.push_back(outMessage);
+			}
+			else if (!isNeighbor(outMessage.targetId()))// skip messages if they are not sent to a neighbor
+			{
+				continue;
+			}
+			else {
+				interfaceId targetId = outMessage.targetId();
+				int maxDelay = _outBoundChannelDelays.at(targetId);
+				outMessage.setDelay(maxDelay);
+				_outBoundChannels[targetId]->send(outMessage);
+			}
+		}
     }
 
     template <class message>
     void NetworkInterface<message>::receive() {
-        for (auto it = _neighbors.begin(); it != _neighbors.end(); ++it) {
-            interfaceId neighborID = *it;
+        for (int i = 0; i != _inBoundChannels.size(); ++i) {
 
-            for(auto msg = _inBoundChannels.at(neighborID).begin(); msg != _inBoundChannels.at(neighborID).end(); msg++){
-                msg->moveForward();
+            for(int j = 0; j != _inBoundChannels[i].size(); j++){
+                _inBoundChannels[i][j].moveForward();
             }
 
-            while(!_inBoundChannels.at(neighborID).empty() && _inBoundChannels.at(neighborID).front().hasArrived()){
-                _inStream.push_back(_inBoundChannels.at(neighborID).front());
-                _inBoundChannels.at(neighborID).pop_front();
+            while(!_inBoundChannels[i].empty() && _inBoundChannels[i].front().hasArrived()){
+                _inStream.push_back(_inBoundChannels[i].front());
+                _inBoundChannels[i].pop_front();
             }
         }
     }

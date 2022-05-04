@@ -18,11 +18,11 @@ namespace blockguard {
 	}
 
 	EthereumPeer::EthereumPeer(const EthereumPeer& rhs) : Peer<EthereumPeerMessage>(rhs) {
-		_counter = rhs._counter;
+		
 	}
 
 	EthereumPeer::EthereumPeer(long id) : Peer(id) {
-		_counter = 0;
+		
 	}
 
 	void EthereumPeer::performComputation() {
@@ -34,9 +34,6 @@ namespace blockguard {
 
 		if (guardMineBlock())
 			mineBlock();
-
-		// increments round number
-		_counter++;
 	}
 
 	void EthereumPeer::endOfRound(const vector<Peer<EthereumPeerMessage>*>& _peers) {
@@ -118,7 +115,7 @@ namespace blockguard {
 		EthereumPeerMessage message;
 		message.mined = false;
 		message.block.trans.id = tranID;
-		message.block.trans.roundSubmitted = _counter;
+		message.block.trans.roundSubmitted = getRound();
 		broadcast(message);
 		currentTransaction++;
 	}
@@ -200,7 +197,7 @@ namespace blockguard {
 		Peer<EthereumPeerMessage>::printTo(out);
 
 		out << id() << endl;
-		out << "counter:" << _counter << endl;
+		out << "counter:" << getRound() << endl;
 
 		return out;
 	}

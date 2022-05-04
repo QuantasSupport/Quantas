@@ -21,9 +21,6 @@ namespace blockguard {
 	};
 
 	class AltBitPeer : public Peer<AltBitMessage> {
-	protected:
-		int _counter;
-
 	public:
 		// methods that must be defined when deriving from Peer
 		AltBitPeer(long);
@@ -34,12 +31,6 @@ namespace blockguard {
 		void                 performComputation();
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
 		void                 endOfRound(const vector<Peer<AltBitMessage>*>& _peers);
-
-
-		// its normally a good idea to make some getters and setters for a peer to enable testing 
-		//  of the peers state durring an experment and to get metrics. 
-		int                  getCounter()const { return _counter; };
-		void                 setCounter(int c) { _counter = c; };
 
 		// addintal method that have defulte implementation from Peer but can be overwritten
 		void                 log()const { printTo(*_log); };
@@ -55,8 +46,8 @@ namespace blockguard {
 		// message number
 		int ns = 1;
 		// num / den = likelyhood of message getting lost
-		int messageLossDen = 2;
-		int messageLossNum = 1;
+		int messageLossNum = 0;
+		int messageLossDen = 1;
 		int timeOutRate = 4;
 		int previousMessageRound = 0;
 		// status of node

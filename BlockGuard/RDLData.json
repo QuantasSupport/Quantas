@@ -2,7 +2,7 @@
   "experiments": [
     {
       "algorithm": "AltBit",
-      "logFile": "AltBit50.txt",
+      "logFile": "AltBit0.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -17,7 +17,7 @@
     },
     {
       "algorithm": "StableDataLink",
-      "logFile": "StableDataLink50.txt",
+      "logFile": "StableDataLink0.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1

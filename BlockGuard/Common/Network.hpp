@@ -82,6 +82,8 @@ namespace blockguard{
         void                                endOfRound          ();
         void                                transmit            ();
         void                                makeRequest         (int i)                                         {_peers[i]->makeRequest();};
+        void                                incrementRound();
+        void                                initializeRound();
         // void                                shuffleByzantines   (int);
 
         // logging and debugging
@@ -152,6 +154,7 @@ namespace blockguard{
 
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::initNetwork(json topology) {
+        Peer<type_msg>::initializeRound();
         for (int i = 0; i < _peers.size(); i++) {
             delete _peers[i];
         }
@@ -181,6 +184,9 @@ namespace blockguard{
         }
         else if (topology["type"] == "userList") {
             userList(topology);
+        }
+        else {
+            std::cerr << "Error: need an input file" << std::endl;
         }
 	}
 
@@ -323,6 +329,7 @@ namespace blockguard{
 
     template<class type_msg, class peer_type>
     void Network<type_msg, peer_type>::endOfRound() {
+        Peer<type_msg>::incrementRound();
         _peers[0]->endOfRound(_peers);
     }
 

@@ -26,9 +26,6 @@
 #include "AltBitPeer.hpp"
 #include "StableDataLinkPeer.hpp"
 
-using std::cout;
-using std::string;
-using std::cerr;
 using blockguard::Simulation;
 using nlohmann::json;
 using blockguard::ExamplePeer;
@@ -54,14 +51,14 @@ int main(int argc, const char* argv[]) {
 	
 	srand((float)time(NULL));
 	if (argc < 2) {
-		cerr << "Error: need an input file" << std::endl;
+		std::cerr << "Error: need an input file" << std::endl;
 		return 0;
 	}
-	string fileName = argv[1];
+	std::string fileName = argv[1];
 	std::ifstream inFile(fileName);
 	
 	if (inFile.fail()) {
-		cerr << "Error: need a valid input file" << std::endl;
+		std::cerr << "Error: need a valid input file" << std::endl;
 		return 0;
 	}
 
@@ -70,7 +67,7 @@ int main(int argc, const char* argv[]) {
 
 	for (int i = 0; i < config["experiments"].size(); i++) {
 		json input = config["experiments"][i];
-		string algorithm = input["algorithm"];
+		std::string algorithm = input["algorithm"];
 
 		if (algorithm == "example") {
 			Simulation<ExampleMessage, ExamplePeer> sim;
@@ -109,7 +106,7 @@ int main(int argc, const char* argv[]) {
 			sim.run(input);
 		}
 		else {
-			cout << algorithm << " not recognized" << std::endl;
+			std::cout << algorithm << " not recognized" << std::endl;
 		}
 	}
 

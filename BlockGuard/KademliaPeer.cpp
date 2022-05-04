@@ -18,17 +18,17 @@ namespace blockguard {
 	}
 
 	KademliaPeer::KademliaPeer(const KademliaPeer& rhs) : Peer<KademliaMessage>(rhs) {
-		_counter = rhs._counter;
+		
 	}
 
 	KademliaPeer::KademliaPeer(long id) : Peer(id) {
-		_counter = 0;
+		
 	}
 
 	void KademliaPeer::performComputation() {
 		if (alive) {
 
-			if (_counter == 0 && fingers.size() == 0) {
+			if (getRound() == 0 && fingers.size() == 0) {
 				binaryId = getBinaryId(id());
 				vector<vector<KademliaFinger>> groupedNeighbors(binaryIdSize);
 				for (int i = 0; i < neighbors().size(); i++) {
@@ -61,7 +61,7 @@ namespace blockguard {
 				if (message.action == "R") {
 					if (id() == message.reqId) {
 						requestsSatisfied++;
-						latency += _counter - message.roundSubmitted;
+						latency += getRound() - message.roundSubmitted;
 						totalHops += message.hops;
 					}
 					else {
@@ -70,13 +70,12 @@ namespace blockguard {
 				}
 			}
 		}
-		_counter++;
 	}
 
 	void KademliaPeer::endOfRound(const vector<Peer<KademliaMessage>*>& _peers) {
 		const vector<KademliaPeer*> peers = reinterpret_cast<vector<KademliaPeer*> const&>(_peers);
 		peers[rand() % neighbors().size() + 1]->submitTrans(currentTransaction);
-		if (_counter == 1000) {
+		if (getRound() == 1000) {
 			double satisfied = 0;
 			double hops = 0;
 			for (int i = 0; i < peers.size(); i++) {
@@ -103,7 +102,7 @@ namespace blockguard {
 	}
 
 	void KademliaPeer::sendMessage(long peer, KademliaMessage message) {
-		Packet<KademliaMessage> newMessage(_counter, peer, id());
+		Packet<KademliaMessage> newMessage(getRound(), peer, id());
 		message.hops++;
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
@@ -115,7 +114,7 @@ namespace blockguard {
 		string binId = getBinaryId(message.reqId);
 		message.binId = binId;
 		message.action = "R";
-		message.roundSubmitted = _counter;
+		message.roundSubmitted = getRound();
 		if (id() == message.reqId) {
 			requestsSatisfied++;
 			totalHops += message.hops;
@@ -145,7 +144,7 @@ namespace blockguard {
 		Peer<KademliaMessage>::printTo(out);
 
 		out << id() << std::endl;
-		out << "counter:" << _counter << std::endl;
+		out << "counter:" << getRound() << std::endl;
 
 		return out;
 	}

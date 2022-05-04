@@ -19,34 +19,34 @@ namespace blockguard {
 	}
 
 	LinearChordPeer::LinearChordPeer(const LinearChordPeer& rhs) : Peer<LinearChordMessage>(rhs) {
-		_counter = rhs._counter;
+		
 	}
 
 	LinearChordPeer::LinearChordPeer(long id) : Peer(id) {
-		_counter = 0;
+		
 	}
 
 	void LinearChordPeer::performComputation() {
 		if (alive) {
 			
-			if (_counter == 0 && successor.size() == 0 && predecessor.size() == 0) {
+			if (getRound() == 0 && successor.size() == 0 && predecessor.size() == 0) {
 				for (int i = 0; i < neighbors().size(); i++) {
 					if (neighbors()[i] < id()) {
 						LinearChordFinger newNode;
 						newNode.Id = neighbors()[i];
-						newNode.roundUpdated = _counter;
+						newNode.roundUpdated = getRound();
 						predecessor.insert(predecessor.begin(), newNode);
 					}
 					else if (neighbors()[i] > id()) {
 						LinearChordFinger newNode;
 						newNode.Id = neighbors()[i];
-						newNode.roundUpdated = _counter;
+						newNode.roundUpdated = getRound();
 						successor.insert(successor.begin(), newNode);
 					}
 				}
 			}
 
-			if (_counter % 5 == 0) {
+			if (getRound() % 5 == 0) {
 				heartBeat();
 			}
 
@@ -58,14 +58,14 @@ namespace blockguard {
 				if (message.action == "R") {
 					if (id() == reqId) {
 						requestsSatisfied++;
-						latency += _counter - message.roundSubmitted;
+						latency += getRound() - message.roundSubmitted;
 						totalHops += message.hops;
 					}
 					else if (reqId > id()) {
 						if (successor.size() > 0) {
 							if (id() < reqId && (reqId < successor[0].Id || successor[0].Id < id())) {
 								requestsSatisfied++;
-								latency += _counter - message.roundSubmitted;
+								latency += getRound() - message.roundSubmitted;
 								totalHops += message.hops;
 							}
 							else {
@@ -87,14 +87,14 @@ namespace blockguard {
 						if (successor.size() == 0) {
 							LinearChordFinger newNode;
 							newNode.Id = reqId;
-							newNode.roundUpdated = _counter;
+							newNode.roundUpdated = getRound();
 							successor.insert(successor.begin(), newNode);
 							added = true;
 						}
 						else if (successor.size() == 1 && reqId != successor[0].Id) {
 							LinearChordFinger newNode;
 							newNode.Id = reqId;
-							newNode.roundUpdated = _counter;
+							newNode.roundUpdated = getRound();
 							if (reqId < successor[0].Id) {
 								successor.insert(successor.begin(), newNode);
 							}
@@ -108,14 +108,14 @@ namespace blockguard {
 								if (reqId < successor[i].Id) {
 									LinearChordFinger newNode;
 									newNode.Id = reqId;
-									newNode.roundUpdated = _counter;
+									newNode.roundUpdated = getRound();
 									successor.insert(successor.begin() + i, newNode);
 									added = true;
 									position = i;
 									break;
 								}
 								else if (reqId == successor[i].Id) {
-									successor[i].roundUpdated = _counter;
+									successor[i].roundUpdated = getRound();
 									break;
 								}
 							}
@@ -129,13 +129,13 @@ namespace blockguard {
 						if (predecessor.size() == 0) {
 							LinearChordFinger newNode;
 							newNode.Id = reqId;
-							newNode.roundUpdated = _counter;
+							newNode.roundUpdated = getRound();
 							predecessor.insert(predecessor.begin(), newNode);
 						}
 						if (predecessor.size() == 1 && reqId != predecessor[0].Id) {
 							LinearChordFinger newNode;
 							newNode.Id = reqId;
-							newNode.roundUpdated = _counter;
+							newNode.roundUpdated = getRound();
 							if (reqId > predecessor[0].Id) {
 								predecessor.insert(predecessor.begin(), newNode);
 							}
@@ -149,14 +149,14 @@ namespace blockguard {
 								if (reqId > predecessor[i].Id) {
 									LinearChordFinger newNode;
 									newNode.Id = reqId;
-									newNode.roundUpdated = _counter;
+									newNode.roundUpdated = getRound();
 									predecessor.insert(predecessor.begin() + i, newNode);
 									added = true;
 									position = i;
 									break;
 								}
 								else if (reqId == predecessor[i].Id) {
-									predecessor[i].roundUpdated = _counter;
+									predecessor[i].roundUpdated = getRound();
 									break;
 								}
 							}
@@ -202,14 +202,13 @@ namespace blockguard {
 				}
 			}
 		}
-		_counter++;
 	}
 
 	void LinearChordPeer::endOfRound(const vector<Peer<LinearChordMessage>*>& _peers) {
 		const vector<LinearChordPeer*> peers = reinterpret_cast<vector<LinearChordPeer*> const&>(_peers);
 		numberOfNodes = peers.size();
 		peers[rand() % numberOfNodes]->submitTrans(currentTransaction);
-		if (_counter == 1000) {
+		if (getRound() == 1000) {
 			double satisfied = 0;
 			double hops = 0;
 			for (int i = 0; i < peers.size(); i++) {
@@ -227,7 +226,7 @@ namespace blockguard {
 			message.action = "N";
 			message.reqId = id();
 			for (int i = 0; i < successor.size(); i++) {
-				if (successor[i].roundUpdated + 20 > _counter) {
+				if (successor[i].roundUpdated + 20 > getRound()) {
 					sendMessage(successor[i].Id, message);
 				}
 				else {
@@ -236,7 +235,7 @@ namespace blockguard {
 				}
 			}
 			for (int i = 0; i < predecessor.size(); i++) {
-				if (predecessor[i].roundUpdated + 20 > _counter) {
+				if (predecessor[i].roundUpdated + 20 > getRound()) {
 					sendMessage(predecessor[i].Id, message);
 				}
 				else {
@@ -248,7 +247,7 @@ namespace blockguard {
 	}
 
 	void LinearChordPeer::sendMessage(long peer, LinearChordMessage message) {
-		Packet<LinearChordMessage> newMessage(_counter, peer, id());
+		Packet<LinearChordMessage> newMessage(getRound(), peer, id());
 		message.hops++;
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
@@ -259,7 +258,7 @@ namespace blockguard {
 		message.reqId = rand() % numberOfNodes;
 		long reqId = message.reqId;
 		message.action = "R";
-		message.roundSubmitted = _counter;
+		message.roundSubmitted = getRound();
 		if (id() == reqId) {
 			requestsSatisfied++;
 			totalHops += message.hops;
@@ -288,7 +287,7 @@ namespace blockguard {
 		Peer<LinearChordMessage>::printTo(out);
 
 		out << id() << std::endl;
-		out << "counter:" << _counter << std::endl;
+		out << "counter:" << getRound() << std::endl;
 
 		return out;
 	}

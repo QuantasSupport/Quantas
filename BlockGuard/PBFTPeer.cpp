@@ -18,15 +18,15 @@ namespace blockguard {
 	}
 
 	PBFTPeer::PBFTPeer(const PBFTPeer& rhs) : Peer<PBFTPeerMessage>(rhs) {
-		_counter = rhs._counter;
+		
 	}
 
 	PBFTPeer::PBFTPeer(long id) : Peer(id) {
-		_counter = 0;
+
 	}
 
 	void PBFTPeer::performComputation() {
-		if (id() == 0 && _counter == 0) {
+		if (id() == 0 && getRound() == 0) {
 			submitTrans(currentTransaction);
 		}
 		if (true)
@@ -35,11 +35,10 @@ namespace blockguard {
 		if (true)
 			checkContents();
 
-		_counter++;
 	}
 
 	void PBFTPeer::endOfRound(const vector<Peer<PBFTPeerMessage>*>& _peers) {
-		if (_counter == 1000) {
+		if (getRound() == 1000) {
 			const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
 			double length = peers[0]->confirmedTrans.size();
 			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"].push_back(latency / length);
@@ -128,7 +127,7 @@ namespace blockguard {
 			if (count > (neighbors().size() * 2 / 3) + 1) {
 				status = "pre-prepare";
 				confirmedTrans.push_back(receivedMessages[sequenceNum][0]);
-				latency += _counter - receivedMessages[sequenceNum][0].roundSubmitted;
+				latency += getRound() - receivedMessages[sequenceNum][0].roundSubmitted;
 				sequenceNum++;
 				if (id() == 0) {
 					submitTrans(currentTransaction);
@@ -144,7 +143,7 @@ namespace blockguard {
 		message.messageType = "trans";
 		message.trans = tranID;
 		message.Id = id();
-		message.roundSubmitted = _counter;
+		message.roundSubmitted = getRound();
 		broadcast(message);
 		transactions.push_back(message);
 		currentTransaction++;
@@ -154,7 +153,7 @@ namespace blockguard {
 		Peer<PBFTPeerMessage>::printTo(out);
 
 		out << id() << endl;
-		out << "counter:" << _counter << endl;
+		out << "counter:" << getRound() << endl;
 
 		return out;
 	}

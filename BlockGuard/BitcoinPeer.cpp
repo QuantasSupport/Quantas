@@ -19,11 +19,11 @@ namespace blockguard {
 	}
 
 	BitcoinPeer::BitcoinPeer(const BitcoinPeer& rhs) : Peer<BitcoinMessage>(rhs) {
-		_counter = rhs._counter;
+		
 	}
 
 	BitcoinPeer::BitcoinPeer(long id) : Peer(id) {
-		_counter = 0;
+		
 	}
 
 	void BitcoinPeer::performComputation() {
@@ -35,9 +35,6 @@ namespace blockguard {
 
 		if (guardMineBlock())
 			mineBlock();
-
-		// increments round number
-		_counter++;
 	}
 
 	void BitcoinPeer::endOfRound(const vector<Peer<BitcoinMessage>*>& _peers) {
@@ -100,7 +97,7 @@ namespace blockguard {
 		BitcoinMessage message;
 		message.mined = false;
 		message.block.trans.id = tranID;
-		message.block.trans.roundSubmitted = _counter;
+		message.block.trans.roundSubmitted = getRound();
 		broadcast(message);
 		currentTransaction++;
 	}
@@ -158,7 +155,7 @@ namespace blockguard {
 		Peer<BitcoinMessage>::printTo(out);
 
 		out << id() << endl;
-		out << "counter:" << _counter << endl;
+		out << "counter:" << getRound() << endl;
 
 		return out;
 	}

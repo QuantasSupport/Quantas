@@ -19,11 +19,11 @@ namespace blockguard {
 	}
 
 	ExamplePeer::ExamplePeer(const ExamplePeer& rhs) : Peer<ExampleMessage>(rhs) {
-		_counter = rhs._counter;
+		
 	}
 
 	ExamplePeer::ExamplePeer(long id) : Peer(id) {
-		_counter = 0;
+		
 	}
 
 	void ExamplePeer::performComputation() {
@@ -32,33 +32,32 @@ namespace blockguard {
 		ExampleMessage message;
 		message.message = "Message: it's me " + std::to_string(id()) + "!";
 		message.aPeerId = id();
-		Packet<ExampleMessage> newMessage(_counter, id(), id());
+		Packet<ExampleMessage> newMessage(getRound(), id(), id());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
 
 		// Send hello to everyone else
-		message.message = "Message: " + std::to_string(_counter) + " Hello From " + std::to_string(id());
-		message.aPeerId = id();
+		message.message = "Message: Hello From " + std::to_string(id()) + ". Sent on round: " + std::to_string(getRound());
+		message.aPeerId = std::to_string(id());
 		broadcast(message);
 
 		while (!inStreamEmpty()) {
 			Packet<ExampleMessage> newMsg = popInStream();
 			cout << endl << id() << " has receved a message from " << newMsg.sourceId() << endl;
-			cout << "  MESSAGE " << newMsg.id() << ":" << newMsg.getMessage().message << newMsg.getMessage().aPeerId << endl;
+			cout << newMsg.getMessage().message << endl;
 		}
 		cout << endl;
-		_counter++;
 	}
 
 	void ExamplePeer::endOfRound(const vector<Peer<ExampleMessage>*>& _peers) {
-		cout << "End of round " << _counter << endl;
+		cout << "End of round " << getRound() << endl;
 	}
 
 	ostream& ExamplePeer::printTo(ostream& out)const {
 		Peer<ExampleMessage>::printTo(out);
 
 		out << id() << endl;
-		out << "counter:" << _counter << endl;
+		out << "counter:" << getRound() << endl;
 
 		return out;
 	}
