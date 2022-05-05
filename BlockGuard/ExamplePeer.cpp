@@ -29,21 +29,21 @@ namespace blockguard {
 	void ExamplePeer::performComputation() {
 		cout << "Peer:" << id() << " performing computation" << endl;
 		// Send message to self
-		ExampleMessage message;
-		message.message = "Message: it's me " + std::to_string(id()) + "!";
-		message.aPeerId = id();
-		Packet<ExampleMessage> newMessage(getRound(), id(), id());
-		newMessage.setMessage(message);
-		pushToOutSteam(newMessage);
+		ExampleMessage msg;
+		msg.message = "Message: it's me " + std::to_string(id()) + "!";
+		msg.aPeerId = std::to_string(id());
+		Packet<ExampleMessage> newMsg(getRound(), id(), id());
+		newMsg.setMessage(msg);
+		pushToOutSteam(newMsg);
 
 		// Send hello to everyone else
-		message.message = "Message: Hello From " + std::to_string(id()) + ". Sent on round: " + std::to_string(getRound());
-		message.aPeerId = std::to_string(id());
-		broadcast(message);
+		msg.message = "Message: Hello From " + std::to_string(id()) + ". Sent on round: " + std::to_string(getRound());
+		msg.aPeerId = std::to_string(id());
+		broadcast(msg);
 
 		while (!inStreamEmpty()) {
 			Packet<ExampleMessage> newMsg = popInStream();
-			cout << endl << id() << " has receved a message from " << newMsg.sourceId() << endl;
+			cout << endl << std::to_string(id()) << " has receved a message from " << newMsg.getMessage().aPeerId << endl;
 			cout << newMsg.getMessage().message << endl;
 		}
 		cout << endl;
