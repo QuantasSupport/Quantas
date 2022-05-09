@@ -3,7 +3,7 @@
 //  BlockGuard
 //
 //  Created by Joseph Oglio on 4/14/22.
-//  Copyright © 2022 Kent State University. All rights reserved.
+//  Copyright ï¿½ 2022 Kent State University. All rights reserved.
 //
 // This class handles reading in a configuration file, setting up log files for the simulation, 
 // initializing the network class, and repeating a simulation according to the configuration file 
@@ -14,6 +14,7 @@
 #define Simulation_hpp
 
 #include "Network.hpp"
+#include "../Logging/LogWritter.hpp"
 
 using std::ofstream;
 

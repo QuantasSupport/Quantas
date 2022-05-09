@@ -7,6 +7,7 @@
 //
 
 #include <iostream>
+#include <limits.h>
 #include "EthereumPeer.hpp"
 
 namespace blockguard {
