@@ -11,15 +11,15 @@ clean:
 	clear
 	clear
 
-build: 
-	clang++ -std=c++14 ./BlockGuard/*.cpp --debug -D_GLIBCXX_DEBUG -o ./BlockGuard.out
+build:
+	clang++ -std=c++14 ./BlockGuard/*.cpp BlockGuard/Logging/LogWritter.cpp --debug -D_GLIBCXX_DEBUG -o ./BlockGuard.out
 
 
 test: AltBitPeer
 	clang++ -std=c++14 ./BlockGuard_Test/*.cpp ./BlockGuard_Test/*.o --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test.out
 
 Logging:
-	clang++ -std=c++14 BlockGuard/Logging/LogWritter.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/LogWritter.o
+	clang++ -std=c++14 BlockGuard/Logging/LogWritter.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard/LogWritter.o
 
 AltBitPeer: 
 	clang++ -std=c++14 BlockGuard/AltBitPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/AltBitPeer.o
