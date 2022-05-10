@@ -139,6 +139,8 @@ namespace blockguard {
 				return fingers[j].Id;
 			}
 		}
+		// route was not found
+		return -1
 	}
 
 	std::ostream& KademliaPeer::printTo(std::ostream& out)const {
