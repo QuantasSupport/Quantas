@@ -1,0 +1,19 @@
+{
+  "experiments": [
+    {
+      "algorithm": "example",
+      "logFile": "scale10000.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 10000,
+        "totalPeers": 10000
+      },
+      "tests": 1,
+      "rounds": 1
+    }
+  ]
+}
