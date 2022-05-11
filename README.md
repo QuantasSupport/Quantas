@@ -5,12 +5,19 @@ This project is a simulator that enables quantitative performance analysis of di
 
 <img src="Documentation/abstract%20sim%20draw.pptx.jpg" alt="System Diagram" style="zoom: 33%;" />
 
-![System diagram](distributed-consensus-abstract-simulator)
+####Dependencies:
+
+Our simulator uses the g++ compiler. If you do not have this installed on the machine run the below command in the command prompt to install the compiler:
+
+```sh
+sudo apt install g++
+```
+
+Alternitavely you can use the Clang option from the makefile to use the clang++ compiler.
 
 #### Basic usage
-
 To use our simulator one must first clone the repository.
-Next you can easily run any of our example algorithms by running:
+Once cloned you can easily run any of our example algorithms by running the below command from the root directory
 
 ```sh
 make prod
