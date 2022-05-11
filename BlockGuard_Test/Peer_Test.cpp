@@ -9,8 +9,8 @@ You should have received a copy of the GNU General Public License along with QUA
 
 #include "Peer_Test.hpp"
 
-using blockguard::Packet;
-using blockguard::LOG_WIDTH;
+using quantas::Packet;
+using quantas::LOG_WIDTH;
 
 
 void TestPeer::makeRequest(){

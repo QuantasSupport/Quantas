@@ -8,11 +8,11 @@ You should have received a copy of the GNU General Public License along with QUA
 */
 #include "NetworkTests.hpp"
 
-using blockguard::LOG_WIDTH;
-using blockguard::Network;
-using blockguard::ExamplePeer;
-using blockguard::ExampleMessage;
-using blockguard::UNIFORM;
+using quantas::LOG_WIDTH;
+using quantas::Network;
+using quantas::ExamplePeer;
+using quantas::ExampleMessage;
+using quantas::UNIFORM;
 
 void runNetworkTests(std::string filepath){
     

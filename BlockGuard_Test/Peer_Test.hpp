@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iomanip>
 #include "./../Blockguard/Common/Peer.hpp"
 
-using blockguard::NetworkInterface;
+using quantas::NetworkInterface;
 
 
 void RunPeerTests    (std::string filepath);
