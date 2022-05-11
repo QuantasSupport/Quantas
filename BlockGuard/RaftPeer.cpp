@@ -95,7 +95,7 @@ namespace blockguard {
 						if (votes.size() > neighbors().size() / 2) {
 							resetTimer();
 							leaderId = id();
-							candidate == -1;
+							candidate = -1;
 							votes.clear();
 							submitTrans(currentTransaction);
 						}
