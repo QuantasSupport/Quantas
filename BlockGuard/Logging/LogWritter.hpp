@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include "../Common/Json.hpp"
 
-namespace blockguard{
+namespace quantas {
 
     using nlohmann::json;
     using std::ostream;

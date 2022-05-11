@@ -9,7 +9,7 @@ You should have received a copy of the GNU General Public License along with QUA
 
 #include "LogWritter.hpp"
 
-namespace blockguard {
+namespace quantas {
 
     LogWritter* LogWritter::onlyInstanceInt_ = nullptr;
 
