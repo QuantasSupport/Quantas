@@ -7,7 +7,7 @@ This project is a simulator that enables quantitative performance analysis of di
 
 #### Dependencies:
 
-Our simulator uses the g++ compiler. If you do not have this installed on the machine run the below command in the command prompt to install the compiler:
+Our simulator uses the g++ compiler. If you do not have this installed on the machine run the below command in the command prompt to install the compiler
 
 ```sh
 sudo apt install g++
@@ -26,3 +26,13 @@ make prod
 ```
 
 Changing ExampleInput.json to any of the available input files.
+
+#### Usage with Visual Studio
+
+To use our simulator with the Visual Studio editor takes additional steps.
+First, you'll need to create an empty solution.
+Next, right click on the solution explorer, in the dropdown menu select add from existing.
+You'll need to add all the .cpp and .hpp files in the quantas folder and Common subfolder.
+
+The final step is selecting the input file for the debugger. 
+To do this select Project->Solution Properties->Debugging  in the Command Arguments field you can select your input file likely having to resolve the filepath. For example: C:\Users\User\Documents\QUANTAS\quantas\ExampleInput.json
