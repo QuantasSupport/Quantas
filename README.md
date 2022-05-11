@@ -7,3 +7,15 @@ This project is a simulator that enables quantitative performance analysis of di
 
 ![System diagram](distributed-consensus-abstract-simulator)
 
+#### Basic usage
+
+To use our simulator one must first clone the repository.
+Next you can easily run any of our example algorithms by running:
+
+```sh
+make prod
+./quantas.out quantas/ExampleInput.json
+
+```
+
+Changing ExampleInput.json to any of the available input files.

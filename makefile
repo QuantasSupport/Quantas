@@ -6,50 +6,50 @@
 # You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 
 clean:
-	rm -f BlockGuard/*.gch
-	rm -f BlockGuard/*.tmp
-	rm -f BlockGuard/*.o
+	rm -f quantas/*.gch
+	rm -f quantas/*.tmp
+	rm -f quantas/*.o
 	rm -f *.out
 	rm -f -r *.dSYM
 	rm -f *.o
-	rm -f BlockGuard_Test/*.gch
-	rm -f BlockGuard_Test/*.tmp
-	rm -f BlockGuard_Test/*.o
+	rm -f quantas_test/*.gch
+	rm -f quantas_test/*.tmp
+	rm -f quantas_test/*.o
 	clear
 	clear
 
 prod:
-	g++ -O2 ./BlockGuard/*.cpp -o ./BlockGuard.out
+	g++ -O2 ./quantas/*.cpp -o ./quantas.out
 
 Clang:
-	clang++ -std=c++14 ./BlockGuard/*.cpp -o ./BlockGuard.out
+	clang++ -std=c++14 ./quantas/*.cpp -o ./quantas.out
 
 debug:
-	g++ ./BlockGuard/*.cpp --debug -D_GLIBCXX_DEBUG -o ./BlockGuard.out
+	g++ ./quantas/*.cpp --debug -D_GLIBCXX_DEBUG -o ./quantas.out
 
 AltBitPeer: 
-	g++ BlockGuard/AltBitPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/AltBitPeer.o
+	g++ quantas/AltBitPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/AltBitPeer.o
 
 BitcoinPeer: 
-	g++ BlockGuard/BitcoinPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/BitcoinPeer.o
+	g++ quantas/BitcoinPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/BitcoinPeer.o
 
 EthereumPeer: 
-	g++ BlockGuard/EthereumPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/EthereumPeer.o
+	g++ quantas/EthereumPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/EthereumPeer.o
 
 ExamplePeer: 
-	g++ BlockGuard/ExamplePeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/ExamplePeer.o
+	g++ quantas/ExamplePeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/ExamplePeer.o
 
 KademliaPeer: 
-	g++ BlockGuard/KademliaPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/KademliaPeer.o
+	g++ quantas/KademliaPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/KademliaPeer.o
 
 LinearChordPeer: 
-	g++ BlockGuard/LinearChordPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/LinearChordPeer.o
+	g++ quantas/LinearChordPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/LinearChordPeer.o
 
 PBFTPeer: 
-	g++ BlockGuard/PBFTPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/PBFTPeer.o
+	g++ quantas/PBFTPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/PBFTPeer.o
 
 RaftPeer: 
-	g++ BlockGuard/RaftPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/RaftPeer.o
+	g++ quantas/RaftPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/RaftPeer.o
 
 StableDataLinkPeer: 
-	g++ BlockGuard/StableDataLinkPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/StableDataLinkPeer.o
+	g++ quantas/StableDataLinkPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/StableDataLinkPeer.o
