@@ -43,11 +43,11 @@ namespace blockguard{
 
     private:
         // initialization is prohibited 
-        LogWritter() {} // private so that it cannot be invoked
+        LogWritter() = default; // private so that it cannot be invoked
 
         // copying prohibited
-        LogWritter(const LogWritter&) {}
-        LogWritter& operator=(const LogWritter&) {}
+        LogWritter(const LogWritter&) = delete;
+        LogWritter& operator=(const LogWritter&) = delete;
 
         // pointer to its instance
         static LogWritter* onlyInstanceInt_;
