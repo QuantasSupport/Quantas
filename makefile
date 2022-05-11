@@ -19,13 +19,13 @@ clean:
 	clear
 
 prod:
-	g++ -O2 ./BlockGuard/*.cpp BlockGuard/Logging/LogWritter.cpp --debug -D_GLIBCXX_DEBUG -o ./BlockGuard.out
+	g++ -O2 ./BlockGuard/*.cpp -o ./BlockGuard.out
+
+Clang:
+	clang++ -std=c++14 ./BlockGuard/*.cpp -o ./BlockGuard.out
 
 debug:
-	g++ ./BlockGuard/*.cpp BlockGuard/Logging/LogWritter.cpp --debug -D_GLIBCXX_DEBUG -o ./BlockGuard.out
-
-Logging:
-	g++ BlockGuard/Logging/LogWritter.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard/LogWritter.o
+	g++ ./BlockGuard/*.cpp --debug -D_GLIBCXX_DEBUG -o ./BlockGuard.out
 
 AltBitPeer: 
 	g++ BlockGuard/AltBitPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/AltBitPeer.o

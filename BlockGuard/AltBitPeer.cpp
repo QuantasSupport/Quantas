@@ -85,7 +85,7 @@ namespace blockguard {
 				messages += peers[i]->messagesSent;
 			}
 
-			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
 		}
 	}
 

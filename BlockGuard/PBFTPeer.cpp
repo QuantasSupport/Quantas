@@ -42,7 +42,7 @@ namespace blockguard {
 		if (getRound() == 1000) {
 			const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
 			double length = peers[0]->confirmedTrans.size();
-			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"].push_back(latency / length);
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["latency"].push_back(latency / length);
 		}
 	}
 

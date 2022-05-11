@@ -28,7 +28,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include <algorithm>
 #include "NetworkInterface.hpp"
-#include "../Logging/LogWritter.hpp"
+#include "LogWriter.hpp"
 
 namespace blockguard{
 

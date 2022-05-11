@@ -163,7 +163,8 @@ namespace blockguard{
         bool                               operator<             (const interfaceId &rhs)const               {return (_id < rhs);};
         bool                               operator>=            (const interfaceId &rhs)const               {return (_id >= rhs);};
         bool                               operator>             (const interfaceId &rhs)const               {return (_id > rhs);};
-        friend ostream&                    operator<<            (ostream&, const NetworkInterface&);
+        template <class messageType>
+        friend ostream&                    operator<<            (ostream&, const NetworkInterface<messageType>&);
     };
 
     template <class message>
