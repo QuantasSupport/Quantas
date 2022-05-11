@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with QUA
 #ifndef Simulation_hpp
 #define Simulation_hpp
 
+#include <chrono>
+
 #include "Network.hpp"
 #include "../Logging/LogWritter.hpp"
 
@@ -59,7 +61,11 @@ namespace blockguard {
 				LogWritter::instance()->setLog(out); // Otherwise set the log file to the user given file
 			}
 		}
-		
+
+		std::chrono::time_point<std::chrono::high_resolution_clock> startTime, endTime; // chrono time points
+   		std::chrono::duration<double> duration; // chrono time interval
+		startTime = std::chrono::high_resolution_clock::now();
+
 		for (int i = 0; i < config["tests"]; i++) {
 			// Configure the delay properties and initial topology of the network
 			system.setDistribution(config["distribution"]);
@@ -74,6 +80,11 @@ namespace blockguard {
 				system.transmit(); // do the transmit phase of the round
 			}
 		}
+		
+		endTime = std::chrono::high_resolution_clock::now();
+   		duration = endTime - startTime;
+		LogWritter::instance()->data["RunTime"] = duration.count();
+
 		LogWritter::instance()->print();
 		out.close();
 	}

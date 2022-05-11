@@ -18,39 +18,38 @@ clean:
 	clear
 	clear
 
-build:
-	clang++ -std=c++14 ./BlockGuard/*.cpp BlockGuard/Logging/LogWritter.cpp --debug -D_GLIBCXX_DEBUG -o ./BlockGuard.out
+prod:
+	g++ -O2 ./BlockGuard/*.cpp BlockGuard/Logging/LogWritter.cpp --debug -D_GLIBCXX_DEBUG -o ./BlockGuard.out
 
-
-test: AltBitPeer
-	clang++ -std=c++14 ./BlockGuard_Test/*.cpp ./BlockGuard_Test/*.o --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test.out
+debug:
+	g++ ./BlockGuard/*.cpp BlockGuard/Logging/LogWritter.cpp --debug -D_GLIBCXX_DEBUG -o ./BlockGuard.out
 
 Logging:
-	clang++ -std=c++14 BlockGuard/Logging/LogWritter.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard/LogWritter.o
+	g++ BlockGuard/Logging/LogWritter.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard/LogWritter.o
 
 AltBitPeer: 
-	clang++ -std=c++14 BlockGuard/AltBitPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/AltBitPeer.o
+	g++ BlockGuard/AltBitPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/AltBitPeer.o
 
 BitcoinPeer: 
-	clang++ -std=c++14 BlockGuard/BitcoinPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/BitcoinPeer.o
+	g++ BlockGuard/BitcoinPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/BitcoinPeer.o
 
 EthereumPeer: 
-	clang++ -std=c++14 BlockGuard/EthereumPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/EthereumPeer.o
+	g++ BlockGuard/EthereumPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/EthereumPeer.o
 
 ExamplePeer: 
-	clang++ -std=c++14 BlockGuard/ExamplePeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/ExamplePeer.o
+	g++ BlockGuard/ExamplePeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/ExamplePeer.o
 
 KademliaPeer: 
-	clang++ -std=c++14 BlockGuard/KademliaPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/KademliaPeer.o
+	g++ BlockGuard/KademliaPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/KademliaPeer.o
 
 LinearChordPeer: 
-	clang++ -std=c++14 BlockGuard/LinearChordPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/LinearChordPeer.o
+	g++ BlockGuard/LinearChordPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/LinearChordPeer.o
 
 PBFTPeer: 
-	clang++ -std=c++14 BlockGuard/PBFTPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/PBFTPeer.o
+	g++ BlockGuard/PBFTPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/PBFTPeer.o
 
 RaftPeer: 
-	clang++ -std=c++14 BlockGuard/RaftPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/RaftPeer.o
+	g++ BlockGuard/RaftPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/RaftPeer.o
 
 StableDataLinkPeer: 
-	clang++ -std=c++14 BlockGuard/StableDataLinkPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/StableDataLinkPeer.o
+	g++ BlockGuard/StableDataLinkPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./BlockGuard_Test/StableDataLinkPeer.o

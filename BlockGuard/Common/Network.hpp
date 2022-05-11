@@ -330,8 +330,8 @@ namespace blockguard{
 
     template<class type_msg, class peer_type>
     void Network<type_msg, peer_type>::endOfRound() {
-        Peer<type_msg>::incrementRound();
         _peers[0]->endOfRound(_peers);
+        Peer<type_msg>::incrementRound();
     }
 
     template<class type_msg, class peer_type>
