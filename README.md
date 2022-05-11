@@ -5,7 +5,7 @@ This project is a simulator that enables quantitative performance analysis of di
 
 <img src="Documentation/abstract%20sim%20draw.pptx.jpg" alt="System Diagram" style="zoom: 33%;" />
 
-####Dependencies:
+#### Dependencies:
 
 Our simulator uses the g++ compiler. If you do not have this installed on the machine run the below command in the command prompt to install the compiler:
 
