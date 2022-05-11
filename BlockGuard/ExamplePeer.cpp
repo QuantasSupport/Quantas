@@ -10,7 +10,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include "ExamplePeer.hpp"
 
-namespace blockguard {
+namespace quantas {
 
 	//
 	// Example Channel definitions

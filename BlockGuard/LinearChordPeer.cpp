@@ -10,7 +10,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include "LinearChordPeer.hpp"
 
-namespace blockguard {
+namespace quantas {
 
 	int LinearChordPeer::currentTransaction = 1;
 	int LinearChordPeer::numberOfNodes = 0;

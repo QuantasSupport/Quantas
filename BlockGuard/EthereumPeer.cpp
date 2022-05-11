@@ -11,7 +11,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <limits.h>
 #include "EthereumPeer.hpp"
 
-namespace blockguard {
+namespace quantas {
 
 	int EthereumPeer::currentTransaction = 1;
 

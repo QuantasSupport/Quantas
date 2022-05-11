@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <deque>
 #include "./Common/Peer.hpp"
 
-namespace blockguard{
+namespace quantas{
 
     struct PBFTPeerMessage {
 

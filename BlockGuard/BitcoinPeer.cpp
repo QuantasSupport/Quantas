@@ -10,7 +10,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include "BitcoinPeer.hpp"
 
-namespace blockguard {
+namespace quantas {
 
 	int BitcoinPeer::currentTransaction = 1;
 

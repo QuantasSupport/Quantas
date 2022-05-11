@@ -27,26 +27,26 @@ You should have received a copy of the GNU General Public License along with QUA
 #include "AltBitPeer.hpp"
 #include "StableDataLinkPeer.hpp"
 
-using blockguard::Simulation;
+using quantas::Simulation;
 using nlohmann::json;
-using blockguard::ExamplePeer;
-using blockguard::ExampleMessage;
-using blockguard::BitcoinPeer;
-using blockguard::BitcoinMessage;
-using blockguard::EthereumPeer;
-using blockguard::EthereumPeerMessage;
-using blockguard::PBFTPeer;
-using blockguard::PBFTPeerMessage;
-using blockguard::RaftPeer;
-using blockguard::RaftPeerMessage;
-using blockguard::LinearChordPeer;
-using blockguard::LinearChordMessage;
-using blockguard::KademliaPeer;
-using blockguard::KademliaMessage;
-using blockguard::AltBitPeer;
-using blockguard::AltBitMessage;
-using blockguard::StableDataLinkPeer;
-using blockguard::StableDataLinkMessage;
+using quantas::ExamplePeer;
+using quantas::ExampleMessage;
+using quantas::BitcoinPeer;
+using quantas::BitcoinMessage;
+using quantas::EthereumPeer;
+using quantas::EthereumPeerMessage;
+using quantas::PBFTPeer;
+using quantas::PBFTPeerMessage;
+using quantas::RaftPeer;
+using quantas::RaftPeerMessage;
+using quantas::LinearChordPeer;
+using quantas::LinearChordMessage;
+using quantas::KademliaPeer;
+using quantas::KademliaMessage;
+using quantas::AltBitPeer;
+using quantas::AltBitMessage;
+using quantas::StableDataLinkPeer;
+using quantas::StableDataLinkMessage;
 
 int main(int argc, const char* argv[]) {
 	
