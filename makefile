@@ -21,6 +21,9 @@ clean:
 prod:
 	g++ -O2 ./quantas/*.cpp -o ./quantas.out
 
+Windows:
+	g++ ./quantas/*.cpp -o quantas
+
 Clang:
 	clang++ -std=c++14 ./quantas/*.cpp -o ./quantas.out
 

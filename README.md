@@ -27,6 +27,13 @@ make prod
 
 Changing ExampleInput.json to any of the available input files.
 
+#### Windows commands
+```sh
+make Windows
+./quantas.exe ./quantas/ExampleInput.json
+
+```
+
 #### Usage with Visual Studio
 
 To use our simulator with the Visual Studio editor takes additional steps.
