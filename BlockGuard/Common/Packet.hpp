@@ -25,7 +25,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <ctime>
 #include <random>
 
-namespace blockguard{
+namespace quantas{
 
     using std::default_random_engine;
     using std::string;

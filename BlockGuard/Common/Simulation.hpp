@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License along with QUA
 
 using std::ofstream;
 
-namespace blockguard {
+namespace quantas {
 	template<class type_msg, class peer_type>
     class Simulation {
     private:
@@ -73,7 +73,7 @@ namespace blockguard {
 			LogWritter::instance()->setTest(i);
 
 			for (int j = 0; j < config["rounds"]; j++) {
-				LogWritter::instance()->setRound(0); // Set the round number for logging
+				LogWritter::instance()->setRound(j); // Set the round number for logging
 				system.receive(); // do the receive phase of the round
 				system.performComputation();  // do the perform computation phase of the round
 				system.endOfRound(); // do any end of round computations

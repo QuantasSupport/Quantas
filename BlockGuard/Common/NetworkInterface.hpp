@@ -63,7 +63,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <algorithm>
 #include "Packet.hpp"
 
-namespace blockguard{
+namespace quantas{
 
     using std::string;
     using std::deque;

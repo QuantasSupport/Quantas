@@ -30,7 +30,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include "NetworkInterface.hpp"
 #include "../Logging/LogWritter.hpp"
 
-namespace blockguard{
+namespace quantas{
 
     using std::string;
     using std::deque;
