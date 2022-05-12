@@ -1,5 +1,5 @@
 # QUANTAS
-A Quantitative User-friendly Adaptive Networksed Things Abstract Simulator.
+A Quantitative User-friendly Adaptive Networked Things Abstract Simulator.
 
 This project is a simulator that enables quantitative performance analysis of distributed algorithms. It has a number of attractive features. QUANTAS is an abstract simulator, therefore, the obtained results are not affected by the specifics of a particular network or operating system architecture. QUANTAS allows distributed algorithms researchers to quickly investigate a potential solution  and collect data about its performance. QUANTAS programming is relatively straightforward and is accessible to theoretical researchers. 
 
@@ -27,6 +27,13 @@ make prod
 
 Changing ExampleInput.json to any of the available input files.
 
+#### MacOS usage
+```sh
+make Clang
+./quantas.out quantas/ExampleInput.json
+
+```
+
 #### Windows commands
 ```sh
 make Windows
@@ -43,3 +50,8 @@ You'll need to add all the .cpp and .hpp files in the quantas folder and Common 
 
 The final step is selecting the input file for the debugger. 
 To do this select Project->Solution Properties->Debugging  in the Command Arguments field you can select your input file likely having to resolve the filepath. For example: C:\Users\User\Documents\QUANTAS\quantas\ExampleInput.json
+
+#### Further description of the simulator
+
+QUANTAS is further described in the paper:
+[QUANTAS: Quantitative User-friendly Adaptable Networked Things Abstract Simulator](https://arxiv.org/abs/2205.04930)
