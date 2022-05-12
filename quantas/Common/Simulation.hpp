@@ -73,11 +73,7 @@ namespace quantas {
 			LogWriter::instance()->setTest(i);
 
 			for (int j = 0; j < config["rounds"]; j++) {
-<<<<<<< HEAD:BlockGuard/Common/Simulation.hpp
-				LogWritter::instance()->setRound(j); // Set the round number for logging
-=======
 				LogWriter::instance()->setRound(j); // Set the round number for logging
->>>>>>> 83cdea62ec0c4c6cb05ef68ed89e907dd6084115:quantas/Common/Simulation.hpp
 				system.receive(); // do the receive phase of the round
 				system.performComputation();  // do the perform computation phase of the round
 				system.endOfRound(); // do any end of round computations
