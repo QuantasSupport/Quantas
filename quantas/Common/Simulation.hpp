@@ -73,7 +73,7 @@ namespace quantas {
 			LogWriter::instance()->setTest(i);
 
 			for (int j = 0; j < config["rounds"]; j++) {
-				LogWriter::instance()->setRound(0); // Set the round number for logging
+				LogWriter::instance()->setRound(j); // Set the round number for logging
 				system.receive(); // do the receive phase of the round
 				system.performComputation();  // do the perform computation phase of the round
 				system.endOfRound(); // do any end of round computations
