@@ -36,7 +36,6 @@ namespace quantas {
 		// addintal method that have defulte implementation from Peer but can be overwritten
 		void                 log()const { printTo(*_log); };
 		ostream& printTo(ostream&)const;
-		friend ostream& operator<<         (ostream&, const AltBitPeer&);
 
 		// the id of the next transaction to submit
 		static int                      currentTransaction;

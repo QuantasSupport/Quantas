@@ -83,8 +83,8 @@ namespace quantas {
 				satisfied += peers[i]->requestsSatisfied;
 				hops += peers[i]->totalHops;
 			}
-			//LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].push_back(satisfied);
-			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["averageHops"].push_back(hops / satisfied);
+			//LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["throughput"].push_back(satisfied);
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["averageHops"].push_back(hops / satisfied);
 		}
 	}
 

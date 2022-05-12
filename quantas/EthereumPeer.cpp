@@ -57,7 +57,7 @@ namespace quantas {
 				index = i;
 			}
 		}
-		LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["throughput"].push_back(length);
+		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["throughput"].push_back(length);
 	}
 
 	void EthereumPeer::checkInStrm() {

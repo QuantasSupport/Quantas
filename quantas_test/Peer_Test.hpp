@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <cassert>
 #include <stdio.h>
 #include <iomanip>
-#include "./../Blockguard/Common/Peer.hpp"
+#include "./../quantas/Common/Peer.hpp"
 
 using quantas::NetworkInterface;
 

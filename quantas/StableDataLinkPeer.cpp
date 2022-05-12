@@ -8,75 +8,79 @@ You should have received a copy of the GNU General Public License along with QUA
 */
 
 #include <iostream>
-#include "AltBitPeer.hpp"
+#include "StableDataLinkPeer.hpp"
 
 namespace quantas {
 
-	int AltBitPeer::currentTransaction = 1;
+	int StableDataLinkPeer::currentTransaction = 1;
 
-	AltBitPeer::~AltBitPeer() {
-
-	}
-
-	AltBitPeer::AltBitPeer(const AltBitPeer& rhs) : Peer<AltBitMessage>(rhs) {
+	StableDataLinkPeer::~StableDataLinkPeer() {
 
 	}
 
-	AltBitPeer::AltBitPeer(long id) : Peer(id) {
-
+	StableDataLinkPeer::StableDataLinkPeer(const StableDataLinkPeer& rhs) : Peer<StableDataLinkMessage>(rhs) {
+		
 	}
 
-	void AltBitPeer::performComputation() {
+	StableDataLinkPeer::StableDataLinkPeer(long id) : Peer(id) {
+		
+	}
+
+	void StableDataLinkPeer::performComputation() {
 		if (alive) {
 			if (getRound() == 0 && id() == 0) {
 				submitTrans(currentTransaction);
 			}
 			if (previousMessageRound + timeOutRate < getRound()) {// resend lost message
 				if (id() == 0) {
-					AltBitMessage message;
+					StableDataLinkMessage message;
 					message.action = "data";
 					message.roundSubmitted = getRound(); // if message lost roundSubmitted isn't accurate
-					message.messageNum = ns;
+					message.messageNum = currentTransaction - 1;
 					previousMessageRound = getRound();
 					sendMessage(1, message);
 				}
 				else {
-					AltBitMessage message;
+					StableDataLinkMessage message;
 					message.action = "ack";
 					message.roundSubmitted = getRound(); // if message lost roundSubmitted isn't accurate
-					message.messageNum = ns;
+					message.messageNum = currentTransaction - 1;
 					previousMessageRound = getRound();
 					sendMessage(0, message);
 				}
 			}
 			while (!inStreamEmpty()) {
-				Packet<AltBitMessage> packet = popInStream();
+				Packet<StableDataLinkMessage> packet = popInStream();
 				long source = packet.sourceId();
-				AltBitMessage message = packet.getMessage();
+				StableDataLinkMessage message = packet.getMessage();
 				if (rand() % messageLossDen < messageLossNum) { // current hack for message loss
 					continue;
 				}
 				if (message.action == "ack") {
-					if (message.messageNum == ns) {
+					ack++;
+					if (ack < 3 * c + 2) {
+						message.action = "data";
 						previousMessageRound = getRound();
-						requestsSatisfied++;
-						ns++;
-						submitTrans(currentTransaction);
+						sendMessage(1, message);
 					}
-
+					else {
+						requestsSatisfied++;
+						previousMessageRound = getRound();
+						submitTrans(currentTransaction);
+						ack = 0;
+					}
 				}
 				else if (message.action == "data") {
-					previousMessageRound = getRound();
-					ns = message.messageNum;
 					message.action = "ack";
+					previousMessageRound = getRound();
 					sendMessage(0, message);
-
 				}
 			}
 		}
 	}
-	void AltBitPeer::endOfRound(const vector<Peer<AltBitMessage>*>& _peers) {
-		const vector<AltBitPeer*> peers = reinterpret_cast<vector<AltBitPeer*> const&>(_peers);
+
+	void StableDataLinkPeer::endOfRound(const vector<Peer<StableDataLinkMessage>*>& _peers) {
+		const vector<StableDataLinkPeer*> peers = reinterpret_cast<vector<StableDataLinkPeer*> const&>(_peers);
 		if (getRound() == 100) {
 			int satisfied = 0;
 			double messages = 0;
@@ -84,29 +88,28 @@ namespace quantas {
 				satisfied += peers[i]->requestsSatisfied;
 				messages += peers[i]->messagesSent;
 			}
-
-			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
 		}
 	}
 
-	void AltBitPeer::sendMessage(long peer, AltBitMessage message) {
-		Packet<AltBitMessage> newMessage(getRound(), peer, id());
+	void StableDataLinkPeer::sendMessage(long peer, StableDataLinkMessage message) {
+		Packet<StableDataLinkMessage> newMessage(getRound(), peer, id());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
 		messagesSent++;
 	}
 
-	void AltBitPeer::submitTrans(int tranID) {
-		AltBitMessage message;
+	void StableDataLinkPeer::submitTrans(int tranID) {
+		StableDataLinkMessage message;
 		message.action = "data";
 		message.roundSubmitted = getRound();
-		message.messageNum = ns;
+		message.messageNum = tranID;
 		sendMessage(1, message);
 		currentTransaction++;
 	}
 
-	std::ostream& AltBitPeer::printTo(std::ostream& out)const {
-		Peer<AltBitMessage>::printTo(out);
+	std::ostream& StableDataLinkPeer::printTo(std::ostream& out)const {
+		Peer<StableDataLinkMessage>::printTo(out);
 
 		out << id() << std::endl;
 		out << "counter:" << getRound() << std::endl;
@@ -114,7 +117,7 @@ namespace quantas {
 		return out;
 	}
 
-	std::ostream& operator<< (std::ostream& out, const AltBitPeer& peer) {
+	std::ostream& operator<< (std::ostream& out, const StableDataLinkPeer& peer) {
 		peer.printTo(out);
 		return out;
 	}

@@ -7,22 +7,25 @@ QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef ByzantineNetwork_Test_hpp
-#define ByzantineNetwork_Test_hpp
+#ifndef NetworkTests_hpp
+#define NetworkTests_hpp
 
-#include <string>
-#include <vector>
+#include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include <cassert>
-#include "../BlockGuard/ExamplePeer.hpp"
-#include "../BlockGuard/Common/ByzantineNetwork.hpp"
+#include "./../quantas/Common/Network.hpp"
+#include "./../quantas/ExamplePeer.hpp"
 
-void RunByzantineNetworkTest    (std::string filepath);
+void runNetworkTests    (std::string filepath);
 
-// Byzantine tests
-void testMakeByzantine          (std::ostream &log); // test making peers correct and Byzantine
-void testByzantineShuffle       (std::ostream &log); // test that shuffling byzantine 
+void testSize           (std::ostream &log); // test default const
+void testIndex          (std::ostream &log); // test access to peers via []
 
 
-#endif /* ByzantineNetwork_Test_hpp */
+void testOneDelay       (std::ostream &log); // test setDelayOne
+void testRandomDelay    (std::ostream &log); // test random distribution
+void testPoissonDelay   (std::ostream &log); // test poisson distribution
+
+
+#endif /* NetworkTests_hpp */

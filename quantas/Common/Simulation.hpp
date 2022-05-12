@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <chrono>
 
 #include "Network.hpp"
-#include "../Logging/LogWritter.hpp"
+#include "LogWriter.hpp"
 
 using std::ofstream;
 
@@ -48,17 +48,17 @@ namespace quantas {
 	void Simulation<type_msg, peer_type>::run(json config) {
 		ofstream out;
 		if (config["logFile"] == "cout") {
-			LogWritter::instance()->setLog(cout); // Set the log file to the console
+			LogWriter::instance()->setLog(cout); // Set the log file to the console
 		}
 		else {
 			string file = config["logFile"];
 			out.open(file);
 			if (out.fail()) {
 				cout << "Error: could not open file " << file << ". Writing to console" << endl;
-				LogWritter::instance()->setLog(cout); // If the file doesn't open set the log file to the console
+				LogWriter::instance()->setLog(cout); // If the file doesn't open set the log file to the console
 			}
 			else {
-				LogWritter::instance()->setLog(out); // Otherwise set the log file to the user given file
+				LogWriter::instance()->setLog(out); // Otherwise set the log file to the user given file
 			}
 		}
 
@@ -70,10 +70,14 @@ namespace quantas {
 			// Configure the delay properties and initial topology of the network
 			system.setDistribution(config["distribution"]);
 			system.initNetwork(config["topology"]);
-			LogWritter::instance()->setTest(i);
+			LogWriter::instance()->setTest(i);
 
 			for (int j = 0; j < config["rounds"]; j++) {
+<<<<<<< HEAD:BlockGuard/Common/Simulation.hpp
 				LogWritter::instance()->setRound(j); // Set the round number for logging
+=======
+				LogWriter::instance()->setRound(j); // Set the round number for logging
+>>>>>>> 83cdea62ec0c4c6cb05ef68ed89e907dd6084115:quantas/Common/Simulation.hpp
 				system.receive(); // do the receive phase of the round
 				system.performComputation();  // do the perform computation phase of the round
 				system.endOfRound(); // do any end of round computations
@@ -83,9 +87,9 @@ namespace quantas {
 		
 		endTime = std::chrono::high_resolution_clock::now();
    		duration = endTime - startTime;
-		LogWritter::instance()->data["RunTime"] = duration.count();
+		LogWriter::instance()->data["RunTime"] = duration.count();
 
-		LogWritter::instance()->print();
+		LogWriter::instance()->print();
 		out.close();
 	}
 }
