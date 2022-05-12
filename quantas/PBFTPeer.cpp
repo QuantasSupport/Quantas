@@ -39,11 +39,9 @@ namespace quantas {
 	}
 
 	void PBFTPeer::endOfRound(const vector<Peer<PBFTPeerMessage>*>& _peers) {
-		if (getRound() == 1000) {
-			const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
-			double length = peers[0]->confirmedTrans.size();
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["latency"].push_back(latency / length);
-		}
+		const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
+		double length = peers[0]->confirmedTrans.size();
+		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["latency"].push_back(latency / length);
 	}
 
 	void PBFTPeer::checkInStrm() {

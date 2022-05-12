@@ -48,16 +48,14 @@ namespace quantas {
 	}
 
 	void RaftPeer::endOfRound(const vector<Peer<RaftPeerMessage>*>& _peers) {
-		if (getRound() == 1000) {
-			const vector<RaftPeer*> peers = reinterpret_cast<vector<RaftPeer*> const&>(_peers);
-			double satisfied = 0;
-			double lat = 0;
-			for (int i = 0; i < peers.size(); i++) {
-				satisfied += peers[i]->requestsSatisfied;
-				lat += peers[i]->latency;
-			}
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["latency"].push_back(lat / satisfied);
+		const vector<RaftPeer*> peers = reinterpret_cast<vector<RaftPeer*> const&>(_peers);
+		double satisfied = 0;
+		double lat = 0;
+		for (int i = 0; i < peers.size(); i++) {
+			satisfied += peers[i]->requestsSatisfied;
+			lat += peers[i]->latency;
 		}
+		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["latency"].push_back(lat / satisfied);
 	}
 
 	void RaftPeer::checkInStrm() {

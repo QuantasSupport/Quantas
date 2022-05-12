@@ -209,16 +209,13 @@ namespace quantas {
 		const vector<LinearChordPeer*> peers = reinterpret_cast<vector<LinearChordPeer*> const&>(_peers);
 		numberOfNodes = peers.size();
 		peers[rand() % numberOfNodes]->submitTrans(currentTransaction);
-		if (getRound() == 1000) {
-			double satisfied = 0;
-			double hops = 0;
-			for (int i = 0; i < peers.size(); i++) {
-				satisfied += peers[i]->requestsSatisfied;
-				hops += peers[i]->totalHops;
-			}
-			//LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["throughput"].push_back(satisfied);
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["averageHops"].push_back(hops / satisfied);
+		double satisfied = 0;
+		double hops = 0;
+		for (int i = 0; i < peers.size(); i++) {
+			satisfied += peers[i]->requestsSatisfied;
+			hops += peers[i]->totalHops;
 		}
+		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["averageHops"].push_back(hops / satisfied);
 	}
 
 	void LinearChordPeer::heartBeat() {

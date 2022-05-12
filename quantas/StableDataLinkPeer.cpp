@@ -53,7 +53,7 @@ namespace quantas {
 				Packet<StableDataLinkMessage> packet = popInStream();
 				long source = packet.sourceId();
 				StableDataLinkMessage message = packet.getMessage();
-				if (rand() % messageLossDen < messageLossNum) { // current hack for message loss
+				if (rand() % messageLossDen < messageLossNum) { // used for message loss
 					continue;
 				}
 				if (message.action == "ack") {
@@ -81,15 +81,13 @@ namespace quantas {
 
 	void StableDataLinkPeer::endOfRound(const vector<Peer<StableDataLinkMessage>*>& _peers) {
 		const vector<StableDataLinkPeer*> peers = reinterpret_cast<vector<StableDataLinkPeer*> const&>(_peers);
-		if (getRound() == 100) {
-			int satisfied = 0;
-			double messages = 0;
-			for (int i = 0; i < peers.size(); i++) {
-				satisfied += peers[i]->requestsSatisfied;
-				messages += peers[i]->messagesSent;
-			}
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
+		int satisfied = 0;
+		double messages = 0;
+		for (int i = 0; i < peers.size(); i++) {
+			satisfied += peers[i]->requestsSatisfied;
+			messages += peers[i]->messagesSent;
 		}
+		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
 	}
 
 	void StableDataLinkPeer::sendMessage(long peer, StableDataLinkMessage message) {

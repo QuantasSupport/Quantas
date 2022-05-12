@@ -53,7 +53,7 @@ namespace quantas {
 				Packet<AltBitMessage> packet = popInStream();
 				long source = packet.sourceId();
 				AltBitMessage message = packet.getMessage();
-				if (rand() % messageLossDen < messageLossNum) { // current hack for message loss
+				if (rand() % messageLossDen < messageLossNum) { // used for message loss
 					continue;
 				}
 				if (message.action == "ack") {
@@ -77,16 +77,14 @@ namespace quantas {
 	}
 	void AltBitPeer::endOfRound(const vector<Peer<AltBitMessage>*>& _peers) {
 		const vector<AltBitPeer*> peers = reinterpret_cast<vector<AltBitPeer*> const&>(_peers);
-		if (getRound() == 100) {
-			int satisfied = 0;
-			double messages = 0;
-			for (int i = 0; i < peers.size(); i++) {
-				satisfied += peers[i]->requestsSatisfied;
-				messages += peers[i]->messagesSent;
-			}
-
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
+		int satisfied = 0;
+		double messages = 0;
+		for (int i = 0; i < peers.size(); i++) {
+			satisfied += peers[i]->requestsSatisfied;
+			messages += peers[i]->messagesSent;
 		}
+
+		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
 	}
 
 	void AltBitPeer::sendMessage(long peer, AltBitMessage message) {
