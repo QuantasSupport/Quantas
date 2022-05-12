@@ -12,8 +12,8 @@ You should have received a copy of the GNU General Public License along with QUA
 
 #include "Network.hpp"
 
-using blockguard::Network;
-using blockguard::LOG_WIDTH;
+using quantas::Network;
+using quantas::LOG_WIDTH;
 
 template<class type_msg, class peer_type>
 class ByzantineNetwork : public  Network<type_msg,peer_type>{

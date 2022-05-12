@@ -5,5 +5,41 @@ This project is a simulator that enables quantitative performance analysis of di
 
 <img src="Documentation/abstract%20sim%20draw.pptx.jpg" alt="System Diagram" style="zoom: 33%;" />
 
-![System diagram](distributed-consensus-abstract-simulator)
+#### Dependencies:
 
+Our simulator uses the g++ compiler. If you do not have this installed on the machine run the below command in the command prompt to install the compiler
+
+```sh
+sudo apt install g++
+```
+
+Alternitavely you can use the Clang option from the makefile to use the clang++ compiler.
+
+#### Basic usage
+To use our simulator one must first clone the repository.
+Once cloned you can easily run any of our example algorithms by running the below command from the root directory
+
+```sh
+make prod
+./quantas.out quantas/ExampleInput.json
+
+```
+
+Changing ExampleInput.json to any of the available input files.
+
+#### Windows commands
+```sh
+make Windows
+./quantas.exe ./quantas/ExampleInput.json
+
+```
+
+#### Usage with Visual Studio
+
+To use our simulator with the Visual Studio editor takes additional steps.
+First, you'll need to create an empty solution.
+Next, right click on the solution explorer, in the dropdown menu select add from existing.
+You'll need to add all the .cpp and .hpp files in the quantas folder and Common subfolder.
+
+The final step is selecting the input file for the debugger. 
+To do this select Project->Solution Properties->Debugging  in the Command Arguments field you can select your input file likely having to resolve the filepath. For example: C:\Users\User\Documents\QUANTAS\quantas\ExampleInput.json

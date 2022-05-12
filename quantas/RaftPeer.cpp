@@ -56,7 +56,7 @@ namespace quantas {
 				satisfied += peers[i]->requestsSatisfied;
 				lat += peers[i]->latency;
 			}
-			LogWritter::instance()->data["tests"][LogWritter::instance()->getTest()]["latency"].push_back(lat / satisfied);
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["latency"].push_back(lat / satisfied);
 		}
 	}
 
