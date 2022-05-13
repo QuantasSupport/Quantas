@@ -19,16 +19,16 @@ clean:
 	clear
 
 prod:
-	g++ -O2 ./quantas/*.cpp -o ./quantas.out
+	g++ -O2 -pthread ./quantas/*.cpp -o ./quantas.out
 
 Windows:
-	g++ ./quantas/*.cpp -std=c++11 -o quantas
+	g++ -pthread ./quantas/*.cpp -std=c++11 -o quantas
 
 Clang:
-	clang++ -std=c++14 ./quantas/*.cpp -o ./quantas.out
+	clang++ -std=c++14 -pthread ./quantas/*.cpp -o ./quantas.out
 
 debug:
-	g++ ./quantas/*.cpp --debug -D_GLIBCXX_DEBUG -o ./quantas.out
+	g++ ./quantas/*.cpp -pthread --debug -D_GLIBCXX_DEBUG -o ./quantas.out
 
 AltBitPeer: 
 	g++ quantas/AltBitPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/AltBitPeer.o
