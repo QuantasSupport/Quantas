@@ -18,8 +18,184 @@
     },
     {
       "algorithm": "Kademlia",
+      "logFile": "Kademlia2Thread.txt",
+      "threadCount": 2,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
+      "logFile": "Kademlia3Thread.txt",
+      "threadCount": 3,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
       "logFile": "Kademlia4Thread.txt",
       "threadCount": 4,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
+      "logFile": "Kademlia5Thread.txt",
+      "threadCount": 5,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
+      "logFile": "Kademlia6Thread.txt",
+      "threadCount": 6,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
+      "logFile": "Kademlia7Thread.txt",
+      "threadCount": 7,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
+      "logFile": "Kademlia8Thread.txt",
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
+      "logFile": "Kademlia9Thread.txt",
+      "threadCount": 9,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
+      "logFile": "Kademlia10Thread.txt",
+      "threadCount": 10,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
+      "logFile": "Kademlia15Thread.txt",
+      "threadCount": 15,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
+      "logFile": "Kademlia20Thread.txt",
+      "threadCount": 20,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 500,
+        "totalPeers": 500
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Kademlia",
+      "logFile": "Kademlia30Thread.txt",
+      "threadCount": 30,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
