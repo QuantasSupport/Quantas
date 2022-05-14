@@ -16,11 +16,13 @@ You should have received a copy of the GNU General Public License along with QUA
 #define Simulation_hpp
 
 #include <chrono>
+#include <thread>
 
 #include "Network.hpp"
 #include "LogWriter.hpp"
 
 using std::ofstream;
+using std::thread;
 
 namespace quantas {
 	template<class type_msg, class peer_type>
@@ -28,7 +30,6 @@ namespace quantas {
     private:
         Network<type_msg, peer_type> 		system;
         ostream                             *_log;
-
     public:
         // Name of log file, will have Test number appended
         void 				run			(json);
@@ -66,18 +67,61 @@ namespace quantas {
    		std::chrono::duration<double> duration; // chrono time interval
 		startTime = std::chrono::high_resolution_clock::now();
 
+		int _threadCount = 1;
+		if (config.contains("threadCount") && config["threadCount"] > 0) {
+			system.setThreadCount(config["threadCount"]);
+			_threadCount = config["threadCount"];
+		}
+		vector<thread> threads(_threadCount);
 		for (int i = 0; i < config["tests"]; i++) {
 			// Configure the delay properties and initial topology of the network
 			system.setDistribution(config["distribution"]);
 			system.initNetwork(config["topology"]);
+			
 			LogWriter::instance()->setTest(i);
-
+			
+        	int grainSize = system.size() / _threadCount;
 			for (int j = 0; j < config["rounds"]; j++) {
 				LogWriter::instance()->setRound(j); // Set the round number for logging
-				system.receive(); // do the receive phase of the round
-				system.performComputation();  // do the perform computation phase of the round
+
+				// do the receive phase of the round
+        		int work_pos = 0;
+				for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
+					*it = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, work_pos + grainSize);
+					work_pos += grainSize;
+				}
+				threads.back() = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, work_pos + grainSize);
+
+				for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
+					it->join();
+				}
+
+				// do the perform computation phase of the round
+				work_pos = 0;
+				for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
+					*it = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, work_pos + grainSize);
+					work_pos += grainSize;
+				}
+				threads.back() = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, work_pos + grainSize);
+
+				for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
+					it->join();
+				}
+
 				system.endOfRound(); // do any end of round computations
-				system.transmit(); // do the transmit phase of the round
+
+				// do the transmit phase of the round
+				work_pos = 0;
+				for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
+					*it = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, work_pos + grainSize);
+					work_pos += grainSize;
+				}
+				threads.back() = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, work_pos + grainSize);
+
+				for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
+					it->join();
+				}
+
 			}
 		}
 		
@@ -88,6 +132,8 @@ namespace quantas {
 		LogWriter::instance()->print();
 		out.close();
 	}
+
+	
 }
 
 #endif /* Simulation_hpp */

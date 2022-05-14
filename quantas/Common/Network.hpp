@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <chrono>
 #include <ctime>
 #include <memory>
+#include <thread>
 #include "./../Common/Peer.hpp"
 #include "Distribution.hpp"
 
@@ -38,6 +39,7 @@ namespace quantas{
     using std::endl;
     using std::left;
     using std::setw;
+    using std::thread;
     using nlohmann::json;
 
     template<class type_msg, class peer_type>
@@ -47,6 +49,7 @@ namespace quantas{
         vector<Peer<type_msg>*>             _peers;
         Distribution                        _distribution;
         ostream                             *_log;
+        int                                 _threadCount;
 
         void                                addEdges            (Peer<type_msg>*);
         peer_type*							getPeerById			(string);
@@ -67,6 +70,7 @@ namespace quantas{
         void                                userList            (json);
         void                                setDistribution     (json distribution)                             { _distribution.setDistribution(distribution); }
         void                                setLog              (ostream&);
+        void                                setThreadCount      (int threadCount)                               {_threadCount = threadCount;}
         ostream*                            getLog              ()const                                         { return _log; }
 
         // getters
@@ -78,10 +82,10 @@ namespace quantas{
 
 
         //mutators
-        void                                receive             ();
-        void                                performComputation  ();
+        void                                receive             (int begin, int end);
+        void                                performComputation  (int begin, int end);
         void                                endOfRound          ();
-        void                                transmit            ();
+        void                                transmit            (int begin, int end);
         void                                makeRequest         (int i)                                         {_peers[i]->makeRequest();};
         void                                incrementRound();
         void                                initializeRound();
@@ -315,15 +319,15 @@ namespace quantas{
     }
 
     template<class type_msg, class peer_type>
-    void Network<type_msg,peer_type>::receive(){
-        for(int i = 0; i < _peers.size(); i++){
-            _peers[i]->receive();
-        }
+    void Network<type_msg,peer_type>::receive(int begin, int end){
+        for (int i = begin; i < end; i++) {
+		    _peers[i]->receive();
+	    }
     }
 
     template<class type_msg, class peer_type>
-    void Network<type_msg,peer_type>::performComputation(){
-        for(int i = 0; i < _peers.size(); i++){
+    void Network<type_msg,peer_type>::performComputation(int begin, int end){
+        for (int i = begin; i < end; i++) {
             _peers[i]->performComputation();
         }
     }
@@ -335,8 +339,8 @@ namespace quantas{
     }
 
     template<class type_msg, class peer_type>
-    void Network<type_msg,peer_type>::transmit(){
-        for(int i = 0; i < _peers.size(); i++){
+    void Network<type_msg,peer_type>::transmit(int begin, int end){
+        for (int i = begin; i < end; i++) {
             _peers[i]->transmit();
         }
     }
