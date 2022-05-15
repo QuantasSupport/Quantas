@@ -3,6 +3,7 @@
     {
       "algorithm": "Kademlia",
       "logFile": "KademliaScale100.txt",
+      "threadCount": 12,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -18,6 +19,7 @@
     {
       "algorithm": "Kademlia",
       "logFile": "KademliaScale500.txt",
+      "threadCount": 12,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -33,6 +35,7 @@
     {
       "algorithm": "Kademlia",
       "logFile": "KademliaScale1000.txt",
+      "threadCount": 12,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -46,8 +49,25 @@
       "rounds": 1000
     },
     {
+      "algorithm": "Kademlia",
+      "logFile": "KademliaScale10000.txt",
+      "threadCount": 12,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 10000,
+        "totalPeers": 10000
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
       "algorithm": "LinearChord",
       "logFile": "LinearChord100.txt",
+      "threadCount": 12,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -63,6 +83,7 @@
     {
       "algorithm": "LinearChord",
       "logFile": "LinearChord500.txt",
+      "threadCount": 12,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -78,6 +99,7 @@
     {
       "algorithm": "LinearChord",
       "logFile": "ChordScale1000.txt",
+      "threadCount": 12,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -86,6 +108,22 @@
         "type": "ring",
         "initialPeers": 1000,
         "totalPeers": 1000
+      },
+      "tests": 10,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "LinearChord",
+      "logFile": "ChordScale10000.txt",
+      "threadCount": 12,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "ring",
+        "initialPeers": 10000,
+        "totalPeers": 10000
       },
       "tests": 10,
       "rounds": 1000

@@ -46,9 +46,9 @@ namespace quantas {
 		friend ostream& operator<<         (ostream&, const KademliaPeer&);
 
 		// the id of the next transaction to submit
-		static int                      currentTransaction;
-		// size of binary ids (must be greater than network size)
-		const static int				binaryIdSize = 10;
+		static int currentTransaction;
+		// size of binary ids
+		int	binaryIdSize;
 		// list of nodes list of nodes in different trees than current node
 		vector<KademliaFinger> fingers;
 		// number of requests satisfied

@@ -8,6 +8,7 @@ You should have received a copy of the GNU General Public License along with QUA
 */
 
 #include <iostream>
+#include <cmath>
 #include "KademliaPeer.hpp"
 
 namespace quantas {
@@ -30,6 +31,7 @@ namespace quantas {
 		if (alive) {
 
 			if (getRound() == 0 && fingers.size() == 0) {
+				binaryIdSize = std::ceil(std::ddlog2(neighbors().size()));
 				binaryId = getBinaryId(id());
 				vector<vector<KademliaFinger>> groupedNeighbors(binaryIdSize);
 				for (int i = 0; i < neighbors().size(); i++) {
