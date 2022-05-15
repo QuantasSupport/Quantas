@@ -67,7 +67,7 @@ namespace quantas {
    		std::chrono::duration<double> duration; // chrono time interval
 		startTime = std::chrono::high_resolution_clock::now();
 
-		int _threadCount = 1;
+		int _threadCount = thread::hardware_concurrency(); // By default, use as many hardware cores as possible
 		if (config.contains("threadCount") && config["threadCount"] > 0) {
 			system.setThreadCount(config["threadCount"]);
 			_threadCount = config["threadCount"];

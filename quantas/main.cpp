@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include "KademliaPeer.hpp"
 #include "AltBitPeer.hpp"
 #include "StableDataLinkPeer.hpp"
+#include "ChangRobertsPeer.hpp"
 
 using quantas::Simulation;
 using nlohmann::json;
@@ -47,6 +48,8 @@ using quantas::AltBitPeer;
 using quantas::AltBitMessage;
 using quantas::StableDataLinkPeer;
 using quantas::StableDataLinkMessage;
+using quantas::ChangRobertsPeer;
+using quantas::ChangRobertsMessage;
 
 int main(int argc, const char* argv[]) {
 	
@@ -104,6 +107,10 @@ int main(int argc, const char* argv[]) {
 		}
 		else if (algorithm == "StableDataLink") {
 			Simulation<StableDataLinkMessage, StableDataLinkPeer> sim;
+			sim.run(input);
+		}
+		else if (algorithm == "changroberts") {
+			Simulation<ChangRobertsMessage, ChangRobertsPeer> sim;
 			sim.run(input);
 		}
 		else {
