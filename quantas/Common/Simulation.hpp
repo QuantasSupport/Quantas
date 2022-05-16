@@ -69,9 +69,12 @@ namespace quantas {
 
 		int _threadCount = thread::hardware_concurrency(); // By default, use as many hardware cores as possible
 		if (config.contains("threadCount") && config["threadCount"] > 0) {
-			system.setThreadCount(config["threadCount"]);
 			_threadCount = config["threadCount"];
 		}
+		if (_threadCount > config["topology"]["totalPeers"]) {
+			_threadCount = config["topology"]["totalPeers"];
+		}
+		int grainSize = static_cast<int>(config["topology"]["totalPeers"]) / _threadCount;
 		vector<thread> threads(_threadCount);
 		for (int i = 0; i < config["tests"]; i++) {
 			// Configure the delay properties and initial topology of the network
@@ -80,7 +83,6 @@ namespace quantas {
 			
 			LogWriter::instance()->setTest(i);
 			
-        	int grainSize = system.size() / _threadCount;
 			for (int j = 0; j < config["rounds"]; j++) {
 				LogWriter::instance()->setRound(j); // Set the round number for logging
 

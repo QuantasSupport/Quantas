@@ -49,7 +49,6 @@ namespace quantas{
         vector<Peer<type_msg>*>             _peers;
         Distribution                        _distribution;
         ostream                             *_log;
-        int                                 _threadCount;
 
         void                                addEdges            (Peer<type_msg>*);
         peer_type*							getPeerById			(string);
@@ -70,7 +69,6 @@ namespace quantas{
         void                                userList            (json);
         void                                setDistribution     (json distribution)                             { _distribution.setDistribution(distribution); }
         void                                setLog              (ostream&);
-        void                                setThreadCount      (int threadCount)                               {_threadCount = threadCount;}
         ostream*                            getLog              ()const                                         { return _log; }
 
         // getters
