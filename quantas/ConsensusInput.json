@@ -3,6 +3,7 @@
     {
       "algorithm": "Raft",
       "logFile": "RaftDelay1.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -18,6 +19,7 @@
     {
       "algorithm": "Raft",
       "logFile": "RaftDelay10.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 10
@@ -33,6 +35,7 @@
     {
       "algorithm": "Raft",
       "logFile": "RaftDelay20.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 20
@@ -48,6 +51,7 @@
     {
       "algorithm": "Raft",
       "logFile": "RaftDelay30.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 30
@@ -63,6 +67,7 @@
     {
       "algorithm": "Raft",
       "logFile": "RaftDelay40.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 40
@@ -78,6 +83,7 @@
     {
       "algorithm": "Raft",
       "logFile": "RaftDelay50.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 50
@@ -93,6 +99,7 @@
     {
       "algorithm": "PBFT",
       "logFile": "PBFTDelay1.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -108,6 +115,7 @@
     {
       "algorithm": "PBFT",
       "logFile": "PBFTDelay10.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 10
@@ -123,6 +131,7 @@
     {
       "algorithm": "PBFT",
       "logFile": "PBFTDelay20.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 20
@@ -138,6 +147,7 @@
     {
       "algorithm": "PBFT",
       "logFile": "PBFTDelay30.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 30
@@ -153,6 +163,7 @@
     {
       "algorithm": "PBFT",
       "logFile": "PBFTDelay40.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 40
@@ -168,6 +179,7 @@
     {
       "algorithm": "PBFT",
       "logFile": "PBFTDelay50.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 50

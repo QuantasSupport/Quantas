@@ -77,11 +77,15 @@ namespace quantas {
 		int grainSize = static_cast<int>(config["topology"]["totalPeers"]) / _threadCount;
 		vector<thread> threads(_threadCount);
 		for (int i = 0; i < config["tests"]; i++) {
+			LogWriter::instance()->setTest(i);
+
 			// Configure the delay properties and initial topology of the network
 			system.setDistribution(config["distribution"]);
 			system.initNetwork(config["topology"]);
+			if (config.contains("parameters")) {
+				system.initParameters(config["parameters"]);
+			}
 			
-			LogWriter::instance()->setTest(i);
 			
 			for (int j = 0; j < config["rounds"]; j++) {
 				LogWriter::instance()->setRound(j); // Set the round number for logging

@@ -105,7 +105,7 @@ namespace quantas {
 					count++;
 				}
 			}
-			if (count > (neighbors().size() * 2 / 3) + 1) {
+			if (count > (neighbors().size() * 2 / 3)) {
 				status = "commit";
 				PBFTPeerMessage newMsg = receivedMessages[sequenceNum][0];
 				newMsg.messageType = "commit";
@@ -123,7 +123,7 @@ namespace quantas {
 					count++;
 				}
 			}
-			if (count > (neighbors().size() * 2 / 3) + 1) {
+			if (count > (neighbors().size() * 2 / 3)) {
 				status = "pre-prepare";
 				confirmedTrans.push_back(receivedMessages[sequenceNum][0]);
 				latency += getRound() - receivedMessages[sequenceNum][0].roundSubmitted;

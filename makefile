@@ -56,3 +56,6 @@ RaftPeer:
 
 StableDataLinkPeer: 
 	g++ quantas/StableDataLinkPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/StableDataLinkPeer.o
+
+SmartShardsPeer: 
+	g++ quantas/SmartShardsPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/SmartShardsPeer.o

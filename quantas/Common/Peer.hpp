@@ -46,14 +46,16 @@ namespace quantas{
     template <class message>
     class Peer : public NetworkInterface<message>{
     public:
-        Peer                                                     ();
-        Peer                                                     (long);
-        Peer                                                     (const Peer &);
-        virtual ~Peer                                            ()=0;
+        Peer                                                    ();
+        Peer                                                    (long);
+        Peer                                                    (const Peer &);
+        virtual ~Peer                                           ()=0;
+        // initialize any user defined parameters
+        virtual void                       initParameters       (const vector<Peer<message>*>& _peers, json parameters) {};
         // perform one step of the Algorithm with the messages in inStream
-        virtual void                       performComputation    ()=0;
+        virtual void                       performComputation   ()=0;
         // ran once per round, used to submit transactions or collect metrics
-        virtual void                       endOfRound           (const vector<Peer<message>*>& _peers) = 0;
+        virtual void                       endOfRound           (const vector<Peer<message>*>& _peers) {};
         static int                         getRound()           { return _round; };
         static void                        initializeRound()    { _round = 0; };
         static void                        incrementRound()     { _round++; };

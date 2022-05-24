@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include "BitcoinPeer.hpp"
 #include "EthereumPeer.hpp"
 #include "PBFTPeer.hpp"
+#include "SmartShardsPeer.hpp"
 #include "LinearChordPeer.hpp"
 #include "RaftPeer.hpp"
 #include "KademliaPeer.hpp"
@@ -50,6 +51,8 @@ using quantas::StableDataLinkPeer;
 using quantas::StableDataLinkMessage;
 using quantas::ChangRobertsPeer;
 using quantas::ChangRobertsMessage;
+using quantas::SmartShardsPeer;
+using quantas::SmartShardsMessage;
 
 int main(int argc, const char* argv[]) {
 	
@@ -111,6 +114,10 @@ int main(int argc, const char* argv[]) {
 		}
 		else if (algorithm == "changroberts") {
 			Simulation<ChangRobertsMessage, ChangRobertsPeer> sim;
+			sim.run(input);
+		}
+		else if (algorithm == "SmartShards") {
+			Simulation<SmartShardsMessage, SmartShardsPeer> sim;
 			sim.run(input);
 		}
 		else {

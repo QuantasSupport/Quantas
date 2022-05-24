@@ -3,6 +3,7 @@
     {
       "algorithm": "Raft",
       "logFile": "RaftDelay1.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -18,6 +19,7 @@
     {
       "algorithm": "Raft",
       "logFile": "RaftDelay5.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 5
@@ -33,6 +35,7 @@
     {
       "algorithm": "Raft",
       "logFile": "RaftDelay10.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 10

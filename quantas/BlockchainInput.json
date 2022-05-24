@@ -3,6 +3,7 @@
     {
       "algorithm": "bitcoin",
       "logFile": "bitCoinDelay1.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -18,6 +19,7 @@
     {
       "algorithm": "bitcoin",
       "logFile": "bitCoinDelay5.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 5
@@ -33,6 +35,7 @@
     {
       "algorithm": "bitcoin",
       "logFile": "bitCoinDelay10.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 10
@@ -48,6 +51,7 @@
     {
       "algorithm": "Ethereum",
       "logFile": "EthereumDelay1.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -63,6 +67,7 @@
     {
       "algorithm": "Ethereum",
       "logFile": "EthereumDelay5.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 5
@@ -78,6 +83,7 @@
     {
       "algorithm": "Ethereum",
       "logFile": "EthereumDelay10.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 10

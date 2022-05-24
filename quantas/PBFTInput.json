@@ -3,6 +3,7 @@
     {
       "algorithm": "PBFT",
       "logFile": "PBFTDelay1.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -18,6 +19,7 @@
     {
       "algorithm": "PBFT",
       "logFile": "PBFTDelay5.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 5
@@ -33,6 +35,7 @@
     {
       "algorithm": "PBFT",
       "logFile": "PBFTDelay10.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 10
