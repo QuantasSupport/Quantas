@@ -32,69 +32,47 @@ using nlohmann::json;
 
 #ifdef EXAMPLE_PEER
 #include "ExamplePeer.hpp"
-using quantas::ExamplePeer;
-using quantas::ExampleMessage;
 #endif
 
 #ifdef BITCOIN_PEER
 #include "BitcoinPeer.hpp"
-using quantas::BitcoinPeer;
-using quantas::BitcoinMessage;
 #endif
 
 #ifdef ETHEREUM_PEER
 #include "EthereumPeer.hpp"
-using quantas::EthereumPeer;
-using quantas::EthereumPeerMessage;
 #endif
 
 #ifdef PBFT_PEER
 #include "PBFTPeer.hpp"
-using quantas::PBFTPeer;
-using quantas::PBFTPeerMessage;
 #endif
 
 #ifdef RAFT_PEER
 #include "RaftPeer.hpp"
-using quantas::RaftPeer;
-using quantas::RaftPeerMessage;
 #endif
 
 #ifdef SMARTSHARDS_PEER
 #include "SmartShardsPeer.hpp"
-using quantas::SmartShardsPeer;
-using quantas::SmartShardsMessage;
 #endif
 
 #ifdef LINEARCHORD_PEER
 #include "LinearChordPeer.hpp"
-using quantas::LinearChordPeer;
-using quantas::LinearChordMessage;
 #endif
 
 #ifdef KADEMLIA_PEER
 #include "KademliaPeer.hpp"
-using quantas::KademliaPeer;
-using quantas::KademliaMessage;
 #endif
 
 #ifdef ALTBIT_PEER
 #include "AltBitPeer.hpp"
-using quantas::AltBitPeer;
-using quantas::AltBitMessage;
 #endif
 
 #ifdef STABLEDATALINK_PEER
 #include "StableDataLinkPeer.hpp"
-using quantas::StableDataLinkPeer;
-using quantas::StableDataLinkMessage;
 #endif
 
 
 #ifdef CHANGROBERTS_PEER
 #include "ChangRobertsPeer.hpp"
-using quantas::ChangRobertsPeer;
-using quantas::ChangRobertsMessage;
 #endif
 
 
@@ -120,31 +98,30 @@ int main(int argc, const char* argv[]) {
       json input = config["experiments"][i];
 
 #ifdef EXAMPLE_PEER
-	 Simulation<ExampleMessage, ExamplePeer> sim;
+	Simulation<quantas::ExampleMessage, quantas::ExamplePeer> sim;
 #elif BITCOIN_PEER
-	 Simulation<BitcoinMessage, BitcoinPeer> sim;
+	 Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer> sim;
 #elif ETHEREUM_PEER
-         Simulation<EthereumPeerMessage, EthereumPeer> sim;
+   Simulation<quantas::EthereumPeerMessage, quantas::EthereumPeer> sim;
 #elif PBFT_PEER
-	 Simulation<PBFTPeerMessage, PBFTPeer> sim;
+	Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer> sim;
 #elif RAFT_PEER
-	 Simulation<RaftPeerMessage, RaftPeer> sim;
+	Simulation<quantas::RaftPeerMessage, quantas::RaftPeer> sim;
 #elif SMARTSHARDS_PEER
-	 Simulation<SmartShardsMessage, SmartShardsPeer> sim;
+	Simulation<quantas::SmartShardsMessage, quantas::SmartShardsPeer> sim;
 #elif LINEARCHORD_PEER
-	 Simulation<LinearChordMessage, LinearChordPeer> sim;
+	Simulation<quantas::LinearChordMessage, quantas::LinearChordPeer> sim;
 #elif KADEMLIA_PEER
-	 Simulation<KademliaMessage, KademliaPeer> sim;
+	Simulation<quantas::KademliaMessage, quantas::KademliaPeer> sim;
 #elif ALTBIT_PEER
-	 Simulation<AltBitMessage, AltBitPeer> sim;
+	Simulation<quantas::AltBitMessage, quantas::AltBitPeer> sim;
 #elif STABLEDATALINK_PEER
-	 Simulation<StableDataLinkMessage, StableDataLinkPeer> sim;	 
+	Simulation<quantas::StableDataLinkMessage, quantas::StableDataLinkPeer> sim;	 
 #elif CHANGROBERTS_PEER
-	 Simulation<ChangRobertsMessage, ChangRobertsPeer> sim;
+	Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer> sim;
 #endif
-	 sim.run(input);
+	   sim.run(input);
    }
 
    return 0;
 }
-

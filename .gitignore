@@ -10,6 +10,8 @@
 *.plist
 *.dSYM
 *.o
+*.d
+*.exe
 /.vs
 .vs/
 *.sln

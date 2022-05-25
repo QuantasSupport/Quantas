@@ -19,8 +19,8 @@ PROJECT_DIR := quantas
 #
 INPUTFILE := $(PROJECT_DIR)/ExampleInput.json
 
-# ALG := EXAMPLE_PEER
-# ALGFILE := ExamplePeer
+ALG := EXAMPLE_PEER
+ALGFILE := ExamplePeer
 
 # ALG := BITCOIN_PEER
 # ALGFILE := BitcoinPeer
@@ -49,8 +49,8 @@ INPUTFILE := $(PROJECT_DIR)/ExampleInput.json
 # ALG := STABLEDATALINK_PEER
 # ALGFILE := StableDataLinkPeer
 
-ALG := CHANGROBERTS_PEER
-ALGFILE := ChangRobertsPeer
+# ALG := CHANGROBERTS_PEER
+# ALGFILE := ChangRobertsPeer
 ####### end algorithm configuration
 
 
