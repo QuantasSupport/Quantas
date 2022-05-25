@@ -1,61 +1,103 @@
 # Copyright 2022
 
-# This file is part of QUANTAS.
-# QUANTAS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-# QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
+# This file is part of QUANTAS.  QUANTAS is free software: you can
+# redistribute it and/or modify it under the terms of the GNU General
+# Public License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
+# QUANTAS is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.  You should have received a
+# copy of the GNU General Public License along with QUANTAS. If not,
+# see <https://www.gnu.org/licenses/>.
+
+PROJECT_DIR := quantas
+
+################
+#
+#  configure this for the specific algorithm and input file
+#
+INPUTFILE := $(PROJECT_DIR)/ExampleInput.json
+
+# ALG := EXAMPLE_PEER
+# ALGFILE := ExamplePeer
+
+# ALG := BITCOIN_PEER
+# ALGFILE := BitcoinPeer
+
+# ALG := ETHEREUM_PEER
+# ALGFILE := EthereumPeer
+
+# ALG := PBFT_PEER
+# ALGFILE := PBFTPeer
+
+# ALG := RAFT_PEER
+# ALGFILE := RaftPeer
+
+# ALG := SMARTSHARDS_PEER
+# ALGFILE := SmartShardsPeer
+
+# ALG := LINEARCHORD_PEER
+# ALGFILE := LinearChordPeer
+
+# ALG := KADEMLIA_PEER
+# ALGFILE := KademliaPeer
+
+# ALG := ALTBIT_PEER
+# ALGFILE := AltBitPeer
+
+# ALG := STABLEDATALINK_PEER
+# ALGFILE := StableDataLinkPeer
+
+ALG := CHANGROBERTS_PEER
+ALGFILE := ChangRobertsPeer
+####### end algorithm configuration
+
+
+CPPFLAGS := -Iinclude -MMD -MP
+CXXFLAGS = -pthread  -D$(ALG)
+CXX := g++
+
+EXE := quantas.exe
+OBJS := $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE).o
+
+
+# extra debug and release flags
+release:  CXXFLAGS += -O2 -s 
+debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG
+
+clang: CXX := clang++
+clang: CXXFLAGS += -std=c++14
+
+.PHONY: all clean run release debug
+
+all: debug
+
+release: $(EXE)
+debug: $(EXE)
+clang: $(EXE)
+
+$(EXE): $(OBJS)
+	$(CXX) $(CXXFLAGS) $^ -o $(EXE)
+
+$(PROJECT_DIR)/%.o: $(PROJECT_DIR)/%.c
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+run: all
+	./$(EXE) $(INPUTFILE)
 
 clean:
-	rm -f quantas/*.gch
-	rm -f quantas/*.tmp
-	rm -f quantas/*.o
-	rm -f *.out
-	rm -f -r *.dSYM
-	rm -f *.o
-	rm -f quantas_test/*.gch
-	rm -f quantas_test/*.tmp
-	rm -f quantas_test/*.o
-	clear
-	clear
+	$(RM) $(EXE)
+	$(RM) *.out
+	$(RM) *.o
+	$(RM) -r *.dSYM
+	$(RM) $(PROJECT_DIR)/*.gch
+	$(RM) $(PROJECT_DIR)/*.tmp
+	$(RM) $(PROJECT_DIR)/*.o
+	$(RM) $(PROJECT_DIR)/*.d
+	$(RM) quantas_test/*.gch
+	$(RM) quantas_test/*.tmp
+	$(RM) quantas_test/*.o
+	$(RM) quantas_test/*.d
 
-prod:
-	g++ -O2 -pthread ./quantas/*.cpp -o ./quantas.out
-
-Windows:
-	g++ -pthread ./quantas/*.cpp -std=c++11 -o quantas
-
-Clang:
-	clang++ -std=c++14 -pthread ./quantas/*.cpp -o ./quantas.out
-
-debug:
-	g++ ./quantas/*.cpp -pthread --debug -D_GLIBCXX_DEBUG -o ./quantas.out
-
-AltBitPeer: 
-	g++ quantas/AltBitPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/AltBitPeer.o
-
-BitcoinPeer: 
-	g++ quantas/BitcoinPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/BitcoinPeer.o
-
-EthereumPeer: 
-	g++ quantas/EthereumPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/EthereumPeer.o
-
-ExamplePeer: 
-	g++ quantas/ExamplePeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/ExamplePeer.o
-
-KademliaPeer: 
-	g++ quantas/KademliaPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/KademliaPeer.o
-
-LinearChordPeer: 
-	g++ quantas/LinearChordPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/LinearChordPeer.o
-
-PBFTPeer: 
-	g++ quantas/PBFTPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/PBFTPeer.o
-
-RaftPeer: 
-	g++ quantas/RaftPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/RaftPeer.o
-
-StableDataLinkPeer: 
-	g++ quantas/StableDataLinkPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/StableDataLinkPeer.o
-
-SmartShardsPeer: 
-	g++ quantas/SmartShardsPeer.cpp -c --debug -D_GLIBCXX_DEBUG -o ./quantas_test/SmartShardsPeer.o
+-include $(OBJS:.o=.d)
