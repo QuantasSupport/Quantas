@@ -159,19 +159,20 @@ QUANTAS is not yet aware that the new algorithm is available. One must add it to
 
 - at the end of the includes, add: 
 
+		#ifdef CHANGROBERTS_PEER
 		#include "ChangRobertsPeer.hpp"
+		#endif
 		
 - at the end of the usings, add: 
 
 		using quantas::ChangRobertsPeer; 
 		using quantas::ChangRobertsMessage;
 		
-- at the end of the else-ifs, add: 
+- at the end of the elifs, add: 
 
-		else if (algorithm == "changroberts") { 
-			Simulation<ChangRobertsMessage, ChangRobertsPeer> sim; 
-			sim.run(input); 
-		}
+		#elif CHANGROBERTS_PEER
+		Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer> sim;
+		#endif
 		
 ## Step 4: Set up and run an experiment
 
@@ -192,12 +193,19 @@ QUANTAS experiements are planned through a simple json file. For this experiment
 	  ]
 	}
 	
+We shall update the `makefile` to include the new algorithm by adding:
+
+	INPUTFILE := $(PROJECT_DIR)/ChangRobertsInput.json
+
+	ALG := CHANGROBERTS_PEER
+	ALGFILE := ChangRobertsPeer
+
 We are now ready to run the experiment (on a unix-like system):
 
 	make prod
 	./quantas.out quantas/ChangRoberts.json
 	
- This particular execution should output:
+This particular execution should output:
  
  	Realizing 9 is the leader
  	Realizing 9 is the leader
