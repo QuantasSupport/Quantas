@@ -163,11 +163,6 @@ QUANTAS is not yet aware that the new algorithm is available. One must add it to
 		#include "ChangRobertsPeer.hpp"
 		#endif
 		
-- at the end of the usings, add: 
-
-		using quantas::ChangRobertsPeer; 
-		using quantas::ChangRobertsMessage;
-		
 - at the end of the elifs, add: 
 
 		#elif CHANGROBERTS_PEER
@@ -203,7 +198,7 @@ We shall update the `makefile` to include the new algorithm by adding:
 We are now ready to run the experiment (on a unix-like system):
 
 	make prod
-	./quantas.out quantas/ChangRoberts.json
+	make run
 	
 This particular execution should output:
  
@@ -298,7 +293,7 @@ Then, at the end of each round, we simply accumulate all messages and log them:
 Now that the algorithm is instrumented, we run the simulation again (on a unix-like system):
 
 	make prod
-	./quantas.out quantas/ChangRoberts.json
+	make run
 	
 The file ``ChangRoberts.txt`` now contains more detailed statistics:
  
