@@ -159,19 +159,15 @@ QUANTAS is not yet aware that the new algorithm is available. One must add it to
 
 - at the end of the includes, add: 
 
+		#ifdef CHANGROBERTS_PEER
 		#include "ChangRobertsPeer.hpp"
+		#endif
 		
-- at the end of the usings, add: 
+- at the end of the elifs, add: 
 
-		using quantas::ChangRobertsPeer; 
-		using quantas::ChangRobertsMessage;
-		
-- at the end of the else-ifs, add: 
-
-		else if (algorithm == "changroberts") { 
-			Simulation<ChangRobertsMessage, ChangRobertsPeer> sim; 
-			sim.run(input); 
-		}
+		#elif CHANGROBERTS_PEER
+		Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer> sim;
+		#endif
 		
 ## Step 4: Set up and run an experiment
 
@@ -192,12 +188,19 @@ QUANTAS experiements are planned through a simple json file. For this experiment
 	  ]
 	}
 	
+We shall update the `makefile` to include the new algorithm by adding:
+
+	INPUTFILE := $(PROJECT_DIR)/ChangRobertsInput.json
+
+	ALG := CHANGROBERTS_PEER
+	ALGFILE := ChangRobertsPeer
+
 We are now ready to run the experiment (on a unix-like system):
 
 	make prod
-	./quantas.out quantas/ChangRoberts.json
+	make run
 	
- This particular execution should output:
+This particular execution should output:
  
  	Realizing 9 is the leader
  	Realizing 9 is the leader
@@ -290,7 +293,7 @@ Then, at the end of each round, we simply accumulate all messages and log them:
 Now that the algorithm is instrumented, we run the simulation again (on a unix-like system):
 
 	make prod
-	./quantas.out quantas/ChangRoberts.json
+	make run
 	
 The file ``ChangRoberts.txt`` now contains more detailed statistics:
  
