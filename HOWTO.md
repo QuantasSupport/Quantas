@@ -195,9 +195,16 @@ We shall update the `makefile` to include the new algorithm by adding:
 	ALG := CHANGROBERTS_PEER
 	ALGFILE := ChangRobertsPeer
 
-We are now ready to run the experiment (on a unix-like system):
+For debugging, on a Unix system, we may compile the program as follows:
 
-	make prod
+	make debug
+or just plain:
+
+	make
+
+If there are no errors, we can run the experiment:
+
+	make release
 	make run
 	
 This particular execution should output:
