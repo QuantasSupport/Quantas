@@ -1,0 +1,19 @@
+{
+  "experiments": [
+    {
+      "algorithm": "changroberts",
+      "logFile": "ChangRoberts.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "ring",
+        "initialPeers": 10,
+        "totalPeers": 10
+      },
+      "tests": 10,
+      "rounds": 15
+    }
+  ]
+}

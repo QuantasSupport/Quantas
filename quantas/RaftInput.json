@@ -1,0 +1,52 @@
+{
+  "experiments": [
+    {
+      "algorithm": "Raft",
+      "logFile": "RaftDelay1.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Raft",
+      "logFile": "RaftDelay5.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 5
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Raft",
+      "logFile": "RaftDelay10.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 10
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}
