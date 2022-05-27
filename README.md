@@ -59,3 +59,11 @@ To do this select Project->Solution Properties->Debugging  in the Command Argume
 
 QUANTAS is further described here:
 [QUANTAS: Quantitative User-friendly Adaptable Networked Things Abstract Simulator](https://arxiv.org/abs/2205.04930)
+```
+@article{oglio2022quantitative,
+  title={QUANTAS: Quantitative User-friendly Adaptable Networked Things Abstract Simulator},
+  author={Oglio, Joseph and Hood, Kendric and Nesterenko, Mikhail and Tixeuil, Sebastien},
+  journal={arXiv preprint arXiv:2205.04930},
+  year={2022}
+}
+```
