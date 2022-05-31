@@ -75,10 +75,12 @@ namespace quantas {
 		const vector<SmartShardsPeer*> peers = reinterpret_cast<vector<SmartShardsPeer*> const&>(_peers);
 
 		double length = 0;
+		int totalMessages = 0;
 		for (int i = 0; i < peers.size(); i++) {
 			length += peers[i]->confirmedTrans.size();
+			totalMessages += peers[i]->messagesSent;
 		}
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["throughput"].push_back(length);
+		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["NumberOfMessages"].push_back(totalMessages);
 	}
 
 	void SmartShardsPeer::checkInStrm() {
@@ -189,6 +191,7 @@ namespace quantas {
 			newMessage.setMessage(message);
 			pushToOutSteam(newMessage);
 		}
+		messagesSent += members[shard].size();
 	}
 
 	ostream& SmartShardsPeer::printTo(ostream& out)const {

@@ -79,6 +79,126 @@
       },
       "tests": 10,
       "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_3Intersection.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 3
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 30,
+        "totalPeers": 30
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "10shards_3Intersection.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 10,
+        "intersections": 3
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 135,
+        "totalPeers": 135
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_4Intersection.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 4
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 40,
+        "totalPeers": 40
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "10shards_4Intersection.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 10,
+        "intersections": 4
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 180,
+        "totalPeers": 180
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5Intersection.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 50
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "10shards_5Intersection.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 10,
+        "intersections": 5
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 225,
+        "totalPeers": 225
+      },
+      "tests": 10,
+      "rounds": 100
     }
   ]
 }

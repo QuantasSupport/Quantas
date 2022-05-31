@@ -63,6 +63,7 @@ namespace quantas{
         vector<SmartShardsMessage>		    confirmedTrans;
         // latency of confirmed transactions
         int                             latency = 0;
+        int                             messagesSent = 0;
         // transaction currently being processed in a specific shard
         map<int, int>                   workingTrans;
         
