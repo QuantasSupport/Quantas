@@ -55,7 +55,7 @@ You'll need to add all the .cpp and .hpp files in the quantas folder and Common 
 The next step is selecting the input file for the debugger. 
 To do this select **Project** -> **Solution Properties** -> **Debugging** in the **Command Arguments** field you can select your input file likely having to resolve the filepath. For example: C:\Users\User\Documents\QUANTAS\quantas\ExampleInput.json
 
-The final steo is to define preprocessing symbol for source file.
+The final step is to define the appropriate preprocessing symbol.
 1. Select **Project** -> **Properties** from the main menu (OR, right-click on the project node in **Solution Explorer** and choose **Properties**).
 2. Select **Configuration Properties** -> **C/C++** -> **Preprocessor**.
 3. Select the drop-down menu for the **Preprocessor Definitions** field and then select **Edit**.
