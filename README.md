@@ -52,8 +52,21 @@ First, you'll need to create an empty solution.
 Next, right click on the solution explorer, in the dropdown menu select add from existing.
 You'll need to add all the .cpp and .hpp files in the quantas folder and Common subfolder.
 
-The final step is selecting the input file for the debugger. 
-To do this select Project->Solution Properties->Debugging  in the Command Arguments field you can select your input file likely having to resolve the filepath. For example: C:\Users\User\Documents\QUANTAS\quantas\ExampleInput.json
+The next step is selecting the input file for the debugger. 
+To do this select **Project** -> **Solution Properties** -> **Debugging** in the **Command Arguments** field you can select your input file likely having to resolve the filepath. For example: C:\Users\User\Documents\QUANTAS\quantas\ExampleInput.json
+
+The final step is to define the appropriate preprocessing symbol.
+1. Select **Project** -> **Properties** from the main menu (OR, right-click on the project node in **Solution Explorer** and choose **Properties**).
+2. Select **Configuration Properties** -> **C/C++** -> **Preprocessor**.
+3. Select the drop-down menu for the **Preprocessor Definitions** field and then select **Edit**.
+4. In the **Preprocessor Definitions** dialog box, add the definition of your desired alogithm (one definition per line). For example, your **Preprocessor Definition** dialog box may look like the following.
+```
+WIN32
+_DEBUG
+_CONSOLE
+EXAMPLE_PEER
+```
+5. Finally, select **OK** to save changes.
 
 #### Further Info
 
