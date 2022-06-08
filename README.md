@@ -68,7 +68,7 @@ EXAMPLE_PEER
 ```
 5. Finally, select **OK** to save changes.
 
-(Additionally, make sure the language standard is set to C++17 or newer. This can be done by selecting **Project** -> **Properties** -> **Configuration Properties** -> **C/C++** -> **Language**. Select the drop-down menu for the **C++ Language Standard** field and then select **ISO C++17 Standard (/std:c++17)** or any newer standard, e.g., **ISO C++20 Standard (/std:c++20)**)
+Additionally, make sure the language standard is set to C++17 or newer. This can be done by selecting **Project** -> **Properties** -> **Configuration Properties** -> **C/C++** -> **Language**. Select the drop-down menu for the **C++ Language Standard** field and then select **ISO C++17 Standard (/std:c++17)** or any newer standard, e.g., **ISO C++20 Standard (/std:c++20)**
 
 #### Further Info
 
