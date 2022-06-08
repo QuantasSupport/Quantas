@@ -56,7 +56,7 @@ The next step is selecting the input file for the debugger.
 To do this select **Project** -> **Solution Properties** -> **Debugging** in the **Command Arguments** field you can select your input file likely having to resolve the filepath. For example: C:\Users\User\Documents\QUANTAS\quantas\ExampleInput.json
 
 The final step is to define the appropriate preprocessing symbol.
-1. Select **Project** -> **Properties** from the main menu (OR, right-click on the project node in **Solution Explorer** and choose **Properties**).
+1. Select **Project** -> **Properties** from the main menu (OR, right-click on the project node in **Solution Explorer** and select **Properties**).
 2. Select **Configuration Properties** -> **C/C++** -> **Preprocessor**.
 3. Select the drop-down menu for the **Preprocessor Definitions** field and then select **Edit**.
 4. In the **Preprocessor Definitions** dialog box, add the definition of your desired alogithm (one definition per line). For example, your **Preprocessor Definition** dialog box may look like the following.
@@ -67,6 +67,8 @@ _CONSOLE
 EXAMPLE_PEER
 ```
 5. Finally, select **OK** to save changes.
+
+(Additionally, make sure the language standard is set to C++17 or newer. This can be done by selecting **Project** -> **Properties** -> **Configuration Properties** -> **C/C++** -> **Language**. Select the drop-down menu for the **C++ Language Standard** field and then select **ISO C++17 Standard (/std:c++17)** or any newer standard, e.g., **ISO C++20 Standard (/std:c++20)**)
 
 #### Further Info
 
