@@ -61,6 +61,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <iterator>
 #include "Packet.hpp"
 
 namespace quantas{
@@ -198,6 +199,33 @@ namespace quantas{
     void NetworkInterface<message>::unicast(message msg){
         auto it = _neighbors.begin();
         if (_neighbors.size()>0) {
+            Packet<message> outPacket = Packet<message>(-1);
+            outPacket.setSource(id());
+            outPacket.setTarget(*it);
+            outPacket.setMessage(msg);
+            _outStream.push_back(outPacket);
+        }
+    }
+    
+    // Multicasts to a random sample of neighbors without repetition. Size of sample is also random.
+    template <class message>
+    void NetworkInterface<message>::randomMulticast(message msg) {
+        std::random_device device;
+        std::mt19937 generator(device());
+        std::uniform_int_distribution<int> distribution(0, (_neighbors.size() - 1)); // interval: [0, n - 1], where n is the amount of neighbors the particular node calling this function has
+        
+        int amountOfNeighbors = distribution(generator);
+                
+        std::vector<interfaceId> out;
+        /* NEED TO USE C++17 OR NEWER FOR std::sample */
+        std::sample( // std::sample selects 'amountOfNeighbors' elements from the vector '_neighbors' without repetition. Each possible sample has equal probability of appearance
+            _neighbors.begin(), _neighbors.end(),
+            std::back_inserter(out),
+            amountOfNeighbors,
+            generator
+        );
+
+        for (auto it = out.begin(); it != out.end(); ++it) { // iterate through vector where the samples are written and send a message to all of them
             Packet<message> outPacket = Packet<message>(-1);
             outPacket.setSource(id());
             outPacket.setTarget(*it);
