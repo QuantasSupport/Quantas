@@ -68,6 +68,7 @@ namespace quantas{
         void                                torus               (int, int);
         void                                chain               (int);
         void                                ring                (int);
+        void                                unidirectionalRing  (int);
         void                                userList            (json);
         void                                setDistribution     (json distribution)                             { _distribution.setDistribution(distribution); }
         void                                setLog              (ostream&);
