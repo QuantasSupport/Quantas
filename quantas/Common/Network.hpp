@@ -186,6 +186,9 @@ namespace quantas{
         else if (topology["type"] == "ring") {
             ring(topology["initialPeers"]);
         }
+        else if (topology["type"] == "unidirectionalRing") {
+            unidirectionalRing(topology["initialPeers"]);
+        }
         else if (topology["type"] == "userList") {
             userList(topology);
         }
@@ -305,6 +308,15 @@ namespace quantas{
             _peers[i - 1]->addNeighbor(_peers[i]->id());
         }
         _peers[0]->addNeighbor(_peers[numberOfPeers - 1]->id());
+        _peers[numberOfPeers - 1]->addNeighbor(_peers[0]->id());
+    }
+
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::unidirectionalRing(int numberOfPeers) {
+        for (int i = 1; i < numberOfPeers; i++) {
+            // Activate peer
+            _peers[i - 1]->addNeighbor(_peers[i]->id());
+        }
         _peers[numberOfPeers - 1]->addNeighbor(_peers[0]->id());
     }
 
