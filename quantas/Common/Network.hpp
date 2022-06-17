@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <ctime>
 #include <memory>
 #include <thread>
+#include <algorithm>
 #include "./../Common/Peer.hpp"
 #include "Distribution.hpp"
 
@@ -167,6 +168,10 @@ namespace quantas{
 			_peers.push_back(new peer_type(i));
 			addEdges(_peers[i]);
 		}
+        if (topology["identifiers"] == "random") {
+            // randomly shuffle nodes prior to setting up topology
+            std::random_shuffle(_peers.begin(),_peers.end());
+        }
 
 		if (topology["type"] == "complete") {
 			fullyConnect(topology["initialPeers"]);
