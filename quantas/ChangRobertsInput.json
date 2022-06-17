@@ -2,19 +2,38 @@
   "experiments": [
     {
       "algorithm": "changroberts",
-      "logFile": "ChangRoberts.txt",
+      "logFile": "ChangRoberts1.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
       },
+      "threadCount": 1,
       "topology": {
         "type": "unidirectionalRing",
         "identifiers": "random",
-        "initialPeers": 10,
-        "totalPeers": 10
+        "initialPeers": 100,
+        "totalPeers": 100
       },
-      "tests": 10,
-      "rounds": 15
+      "tests": 100,
+      "rounds": 150
+    },
+    {
+      "algorithm": "changroberts",
+      "logFile": "ChangRoberts2.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "threadCount": 8,
+      "topology": {
+        "type": "unidirectionalRing",
+        "identifiers": "random",
+        "initialPeers": 100,
+        "totalPeers": 100
+      },
+      "tests": 100,
+      "rounds": 150
     }
+
   ]
 }

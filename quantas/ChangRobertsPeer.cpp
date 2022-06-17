@@ -35,9 +35,11 @@ namespace quantas {
 			Packet<ChangRobertsMessage> newMsg = popInStream();
 			long rid = newMsg.getMessage().aPeerId;
 			long sid = newMsg.sourceId();
+			//cout << rid << "(" << id() <<")" << endl;
 			if( rid == id() ) {
 				cout << "Realizing " << id() << " is the leader" << endl;
 				LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
+				LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["elected_id"] = id();
 			}
 			else {
 				if( rid > id() ) {
@@ -56,7 +58,7 @@ namespace quantas {
 		for(auto it = peers.begin(); it != peers.end(); ++it) {
 			all_messages_sent += (*it)->messages_sent;
 		}
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"].push_back(all_messages_sent);
+		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"] = all_messages_sent;
 	}
 
 	ostream& ChangRobertsPeer::printTo(ostream& out)const {
