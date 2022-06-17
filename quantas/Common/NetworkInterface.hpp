@@ -111,6 +111,7 @@ namespace quantas{
         void                               broadcast             (message msg);
         void                               broadcastBut          (message msg, long id);
         void                               unicast               (message msg);
+        void                               unicastTo             (message msg, long dest);
     public:
         NetworkInterface                                         ();
         NetworkInterface                                         (interfaceId);
