@@ -9,6 +9,7 @@
       },
       "topology": {
         "type": "ring",
+        "identifiers": "random",
         "initialPeers": 10,
         "totalPeers": 10
       },
