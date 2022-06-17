@@ -8,7 +8,7 @@
         "maxDelay": 1
       },
       "topology": {
-        "type": "ring",
+        "type": "unidirectionalRing",
         "identifiers": "random",
         "initialPeers": 10,
         "totalPeers": 10
