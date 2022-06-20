@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <ctime>
 #include <memory>
 #include <thread>
+#include <algorithm>
 #include "./../Common/Peer.hpp"
 #include "Distribution.hpp"
 
@@ -67,6 +68,7 @@ namespace quantas{
         void                                torus               (int, int);
         void                                chain               (int);
         void                                ring                (int);
+        void                                unidirectionalRing  (int);
         void                                userList            (json);
         void                                setDistribution     (json distribution)                             { _distribution.setDistribution(distribution); }
         void                                setLog              (ostream&);
@@ -167,6 +169,10 @@ namespace quantas{
 			_peers.push_back(new peer_type(i));
 			addEdges(_peers[i]);
 		}
+        if (topology["identifiers"] == "random") {
+            // randomly shuffle nodes prior to setting up topology
+            std::random_shuffle(_peers.begin(),_peers.end());
+        }
 
 		if (topology["type"] == "complete") {
 			fullyConnect(topology["initialPeers"]);
@@ -185,6 +191,9 @@ namespace quantas{
         }
         else if (topology["type"] == "ring") {
             ring(topology["initialPeers"]);
+        }
+        else if (topology["type"] == "unidirectionalRing") {
+            unidirectionalRing(topology["initialPeers"]);
         }
         else if (topology["type"] == "userList") {
             userList(topology);
@@ -305,6 +314,15 @@ namespace quantas{
             _peers[i - 1]->addNeighbor(_peers[i]->id());
         }
         _peers[0]->addNeighbor(_peers[numberOfPeers - 1]->id());
+        _peers[numberOfPeers - 1]->addNeighbor(_peers[0]->id());
+    }
+
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::unidirectionalRing(int numberOfPeers) {
+        for (int i = 1; i < numberOfPeers; i++) {
+            // Activate peer
+            _peers[i - 1]->addNeighbor(_peers[i]->id());
+        }
         _peers[numberOfPeers - 1]->addNeighbor(_peers[0]->id());
     }
 
