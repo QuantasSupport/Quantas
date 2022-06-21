@@ -11,11 +11,11 @@
       "topology": {
         "type": "unidirectionalRing",
         "identifiers": "random",
-        "initialPeers": 100,
-        "totalPeers": 100
+        "initialPeers": 10,
+        "totalPeers": 10
       },
-      "tests": 100,
-      "rounds": 150
+      "tests": 10,
+      "rounds": 15
     },
     {
       "algorithm": "changroberts",
@@ -28,11 +28,11 @@
       "topology": {
         "type": "unidirectionalRing",
         "identifiers": "random",
-        "initialPeers": 100,
-        "totalPeers": 100
+        "initialPeers": 10,
+        "totalPeers": 10
       },
-      "tests": 100,
-      "rounds": 150
+      "tests": 10,
+      "rounds": 15
     }
 
   ]
