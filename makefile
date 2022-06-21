@@ -17,10 +17,10 @@ PROJECT_DIR := quantas
 #
 #  configure this for the specific algorithm and input file
 #
-INPUTFILE := $(PROJECT_DIR)/ExampleInput.json
+INPUTFILE := $(PROJECT_DIR)/ChangRobertsInput.json
 
-ALG := EXAMPLE_PEER
-ALGFILE := ExamplePeer
+#ALG := EXAMPLE_PEER
+#ALGFILE := ExamplePeer
 
 # ALG := BITCOIN_PEER
 # ALGFILE := BitcoinPeer
@@ -49,8 +49,8 @@ ALGFILE := ExamplePeer
 # ALG := STABLEDATALINK_PEER
 # ALGFILE := StableDataLinkPeer
 
-# ALG := CHANGROBERTS_PEER
-# ALGFILE := ChangRobertsPeer
+ALG := CHANGROBERTS_PEER
+ALGFILE := ChangRobertsPeer
 ####### end algorithm configuration
 
 
