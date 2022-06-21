@@ -45,6 +45,7 @@ namespace quantas{
         friend ostream& operator<<         (ostream&, const ChangRobertsPeer&);
 
     private:
+        bool first_elected;
         long messages_sent;
     };
 }

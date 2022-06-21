@@ -16,15 +16,16 @@ namespace quantas {
 
 	}
 
-	ChangRobertsPeer::ChangRobertsPeer(const ChangRobertsPeer& rhs) : Peer<ChangRobertsMessage>(rhs), /*current_leader(id()),*/ messages_sent(0) {
+	ChangRobertsPeer::ChangRobertsPeer(const ChangRobertsPeer& rhs) : Peer<ChangRobertsMessage>(rhs), messages_sent(0), first_elected(false) {
 		
 	}
 
-	ChangRobertsPeer::ChangRobertsPeer(long id) : Peer(id), /*current_leader(id),*/ messages_sent(0) {
+	ChangRobertsPeer::ChangRobertsPeer(long id) : Peer(id), messages_sent(0), first_elected(false) {
 		
 	}
 
 	void ChangRobertsPeer::performComputation() {
+		first_elected = false;
 		if(getRound() == 0) {
 			ChangRobertsMessage msg;
 			msg.aPeerId = id(); 
@@ -35,11 +36,9 @@ namespace quantas {
 			Packet<ChangRobertsMessage> newMsg = popInStream();
 			long rid = newMsg.getMessage().aPeerId;
 			long sid = newMsg.sourceId();
-			//cout << rid << "(" << id() <<")" << endl;
 			if( rid == id() ) {
+				first_elected = true;
 				cout << "Realizing " << id() << " is the leader" << endl;
-				LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
-				LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["elected_id"] = id();
 			}
 			else {
 				if( rid > id() ) {
@@ -54,11 +53,18 @@ namespace quantas {
 
 	void ChangRobertsPeer::endOfRound(const vector<Peer<ChangRobertsMessage>*>& _peers) {
 		long all_messages_sent = 0;
+		bool elected = false;
 		const vector<ChangRobertsPeer*> peers = reinterpret_cast<vector<ChangRobertsPeer*> const&>(_peers);
 		for(auto it = peers.begin(); it != peers.end(); ++it) {
 			all_messages_sent += (*it)->messages_sent;
+			elected |= (*it)->first_elected;
 		}
 		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"] = all_messages_sent;
+		if(elected) {
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["elected_id"] = id();
+			elected = false;
+		}
 	}
 
 	ostream& ChangRobertsPeer::printTo(ostream& out)const {
