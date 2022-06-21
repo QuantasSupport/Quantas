@@ -160,7 +160,6 @@ namespace quantas{
 
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::initNetwork(json topology) {
-        Peer<type_msg>::initializeRound();
         for (int i = 0; i < _peers.size(); i++) {
             delete _peers[i];
         }
@@ -201,6 +200,7 @@ namespace quantas{
         else {
             std::cerr << "Error: need an input file" << std::endl;
         }
+        Peer<type_msg>::initializeRound();
 	}
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::initParameters(json parameters) {
