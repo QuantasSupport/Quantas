@@ -74,7 +74,8 @@ namespace quantas {
 		if (_threadCount > config["topology"]["totalPeers"]) {
 			_threadCount = config["topology"]["totalPeers"];
 		}
-		int grainSize = static_cast<int>(config["topology"]["totalPeers"]) / _threadCount;
+		int networkSize = static_cast<int>(config["topology"]["totalPeers"]);
+		int grainSize = networkSize / _threadCount;
 		vector<thread> threads(_threadCount);
 		for (int i = 0; i < config["tests"]; i++) {
 			LogWriter::instance()->setTest(i);
@@ -96,7 +97,7 @@ namespace quantas {
 					*it = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, work_pos + grainSize);
 					work_pos += grainSize;
 				}
-				threads.back() = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, work_pos + grainSize);
+				threads.back() = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, networkSize);
 
 				for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
 					it->join();
@@ -108,7 +109,7 @@ namespace quantas {
 					*it = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, work_pos + grainSize);
 					work_pos += grainSize;
 				}
-				threads.back() = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, work_pos + grainSize);
+				threads.back() = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, networkSize);
 
 				for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
 					it->join();
@@ -122,7 +123,7 @@ namespace quantas {
 					*it = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, work_pos + grainSize);
 					work_pos += grainSize;
 				}
-				threads.back() = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, work_pos + grainSize);
+				threads.back() = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, networkSize);
 
 				for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
 					it->join();

@@ -112,6 +112,7 @@ namespace quantas{
         void                               broadcast             (message msg);
         void                               broadcastBut          (message msg, long id);
         void                               unicast               (message msg);
+        void                               unicastTo             (message msg, long dest);
     public:
         NetworkInterface                                         ();
         NetworkInterface                                         (interfaceId);
@@ -206,7 +207,19 @@ namespace quantas{
             _outStream.push_back(outPacket);
         }
     }
-
+    // Send to a single designated neighbor
+    template <class message>
+    void NetworkInterface<message>::unicastTo(message msg, long dest){
+        for(auto it = _neighbors.begin(); it != _neighbors.end(); it++){
+            if(*it == dest) {
+                Packet<message> outPacket = Packet<message>(-1);
+                outPacket.setSource(id());
+                outPacket.setTarget(*it);
+                outPacket.setMessage(msg);
+                _outStream.push_back(outPacket);
+            }
+        }
+    }
     template <class message>
     NetworkInterface<message>::NetworkInterface(){
         _id = NO_PEER_ID;
