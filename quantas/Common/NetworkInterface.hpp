@@ -112,6 +112,7 @@ namespace quantas{
         void                               broadcast             (message msg);
         void                               broadcastBut          (message msg, long id);
         void                               unicast               (message msg);
+	void                               randomMulticast       (message msg);
     public:
         NetworkInterface                                         ();
         NetworkInterface                                         (interfaceId);
