@@ -160,6 +160,8 @@ namespace quantas{
 
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::initNetwork(json topology, int lastRound) {
+	std::random_device device;
+        std::mt19937 generator(device());
 	Peer<type_msg>::initializeLastRound(lastRound -1);
 	
         for (int i = 0; i < _peers.size(); i++) {
@@ -172,7 +174,7 @@ namespace quantas{
 		}
         if (topology["identifiers"] == "random") {
             // randomly shuffle nodes prior to setting up topology
-            std::random_shuffle(_peers.begin(),_peers.end());
+            std::shuffle(_peers.begin(),_peers.end(), generator);
         }
 
 		if (topology["type"] == "complete") {
