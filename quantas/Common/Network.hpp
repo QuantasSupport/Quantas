@@ -162,7 +162,6 @@ namespace quantas{
 	void Network<type_msg, peer_type>::initNetwork(json topology, int lastRound) {
 	std::random_device device;
         std::mt19937 generator(device());
-	Peer<type_msg>::initializeLastRound(lastRound -1);
 	
         for (int i = 0; i < _peers.size(); i++) {
             delete _peers[i];
@@ -205,9 +204,11 @@ namespace quantas{
             std::cerr << "Error: need an input file" << std::endl;
         }
         Peer<type_msg>::initializeRound();
+	Peer<type_msg>::initializeLastRound(lastRound -1);
 	}
-	template<class type_msg, class peer_type>
-	void Network<type_msg, peer_type>::initParameters(json parameters) {
+	
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::initParameters(json parameters) {
         _peers[0]->initParameters(_peers, parameters);
     }
 
