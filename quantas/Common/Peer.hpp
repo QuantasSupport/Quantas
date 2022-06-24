@@ -55,17 +55,24 @@ namespace quantas{
         // perform one step of the Algorithm with the messages in inStream
         virtual void                       performComputation   ()=0;
         // ran once per round, used to submit transactions or collect metrics
-        virtual void                       endOfRound           (const vector<Peer<message>*>& _peers) {};
-        static int                         getRound()           { return _round; };
-        static void                        initializeRound()    { _round = 0; };
-        static void                        incrementRound()     { _round++; };
+        virtual void                       endOfRound                     (const vector<Peer<message>*>& _peers) {};
+        static int                         getRound()                     { return _round; };
+        static void                        initializeRound()              { _round = 0; };
+        static void                        incrementRound()               { _round++; };
+        static void                        initializeLastRound(int round) { _lastRound = round; }
+        static bool                        lastRound()                    { return _lastRound == getRound(); }
     private:
         // current round
         static int                         _round;
+        // last round
+        static int                        _lastRound;
     };
 
     template <class message>
     int Peer<message>::_round = 0;
+    
+    template <class message>
+    int Peer<message>::_lastRound = 0;
 
     template <class message>
     Peer<message>::Peer(): NetworkInterface<message>(){
