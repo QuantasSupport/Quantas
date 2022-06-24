@@ -82,7 +82,7 @@ namespace quantas {
 
 			// Configure the delay properties and initial topology of the network
 			system.setDistribution(config["distribution"]);
-			system.initNetwork(config["topology"]);
+			system.initNetwork(config["topology"], config["rounds"]);
 			if (config.contains("parameters")) {
 				system.initParameters(config["parameters"]);
 			}
