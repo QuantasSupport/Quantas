@@ -60,7 +60,7 @@ namespace quantas{
         ~Network                                                ();
 
         // setters
-        void                                initNetwork         (json); // initialize network with peers
+        void                                initNetwork         (json, int); // initialize network with peers
         void                                initParameters(json);
         void                                fullyConnect        (int);
         void                                star                (int);
@@ -159,7 +159,9 @@ namespace quantas{
 	}
 
 	template<class type_msg, class peer_type>
-	void Network<type_msg, peer_type>::initNetwork(json topology) {
+	void Network<type_msg, peer_type>::initNetwork(json topology, int lastRound) {
+	Peer<type_msg>::initializeLastRound(lastRound -1);
+	
         for (int i = 0; i < _peers.size(); i++) {
             delete _peers[i];
         }
