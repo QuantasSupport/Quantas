@@ -60,7 +60,7 @@ namespace quantas{
         static void                        initializeRound()                  { _round = 0; };
         static void                        incrementRound()                   { _round++; };
         static void                        initializeLastRound(int lastRound) { _lastRound = lastRound; };
-        static bool                        lastRound()                        { return _lastRound == getRound(); };
+        static bool                        lastRound()                        { return _lastRound == _round; };
     private:
         // current round
         static int                         _round;
