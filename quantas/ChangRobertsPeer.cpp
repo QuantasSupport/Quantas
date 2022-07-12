@@ -54,16 +54,19 @@ namespace quantas {
 	void ChangRobertsPeer::endOfRound(const vector<Peer<ChangRobertsMessage>*>& _peers) {
 		long all_messages_sent = 0;
 		bool elected = false;
+		long elected_id = -1;
 		const vector<ChangRobertsPeer*> peers = reinterpret_cast<vector<ChangRobertsPeer*> const&>(_peers);
 		for(auto it = peers.begin(); it != peers.end(); ++it) {
 			all_messages_sent += (*it)->messages_sent;
-			elected |= (*it)->first_elected;
+			if((*it)->first_elected) {
+				elected = true;
+				elected_id = (*it)->id();
+			}
 		}
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"] = all_messages_sent;
 		if(elected) {
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"] = all_messages_sent;
 			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["elected_id"] = id();
-			elected = false;
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["elected_id"] = elected_id;
 		}
 	}
 
