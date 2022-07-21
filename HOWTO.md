@@ -236,28 +236,30 @@ For example, to retain how many round were necessary to elect a leader in each t
 
 	LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
 	
-after realizing that a leader was electd (when the received ID is the same as our own). 
+after realizing that a leader was elected (when the received ID is the same as our own). 
 
-To collect metric that are related to all peers at every round, one can find the ``endOfRound()`` method handy. For our example, we want to collect all messages sent since the begining of the test at ech round. For this purpose, we add a ``messages_sent`` instance variable to each peer.
+To collect metric that are related to all peers at every round, one can find the ``endOfRound()`` method handy. For our example, we want to collect all messages sent since the begining of the test once the leader is elected. For this purpose, we add a ``messages_sent`` instance variable to each peer that maintains the number of sent messages, and a ``first_elected`` instance variable to each peer that is set to ``true`` the first time a peer is elected the leader.
 
 	class ChangRobertsPeer : public Peer<ChangRobertsMessage>{
 	    ...
 	    private:
+			bool first_elected;
 	        long messages_sent;
 	};
     
-This ``messages_sent`` is  initialized to zero. 
+This ``messages_sent`` is  initialized to zero, and the ``first_elected`` is initialized to ``false``. 
 
 	ChangRobertsPeer::ChangRobertsPeer(const ChangRobertsPeer& rhs) : Peer<ChangRobertsMessage>(rhs),
-	 	messages_sent(0) {
+	 	messages_sent(0), first_elected(false) {
 	}
 
-	ChangRobertsPeer::ChangRobertsPeer(long id) : Peer(id), messages_sent(0) {
+	ChangRobertsPeer::ChangRobertsPeer(long id) : Peer(id), messages_sent(0), first_elected(false) {
 	}
 
-Whenever we call ``unicast()`` or ``broadcastBut()``, we increment this variable
+Whenever we call ``unicast()`` or ``broadcastBut()``, we increment the ``messages_sent`` variable. When we first realize a leader is elected, we update the ``first_elected`` variable accordingly.
 
 	void ChangRobertsPeer::performComputation() {
+		first_elected = false;
 		if(getRound() == 0) {
 			ChangRobertsMessage msg;
 			msg.aPeerId = id();
@@ -269,9 +271,8 @@ Whenever we call ``unicast()`` or ``broadcastBut()``, we increment this variable
 			long rid = newMsg.getMessage().aPeerId;
 			long sid = newMsg.sourceId();
 			if( rid == id() ) {
+				first_elected = true;
 				cout << "Realizing " << id() << " is the leader" << endl;
-				LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] 
-					= getRound();
 			}
 			else {
 				if( rid > id() ) {
@@ -284,17 +285,25 @@ Whenever we call ``unicast()`` or ``broadcastBut()``, we increment this variable
 		}
 	}
 	
-Then, at the end of each round, we simply accumulate all messages and log them:
+Then, at the end of each round, we check whether a leader has been elected in this round. If so, we simply accumulate all messages and log them, along with the current round number and the elected identifier:
 
 	void ChangRobertsPeer::endOfRound(const vector<Peer<ChangRobertsMessage>*>& _peers) {
 		long all_messages_sent = 0;
-		const vector<ChangRobertsPeer*> peers 
-			= reinterpret_cast<vector<ChangRobertsPeer*> const&>(_peers);
+		bool elected = false;
+		long elected_id = -1;
+		const vector<ChangRobertsPeer*> peers = reinterpret_cast<vector<ChangRobertsPeer*> const&>(_peers);
 		for(auto it = peers.begin(); it != peers.end(); ++it) {
 			all_messages_sent += (*it)->messages_sent;
+			if((*it)->first_elected) {
+				elected = true;
+				elected_id = (*it)->id();
+			}
 		}
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"]
-			.push_back(all_messages_sent);
+		if(elected) {
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"] = all_messages_sent;
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["elected_id"] = elected_id;
+		}
 	}
 	
 Now that the algorithm is instrumented, we run the simulation again (on a unix-like system):
@@ -305,28 +314,60 @@ Now that the algorithm is instrumented, we run the simulation again (on a unix-l
 The file ``ChangRoberts.txt`` now contains more detailed statistics:
  
  	{
-    	"RunTime": 0.010874242,
-    	"tests": [
-       	{
+    "RunTime": 0.018834804,
+    "tests": [
+        {
+            "elected_id": 9,
             "election_time": 10,
-            "nb_messages": [
-                10,
-                19,
-                27,
-                34,
-                40,
-                45,
-                49,
-                52,
-                54,
-                55,
-                55,
-                55,
-                55,
-                55,
-                55
-            ]
-        	},
-		...
+            "nb_messages": 27
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 30
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 24
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 31
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 26
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 32
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 31
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 25
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 32
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 30
+        }
+    ]
+}
+
 		
-We can observe that the election took 10 rounds in every of the 10 tests, and the total number of messages sent was eventually 55 in every test. 
+We can observe that the election took 10 rounds in every of the 10 tests, and that the same identifier was elected.
