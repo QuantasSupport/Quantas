@@ -65,14 +65,14 @@ ALGFILE := ExamplePeer
 
 CPPFLAGS := -Iinclude -MMD -MP
 CXXFLAGS = -pthread  -D$(ALG)
-CXX := g++
+CXX := g++-9
 
 EXE := quantas.exe
 OBJS := $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE).o
 
 
 # extra debug and release flags
-release:  CXXFLAGS += -O2 -s 
+release:  CXXFLAGS += -O2 -s -std=c++17
 debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG
 
 clang: CXX := clang++
