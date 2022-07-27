@@ -17,10 +17,10 @@ PROJECT_DIR := quantas
 #
 #  configure this for the specific algorithm and input file
 #
-INPUTFILE := $(PROJECT_DIR)/ChangRobertsInput.json
+INPUTFILE := $(PROJECT_DIR)/ExampleInput.json
 
-#ALG := EXAMPLE_PEER
-#ALGFILE := ExamplePeer
+ALG := EXAMPLE_PEER
+ALGFILE := ExamplePeer
 
 # ALG := BITCOIN_PEER
 # ALGFILE := BitcoinPeer
@@ -49,8 +49,17 @@ INPUTFILE := $(PROJECT_DIR)/ChangRobertsInput.json
 # ALG := STABLEDATALINK_PEER
 # ALGFILE := StableDataLinkPeer
 
-ALG := CHANGROBERTS_PEER
-ALGFILE := ChangRobertsPeer
+# ALG := CHANGROBERTS_PEER
+# ALGFILE := ChangRobertsPeer
+
+# ALG := DYNAMIC_PEER
+# ALGFILE := DynamicPeer
+
+# ALG := KPT_PEER
+# ALGFILE := KPTPeer
+
+# ALG := KSM_PEER
+# ALGFILE := KSMPeer
 ####### end algorithm configuration
 
 
@@ -67,7 +76,7 @@ release:  CXXFLAGS += -O2 -s
 debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG
 
 clang: CXX := clang++
-clang: CXXFLAGS += -std=c++14
+clang: CXXFLAGS += -std=c++17
 
 .PHONY: all clean run release debug
 
