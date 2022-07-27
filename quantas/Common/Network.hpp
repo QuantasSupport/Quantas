@@ -70,6 +70,7 @@ namespace quantas{
         void                                ring                (int);
         void                                unidirectionalRing  (int);
         void                                userList            (json);
+	void                                dynamic             (int, int);
         void                                setDistribution     (json distribution)                             { _distribution.setDistribution(distribution); }
         void                                setLog              (ostream&);
         ostream*                            getLog              ()const                                         { return _log; }
@@ -176,18 +177,18 @@ namespace quantas{
             std::shuffle(_peers.begin(),_peers.end(), generator);
         }
 
-		if (topology["type"] == "complete") {
-			fullyConnect(topology["initialPeers"]);
-		}
+	if (topology["type"] == "complete") {
+	    fullyConnect(topology["initialPeers"]);
+	}
         else if (topology["type"] == "star") {
             star(topology["initialPeers"]);
         }
-		else if (topology["type"] == "grid") {
-			grid(topology["height"], topology["width"]);
-		}
-		else if (topology["type"] == "torus") {
-            torus(topology["height"], topology["width"]);
-		}
+	else if (topology["type"] == "grid") {
+	    grid(topology["height"], topology["width"]);
+	}
+	else if (topology["type"] == "torus") {
+           torus(topology["height"], topology["width"]);
+	}
         else if (topology["type"] == "chain") {
             chain(topology["initialPeers"]);
         }
@@ -199,6 +200,9 @@ namespace quantas{
         }
         else if (topology["type"] == "userList") {
             userList(topology);
+        }
+	else if (topology["type"] == "dynamic") {
+            dynamic(topology["initialPeers"], topology["sourcePoolSize"]);
         }
         else {
             std::cerr << "Error: need an input file" << std::endl;
@@ -339,6 +343,24 @@ namespace quantas{
                 json comLinks = list[std::to_string(i)];
                 for (int j = 0; j < comLinks.size(); j++) {
                     _peers[i]->addNeighbor(comLinks[j]);
+                }
+            }
+        }
+    }
+
+    // addNeighbor() adds peer to peer's _neighbors vector. I.e., it determines who the peer can broadcast to.
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::dynamic(int numberOfPeers, int sourcePoolSize) {
+        Peer<type_msg>::initializeSourcePoolSize(sourcePoolSize);
+        for (int i = 0; i < numberOfPeers; ++i) {
+            for (int j = i + 1; j < numberOfPeers; ++j) {
+                if (j >= sourcePoolSize && !(i >= sourcePoolSize)) { // if peer[j] isn't apart of the source pool but peer[i] is...
+                    _peers[i]->addNeighbor(_peers[j]->id());   
+	        }
+
+                else {
+                    _peers[i]->addNeighbor(_peers[j]->id());
+                    _peers[j]->addNeighbor(_peers[i]->id());
                 }
             }
         }
