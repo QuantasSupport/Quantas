@@ -7,10 +7,12 @@ This project is a simulator that enables quantitative performance analysis of di
 
 #### Dependencies:
 
-By default, QUANTAS is set up for Linux and uses the `g++` compiler. Use this to install `g++`:
+By default, QUANTAS is set up for Linux and uses the `g++ 9` compiler. Use this to install `g++ 9`:
 
 ```sh
-sudo apt install g++
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt update
+sudo apt install g++-9
 ```
 
 If you would rather use `clang`, use `make clang`.
