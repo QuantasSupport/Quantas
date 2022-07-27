@@ -54,7 +54,7 @@ namespace quantas {
 			});
 
 		if (minAcceptedBlocks != peers.end()) {
-			cout << "Round: " << getRound() << " Accepted Blocks: " << (*minAcceptedBlocks)->acceptedBlocks << endl;
+			cout << "Round: " << getRound() << "; Accepted Blocks: " << (*minAcceptedBlocks)->acceptedBlocks << endl;
 		}
 	}
 
@@ -248,7 +248,6 @@ namespace quantas {
 
 				else {
 					++acceptedBlocks;
-					numeratorForConfirmationTime += getRound() - block.roundMined;
 				}
 			}
 
