@@ -70,9 +70,20 @@ using nlohmann::json;
 #include "StableDataLinkPeer.hpp"
 #endif
 
-
 #ifdef CHANGROBERTS_PEER
 #include "ChangRobertsPeer.hpp"
+#endif
+
+#ifdef DYNAMIC_PEER
+#include "DynamicPeer.hpp"
+#endif
+
+#ifdef KPT_PEER
+#include "KPTPeer.hpp"
+#endif
+
+#ifdef KSM_PEER
+#include "KSMPeer.hpp"
 #endif
 
 
@@ -100,9 +111,9 @@ int main(int argc, const char* argv[]) {
 #ifdef EXAMPLE_PEER
 	Simulation<quantas::ExampleMessage, quantas::ExamplePeer> sim;
 #elif BITCOIN_PEER
-	 Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer> sim;
+	Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer> sim;
 #elif ETHEREUM_PEER
-   Simulation<quantas::EthereumPeerMessage, quantas::EthereumPeer> sim;
+        Simulation<quantas::EthereumPeerMessage, quantas::EthereumPeer> sim;
 #elif PBFT_PEER
 	Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer> sim;
 #elif RAFT_PEER
@@ -119,6 +130,12 @@ int main(int argc, const char* argv[]) {
 	Simulation<quantas::StableDataLinkMessage, quantas::StableDataLinkPeer> sim;	 
 #elif CHANGROBERTS_PEER
 	Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer> sim;
+#elif DYNAMIC_PEER
+	Simulation<quantas::DynamicMessage, quantas::DynamicPeer> sim;
+#elif KPT_PEER
+	Simulation<quantas::KPTMessage, quantas::KPTPeer> sim;
+#elif KSM_PEER
+	Simulation<quantas::KSMMessage, quantas::KSMPeer> sim;
 #endif
 	   sim.run(input);
    }
