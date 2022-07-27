@@ -59,13 +59,13 @@ namespace quantas {
 
         // vector of mined blocks
         vector<KSMBlock>                    blockChain;
-        //
+        // vector of per-block labels which stores decisions whether the block is accepted or rejected
         vector<KSMBlockLabel>               perBlockLabels;
-        //
+        // vector of competing branches
         vector<vector<KSMBlock>>            branches;
-        //
+        // vector of all source pool members' IDs
         vector<int>                         sourcePoolIds;
-        //
+        // map which contains source pool members' IDs and their respective position, i.e., the block they were last seen mining on top of
         map<int, KSMBlock>                  sourcePoolPositions;
         // rate at which blocks are mine (i.e., 1 in x chance for all n nodes)
         int                                 mineRate                     = 40;
@@ -90,5 +90,5 @@ namespace quantas {
     };
 }
 
-#endif /* KPTPeer_hpp */
+#endif /* KSMPeer_hpp */
 
