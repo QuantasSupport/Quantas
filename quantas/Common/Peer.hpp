@@ -46,26 +46,30 @@ namespace quantas{
     template <class message>
     class Peer : public NetworkInterface<message>{
     public:
-        Peer                                                    ();
-        Peer                                                    (long);
-        Peer                                                    (const Peer &);
-        virtual ~Peer                                           () = 0;
+        Peer                                                       ();
+        Peer                                                       (long);
+        Peer                                                       (const Peer &);
+        virtual ~Peer                                              () = 0;
         // initialize any user defined parameters
-        virtual void                       initParameters       (const vector<Peer<message>*>& _peers, json parameters) {};
+        virtual void                       initParameters          (const vector<Peer<message>*>& _peers, json parameters) {};
         // perform one step of the Algorithm with the messages in inStream
-        virtual void                       performComputation   () = 0;
+        virtual void                       performComputation      () = 0;
         // ran once per round, used to submit transactions or collect metrics
-        virtual void                       endOfRound                         (const vector<Peer<message>*>& _peers) {};
-        static int                         getRound()                         { return _round; };
-        static void                        initializeRound()                  { _round = 0; };
-        static void                        incrementRound()                   { _round++; };
-        static void                        initializeLastRound(int lastRound) { _lastRound = lastRound; };
-        static bool                        lastRound()                        { return _lastRound == _round; };
+        virtual void                       endOfRound              (const vector<Peer<message>*>& _peers) {};
+        static int                         getRound                ()                                     { return _round; };
+        static void                        initializeRound         ()                                     { _round = 0; };
+        static void                        incrementRound          ()                                     { _round++; };
+        static void                        initializeLastRound     (int lastRound)                        { _lastRound = lastRound; };
+        static bool                        lastRound               ()                                     { return _lastRound == _round; };
+        static void                        initializeSourcePoolSize(int sourcePoolSize)                   { _sourcePoolSize = sourcePoolSize; };
+        static int                         getSourcePoolSize       ()                                     { return _sourcePoolSize; };
     private:
         // current round
         static int                         _round;
         // last round
         static int                        _lastRound;
+        // size of source pool (FOR BLOCKCHAIN IN DYNAMIC NETWORKS)
+        static int                        _sourcePoolSize;
     };
 
     template <class message>
@@ -73,6 +77,9 @@ namespace quantas{
     
     template <class message>
     int Peer<message>::_lastRound = 0;
+    
+    template <class message>
+    int Peer<message>::_sourcePoolSize = 0;
 
     template <class message>
     Peer<message>::Peer(): NetworkInterface<message>(){
