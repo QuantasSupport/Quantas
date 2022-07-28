@@ -65,7 +65,7 @@ namespace quantas {
 			}
 		}
 
-        cout << "Round: " << getRound() << "; Accepted Blocks: " << acceptedBlocks << endl;
+                cout << "Round: " << getRound() << "; Accepted Blocks: " << acceptedBlocks << endl;
     
 		if (lastRound()) {
 			acceptedBlocks = 0;
