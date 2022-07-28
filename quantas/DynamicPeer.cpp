@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
-	int  DynamicPeer::acceptedBlocks     = 0;
+	int  DynamicPeer::acceptedBlocks  = 0;
 
 	DynamicPeer::~DynamicPeer() {}
 
@@ -29,11 +29,11 @@ namespace quantas {
 
 		if (guardMineBlock()) {
 			mineBlock();
-    }
+                }
 
 		else {
 			sendBlockChain();
-    }
+                }
 	}
 
 	void DynamicPeer::endOfRound(const vector<Peer<DynamicMessage>*>& _peers) {
@@ -65,10 +65,10 @@ namespace quantas {
 			}
 		}
 
-    cout << "Round: " << getRound() << " Accepted Blocks: " << acceptedBlocks << endl;
+        cout << "Round: " << getRound() << "; Accepted Blocks: " << acceptedBlocks << endl;
     
 		if (lastRound()) {
-			acceptedBlocks    = 0;
+			acceptedBlocks = 0;
 		}
 	}
 
