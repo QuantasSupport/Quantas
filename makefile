@@ -17,10 +17,10 @@ PROJECT_DIR := quantas
 #
 #  configure this for the specific algorithm and input file
 #
-INPUTFILE := $(PROJECT_DIR)/ChangRobertsInput.json
+INPUTFILE := $(PROJECT_DIR)/ExampleInput.json
 
-#ALG := EXAMPLE_PEER
-#ALGFILE := ExamplePeer
+ALG := EXAMPLE_PEER
+ALGFILE := ExamplePeer
 
 # ALG := BITCOIN_PEER
 # ALGFILE := BitcoinPeer
@@ -49,25 +49,34 @@ INPUTFILE := $(PROJECT_DIR)/ChangRobertsInput.json
 # ALG := STABLEDATALINK_PEER
 # ALGFILE := StableDataLinkPeer
 
-ALG := CHANGROBERTS_PEER
-ALGFILE := ChangRobertsPeer
+# ALG := CHANGROBERTS_PEER
+# ALGFILE := ChangRobertsPeer
+
+# ALG := DYNAMIC_PEER
+# ALGFILE := DynamicPeer
+
+# ALG := KPT_PEER
+# ALGFILE := KPTPeer
+
+# ALG := KSM_PEER
+# ALGFILE := KSMPeer
 ####### end algorithm configuration
 
 
 CPPFLAGS := -Iinclude -MMD -MP
 CXXFLAGS = -pthread  -D$(ALG)
-CXX := g++
+CXX := g++-9
 
 EXE := quantas.exe
 OBJS := $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE).o
 
 
 # extra debug and release flags
-release:  CXXFLAGS += -O2 -s 
-debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG
+release:  CXXFLAGS += -O2 -s -std=c++17
+debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG -std=c++17
 
 clang: CXX := clang++
-clang: CXXFLAGS += -std=c++14
+clang: CXXFLAGS += -std=c++17
 
 .PHONY: all clean run release debug
 

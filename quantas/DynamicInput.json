@@ -1,0 +1,21 @@
+{
+    "experiments": [
+      {
+        "algorithm": "dynamic",
+        "logFile": "cout",
+        "threadCount": 1,
+        "distribution": {
+          "type": "uniform",
+          "maxDelay": 1
+        },
+        "topology": {
+          "type": "dynamic",
+          "sourcePoolSize": 150,
+          "initialPeers": 200,
+          "totalPeers": 200
+        },
+        "tests": 100,
+        "rounds": 1000
+      }
+    ]
+  }

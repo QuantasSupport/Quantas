@@ -60,7 +60,7 @@ namespace quantas{
         ~Network                                                ();
 
         // setters
-        void                                initNetwork         (json); // initialize network with peers
+        void                                initNetwork         (json, int); // initialize network with peers
         void                                initParameters(json);
         void                                fullyConnect        (int);
         void                                star                (int);
@@ -70,6 +70,7 @@ namespace quantas{
         void                                ring                (int);
         void                                unidirectionalRing  (int);
         void                                userList            (json);
+	void                                dynamic             (int, int);
         void                                setDistribution     (json distribution)                             { _distribution.setDistribution(distribution); }
         void                                setLog              (ostream&);
         ostream*                            getLog              ()const                                         { return _log; }
@@ -159,7 +160,10 @@ namespace quantas{
 	}
 
 	template<class type_msg, class peer_type>
-	void Network<type_msg, peer_type>::initNetwork(json topology) {
+	void Network<type_msg, peer_type>::initNetwork(json topology, int lastRound) {
+	std::random_device device;
+        std::mt19937 generator(device());
+	
         for (int i = 0; i < _peers.size(); i++) {
             delete _peers[i];
         }
@@ -170,21 +174,21 @@ namespace quantas{
 		}
         if (topology["identifiers"] == "random") {
             // randomly shuffle nodes prior to setting up topology
-            std::random_shuffle(_peers.begin(),_peers.end());
+            std::shuffle(_peers.begin(),_peers.end(), generator);
         }
 
-		if (topology["type"] == "complete") {
-			fullyConnect(topology["initialPeers"]);
-		}
+	if (topology["type"] == "complete") {
+	    fullyConnect(topology["initialPeers"]);
+	}
         else if (topology["type"] == "star") {
             star(topology["initialPeers"]);
         }
-		else if (topology["type"] == "grid") {
-			grid(topology["height"], topology["width"]);
-		}
-		else if (topology["type"] == "torus") {
-            torus(topology["height"], topology["width"]);
-		}
+	else if (topology["type"] == "grid") {
+	    grid(topology["height"], topology["width"]);
+	}
+	else if (topology["type"] == "torus") {
+           torus(topology["height"], topology["width"]);
+	}
         else if (topology["type"] == "chain") {
             chain(topology["initialPeers"]);
         }
@@ -197,13 +201,18 @@ namespace quantas{
         else if (topology["type"] == "userList") {
             userList(topology);
         }
+	else if (topology["type"] == "dynamic") {
+            dynamic(topology["initialPeers"], topology["sourcePoolSize"]);
+        }
         else {
             std::cerr << "Error: need an input file" << std::endl;
         }
         Peer<type_msg>::initializeRound();
+	Peer<type_msg>::initializeLastRound(lastRound -1);
 	}
-	template<class type_msg, class peer_type>
-	void Network<type_msg, peer_type>::initParameters(json parameters) {
+	
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::initParameters(json parameters) {
         _peers[0]->initParameters(_peers, parameters);
     }
 
@@ -334,6 +343,24 @@ namespace quantas{
                 json comLinks = list[std::to_string(i)];
                 for (int j = 0; j < comLinks.size(); j++) {
                     _peers[i]->addNeighbor(comLinks[j]);
+                }
+            }
+        }
+    }
+
+    // addNeighbor() adds peer to peer's _neighbors vector. I.e., it determines who the peer can broadcast to.
+    template<class type_msg, class peer_type>
+    void Network<type_msg, peer_type>::dynamic(int numberOfPeers, int sourcePoolSize) {
+        Peer<type_msg>::initializeSourcePoolSize(sourcePoolSize);
+        for (int i = 0; i < numberOfPeers; ++i) {
+            for (int j = i + 1; j < numberOfPeers; ++j) {
+                if (j >= sourcePoolSize && !(i >= sourcePoolSize)) { // if peer[j] isn't apart of the source pool but peer[i] is...
+                    _peers[i]->addNeighbor(_peers[j]->id());   
+	        }
+
+                else {
+                    _peers[i]->addNeighbor(_peers[j]->id());
+                    _peers[j]->addNeighbor(_peers[i]->id());
                 }
             }
         }
