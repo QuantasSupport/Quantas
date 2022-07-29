@@ -73,7 +73,7 @@ OBJS := $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE).o
 
 # extra debug and release flags
 release:  CXXFLAGS += -O2 -s -std=c++17
-debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG
+debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG -std=c++17
 
 clang: CXX := clang++
 clang: CXXFLAGS += -std=c++17
