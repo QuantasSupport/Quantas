@@ -66,15 +66,40 @@ namespace quantas {
 
 	void KPTPeer::checkInStrm() {
 		while (!inStreamEmpty()) {
-			Packet<KPTMessage> newMsg = popInStream();
+			Packet<KPTMessage> newMsg  = popInStream();
+			int  forLoopUpperBound     = 0;
+			bool outDatedBlockChain    = false;
+			bool sameBranch            = true;
 
-      if (blockChain.size() < newMsg.getMessage().blockChain.size()) {
-				createBranch(blockChain);
-				blockChain = newMsg.getMessage().blockChain;
+			if (blockChain.size() > newMsg.getMessage().blockChain.size()) {
+				forLoopUpperBound = newMsg.getMessage().blockChain.size();
 			}
 
 			else {
-			    createBranch(newMsg.getMessage().blockChain);
+				forLoopUpperBound  = blockChain.size();
+				outDatedBlockChain = true;
+			}
+
+			for (int i = 0; i < forLoopUpperBound; ++i) {
+				if (newMsg.getMessage().blockChain[i] != blockChain[i]) {
+					sameBranch = false;
+					break;
+				}
+			}
+
+			if (sameBranch && outDatedBlockChain) {
+				blockChain = newMsg.getMessage().blockChain;
+			}
+	
+			else if (!sameBranch) {
+				if (blockChain.size() < newMsg.getMessage().blockChain.size()) {
+					createBranch(blockChain);
+					blockChain = newMsg.getMessage().blockChain;
+				}
+				
+				else {
+					createBranch(newMsg.getMessage().blockChain);
+				}
 			}
 
 			for (auto& branch : newMsg.getMessage().branches) {
@@ -133,74 +158,34 @@ namespace quantas {
 				return (branch1.size() > branch2.size());
 			});
 
-		int  index = acceptedBlocks + 1;
-		for ( ; index < blockChain.size(); ++index) {
-			if ((blockChain[index].roundMined + (2 * PT)) <= getRound()) {
-				auto branch = branches.begin();
-				while (branch != branches.end()) {
-					if (*branch != blockChain) {
-						if (index < branch->size()) {
-							if ((*branch)[index] != blockChain[index]) {
-								if (blockChain.size() > branch->size()) {
-									for (int i = 0; i < branch->size(); ++i) {
-										if (blockChain[i] != (*branch)[i]) {
-											updatePerBlockLabels((*branch)[i], "rejected");
-										}
-									}
-
-									branch = branches.erase(branch);
-								}
-
-								else if (blockChain.size() < branch->size()) {
-									for (int i = 0; i < blockChain.size(); ++i) {
-										if (blockChain[i] != (*branch)[i]) {
-											updatePerBlockLabels(blockChain[i], "rejected");
-										}
-									}
-
-									blockChain = *branch;
-									branch = branches.erase(branch);
-								}
-
-								else {
-									++branch;
-								}
-							}
-
-							else {
-								++branch;
-							}
-						}
-
-						else {
-							for (int i = 0; i < branch->size(); ++i) {
-								if (blockChain[i] != (*branch)[i]) {
-									updatePerBlockLabels((*branch)[i], "rejected");
-								}
-							}
-
-							branch = branches.erase(branch);
+		auto branch = branches.begin();
+		while (branch != branches.end()) {
+			if (blockChain.size() > branch->size()) {
+				if ((2*PT) <= (getRound() - (*branch)[branch->size() - 1].roundMined)) {
+					for (int i = 0; i < branch->size(); ++i) {
+						if (blockChain[i] != (*branch)[i]) {
+							updatePerBlockLabels((*branch)[i], "rejected");
 						}
 					}
 
-					else {
-						branch = branches.erase(branch);
-					}
+					branch = branches.erase(branch);
+				}
 
+				else {
+					++branch;
 				}
 			}
-
+			
 			else {
-				break;
+				++branch;
 			}
 		}
 
-		index = acceptedBlocks + 1;
-		for ( ; index < blockChain.size(); ++index) {
+		for (int index = acceptedBlocks + 1; index < blockChain.size(); ++index) {
 			if ((blockChain[index].roundMined + (2 * PT)) <= getRound()) {
 				bool noCompetingBranches    = true;
-
-				for (auto branch = branches.begin(); branch != branches.end(); ++branch) {
+				branch = branches.begin();
+				for ( ; branch != branches.end(); ++branch) {
 					if ((*branch)[index] != blockChain[index]) {
 						noCompetingBranches = false;
 						break;
