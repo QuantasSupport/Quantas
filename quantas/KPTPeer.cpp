@@ -186,7 +186,7 @@ namespace quantas {
 				bool noCompetingBranches    = true;
 				branch = branches.begin();
 				for ( ; branch != branches.end(); ++branch) {
-					if ((*branch)[index] != blockChain[index]) {
+					if (std::find(branch->begin(), branch->end(), blockChain[index]) == branch->end()) {
 						noCompetingBranches = false;
 						break;
 					}
