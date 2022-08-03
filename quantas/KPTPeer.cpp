@@ -113,10 +113,10 @@ namespace quantas {
 
 		if (found == branches.end()) {
 			if (bc != blockChain) {
-				bool branchDoesNotExist    = true;
-
-				for (auto branch = branches.begin(); branch != branches.end(); ++branch) {
-					branchDoesNotExist     = false;
+				bool doesNotMatch   = true;
+				auto branch         = branches.begin();
+				while (branch != branches.end()) {
+					doesNotMatch           = false;
 					bool branchIsOutDated  = false;
 					int  forLoopUpperBound = 0;
 
@@ -131,21 +131,28 @@ namespace quantas {
 
 					for (int j = 0; j < forLoopUpperBound; ++j) {
 						if ((*branch)[j] != bc[j]) {
-							branchDoesNotExist = true;
+							doesNotMatch = true;
 							break;
 						}
 					}
 
-					if (!(branchDoesNotExist)) {
+					if (!doesNotMatch) {
 						if (branchIsOutDated) {
-							branches.erase(branch);
-							createBranch(bc);
-							break;
+							branch = branches.erase(branch);
+							branches.push_back(bc);
 						}
+
+						else {
+							++branch;
+						}
+					}
+
+					else {
+						++branch;
 					}
 				}
 
-				if (branchDoesNotExist) {
+				if (doesNotMatch) {
 					branches.push_back(bc);
 				}
 			}
