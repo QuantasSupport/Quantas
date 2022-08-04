@@ -20,10 +20,10 @@ namespace quantas {
     using std::map;
 
     struct KSMBlock {
-        int                                 minerId        = -1;             // miner who mined the transaction
+        int                                 minerId        = -1;             // the miner who mined the transaction
         int                                 tipMiner       = -1;             // the id of the miner who mined the previous block
-        int                                 depth          = -1;             // distance from genesis block
-        int                                 roundMined     = -1;             // round block was mined
+        int                                 depth          = -1;             // its number of ancestors
+        int                                 roundMined     = -1;             // the round block was mined
 
         bool                 operator!=             (const KSMBlock&) const;
         bool                 operator==             (const KSMBlock&) const;
@@ -57,7 +57,7 @@ namespace quantas {
         ostream&             printTo                (ostream&) const;
         friend ostream&      operator<<             (ostream&, const KSMPeer&);
 
-        // vector of mined blocks
+        // vector of mined blocks (i.e., process' main chain)
         vector<KSMBlock>                    blockChain;
         // vector of per-block labels which stores decisions on whether a block is accepted or rejected. If a block is not present in the vector, it is unlabeled.
         vector<KSMBlockLabel>               perBlockLabels;
@@ -77,13 +77,13 @@ namespace quantas {
         void                 checkInStrm            ();
         // guardMineBlock determines if the node can mine a block
         bool                 guardMineBlock         ();
-        // mineBlock mines the next transaction, adds it to the blockChain and broadcasts it
+        // mineBlock has the miner mine a block on top of their blockchain
         void                 mineBlock              ();
         // sendBlockChain sends a miner's blockchain, branches, and their recorded positions of source pool memebers over all present edges
         void                 sendBlockChain         ();
         // createBranch updates or inserts into the container 'branches'
         void                 createBranch           (const vector<KSMBlock>&);
-        // updateBlockLabels iterates through a process' blockchain and branches and labels appropriately
+        // updateBlockLabels iterates through a process' blockchain and branches and labels blocks appropriately
         void                 updateBlockLabels      ();
         // updatePerBlockLabels adds a labeled block to perBlockLabels
         void                 updatePerBlockLabels   (const KSMBlock&, const string&);
