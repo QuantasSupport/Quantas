@@ -59,17 +59,17 @@ namespace quantas {
 
         // vector of mined blocks
         vector<KSMBlock>                    blockChain;
-        // vector of per-block labels which stores decisions whether the block is accepted or rejected
+        // vector of per-block labels which stores decisions on whether a block is accepted or rejected. If a block is not present in the vector, it is unlabeled.
         vector<KSMBlockLabel>               perBlockLabels;
         // vector of competing branches
         vector<vector<KSMBlock>>            branches;
         // vector of all source pool members' IDs
         vector<int>                         sourcePoolIds;
-        // map which contains source pool members' IDs and their respective position, i.e., the block they were last seen mining on top of
+        // map which contains source pool members' IDs and their respective position, i.e., the block they were last reported to be mining on top of
         map<int, KSMBlock>                  sourcePoolPositions;
         // rate at which blocks are mine (i.e., 1 in x chance for all n nodes)
         int                                 mineRate                     = 40;
-        // number of accepted blocks (excluding gensis block). A block is considered accepted if all nodes have received said block and are mining on top of it
+        // number of accepted blocks (excluding gensis block). A block is considered accepted if all source pool members are mining on top of it
         int                                 acceptedBlocks               = 0;
 
 
@@ -79,13 +79,13 @@ namespace quantas {
         bool                 guardMineBlock         ();
         // mineBlock mines the next transaction, adds it to the blockChain and broadcasts it
         void                 mineBlock              ();
-        // sendBlockChain sends node's blockchain over all present edges
+        // sendBlockChain sends a miner's blockchain, branches, and their recorded positions of source pool memebers over all present edges
         void                 sendBlockChain         ();
-        // createBranch records branch if the branch isn't already recorded
+        // createBranch updates or inserts into the container 'branches'
         void                 createBranch           (const vector<KSMBlock>&);
-        // updateBlockLabels iterates through a node's blockchain and branches and labels appropriately
+        // updateBlockLabels iterates through a process' blockchain and branches and labels appropriately
         void                 updateBlockLabels      ();
-        // updatePerBlockLabels adds labeled block to perBlockLabels
+        // updatePerBlockLabels adds a labeled block to perBlockLabels
         void                 updatePerBlockLabels   (const KSMBlock&, const string&);
     };
 }
