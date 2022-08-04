@@ -34,6 +34,7 @@ namespace quantas {
 		}
 
 		checkInStrm();
+		
 		updateBlockLabels();
 
 		if (std::find(sourcePoolIds.begin(), sourcePoolIds.end(), id()) != sourcePoolIds.end() && guardMineBlock()) {
