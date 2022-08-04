@@ -19,10 +19,10 @@ namespace quantas {
     using std::vector;
 
     struct DynamicBlock {
-        int                          minerId               = -1;    // miner who mined the transaction
+        int                          minerId               = -1;    // the miner who mined the transaction
         int                          tipMiner              = -1;    // the id of the miner who mined the previous block
-        int                          depth                 = -1;    // distance from genesis block
-        int                          roundMined            = -1;    // round block was mined
+        int                          depth                 = -1;    // the block's number of ancestors
+        int                          roundMined            = -1;    // the round block was mined
 
         bool operator!= (const DynamicBlock&) const;
     };
@@ -50,20 +50,21 @@ namespace quantas {
         friend ostream&      operator<<         (ostream&, const DynamicPeer&);
 
       
-        // vector of mined blocks
-        vector<DynamicBlock>         blockChain;
+        // vector of mined blocks (i.e., process' main chain)
+        vector<DynamicBlock>         blockChain;        
         // rate at which blocks are mine (i.e., 1 in x chance for all n nodes)
         int                          mineRate            = 40;
-        // checkInStrm checks messages
-        void                         checkInStrm();
-        // guardMineBlock determines if the miner can mine a block
-        bool                         guardMineBlock();
-        // mineBlock mines the next transaction, adds it to the blockChain and broadcasts it
-        void                         mineBlock();
-        // sendBlockChain sends miner's blockchain over all present edges
-        void                         sendBlockChain();
         // number of accepted blocks (excluding gensis block). A block is considered accepted if all nodes have received said block and are mining on top of it
         static int                   acceptedBlocks;
+        
+        // checkInStrm checks messages
+        void                 checkInStrm        ();
+        // guardMineBlock determines if the miner can mine a block
+        bool                 guardMineBlock     ();
+        // mineBlock has the miner mine a block on top of their blockchain
+        void                 mineBlock          ();
+        // sendBlockChain sends miner's blockchain over all present edges
+        void                 sendBlockChain     ();
       
     };
 }
