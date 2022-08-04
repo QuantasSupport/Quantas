@@ -19,10 +19,10 @@ namespace quantas {
     using std::vector;
 
     struct KPTBlock {
-        int                                 minerId        = -1;             // miner who mined the transaction
+        int                                 minerId        = -1;             // the miner who mined the block
         int                                 tipMiner       = -1;             // the id of the miner who mined the previous block
-        int                                 depth          = -1;             // distance from genesis block
-        int                                 roundMined     = -1;             // round block was mined
+        int                                 depth          = -1;             // the number of ancestors
+        int                                 roundMined     = -1;             // the round block was mined
 
         bool                 operator!=             (const KPTBlock&) const;
         bool                 operator==             (const KPTBlock&) const;
@@ -34,8 +34,8 @@ namespace quantas {
     };
 
     struct KPTMessage {
-        vector<KPTBlock>                    blockChain;                      // blockchain of sender
-        vector<vector<KPTBlock>>            branches;                        // branches of sender
+        vector<KPTBlock>                    blockChain;                      // sender's blockchain
+        vector<vector<KPTBlock>>            branches;                        // sender's branches
     };
 
     class KPTPeer : public Peer<KPTMessage> {
@@ -55,9 +55,9 @@ namespace quantas {
         ostream&             printTo            (ostream&) const;
         friend ostream&      operator<<         (ostream&, const KPTPeer&);
 
-        // vector of mined blocks
+        // vector of mined blocks (i.e., process' main chain)
         vector<KPTBlock>                    blockChain;
-        // vector of per-block labels which stores decisions whether the block is accepted or rejected
+        // vector of per-block labels which stores decisions on whether a block is accepted or rejected. If a block is not present in the vector, it is unlabeled.
         vector<KPTBlockLabel>               perBlockLabels;
         // vector of competing branches
         vector<vector<KPTBlock>>            branches;
@@ -71,13 +71,13 @@ namespace quantas {
         void                 checkInStrm            ();
         // guardMineBlock determines if the miner can mine a block
         bool                 guardMineBlock         ();
-        // mineBlock mines the next transaction, adds it to the blockChain and broadcasts it
+        // mineBlock has the miner mine a block on top of their blockchain
         void                 mineBlock              ();
-        // sendBlockChain sends miner's blockchain over all present edges
+        // sendBlockChain sends a miner's blockchain over all present edges
         void                 sendBlockChain         ();
-        // createBranch records branch if the branch isn't already recorded
+        // createBranch updates or inserts into the container 'branches'
         void                 createBranch           (const vector<KPTBlock>&);
-        // updateBlockLabels iterates through a node's blockchain and branches and labels appropriately
+        // updateBlockLabels iterates through a process' blockchain and branches and labels blocks appropriately
         void                 updateBlockLabels      ();
         // updatePerBlockLabels adds labeled block to perBlockLabels
         void                 updatePerBlockLabels   (const KPTBlock&, const string&);
