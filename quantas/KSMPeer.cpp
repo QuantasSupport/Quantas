@@ -106,16 +106,17 @@ namespace quantas {
 
 		if (found == branches.end()) {
 			if (bc != blockChain) {
-				bool doesNotMatch    = true;
-				auto branch          = branches.begin();
+				bool doesNotMatch   = true;
+				bool insertBranch   = false;
+				auto branch         = branches.begin();
 				while (branch != branches.end()) {
 					doesNotMatch           = false;
 					bool branchIsOutDated  = false;
 					int  forLoopUpperBound = 0;
 
-					if (branch->size() < bc.size()) { 
-						forLoopUpperBound = branch->size();
-						branchIsOutDated  = true;
+					if (branch->size() < bc.size()) {
+						forLoopUpperBound  = branch->size();
+						branchIsOutDated   = true;
 					}
 
 					else {
@@ -132,10 +133,10 @@ namespace quantas {
 					if (!doesNotMatch) {
 						if (branchIsOutDated) {
 							branch = branches.erase(branch);
-							branches.push_back(bc);
+							insertBranch = true;
 						}
 
-						else {
+						else{
 							++branch;
 						}
 					}
@@ -145,7 +146,7 @@ namespace quantas {
 					}
 				}
 
-				if (doesNotMatch) {
+				if (doesNotMatch || insertBranch) {
 					branches.push_back(bc);
 				}
 			}
@@ -196,7 +197,8 @@ namespace quantas {
 				for (auto position = sourcePoolPositions.begin(); position != sourcePoolPositions.end(); ++position) {
 					if (position->second.depth >= blockChain[index].depth) {
 						if (std::find(blockChain.begin(), blockChain.end(), position->second) == blockChain.end()) {
-							for (auto branch = branches.begin(); branch != branches.end(); ++branch) {
+							branch = branches.begin();
+							for ( ; branch != branches.end(); ++branch) {
 
 								if (std::find(branch->begin(), branch->end(), position->second) != branch->end()) {
 									if (std::find(branch->begin(), branch->end(), blockChain[index]) == branch->end()) {
