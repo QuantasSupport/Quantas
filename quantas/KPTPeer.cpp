@@ -114,6 +114,7 @@ namespace quantas {
 		if (found == branches.end()) {
 			if (bc != blockChain) {
 				bool doesNotMatch   = true;
+				bool insertBranch   = false;
 				auto branch         = branches.begin();
 				while (branch != branches.end()) {
 					doesNotMatch           = false;
@@ -139,10 +140,10 @@ namespace quantas {
 					if (!doesNotMatch) {
 						if (branchIsOutDated) {
 							branch = branches.erase(branch);
-							branches.push_back(bc);
+							insertBranch = true;
 						}
 
-						else {
+						else{
 							++branch;
 						}
 					}
@@ -152,7 +153,7 @@ namespace quantas {
 					}
 				}
 
-				if (doesNotMatch) {
+				if (doesNotMatch || insertBranch) {
 					branches.push_back(bc);
 				}
 			}
