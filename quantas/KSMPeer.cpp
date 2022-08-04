@@ -155,41 +155,29 @@ namespace quantas {
 	}
 
 	void KSMPeer::updateBlockLabels() {
-		auto minPosition = std::min_element(sourcePoolPositions.begin(), sourcePoolPositions.end(),
-			[](const std::pair<int, KSMBlock>& position1, const std::pair<int, KSMBlock>& position2) {
-				return (position1.second.depth < position1.second.depth);
-			});
-
-		int minDepth = 0;
-		if (minPosition != sourcePoolPositions.end()) {
-			minDepth = minPosition->second.depth + 1;
-		}
-
-		auto branch = branches.begin();
-		while (branch != branches.end()) {
-
-			if (*branch != blockChain) {
-				if (branch->size() < minDepth) {
-					for (int i = 0; i < branch->size(); ++i) {
-						if (blockChain[i] != (*branch)[i]) {
-							updatePerBlockLabels((*branch)[i], "rejected");
+		if (sourcePoolIds.size() == sourcePoolPositions.size()) {
+			auto branch = branches.begin();
+			while (branch != branches.end()) {
+				if (*branch != blockChain) {
+					bool remove = true;
+					for (auto position = sourcePoolPositions.begin(); position != sourcePoolPositions.end(); ++position) {
+						if (std::find(branch->begin(), branch->end(), position->second) != branch->end()) {
+							remove = false;
 						}
 					}
-
-					branch = branches.erase(branch);
+					if (remove) {
+						branch = branches.erase(branch);
+					}
+					else {
+						++branch;
+					}
 				}
 
 				else {
-					++branch;
+					branch = branches.erase(branch);
 				}
 			}
 
-			else {
-				branch = branches.erase(branch);
-			}
-		}
-
-		if (sourcePoolIds.size() == sourcePoolPositions.size()) {
 			int index = acceptedBlocks + 1;
 			for ( ; index < blockChain.size(); ++index) {
 
