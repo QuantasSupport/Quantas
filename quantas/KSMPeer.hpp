@@ -31,12 +31,12 @@ namespace quantas {
 
     struct KSMBlockLabel {
         KSMBlock                            block;                           // block
-        string                              label          = "unlabeled";    // label of block
+        string                              label          = "unlabeled";    // corresponding label for block
     };
 
     struct KSMMessage {
-        vector<KSMBlock>                    blockChain;                      // blockchain of sender
-        vector<vector<KSMBlock>>            branches;                        // branches of sender
+        vector<KSMBlock>                    blockChain;                      // sender's blockchain
+        vector<vector<KSMBlock>>            branches;                        // sender's branches
         map<int, KSMBlock>                  sourcePoolPositions;             // sender's record of source pool members' positions
     };
 
