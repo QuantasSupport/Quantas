@@ -21,7 +21,7 @@ namespace quantas {
     struct KPTBlock {
         int                                 minerId        = -1;             // the miner who mined the block
         int                                 tipMiner       = -1;             // the id of the miner who mined the previous block
-        int                                 depth          = -1;             // the number of ancestors
+        int                                 depth          = -1;             // the block's number of ancestors
         int                                 roundMined     = -1;             // the round block was mined
 
         bool                 operator!=             (const KPTBlock&) const;
