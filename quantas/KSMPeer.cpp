@@ -166,9 +166,11 @@ namespace quantas {
 							remove = false;
 						}
 					}
+					
 					if (remove) {
 						branch = branches.erase(branch);
 					}
+					
 					else {
 						++branch;
 					}
@@ -189,7 +191,6 @@ namespace quantas {
 						if (std::find(blockChain.begin(), blockChain.end(), position->second) == blockChain.end()) {
 							branch = branches.begin();
 							for ( ; branch != branches.end(); ++branch) {
-
 								if (std::find(branch->begin(), branch->end(), position->second) != branch->end()) {
 									if (std::find(branch->begin(), branch->end(), blockChain[index]) == branch->end()) {
 										flag = true;
@@ -201,7 +202,6 @@ namespace quantas {
 
 									break;
 								}
-
 							}
 						}
 
