@@ -183,7 +183,6 @@ namespace quantas {
 
 			int index = acceptedBlocks + 1;
 			for ( ; index < blockChain.size(); ++index) {
-
 				bool flag    = false;
 				int  counter = 0;
 				for (auto position = sourcePoolPositions.begin(); position != sourcePoolPositions.end(); ++position) {
@@ -218,7 +217,6 @@ namespace quantas {
 				if (counter == sourcePoolIds.size()) {
 					updatePerBlockLabels(blockChain[index], "accepted");
 				}
-
 			}
 		}
 	}
