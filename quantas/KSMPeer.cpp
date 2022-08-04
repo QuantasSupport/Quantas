@@ -104,7 +104,6 @@ namespace quantas {
 
 	void KSMPeer::createBranch(const vector<KSMBlock>& bc) {
 		auto found = std::find(branches.begin(), branches.end(), bc);
-
 		if (found == branches.end()) {
 			if (bc != blockChain) {
 				int  numberOfBranches  = 0;
