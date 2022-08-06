@@ -67,41 +67,15 @@ namespace quantas {
 	void KPTPeer::checkInStrm() {
 		while (!inStreamEmpty()) {
 			Packet<KPTMessage> newMsg  = popInStream();
-			int  forLoopUpperBound     = 0;
-			bool outDatedBlockChain    = false;
-			bool sameBranch            = true;
-
-			if (blockChain.size() > newMsg.getMessage().blockChain.size()) {
-				forLoopUpperBound = newMsg.getMessage().blockChain.size();
-			}
-
-			else {
-				forLoopUpperBound  = blockChain.size();
-				outDatedBlockChain = true;
-			}
-
-			for (int i = 0; i < forLoopUpperBound; ++i) {
-				if (newMsg.getMessage().blockChain[i] != blockChain[i]) {
-					sameBranch = false;
-					break;
-				}
-			}
-
-			if (sameBranch && outDatedBlockChain) {
+			if (blockChain.size() < newMsg.getMessage().blockChain.size()) {
+				createBranch(blockChain);
 				blockChain = newMsg.getMessage().blockChain;
 			}
-	
-			else if (!sameBranch) {
-				if (blockChain.size() < newMsg.getMessage().blockChain.size()) {
-					createBranch(blockChain);
-					blockChain = newMsg.getMessage().blockChain;
-				}
 				
-				else {
-					createBranch(newMsg.getMessage().blockChain);
-				}
+			else {
+				createBranch(newMsg.getMessage().blockChain);
 			}
-
+			
 			for (auto& branch : newMsg.getMessage().branches) {
 				createBranch(branch);
 			}
