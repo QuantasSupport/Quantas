@@ -67,41 +67,15 @@ namespace quantas {
 	void KPTPeer::checkInStrm() {
 		while (!inStreamEmpty()) {
 			Packet<KPTMessage> newMsg  = popInStream();
-			int  forLoopUpperBound     = 0;
-			bool outDatedBlockChain    = false;
-			bool sameBranch            = true;
-
-			if (blockChain.size() > newMsg.getMessage().blockChain.size()) {
-				forLoopUpperBound = newMsg.getMessage().blockChain.size();
-			}
-
-			else {
-				forLoopUpperBound  = blockChain.size();
-				outDatedBlockChain = true;
-			}
-
-			for (int i = 0; i < forLoopUpperBound; ++i) {
-				if (newMsg.getMessage().blockChain[i] != blockChain[i]) {
-					sameBranch = false;
-					break;
-				}
-			}
-
-			if (sameBranch && outDatedBlockChain) {
+			if (blockChain.size() < newMsg.getMessage().blockChain.size()) {
+				createBranch(blockChain);
 				blockChain = newMsg.getMessage().blockChain;
 			}
-	
-			else if (!sameBranch) {
-				if (blockChain.size() < newMsg.getMessage().blockChain.size()) {
-					createBranch(blockChain);
-					blockChain = newMsg.getMessage().blockChain;
-				}
 				
-				else {
-					createBranch(newMsg.getMessage().blockChain);
-				}
+			else {
+				createBranch(newMsg.getMessage().blockChain);
 			}
-
+			
 			for (auto& branch : newMsg.getMessage().branches) {
 				createBranch(branch);
 			}
@@ -110,15 +84,18 @@ namespace quantas {
 
 	void KPTPeer::createBranch(const vector<KPTBlock>& bc) {
 		auto found = std::find(branches.begin(), branches.end(), bc);
-
 		if (found == branches.end()) {
 			if (bc != blockChain) {
-				bool branchDoesNotExist    = true;
-
-				for (auto branch = branches.begin(); branch != branches.end(); ++branch) {
-					branchDoesNotExist     = false;
+				int  numberOfBranches  = 0;
+				int  numberOfNoMatches = 0;
+				bool insertBranch      = false;
+				auto branch            = branches.begin();
+				while (branch != branches.end()) {
+					bool doesNotMatch      = false;
 					bool branchIsOutDated  = false;
 					int  forLoopUpperBound = 0;
+					
+					++numberOfBranches;
 
 					if (branch->size() < bc.size()) {
 						forLoopUpperBound  = branch->size();
@@ -129,23 +106,31 @@ namespace quantas {
 						forLoopUpperBound = bc.size();
 					}
 
-					for (int j = 0; j < forLoopUpperBound; ++j) {
+					for (int j = 0; j < forLoopUpperBound; ++j) {						
 						if ((*branch)[j] != bc[j]) {
-							branchDoesNotExist = true;
+							++numberOfNoMatches;
+							doesNotMatch = true;
 							break;
 						}
 					}
 
-					if (!(branchDoesNotExist)) {
+					if (!doesNotMatch) {
 						if (branchIsOutDated) {
-							branches.erase(branch);
-							createBranch(bc);
-							break;
+							branch = branches.erase(branch);
+							insertBranch = true;
 						}
+
+						else{
+							++branch;
+						}
+					}
+
+					else {
+						++branch;
 					}
 				}
 
-				if (branchDoesNotExist) {
+				if (numberOfNoMatches == numberOfBranches || insertBranch || branches.empty()) {
 					branches.push_back(bc);
 				}
 			}
@@ -287,3 +272,4 @@ namespace quantas {
 		return out;
 	}
 }
+
