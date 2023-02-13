@@ -1,0 +1,55 @@
+{
+    "RunTime": 0.090847418,
+    "tests": [
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 29
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 36
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 28
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 25
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 29
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 29
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 30
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 33
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 25
+        },
+        {
+            "elected_id": 9,
+            "election_time": 10,
+            "nb_messages": 31
+        }
+    ]
+}

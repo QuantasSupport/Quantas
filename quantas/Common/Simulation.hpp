@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with QUA
 
 #include <chrono>
 #include <thread>
+#include <fstream>
 
 #include "Network.hpp"
 #include "LogWriter.hpp"
@@ -25,8 +26,13 @@ using std::ofstream;
 using std::thread;
 
 namespace quantas {
+	class SimWrapper {
+	public:
+    	virtual void run(json) = 0;
+	};
+
 	template<class type_msg, class peer_type>
-    class Simulation {
+    class Simulation : public SimWrapper{
     private:
         Network<type_msg, peer_type> 		system;
         ostream                             *_log;
@@ -87,8 +93,9 @@ namespace quantas {
 				system.initParameters(config["parameters"]);
 			}
 			
-			
+			//cout << "Test " << i + 1 << endl;
 			for (int j = 0; j < config["rounds"]; j++) {
+				//cout << "ROUND " << j << endl;
 				LogWriter::instance()->setRound(j); // Set the round number for logging
 
 				// do the receive phase of the round

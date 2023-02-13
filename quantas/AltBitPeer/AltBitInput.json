@@ -1,0 +1,19 @@
+{
+  "experiments": [
+    {
+      "algorithm": "AltBit",
+      "logFile": "AltBitDelay1.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "totalPeers": 2
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}

@@ -7,7 +7,7 @@ QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-// This class handles the destitution of channel delays in the network. The distribution can be uniform, Poisson or one. 
+// This class handles the distribution of channel delays in the network. The distribution can be uniform, Poisson or one. 
 
 
 #ifndef Distribution_hpp
@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include "./../Common/Peer.hpp"
 #include "Json.hpp"
+
 
 namespace quantas{
 
@@ -38,7 +39,13 @@ namespace quantas{
         string                              _type = ONE;
 
     public:
-        Distribution                                                 ();
+        Distribution                                                 () {
+            _avgDelay = 1;
+            _maxDelay = 1;
+            _minDelay = 1;
+            _type = UNIFORM;
+        }
+
         Distribution                                                 (const Distribution&);
         ~Distribution                                                ();
 
@@ -55,15 +62,7 @@ namespace quantas{
 
     };
 
-    
-    Distribution::Distribution(){
-        _avgDelay = 1;
-        _maxDelay = 1;
-        _minDelay = 1;
-        _type = UNIFORM;
-    }
-
-    Distribution::Distribution(const Distribution &rhs){
+    inline Distribution::Distribution(const Distribution &rhs){
         if(this == &rhs){
             return;
         }
@@ -74,11 +73,11 @@ namespace quantas{
         _type = rhs._type;
     }
 
-    Distribution::~Distribution(){
+    inline Distribution::~Distribution(){
         
     }
 
-    void Distribution::setDistribution(json distribution) {
+    inline void Distribution::setDistribution(json distribution) {
         if (distribution.contains("avgDelay")) {
             _avgDelay = distribution["avgDelay"];
         }
@@ -103,7 +102,7 @@ namespace quantas{
         }
     }
     
-    int Distribution::getDelay(){
+    inline int Distribution::getDelay(){
         int delay = -1;
         do {
             if (_type == UNIFORM) {

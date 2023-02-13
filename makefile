@@ -11,69 +11,63 @@
 # copy of the GNU General Public License along with QUANTAS. If not,
 # see <https://www.gnu.org/licenses/>.
 
+
 PROJECT_DIR := quantas
 
 ################
 #
 #  configure this for the specific algorithm and input file
 #
-INPUTFILE := $(PROJECT_DIR)/ExampleInput.json
 
-ALG := EXAMPLE_PEER
-ALGFILE := ExamplePeer
+ INPUTFILE := ExampleInput.json
 
-# ALG := BITCOIN_PEER
+ ALGFILE := ExamplePeer
+
 # ALGFILE := BitcoinPeer
 
-# ALG := ETHEREUM_PEER
 # ALGFILE := EthereumPeer
 
-# ALG := PBFT_PEER
 # ALGFILE := PBFTPeer
 
-# ALG := RAFT_PEER
 # ALGFILE := RaftPeer
 
-# ALG := SMARTSHARDS_PEER
 # ALGFILE := SmartShardsPeer
 
-# ALG := LINEARCHORD_PEER
 # ALGFILE := LinearChordPeer
 
-# ALG := KADEMLIA_PEER
 # ALGFILE := KademliaPeer
 
-# ALG := ALTBIT_PEER
 # ALGFILE := AltBitPeer
 
-# ALG := STABLEDATALINK_PEER
 # ALGFILE := StableDataLinkPeer
 
-# ALG := CHANGROBERTS_PEER
 # ALGFILE := ChangRobertsPeer
 
-# ALG := DYNAMIC_PEER
 # ALGFILE := DynamicPeer
 
-# ALG := KPT_PEER
 # ALGFILE := KPTPeer
 
-# ALG := KSM_PEER
 # ALGFILE := KSMPeer
+
 ####### end algorithm configuration
+
+####### All algorithms
+
+
+INPUTFILE := $(PROJECT_DIR)/$(ALGFILE)/$(INPUTFILE)
 
 
 CPPFLAGS := -Iinclude -MMD -MP
-CXXFLAGS = -pthread  -D$(ALG)
+CXXFLAGS = -pthread -include $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).hpp
 CXX := g++-9
 
 EXE := quantas.exe
-OBJS := $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE).o
+OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o
 
 
 # extra debug and release flags
-release:  CXXFLAGS += -O2 -s -std=c++17
-debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG -std=c++17
+release:  CXXFLAGS += -O3 -s -std=c++17
+debug: CXXFLAGS += -O3 -g  -D_GLIBCXX_DEBUG -std=c++17
 
 clang: CXX := clang++
 clang: CXXFLAGS += -std=c++17
@@ -84,7 +78,8 @@ all: debug
 
 release: $(EXE)
 debug: $(EXE)
-clang: $(EXE)
+clang: all
+	./$(EXE) $(INPUTFILE)
 
 $(EXE): $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $(EXE)
@@ -95,18 +90,41 @@ $(PROJECT_DIR)/%.o: $(PROJECT_DIR)/%.c
 run: all
 	./$(EXE) $(INPUTFILE)
 
+TESTS = test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_SmartShards test_LinearChord test_Kademlia test_AltBit test_StableDataLink test_ChangRoberts test_Dynamic test_KPT test_KSM
+
+############################### Compile and run all tests - uses a wild card.
+test: $(TESTS)
+	@make --no-print-directory clean
+	@echo all tests successful
+
+test_%: ALGFILE = $*Peer
+test_%: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG -std=c++17
+test_%:
+	@make --no-print-directory clean
+	@echo Testing $(ALGFILE)
+	@$(CXX) $(CXXFLAGS) -c -o quantas/main.o quantas/main.cpp
+	@$(CXX) $(CXXFLAGS) -c -o quantas/$(ALGFILE)/$(ALGFILE).o quantas/$(ALGFILE)/$(ALGFILE).cpp
+	@$(CXX) $(CXXFLAGS)  quantas/main.o quantas/$(ALGFILE)/$(ALGFILE).o -o $(EXE)
+	@./$(EXE) quantas/$(ALGFILE)/$*Input.json
+	@$(RM) quantas/$(ALGFILE)/*.o
+	@echo $(ALGFILE) successful
+
 clean:
-	$(RM) $(EXE)
-	$(RM) *.out
-	$(RM) *.o
-	$(RM) -r *.dSYM
-	$(RM) $(PROJECT_DIR)/*.gch
-	$(RM) $(PROJECT_DIR)/*.tmp
-	$(RM) $(PROJECT_DIR)/*.o
-	$(RM) $(PROJECT_DIR)/*.d
-	$(RM) quantas_test/*.gch
-	$(RM) quantas_test/*.tmp
-	$(RM) quantas_test/*.o
-	$(RM) quantas_test/*.d
+	@$(RM) $(EXE)
+	@$(RM) *.out
+	@$(RM) *.o
+	@$(RM) -r *.dSYM
+	@$(RM) $(PROJECT_DIR)/*.gch
+	@$(RM) $(PROJECT_DIR)/*.tmp
+	@$(RM) $(PROJECT_DIR)/*.o
+	@$(RM) $(PROJECT_DIR)/*.d
+	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.gch
+	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.tmp
+	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.o
+	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.d
+	@$(RM) quantas_test/*.gch
+	@$(RM) quantas_test/*.tmp
+	@$(RM) quantas_test/*.o
+	@$(RM) quantas_test/*.d
 
 -include $(OBJS:.o=.d)

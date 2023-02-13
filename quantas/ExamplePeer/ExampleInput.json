@@ -1,0 +1,53 @@
+{
+  "experiments": [
+    {
+      "algorithm": "example",
+      "logFile": "example1.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "userList",
+        "initialPeers": 3,
+        "totalPeers": 3,
+        "list": {
+          "0": [ 1, 2 ],
+          "1": [ 2 ]
+        }
+      },
+      "tests": 1,
+      "rounds": 3
+    },
+    {
+      "algorithm": "example",
+      "logFile": "example2.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 5,
+        "totalPeers": 5
+      },
+      "tests": 1,
+      "rounds": 3
+    },
+    {
+      "algorithm": "example",
+      "logFile": "example3.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 3,
+        "totalPeers": 3
+      },
+      "tests": 1,
+      "rounds": 3
+    }
+  ]
+}

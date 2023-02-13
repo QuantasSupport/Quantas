@@ -1,0 +1,20 @@
+{
+  "experiments": [
+    {
+      "algorithm": "bitcoin",
+      "logFile": "bitCoinDelay1.txt",
+      "threadCount": 12,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}

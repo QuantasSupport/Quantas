@@ -331,11 +331,6 @@ namespace quantas{
     template <class message>
     void NetworkInterface<message>::receive() {
         for (int i = 0; i != _inBoundChannels.size(); ++i) {
-
-            for(int j = 0; j != _inBoundChannels[i].size(); j++){
-                _inBoundChannels[i][j].moveForward();
-            }
-
             while(!_inBoundChannels[i].empty() && _inBoundChannels[i].front().hasArrived()){
                 _inStream.push_back(_inBoundChannels[i].front());
                 _inBoundChannels[i].pop_front();

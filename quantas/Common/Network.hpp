@@ -70,7 +70,7 @@ namespace quantas{
         void                                ring                (int);
         void                                unidirectionalRing  (int);
         void                                userList            (json);
-	void                                dynamic             (int, int);
+	    void                                dynamic             (int, int);
         void                                setDistribution     (json distribution)                             { _distribution.setDistribution(distribution); }
         void                                setLog              (ostream&);
         ostream*                            getLog              ()const                                         { return _log; }
@@ -161,7 +161,7 @@ namespace quantas{
 
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::initNetwork(json topology, int lastRound) {
-	std::random_device device;
+	    std::random_device device;
         std::mt19937 generator(device());
 	
         for (int i = 0; i < _peers.size(); i++) {
@@ -177,18 +177,18 @@ namespace quantas{
             std::shuffle(_peers.begin(),_peers.end(), generator);
         }
 
-	if (topology["type"] == "complete") {
-	    fullyConnect(topology["initialPeers"]);
-	}
+	    if (topology["type"] == "complete") {
+	        fullyConnect(topology["initialPeers"]);
+	    }
         else if (topology["type"] == "star") {
             star(topology["initialPeers"]);
         }
-	else if (topology["type"] == "grid") {
-	    grid(topology["height"], topology["width"]);
-	}
-	else if (topology["type"] == "torus") {
-           torus(topology["height"], topology["width"]);
-	}
+	    else if (topology["type"] == "grid") {
+	        grid(topology["height"], topology["width"]);
+	    }
+	    else if (topology["type"] == "torus") {
+            torus(topology["height"], topology["width"]);
+	    }
         else if (topology["type"] == "chain") {
             chain(topology["initialPeers"]);
         }
@@ -201,14 +201,14 @@ namespace quantas{
         else if (topology["type"] == "userList") {
             userList(topology);
         }
-	else if (topology["type"] == "dynamic") {
+	    else if (topology["type"] == "dynamic") {
             dynamic(topology["initialPeers"], topology["sourcePoolSize"]);
         }
         else {
             std::cerr << "Error: need an input file" << std::endl;
         }
         Peer<type_msg>::initializeRound();
-	Peer<type_msg>::initializeLastRound(lastRound -1);
+	    Peer<type_msg>::initializeLastRound(lastRound -1);
 	}
 	
     template<class type_msg, class peer_type>

@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <string>
 #include <ctime>
 #include <random>
+#include "LogWriter.hpp"
 
 namespace quantas{
 
@@ -47,12 +48,13 @@ namespace quantas{
         
     protected:
         long                        _id; // message id 
-        long                        _targetId; // traget node id
+        long                        _targetId; // target node id
         long                        _sourceId; // source node id
         
         message                     _body;
         
         int                         _delay; // delay of the message
+        int                         _round; // round message was sent
         
     public:
         Packet                      (long id);
@@ -70,12 +72,13 @@ namespace quantas{
         long        id              ()const {return _id;};
         long        targetId        ()const {return _targetId;};
         long        sourceId        ()const {return _sourceId;};
-        bool        hasArrived      ()const {return !(bool)(_delay);};
+        bool        hasArrived      ()const {return LogWriter::instance()->getRound() >= _round + _delay;};
         message     getMessage      ()const {return _body;};
         int         getDelay        ()const {return _delay;};
+        int         getRound        ()const {return _round;};
         
         // mutators
-        void        moveForward     (){_delay = _delay > 0 ? _delay-1 : 0;};
+        //void        moveForward     (){_delay = _delay > 0 ? _delay-1 : 0;};
         
         //void
         
@@ -92,6 +95,7 @@ namespace quantas{
         _targetId = NO_PEER_ID;
         _body = message();
         _delay = 0;
+        _round = LogWriter::instance()->getRound();
     }
 
     template<class message>
@@ -101,6 +105,7 @@ namespace quantas{
         _targetId = to;
         _body = message();
         _delay = 0;
+        _round = LogWriter::instance()->getRound();
     }
 
     template<class message>
@@ -110,6 +115,7 @@ namespace quantas{
         _sourceId = rhs._sourceId;
         _body = rhs._body;
         _delay = rhs._delay;
+        _round = rhs._round;
     }
 
     template<class message>
@@ -130,6 +136,7 @@ namespace quantas{
         _sourceId = rhs._sourceId;
         _body = rhs._body;
         _delay = rhs._delay;
+        _round = rhs._round;
         return *this;
     }
 

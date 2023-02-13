@@ -1,0 +1,19 @@
+{
+  "experiments": [
+    {
+      "algorithm": "Kademlia",
+      "logFile": "KademliaScale20.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}

@@ -45,7 +45,7 @@ namespace quantas {
         void                setTest         (int test)      { _test = test; }
         int                 getTest         ()const         { return _test; }
         void                setRound        (int round)     { _round = round; }
-        int                 getRound        ()const         { return _test; }
+        int                 getRound        ()const         { return _round; }
 
     private:
         // copying and creation prohibited by clients
