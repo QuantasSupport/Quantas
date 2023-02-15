@@ -19,9 +19,9 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
- INPUTFILE := ExampleInput.json
+# INPUTFILE := SmartShardsGraph4.json
 
- ALGFILE := ExamplePeer
+ALGFILE := ExamplePeer
 
 # ALGFILE := BitcoinPeer
 
@@ -67,17 +67,18 @@ OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o
 
 # extra debug and release flags
 release:  CXXFLAGS += -O3 -s -std=c++17
-debug: CXXFLAGS += -O3 -g  -D_GLIBCXX_DEBUG -std=c++17
+debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG -std=c++17
 
 clang: CXX := clang++
 clang: CXXFLAGS += -std=c++17
 
 .PHONY: all clean run release debug
 
-all: debug
+all: release
 
 release: $(EXE)
 debug: $(EXE)
+
 clang: all
 	./$(EXE) $(INPUTFILE)
 

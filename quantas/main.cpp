@@ -47,36 +47,6 @@ int main(int argc, const char* argv[]) {
 
    for (int i = 0; i < config["experiments"].size(); ++i) {
       json input = config["experiments"][i];
-
-// #if defined(ExamplePeer_hpp)
-// 	Simulation<quantas::ExampleMessage, quantas::ExamplePeer> sim;
-// #elif defined(BitcoinPeer_hpp)
-// 	Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer> sim;
-// #elif defined(EthereumPeer_hpp)
-//    Simulation<quantas::EthereumPeerMessage, quantas::EthereumPeer> sim;
-// #elif defined(PBFTPeer_hpp)
-// 	Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer> sim;
-// #elif defined(RaftPeer_hpp)
-// 	Simulation<quantas::RaftPeerMessage, quantas::RaftPeer> sim;
-// #elif defined(SmartShardsPeer_hpp)
-// 	Simulation<quantas::SmartShardsMessage, quantas::SmartShardsPeer> sim;
-// #elif defined(LinearChordPeer_hpp)
-// 	Simulation<quantas::LinearChordMessage, quantas::LinearChordPeer> sim;
-// #elif defined(KademliaPeer_hpp)
-// 	Simulation<quantas::KademliaMessage, quantas::KademliaPeer> sim;
-// #elif defined(AltBitPeer_hpp)
-// 	Simulation<quantas::AltBitMessage, quantas::AltBitPeer> sim;
-// #elif defined(StableDataLinkPeer_hpp)
-// 	Simulation<quantas::StableDataLinkMessage, quantas::StableDataLinkPeer> sim;	 
-// #elif defined(ChangRobertsPeer_hpp)
-// 	Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer> sim;
-// #elif defined(DynamicPeer_hpp)
-// 	Simulation<quantas::DynamicMessage, quantas::DynamicPeer> sim;
-// #elif defined(KPTPeer_hpp)
-// 	Simulation<quantas::KPTMessage, quantas::KPTPeer> sim;
-// #elif defined(KSMPeer_hpp)
-// 	Simulation<quantas::KSMMessage, quantas::KSMPeer> sim;
-// #endif
       quantas::SimWrapper* sim = quantas::generateSim();
 	   sim->run(input);
       delete sim;
