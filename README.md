@@ -17,8 +17,6 @@ sudo apt install g++-9
 
 If you would rather use `clang`, use `make clang`.
 
-QUANTAS exhibits unintended behavior with the Windows implementation of \<cstdlib>; see disclaimer [below](#visual-studio).
-
 #### Basic Usage
 To use the simulator, first clone the repository. Once cloned, you need to configure the simulated algorithm for QUANTAS to run and an input file for the algorithm to use. QUANTAS comes with several example algorithms and input files. They are listed in the `makefile` in the root directory. Uncomment the required algorithm and input file, for example:
  
@@ -50,8 +48,6 @@ make clang
 ```
 
 #### Visual Studio
-
-**Warning:** Running this simulator on Windows will result in deterministic behavior where randomness is expected, due to `srand` exhibiting non-standard behavior and only seeding the random values for a single thread upon invocation. (This behavior can appear even when using a Windows build of g++ as the compiler.) Use at your own risk.
 
 To use our simulator with the Visual Studio editor takes additional steps.
 First, you'll need to create an empty solution.
