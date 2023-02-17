@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <string>
 #include <random>
 #include <iostream>
+#include <thread>
 #include "./../Common/Peer.hpp"
 #include "Json.hpp"
 
@@ -25,8 +26,29 @@ namespace quantas{
     using std::string;
     using std::uniform_int_distribution;
     using std::poisson_distribution;
+    using std::default_random_engine;
     using nlohmann::json;
     using std::cerr;
+
+    std::hash<std::thread::id> _hasher;
+    // random number generator that will be created and seeded uniquely once in each thread
+    static thread_local default_random_engine RANDOM_GENERATOR =
+        default_random_engine(static_cast<int>(time(nullptr))+_hasher(std::this_thread::get_id()));
+
+    // convenience function for using the random number generator to get a
+    // random int in the range [min, max]
+    int uniformInt(const int & min, const int & max) {
+        std::uniform_int_distribution<int> distribution(min, max);
+        return distribution(RANDOM_GENERATOR);
+    }
+
+    // convenience function for using the random number generator to get a
+    // random int in the range [0, exclusiveMax) (like calling rand() %
+    // exclusiveMax, but thread-safe)
+    int randMod(const int & exclusiveMax) {
+        std::uniform_int_distribution<int> distribution(0, exclusiveMax-1);
+        return distribution(RANDOM_GENERATOR);
+    }
 
     static const string                POISSON = "POISSON";
     static const string                UNIFORM = "UNIFORM";
@@ -106,8 +128,7 @@ namespace quantas{
         int delay = -1;
         do {
             if (_type == UNIFORM) {
-                uniform_int_distribution<int> randomDistribution(_minDelay, _maxDelay);
-                delay = randomDistribution(RANDOM_GENERATOR);
+                delay = uniformInt(_minDelay, _maxDelay);
             }
             if (_type == POISSON) {
                 poisson_distribution<int> poissonDistribution(_avgDelay);

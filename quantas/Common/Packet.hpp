@@ -27,18 +27,14 @@ You should have received a copy of the GNU General Public License along with QUA
 #include "LogWriter.hpp"
 
 namespace quantas{
-
-    using std::default_random_engine;
+    
     using std::string;
-    using std::uniform_int_distribution;
     
     static const long NO_PEER_ID = -1;  // number used to indicate invalid peer id or un init peer id
 
     //
     //Base Message Class
     //
-
-    static default_random_engine RANDOM_GENERATOR = default_random_engine((int)time(nullptr));
 
     template<class message>
     class Packet{

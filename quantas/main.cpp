@@ -28,8 +28,6 @@
 using nlohmann::json;
 
 int main(int argc, const char* argv[]) {
-
-   srand(time(nullptr));
    if (argc < 2) {
       std::cerr << "usage: " << argv[0] << " inputFileName "<< std::endl;
       return 1;
