@@ -136,7 +136,7 @@ namespace quantas {
 	}
 
 	void RaftPeer::resetTimer() {
-		timeOutRound = (rand() % timeOutRandom) + timeOutSpacing + getRound();
+		timeOutRound = (randMod(timeOutRandom)) + timeOutSpacing + getRound();
 	}
 
 	void RaftPeer::sendMessage(long peer, RaftPeerMessage message) {

@@ -111,7 +111,7 @@ namespace quantas {
 	}
 
 	bool EthereumPeer::guardSubmitTrans() {
-		return rand() % submitRate == 0;
+		return randMod(submitRate) == 0;
 	}
 
 	void EthereumPeer::submitTrans() {
@@ -124,7 +124,7 @@ namespace quantas {
 	}
 
 	bool EthereumPeer::guardMineBlock() {
-		return rand() % mineRate == 0;
+		return randMod(mineRate) == 0;
 	}
 
 	void EthereumPeer::mineBlock() {

@@ -91,7 +91,7 @@ namespace quantas {
 	}
 
 	bool BitcoinPeer::guardSubmitTrans() {
-		return rand() % submitRate == 0;
+		return randMod(submitRate) == 0;
 	}
 
 	void BitcoinPeer::submitTrans() {
@@ -104,7 +104,7 @@ namespace quantas {
 	}
 
 	bool BitcoinPeer::guardMineBlock() {
-		return rand() % mineRate == 0;
+		return randMod(mineRate) == 0;
 	}
 
 	void BitcoinPeer::mineBlock() {

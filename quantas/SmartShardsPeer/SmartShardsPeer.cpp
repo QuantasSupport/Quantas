@@ -101,7 +101,7 @@ namespace quantas {
 				peers[shardGrid[i][j]]->workingTrans[i] = 0;
 				peers[shardGrid[i][j]]->alive = true;
 			}
-			int leader = rand() % shardGrid[i].size();
+			int leader = randMod(shardGrid[i].size());
 			peers[shardGrid[i][leader]]->shards[i] = true;
 			peers[shardGrid[i][leader]]->submitTrans(i);
 		}
@@ -154,7 +154,7 @@ namespace quantas {
 					numberOfJoinRequests = 1;
 				}
 				while (churnApprovals.size() < numberOfJoinRequests) {
-					churnApprovals.insert(rand() % numberOfShards);
+					churnApprovals.insert(randMod(numberOfShards));
 					nextNode->joining = true;
 					nextNode->alive = true;
 				}
@@ -338,7 +338,7 @@ namespace quantas {
 						if (!foundShards) {
 							int otherShard;
 							do {
-								otherShard = rand() % numberOfShards;
+								otherShard = randMod(numberOfShards);
 							} while (otherShard == shard);
 							// if the leader is in the other shard
 							if (shards.find(otherShard) != shards.end()) {

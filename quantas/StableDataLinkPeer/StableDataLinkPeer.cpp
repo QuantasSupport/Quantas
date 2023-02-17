@@ -53,7 +53,7 @@ namespace quantas {
 				Packet<StableDataLinkMessage> packet = popInStream();
 				long source = packet.sourceId();
 				StableDataLinkMessage message = packet.getMessage();
-				if (rand() % messageLossDen < messageLossNum) { // used for message loss
+				if (randMod(messageLossNum)) { // used for message loss
 					continue;
 				}
 				if (message.action == "ack") {

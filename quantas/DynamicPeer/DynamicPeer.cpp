@@ -83,11 +83,7 @@ namespace quantas {
 	}
 
 	bool DynamicPeer::guardMineBlock() {
-		std::random_device device;
-		std::mt19937       generator(device());
-
-		std::uniform_int_distribution<int> distribution(1, mineRate);
-		return distribution(generator) == 1;
+		return uniformInt(1, mineRate) == 1;
 	}
 
 	void DynamicPeer::sendBlockChain() {

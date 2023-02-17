@@ -226,11 +226,9 @@ namespace quantas{
     // Multicasts to a random sample of neighbors without repetition. Size of sample is also random.
     template <class message>
     void NetworkInterface<message>::randomMulticast(message msg) {
-        std::random_device device;
-        std::mt19937 generator(device());
-        std::uniform_int_distribution<int> distribution(0, _neighbors.size()); // interval: [0, n], where n is the amount of neighbors the particular node calling this function has
-        
-        int amountOfNeighbors = distribution(generator);
+       
+        // interval: [0, n], where n is the amount of neighbors the particular node calling this function has
+        int amountOfNeighbors = uniformInt(0, _neighbors.size());
                 
         std::vector<interfaceId> out;
         /* NEED TO USE C++17 OR NEWER FOR std::sample */
@@ -238,7 +236,7 @@ namespace quantas{
             _neighbors.begin(), _neighbors.end(),
             std::back_inserter(out),
             amountOfNeighbors,
-            generator
+            RANDOM_GENERATOR
         );
 
         for (auto it = out.begin(); it != out.end(); ++it) { // iterate through vector where the samples are written and send a message to all of them
