@@ -35,12 +35,12 @@ namespace quantas{
 
     // convenience function for using the random number generator to get a
     // random int in the range [min, max]
-    int uniformInt(const int & min, const int & max);
+    int uniformInt(const int min, const int max);
 
     // convenience function for using the random number generator to get a
     // random int in the range [0, exclusiveMax) (like calling rand() %
     // exclusiveMax, but thread-safe)
-    int randMod(const int & exclusiveMax);
+    int randMod(const int exclusiveMax);
 
     static const string                POISSON = "POISSON";
     static const string                UNIFORM = "UNIFORM";
