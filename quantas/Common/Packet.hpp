@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <ctime>
 #include <random>
 #include "LogWriter.hpp"
+#include "Distribution.hpp"
 
 namespace quantas{
     

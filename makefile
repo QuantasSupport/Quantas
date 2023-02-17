@@ -62,7 +62,7 @@ CXXFLAGS = -pthread -include $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).hpp
 CXX := g++-9
 
 EXE := quantas.exe
-OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o
+OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o $(PROJECT_DIR)/Common/Distribution.o
 
 
 # extra debug and release flags
@@ -105,7 +105,8 @@ test_%:
 	@echo Testing $(ALGFILE)
 	@$(CXX) $(CXXFLAGS) -c -o quantas/main.o quantas/main.cpp
 	@$(CXX) $(CXXFLAGS) -c -o quantas/$(ALGFILE)/$(ALGFILE).o quantas/$(ALGFILE)/$(ALGFILE).cpp
-	@$(CXX) $(CXXFLAGS)  quantas/main.o quantas/$(ALGFILE)/$(ALGFILE).o -o $(EXE)
+	@$(CXX) $(CXXFLAGS) -c -o quantas/Common/Distribution.o quantas/Common/Distribution.cpp
+	@$(CXX) $(CXXFLAGS)  quantas/main.o quantas/$(ALGFILE)/$(ALGFILE).o quantas/Common/Distribution.o -o $(EXE)
 	@./$(EXE) quantas/$(ALGFILE)/$*Input.json
 	@$(RM) quantas/$(ALGFILE)/*.o
 	@echo $(ALGFILE) successful
