@@ -29,14 +29,21 @@ int main()
         t.join();
     }
 
+    for (auto &vecForThread : results)
+    {
+        for (auto &numInVec : vecForThread)
+        {
+            std::cout << numInVec << " ";
+        }
+        std::cout << std::endl;
+    }
+
     for (int k = 0; k < RandIntCount; k++)
     {
         for (int threadIndex = 1; threadIndex < ThreadCount; threadIndex++)
         {
             assert(results[0][k] != results[threadIndex][k]);
-            std::cout << results[threadIndex][k] << " ";
         }
-        std::cout << std::endl;
     }
 
     return 0;
