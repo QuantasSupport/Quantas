@@ -62,7 +62,7 @@ CXXFLAGS = -pthread -include $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).hpp
 CXX := g++-9
 
 EXE := quantas.exe
-OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o
+OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o $(PROJECT_DIR)/Common/Distribution.o
 
 
 # extra debug and release flags
@@ -91,7 +91,13 @@ $(PROJECT_DIR)/%.o: $(PROJECT_DIR)/%.c
 run: all
 	./$(EXE) $(INPUTFILE)
 
-TESTS = test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_SmartShards test_LinearChord test_Kademlia test_AltBit test_StableDataLink test_ChangRoberts test_Dynamic test_KPT test_KSM
+# in the future this could be generalized to go through every file in "Tests"
+rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.cpp
+	$(CXX) $^ -o $@.exe
+	./$@.exe
+	@$(RM) $@.exe
+
+TESTS = rand_test test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_SmartShards test_LinearChord test_Kademlia test_AltBit test_StableDataLink test_ChangRoberts test_Dynamic test_KPT test_KSM
 
 ############################### Compile and run all tests - uses a wild card.
 test: $(TESTS)
@@ -105,7 +111,8 @@ test_%:
 	@echo Testing $(ALGFILE)
 	@$(CXX) $(CXXFLAGS) -c -o quantas/main.o quantas/main.cpp
 	@$(CXX) $(CXXFLAGS) -c -o quantas/$(ALGFILE)/$(ALGFILE).o quantas/$(ALGFILE)/$(ALGFILE).cpp
-	@$(CXX) $(CXXFLAGS)  quantas/main.o quantas/$(ALGFILE)/$(ALGFILE).o -o $(EXE)
+	@$(CXX) $(CXXFLAGS) -c -o quantas/Common/Distribution.o quantas/Common/Distribution.cpp
+	@$(CXX) $(CXXFLAGS)  quantas/main.o quantas/$(ALGFILE)/$(ALGFILE).o quantas/Common/Distribution.o -o $(EXE)
 	@./$(EXE) quantas/$(ALGFILE)/$*Input.json
 	@$(RM) quantas/$(ALGFILE)/*.o
 	@echo $(ALGFILE) successful
@@ -119,6 +126,10 @@ clean:
 	@$(RM) $(PROJECT_DIR)/*.tmp
 	@$(RM) $(PROJECT_DIR)/*.o
 	@$(RM) $(PROJECT_DIR)/*.d
+	@$(RM) $(PROJECT_DIR)/Common/*.gch
+	@$(RM) $(PROJECT_DIR)/Common/*.tmp
+	@$(RM) $(PROJECT_DIR)/Common/*.o
+	@$(RM) $(PROJECT_DIR)/Common/*.d
 	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.gch
 	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.tmp
 	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.o
@@ -127,5 +138,6 @@ clean:
 	@$(RM) quantas_test/*.tmp
 	@$(RM) quantas_test/*.o
 	@$(RM) quantas_test/*.d
+	@$(RM) rand_test.exe
 
 -include $(OBJS:.o=.d)

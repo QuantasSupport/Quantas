@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <string>
 #include <random>
 #include <iostream>
-#include "./../Common/Peer.hpp"
+#include <thread>
 #include "Json.hpp"
 
 
@@ -25,8 +25,22 @@ namespace quantas{
     using std::string;
     using std::uniform_int_distribution;
     using std::poisson_distribution;
+    using std::default_random_engine;
     using nlohmann::json;
     using std::cerr;
+
+    // random number generator that will be created and seeded uniquely once in
+    // each thread
+    extern thread_local default_random_engine RANDOM_GENERATOR;
+
+    // convenience function for using the random number generator to get a
+    // random int in the range [min, max]
+    int uniformInt(const int min, const int max);
+
+    // convenience function for using the random number generator to get a
+    // random int in the range [0, exclusiveMax) (like calling rand() %
+    // exclusiveMax, but thread-safe)
+    int randMod(const int exclusiveMax);
 
     static const string                POISSON = "POISSON";
     static const string                UNIFORM = "UNIFORM";
@@ -106,8 +120,7 @@ namespace quantas{
         int delay = -1;
         do {
             if (_type == UNIFORM) {
-                uniform_int_distribution<int> randomDistribution(_minDelay, _maxDelay);
-                delay = randomDistribution(RANDOM_GENERATOR);
+                delay = uniformInt(_minDelay, _maxDelay);
             }
             if (_type == POISSON) {
                 poisson_distribution<int> poissonDistribution(_avgDelay);

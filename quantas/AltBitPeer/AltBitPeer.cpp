@@ -53,7 +53,7 @@ namespace quantas {
 				Packet<AltBitMessage> packet = popInStream();
 				long source = packet.sourceId();
 				AltBitMessage message = packet.getMessage();
-				if (rand() % messageLossDen < messageLossNum) { // used for message loss
+				if (randMod(messageLossDen) < messageLossNum) { // used for message loss
 					continue;
 				}
 				if (message.action == "ack") {

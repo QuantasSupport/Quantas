@@ -208,7 +208,7 @@ namespace quantas {
 	void LinearChordPeer::endOfRound(const vector<Peer<LinearChordMessage>*>& _peers) {
 		const vector<LinearChordPeer*> peers = reinterpret_cast<vector<LinearChordPeer*> const&>(_peers);
 		numberOfNodes = peers.size();
-		peers[rand() % numberOfNodes]->submitTrans(currentTransaction);
+		peers[randMod(numberOfNodes)]->submitTrans(currentTransaction);
 		double satisfied = 0;
 		double hops = 0;
 		for (int i = 0; i < peers.size(); i++) {
@@ -253,7 +253,7 @@ namespace quantas {
 
 	void LinearChordPeer::submitTrans(int tranID) {
 		LinearChordMessage message;
-		message.reqId = rand() % numberOfNodes;
+		message.reqId = randMod(numberOfNodes);
 		long reqId = message.reqId;
 		message.action = "R";
 		message.roundSubmitted = getRound();

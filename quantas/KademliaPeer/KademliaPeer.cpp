@@ -51,7 +51,7 @@ namespace quantas {
 				}
 				for (int j = 0; j < groupedNeighbors.size(); j++) {
 					if (groupedNeighbors[j].size() > 0) {
-						int index = rand() % groupedNeighbors[j].size();
+						int index = randMod(groupedNeighbors[j].size());
 						fingers.insert(fingers.begin(), groupedNeighbors[j][index]);
 					}
 				}
@@ -77,7 +77,7 @@ namespace quantas {
 
 	void KademliaPeer::endOfRound(const vector<Peer<KademliaMessage>*>& _peers) {
 		const vector<KademliaPeer*> peers = reinterpret_cast<vector<KademliaPeer*> const&>(_peers);
-		peers[rand() % neighbors().size() + 1]->submitTrans(currentTransaction);
+		peers[randMod(neighbors().size()) + 1]->submitTrans(currentTransaction);
 		double satisfied = 0;
 		double hops = 0;
 		for (int i = 0; i < peers.size(); i++) {
@@ -111,7 +111,7 @@ namespace quantas {
 
 	void KademliaPeer::submitTrans(int tranID) {
 		KademliaMessage message;
-		message.reqId = rand() % (neighbors().size() + 1);
+		message.reqId = randMod(neighbors().size() + 1);
 		string binId = getBinaryId(message.reqId);
 		message.binId = binId;
 		message.action = "R";

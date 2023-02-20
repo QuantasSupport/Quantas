@@ -28,7 +28,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <memory>
 #include <thread>
 #include <algorithm>
-#include "./../Common/Peer.hpp"
+#include "Peer.hpp"
 #include "Distribution.hpp"
 
 namespace quantas{
@@ -161,10 +161,7 @@ namespace quantas{
 
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::initNetwork(json topology, int lastRound) {
-	    std::random_device device;
-        std::mt19937 generator(device());
-	
-        for (int i = 0; i < _peers.size(); i++) {
+	    for (int i = 0; i < _peers.size(); i++) {
             delete _peers[i];
         }
         _peers = vector<Peer<type_msg>*>();
@@ -174,7 +171,7 @@ namespace quantas{
 		}
         if (topology["identifiers"] == "random") {
             // randomly shuffle nodes prior to setting up topology
-            std::shuffle(_peers.begin(),_peers.end(), generator);
+            std::shuffle(_peers.begin(),_peers.end(), RANDOM_GENERATOR);
         }
 
 	    if (topology["type"] == "complete") {
