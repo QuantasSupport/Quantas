@@ -123,7 +123,7 @@ namespace quantas{
     template <class message>
     void Packet<message>::setDelay(int maxDelay, int minDelay){
         // max is not included so delay 1 is next round delay 2 is one round
-        // waiting and then receve in the following round
+        // waiting and then receive in the following round
         _delay = uniformInt(minDelay, maxDelay);
     }
 

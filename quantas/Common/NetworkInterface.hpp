@@ -286,7 +286,7 @@ namespace quantas{
 
     template <class message>
     void NetworkInterface<message>::addChannel(NetworkInterface<message> &newNeighbor, int delay){
-        // guard to make sure delay is at lest 1, less then 1 will couse errors when calculating delay (divisioin by 0)
+        // guard to make sure delay is at least 1, less then 1 will cause errors when calculating delay (division by 0)
         int edgeDelay = delay;
         if(edgeDelay < 1){
             edgeDelay = 1;
