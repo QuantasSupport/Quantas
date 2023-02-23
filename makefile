@@ -19,7 +19,7 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-# INPUTFILE := SmartShardsGraph4.json
+INPUTFILE := ExampleInput.json
 
 ALGFILE := ExamplePeer
 
@@ -95,7 +95,6 @@ run: all
 rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.cpp
 	$(CXX) $^ -o $@.exe
 	./$@.exe
-	@$(RM) $@.exe
 
 TESTS = rand_test test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_SmartShards test_LinearChord test_Kademlia test_AltBit test_StableDataLink test_ChangRoberts test_Dynamic test_KPT test_KSM
 
@@ -118,7 +117,7 @@ test_%:
 	@echo $(ALGFILE) successful
 
 clean:
-	@$(RM) $(EXE)
+	@$(RM) *.exe
 	@$(RM) *.out
 	@$(RM) *.o
 	@$(RM) -r *.dSYM
@@ -138,6 +137,16 @@ clean:
 	@$(RM) quantas_test/*.tmp
 	@$(RM) quantas_test/*.o
 	@$(RM) quantas_test/*.d
-	@$(RM) rand_test.exe
+
+# enables recursive glob patterns for bash
+cleanRec: SHELL := /bin/bash -O globstar
+cleanRec:
+	@$(RM) **/*.out
+	@$(RM) **/*.o
+	@$(RM) **/*.d
+	@$(RM) **/*.dSYM
+	@$(RM) **/*.gch
+	@$(RM) **/*.tmp
+	@$(RM) **/*.exe
 
 -include $(OBJS:.o=.d)

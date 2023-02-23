@@ -105,7 +105,8 @@ namespace quantas {
         // amount of time node is willing to wait before leaving
         static int                      maxLeaveDelay;
         static int                      numberOfShards;
-        static int                      ChurnOption; // 0 - joins 2 random, 1 - joins 1 random routed to second, 2 - no churn permitted
+         // 0 - joins 2 random, 1 - joins 1 random routed to second, 2 - no churn permitted, 3 - 1 & tries to balance the shardsfor routed joins
+        static int                      ChurnOption;
 
         // checkInStrm loops through the in stream adding messsages to receivedMessages or transactions
         void                  checkInStrm();

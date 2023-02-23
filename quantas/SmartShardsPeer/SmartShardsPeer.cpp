@@ -76,10 +76,10 @@ namespace quantas {
 	void SmartShardsPeer::initParameters(const vector<Peer<SmartShardsMessage>*>& _peers, json parameters) {
 		const vector<SmartShardsPeer*> peers = reinterpret_cast<vector<SmartShardsPeer*> const&>(_peers);
 		// number of shards = s
-			// number of shards a node is in L = 2 currently fixed at 2
-			// number of intersections = intersections
-			// total number of nodes n = intersections * s * (s - 1) / L
-			// nodes in a shard = (s - 1) * intersections
+		// number of shards a node is in L = 2 currently fixed at 2
+		// number of intersections = intersections
+		// total number of nodes n = intersections * s * (s - 1) / L
+		// nodes in a shard = (s - 1) * intersections
 		int s = numberOfShards = parameters["s"];
 		int intersections = parameters["intersections"];
 		nextJoiningNode = intersections * s * (s - 1) / 2;
@@ -151,7 +151,7 @@ namespace quantas {
 				set<int> churnApprovals;
 				int numberOfJoinRequests = 2;
 				if (ChurnOption == 1 || ChurnOption == 3) {
-					numberOfJoinRequests = 1;
+					numberOfJoinRequests = 1; // second join will be routed
 				}
 				while (churnApprovals.size() < numberOfJoinRequests) {
 					churnApprovals.insert(randMod(numberOfShards));
