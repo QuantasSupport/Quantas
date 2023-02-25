@@ -10,68 +10,69 @@ You should have received a copy of the GNU General Public License along with QUA
 #ifndef EyeWitnessPeer_hpp
 #define EyeWitnessPeer_hpp
 
-#include <deque>
+#include <unordered_set>
+#include <unordered_map>
 #include "../Common/Peer.hpp"
 #include "../Common/Simulation.hpp"
 
 namespace quantas
 {
-
-    // parent class for different types of messages sent by this algorithm
-    struct EyeWitnessPeerMessage
-    {
-        int Id = -1;
+    struct Neighborhood {
+        std::unordered_set<long> memberIDs;
     };
 
-    // messages used by StateChangeRequest
+    struct Wallet {
+        int address;
+        Neighborhood storedBy;
+    };
+
+    struct Transaction {
+        Wallet sender;
+        Wallet receiver;
+    };
+
+    // messages used by StateChangeRequest to acheive consensus
     // TODO: make this a thing
-    struct ConsensusMessage : public EyeWitnessPeerMessage
+    struct EyeWitnessMessage
     {
-        int trans = -1; // the transaction id
+        Transaction& trans; // the transaction id
         int sequenceNum = -1;
-        string messageType = ""; // phase
+        string messageType = ""; // phase for PBFT
         int roundSubmitted;
     };
 
     class StateChangeRequest
     {
     public:
+        StateChangeRequest(){
+            sequenceNumber = numbersUsed++;
+        }
         virtual bool consensusSucceeded() const = 0;
-        virtual void updateConsensus(ConsensusMessage) = 0;
+        virtual void updateConsensus(EyeWitnessMessage) = 0;
 
     protected:
         string status = "pre-prepare";
         int sequenceNumber;
-        vector<ConsensusMessage> outbox;
-        // transaction
+        vector<EyeWitnessMessage> outbox;
+        Transaction transaction;
+        static int numbersUsed;
     };
 
     class PBFTRequest : public StateChangeRequest
     {
+        void updateConsensus(EyeWitnessMessage c)
+        {
+            // TODO: put real code here
+            return;
+        }
         bool consensusSucceeded()
         {
             // TODO: put real code here
             return randMod(10) == 0;
         }
-        void updateConsensus(ConsensusMessage c)
-        {
-            // TODO: put real code here
-            return;
-        }
-        
-        // logging methods
-        ostream &printTo(ostream &) const;
-        friend ostream &operator<<(ostream &, const EyeWitnessPeer &);
-
-        // checkInStrm loops through the in stream adding messsages to receivedMessages or transactions
-        void checkInStrm();
-        // checkContents loops through the receivedMessages attempting to advance the status of consensus
-        void checkContents();
-        // submitTrans creates a transaction and broadcasts it to everyone
-        void submitTrans(int tranID);
     };
 
-    class EyeWitnessPeer : public Peer<EyeWitnessPeerMessage>
+    class EyeWitnessPeer : public Peer<EyeWitnessMessage>
     {
     public:
         // methods that must be defined when deriving from Peer
@@ -83,9 +84,14 @@ namespace quantas
         void performComputation() override;
         // perform any calculations needed at the end of a round such as
         // determining the throughput (only ran once, not for every peer)
-        void endOfRound(const vector<Peer<EyeWitnessPeerMessage> *> &_peers) override;
+        void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers) override;
+
+        void broadcastTo(EyeWitnessMessage, Neighborhood);
+    private:
+        std::unordered_map<int, StateChangeRequest> localRequests;
+        std::unordered_map<int, StateChangeRequest> superRequests;
     };
 
-    Simulation<quantas::EyeWitnessPeerMessage, quantas::EyeWitnessPeer> *generateSim();
+    Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *generateSim();
 }
 #endif /* EyeWitnessPeer_hpp */
