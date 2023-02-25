@@ -17,16 +17,19 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas
 {
-    struct Neighborhood {
+    struct Neighborhood
+    {
         std::unordered_set<long> memberIDs;
     };
 
-    struct Wallet {
+    struct Wallet
+    {
         int address;
         Neighborhood storedBy;
     };
 
-    struct Transaction {
+    struct Transaction
+    {
         Wallet sender;
         Wallet receiver;
     };
@@ -35,7 +38,7 @@ namespace quantas
     // TODO: make this a thing
     struct EyeWitnessMessage
     {
-        Transaction& trans; // the transaction id
+        Transaction &trans; // the transaction id
         int sequenceNum = -1;
         string messageType = ""; // phase for PBFT
         int roundSubmitted;
@@ -44,32 +47,46 @@ namespace quantas
     class StateChangeRequest
     {
     public:
-        StateChangeRequest(){
-            sequenceNumber = numbersUsed++;
-        }
         virtual bool consensusSucceeded() const = 0;
         virtual void updateConsensus(EyeWitnessMessage) = 0;
+        bool outboxEmpty() { return outbox.size() == 0; }
+
+        // Precondition: !outboxEmpty()
+        EyeWitnessMessage getMessage()
+        {
+            EyeWitnessMessage m = outbox.back();
+            outbox.pop_back();
+            return m;
+        }
 
     protected:
-        string status = "pre-prepare";
-        int sequenceNumber;
         vector<EyeWitnessMessage> outbox;
-        Transaction transaction;
-        static int numbersUsed;
     };
 
     class PBFTRequest : public StateChangeRequest
     {
-        void updateConsensus(EyeWitnessMessage c)
+    public:
+        PBFTRequest(Transaction t, int neighbors, int seq)
+            : transaction(t), neighborhoodSize(neighbors), sequenceNumber(seq)
+        {
+        }
+        void updateConsensus(EyeWitnessMessage c) override
         {
             // TODO: put real code here
             return;
         }
-        bool consensusSucceeded()
+        bool consensusSucceeded() const override
         {
             // TODO: put real code here
             return randMod(10) == 0;
         }
+
+    protected:
+        Transaction transaction;
+        int neighborhoodSize;
+        int sequenceNumber;
+        static int numbersUsed;
+        string status = "pre-prepare";
     };
 
     class EyeWitnessPeer : public Peer<EyeWitnessMessage>
@@ -82,11 +99,13 @@ namespace quantas
 
         // perform one step of the algorithm with the messages in inStream
         void performComputation() override;
+        
         // perform any calculations needed at the end of a round such as
         // determining the throughput (only ran once, not for every peer)
         void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers) override;
 
         void broadcastTo(EyeWitnessMessage, Neighborhood);
+
     private:
         std::unordered_map<int, StateChangeRequest> localRequests;
         std::unordered_map<int, StateChangeRequest> superRequests;

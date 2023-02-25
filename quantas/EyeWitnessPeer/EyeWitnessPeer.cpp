@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with QUA
 namespace quantas
 {
 
-	int StateChangeRequest::numbersUsed = 0;
+	int PBFTRequest::numbersUsed = 0;
 
 	void PBFTRequest::updateConsensus(EyeWitnessMessage m)
 	{
@@ -123,6 +123,11 @@ namespace quantas
 					// } else {
 						// nonlocal transaction; 
 					// }
+				} else {
+					while (!s->second.outboxEmpty()) {
+						// choose message recipients and relay
+						// TODO: need way of determining this peer's neighborhood for the purposes of this transaction
+					}
 				}
 			} else if ((s = superRequests.find(seqNum)) != superRequests.end()) {
 				s->second.updateConsensus(message);
@@ -130,6 +135,10 @@ namespace quantas
 					// update internal coin snapshots for transaction; if this
 					// is in the receiver neighborhood, add new wallet and then
 					// conduct internal transaction
+				}else {
+					while (!s->second.outboxEmpty()) {
+						// choose message recipients and relay
+					}
 				}
 			}
 		}
