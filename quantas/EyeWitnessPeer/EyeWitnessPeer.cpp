@@ -13,6 +13,8 @@ You should have received a copy of the GNU General Public License along with QUA
 namespace quantas
 {
 
+	// =============== implementation of underlying consensus algorithm ===============
+
 	int PBFTRequest::numbersUsed = 0;
 
 	void PBFTRequest::updateConsensus(EyeWitnessMessage m)
@@ -93,6 +95,8 @@ namespace quantas
 		//     }
 		// }
 	}
+
+	// ================= peer class that participates directly in the network =================
 
 	EyeWitnessPeer::~EyeWitnessPeer()
 	{

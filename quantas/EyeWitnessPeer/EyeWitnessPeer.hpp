@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas
 {
+    // =============== basic data storage types ===============
+
     struct Neighborhood
     {
         std::unordered_set<long> memberIDs;
@@ -34,7 +36,6 @@ namespace quantas
         Wallet receiver;
     };
 
-    // messages used by StateChangeRequest to acheive consensus
     struct EyeWitnessMessage
     {
         Transaction &trans; // the transaction id
@@ -42,6 +43,8 @@ namespace quantas
         string messageType = ""; // phase for PBFT
         int roundSubmitted;
     };
+
+    // =============== implementation of underlying consensus algorithm ===============
 
     class StateChangeRequest
     {
@@ -87,6 +90,8 @@ namespace quantas
         static int numbersUsed;
         string status = "pre-prepare";
     };
+
+    // ================= peer class that participates directly in the network =================
 
     class EyeWitnessPeer : public Peer<EyeWitnessMessage>
     {
