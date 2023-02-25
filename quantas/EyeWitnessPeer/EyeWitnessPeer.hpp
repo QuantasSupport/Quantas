@@ -35,7 +35,6 @@ namespace quantas
     };
 
     // messages used by StateChangeRequest to acheive consensus
-    // TODO: make this a thing
     struct EyeWitnessMessage
     {
         Transaction &trans; // the transaction id
@@ -99,7 +98,7 @@ namespace quantas
 
         // perform one step of the algorithm with the messages in inStream
         void performComputation() override;
-        
+
         // perform any calculations needed at the end of a round such as
         // determining the throughput (only ran once, not for every peer)
         void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers) override;
