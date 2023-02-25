@@ -14,62 +14,78 @@ You should have received a copy of the GNU General Public License along with QUA
 #include "../Common/Peer.hpp"
 #include "../Common/Simulation.hpp"
 
-namespace quantas{
+namespace quantas
+{
 
-    struct EyeWitnessPeerMessage {
-
-        int 				Id = -1; // node who sent the message
-        int					trans = -1; // the transaction id
-        int                 sequenceNum = -1;
-        string              messageType = ""; // phase
-        int                 roundSubmitted;
+    // parent class for different types of messages sent by this algorithm
+    struct EyeWitnessPeerMessage
+    {
+        int Id = -1;
     };
 
-    class EyeWitnessPeer : public Peer<EyeWitnessPeerMessage>{
+    // messages used by StateChangeRequest
+    // TODO: make this a thing
+    struct ConsensusMessage : public EyeWitnessPeerMessage
+    {
+        int trans = -1; // the transaction id
+        int sequenceNum = -1;
+        string messageType = ""; // phase
+        int roundSubmitted;
+    };
+
+    class StateChangeRequest
+    {
     public:
-        // methods that must be defined when deriving from Peer
-        EyeWitnessPeer                             (long);
-        EyeWitnessPeer                             (const EyeWitnessPeer &rhs);
-        ~EyeWitnessPeer                            ();
+        virtual bool consensusSucceeded() const = 0;
+        virtual void updateConsensus(ConsensusMessage) = 0;
 
-        // perform one step of the Algorithm with the messages in inStream
-        void                 performComputation();
-        // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(const vector<Peer<EyeWitnessPeerMessage>*>& _peers);
+    protected:
+        string status = "pre-prepare";
+        int sequenceNumber;
+        vector<ConsensusMessage> outbox;
+        // transaction
+    };
 
-        // addintal method that have defulte implementation from Peer but can be overwritten
-        void                 log()const { printTo(*_log); };
-        ostream&             printTo(ostream&)const;
-        friend ostream& operator<<         (ostream&, const EyeWitnessPeer&);
+    class PBFTRequest : public StateChangeRequest
+    {
+        bool consensusSucceeded()
+        {
+            // TODO: put real code here
+            return randMod(10) == 0;
+        }
+        void updateConsensus(ConsensusMessage c)
+        {
+            // TODO: put real code here
+            return;
+        }
         
-
-        // string indicating the current status of a node
-        string                          status = "pre-prepare";
-        // current squence number
-        int                             sequenceNum = 0;
-        // vector of vectors of messages that have been received
-        vector<vector<EyeWitnessPeerMessage>> receivedMessages;
-        // vector of recieved transactions
-        vector<EyeWitnessPeerMessage>		    transactions;
-        // vector of confirmed transactions
-        vector<EyeWitnessPeerMessage>		    confirmedTrans;
-        // latency of confirmed transactions
-        int                             latency = 0;
-        // rate at which to submit transactions ie 1 in x chance for all n nodes
-        int                             submitRate = 20;
-        
-        // the id of the next transaction to submit
-        static int                      currentTransaction;
-
+        // logging methods
+        ostream &printTo(ostream &) const;
+        friend ostream &operator<<(ostream &, const EyeWitnessPeer &);
 
         // checkInStrm loops through the in stream adding messsages to receivedMessages or transactions
-        void                  checkInStrm();
+        void checkInStrm();
         // checkContents loops through the receivedMessages attempting to advance the status of consensus
-        void                  checkContents();
+        void checkContents();
         // submitTrans creates a transaction and broadcasts it to everyone
-        void                  submitTrans(int tranID);
+        void submitTrans(int tranID);
     };
 
-    Simulation<quantas::EyeWitnessPeerMessage, quantas::EyeWitnessPeer>* generateSim();
+    class EyeWitnessPeer : public Peer<EyeWitnessPeerMessage>
+    {
+    public:
+        // methods that must be defined when deriving from Peer
+        EyeWitnessPeer(long);
+        EyeWitnessPeer(const EyeWitnessPeer &rhs);
+        ~EyeWitnessPeer();
+
+        // perform one step of the algorithm with the messages in inStream
+        void performComputation() override;
+        // perform any calculations needed at the end of a round such as
+        // determining the throughput (only ran once, not for every peer)
+        void endOfRound(const vector<Peer<EyeWitnessPeerMessage> *> &_peers) override;
+    };
+
+    Simulation<quantas::EyeWitnessPeerMessage, quantas::EyeWitnessPeer> *generateSim();
 }
 #endif /* EyeWitnessPeer_hpp */
