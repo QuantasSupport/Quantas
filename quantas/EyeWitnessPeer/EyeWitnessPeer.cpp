@@ -12,14 +12,12 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas
 {
-
 	// =============== implementation of underlying consensus algorithm ===============
-
-	int PBFTRequest::numbersUsed = 0;
 
 	void PBFTRequest::updateConsensus(EyeWitnessMessage m)
 	{
 		// TODO: each instance of this class only needs to deal with one transaction (but could still store received messages)
+		// and also instead of calling broadcast() it should add to outbox
 		// if (id() == 0 && status == "pre-prepare") {
 		//     for (int i = 0; i < transactions.size(); i++) {
 		//         bool skip = false;
@@ -98,6 +96,18 @@ namespace quantas
 
 	// ================= peer class that participates directly in the network =================
 
+	int EyeWitnessPeer::issuedCoins = 0;
+
+	void EyeWitnessPeer::initParameters(const vector<Peer<EyeWitnessMessage>*>& _peers, json parameters) {
+		neighborhoodSize = parameters["neighborhoodSize"];
+		// we need a pool of valid wallets from the whole network to use in
+		// simulated transactions
+	};
+
+	EyeWitnessPeer::EyeWitnessPeer() {
+		// get this peer's valid wallets from the pool?
+	}
+
 	EyeWitnessPeer::~EyeWitnessPeer()
 	{
 	}
@@ -121,11 +131,10 @@ namespace quantas
 			if ((s = localRequests.find(seqNum)) != localRequests.end()) {
 				s->second.updateConsensus(message);
 				if (s->second.consensusSucceeded()) {
-					// TODO: define == for neighborhoods? or simplify implementation of them
 					// if (message.trans.receiver.storedBy == message.trans.sender.storedBy) {
 						// local transaction; commit changes, update wallets
 					// } else {
-						// nonlocal transaction; 
+						// nonlocal transaction; start state change request in superRequests
 					// }
 				} else {
 					while (!s->second.outboxEmpty()) {
@@ -144,7 +153,13 @@ namespace quantas
 						// choose message recipients and relay
 					}
 				}
+			} else {
+				// if this is a valid pre-prepare message or announcement
+				// message, create a StateChangeRequest and start using it.
 			}
+		}
+		if (oneInXChance(10)) {
+			initiateTransaction();
 		}
 	}
 
@@ -152,6 +167,15 @@ namespace quantas
 		for (const long& i : n.memberIDs) {
 			unicastTo(m, i);
 		}
+	}
+
+	void EyeWitnessPeer::initiateTransaction(bool withinNeighborhood = true) {
+		// choose random wallet
+		// choose random coin
+		// choose destination... within neighborhood for now?
+		// create StateChangeRequest
+		WalletLocation& sender = heldWallets[randMod(heldWallets.size())];
+		
 	}
 
 	Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *generateSim()
