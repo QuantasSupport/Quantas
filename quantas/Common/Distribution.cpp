@@ -18,4 +18,8 @@ namespace quantas
         std::uniform_int_distribution<int> distribution(0, exclusiveMax - 1);
         return distribution(RANDOM_GENERATOR);
     }
+
+    bool oneInXChance(const int x) {
+        return uniformInt(1, x) == 1;
+    }
 }
