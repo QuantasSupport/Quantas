@@ -78,12 +78,13 @@ namespace quantas
 
     struct EyeWitnessMessage
     {
-        TransactionRecord trans;
+        OngoingTransaction trans;
         int sequenceNum = -1;
-        // phase for PBFT. i am also adding an "announcement" phase for sending
-        // a transaction from a peer that just "received" it to other
-        // neighborhoods that will also need to come to consensus on it. kind of
-        // like the request from the client in classic PBFT
+        // phase for PBFT. i think there should also be an "announcement"
+        // message type for sending a transaction from a peer that just
+        // "received" it to other neighborhoods that will also need to come to
+        // consensus on it. kind of like the request from the client in classic
+        // PBFT
         string messageType = "";
         int roundSubmitted;
     };
@@ -112,7 +113,7 @@ namespace quantas
     class PBFTRequest : public StateChangeRequest
     {
     public:
-        PBFTRequest(TransactionRecord t, int neighbors, int seq)
+        PBFTRequest(OngoingTransaction t, int neighbors, int seq)
             : transaction(t), neighborhoodSize(neighbors), sequenceNumber(seq)
         {
         }
@@ -128,7 +129,7 @@ namespace quantas
         }
 
     protected:
-        TransactionRecord transaction;
+        OngoingTransaction transaction;
         int neighborhoodSize;
         int sequenceNumber;
         string status = "pre-prepare";
@@ -140,7 +141,9 @@ namespace quantas
     {
     public:
         EyeWitnessPeer();
+        
         // methods that must be defined when deriving from Peer
+
         EyeWitnessPeer(long);
         EyeWitnessPeer(const EyeWitnessPeer &rhs);
         ~EyeWitnessPeer();
@@ -160,7 +163,7 @@ namespace quantas
     private:
         std::unordered_map<int, StateChangeRequest> localRequests;
         std::unordered_map<int, StateChangeRequest> superRequests;
-        std::vector<WalletLocation> heldWallets;
+        std::vector<LocalWallet> heldWallets;
         static int issuedCoins;
         static int neighborhoodSize;
     };
