@@ -103,38 +103,67 @@ namespace quantas
 
 	// ================= peer class that participates directly in the network =================
 
-	int EyeWitnessPeer::issuedCoins = 0;
+	template <typename ConsensusRequest>
+	int EyeWitnessPeer<ConsensusRequest>::issuedCoins = 0;
 
-	void EyeWitnessPeer::initParameters(const vector<Peer<EyeWitnessMessage>*>& _peers, json parameters) {
+	// divides the peers into neighborhood and gives each neighborhood a set of wallets.
+	// postcondition: neighborhoodSize is set (from the simulation input
+	// parameters); neighborhoodCount is set; walletsForNeighborhoods contains a
+	// vector of LocalWallets for each neighborhood; peerIDToNeighborhoodIndex
+	// maps a peer's id to the index of the neighborhood it's in
+	template <typename ConsensusRequest>
+	void EyeWitnessPeer<ConsensusRequest>::initParameters(const vector<Peer<EyeWitnessMessage>*>& _peers, json parameters) {
+		// divide peers into neighborhoods: if the neighborhood size is 5, then
+		// the first 5 peers are placed in a neighborhood, then the next 5
+		// peers, and so on. if the total number of peers is not a multiple of
+		// 5, an "extra" neighborhood stores the spares. then, each neighborhood
+		// gets a set of wallets to take care of.
+
 		neighborhoodSize = parameters["neighborhoodSize"];
-		// we need a pool of valid wallets from the whole network to use in
-		// simulated transactions
-	};
+		const int walletsPerNeighborhood = parameters["walletsPerNeighborhood"];
+		neighborhoodCount = ceil(static_cast<float>(_peers.size()) / neighborhoodSize);
+		vector<WalletLocation> all;
+		for (int i=0; i<neighborhoodCount; ++i) {
+			Neighborhood newNeighborhood;
+			newNeighborhood.leader = i*neighborhoodSize;
+			for (int n=0; n<neighborhoodSize&&i*neighborhoodSize+n<_peers.size();++n) {
+				const long peerID = i*neighborhoodSize+n;
+				newNeighborhood.memberIDs.insert(peerID);
+				peerIDToNeighborhoodIndex[peerID] = i;
+			}
+			for (int j=0; j<walletsPerNeighborhood; ++j) {
+				LocalWallet w = {all.size(), newNeighborhood, {}, {}};
+				walletsForNeighborhoods[i].push_back(w);
+				all.push_back({w.address, newNeighborhood});
+			}
+		}
 
-	EyeWitnessPeer::EyeWitnessPeer() {
-		// get this peer's valid wallets from the pool?
+		const int coinsPerWallet = 5;
+		for (auto& wallets: walletsForNeighborhoods) {
+			for (auto& wallet: wallets) {
+				for (int i=0; i<coinsPerWallet; ++i) {
+					// a history could be invented here
+					Coin c = {issuedCoins++, {}};
+					wallet.coins.push_back(c);
+				}
+			}
+		}
 	}
 
-	EyeWitnessPeer::~EyeWitnessPeer()
-	{
+	template<typename ConsensusRequest>
+	EyeWitnessPeer<ConsensusRequest>::EyeWitnessPeer() {
+		neighborhoodID = peerIDToNeighborhoodIndex[id()];
+		heldWallets = walletsForNeighborhoods[neighborhoodID];
 	}
 
-	EyeWitnessPeer::EyeWitnessPeer(const EyeWitnessPeer &rhs) : Peer<EyeWitnessMessage>(rhs)
-	{
-	}
-
-	EyeWitnessPeer::EyeWitnessPeer(long id) : Peer(id)
-	{
-	}
-
-	void EyeWitnessPeer::performComputation()
-	{
+	template<typename ConsensusRequest>
+	void EyeWitnessPeer<ConsensusRequest>::performComputation() {
 		while (!inStreamEmpty())
 		{
 			Packet<EyeWitnessMessage> p = popInStream();
 			EyeWitnessMessage message = p.getMessage();
 			int seqNum = message.sequenceNum;
-			std::unordered_map<int, StateChangeRequest>::iterator s;
+			typename std::unordered_map<int, ConsensusRequest>::iterator s;
 			if ((s = localRequests.find(seqNum)) != localRequests.end()) {
 				s->second.updateConsensus(message);
 				if (s->second.consensusSucceeded()) {
@@ -162,7 +191,7 @@ namespace quantas
 				}
 			} else {
 				// if this is a valid pre-prepare message or announcement
-				// message, create a StateChangeRequest and start using it.
+				// message, create a ConsensusRequest and start using it.
 			}
 		}
 		if (oneInXChance(10)) {
@@ -170,25 +199,37 @@ namespace quantas
 		}
 	}
 
-	void EyeWitnessPeer::broadcastTo(EyeWitnessMessage m, Neighborhood n) {
+	template<typename ConsensusRequest>
+	void EyeWitnessPeer<ConsensusRequest>::broadcastTo(EyeWitnessMessage m, Neighborhood n) {
 		for (const long& i : n.memberIDs) {
 			unicastTo(m, i);
 		}
 	}
 
-	void EyeWitnessPeer::initiateTransaction(bool withinNeighborhood = true) {
-		// choose random wallet
-		// choose random coin
-		// choose destination... within neighborhood for now?
-		// create StateChangeRequest
-		WalletLocation& sender = heldWallets[randMod(heldWallets.size())];
-		
+	template<typename ConsensusRequest>
+	void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(bool withinNeighborhood) {
+		LocalWallet sender = heldWallets[randMod(heldWallets.size())];
+		Coin& c = sender.coins[randMod(sender.coins.size())];
+		LocalWallet receiver = sender;
+		// obtain a receiver that is not the sender
+		do {
+			if (withinNeighborhood) {
+				receiver = heldWallets[randMod(heldWallets.size())];
+			} else {
+				// TODO: create cross-neighborhood transaction
+			}
+		} while (receiver.address == sender.address);
+		OngoingTransaction t = {sender, receiver, c};
+		++previousSequenceNumber;
+		ConsensusRequest request = PBFTRequest(t, neighborhoodSize, previousSequenceNumber);
+		localRequests[previousSequenceNumber] = request;
 	}
 
-	Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *generateSim()
+	Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>> *generateSim()
 	{
 
-		Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *sim = new Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer>;
+		Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>> *sim =
+			new Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>>;
 		return sim;
 	}
 }

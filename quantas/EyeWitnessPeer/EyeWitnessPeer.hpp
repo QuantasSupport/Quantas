@@ -119,11 +119,7 @@ namespace quantas
             : transaction(t), neighborhoodSize(neighbors), sequenceNumber(seq)
         {
         }
-        void updateConsensus(EyeWitnessMessage c) override
-        {
-            // TODO: put real code here
-            return;
-        }
+        void updateConsensus(EyeWitnessMessage c) override;
         bool consensusSucceeded() const override
         {
             // TODO: put real code here
@@ -138,7 +134,7 @@ namespace quantas
     };
 
     // ================= peer class that participates directly in the network =================
-
+    template <typename ConsensusRequest>
     class EyeWitnessPeer : public Peer<EyeWitnessMessage>
     {
     public:
@@ -160,17 +156,23 @@ namespace quantas
         void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers) override;
 
         void broadcastTo(EyeWitnessMessage, Neighborhood);
-        void initiateTransaction(bool withinNeighborhood);
+        void initiateTransaction(bool withinNeighborhood=true);
 
     private:
-        std::unordered_map<int, StateChangeRequest> localRequests;
-        std::unordered_map<int, StateChangeRequest> superRequests;
-        std::multimap<int, PBFTRequest> recievedRequests; 
+        std::unordered_map<int, ConsensusRequest> localRequests;
+        std::unordered_map<int, ConsensusRequest> superRequests;
+        // std::multimap<int, PBFTRequest> recievedRequests;
         std::vector<LocalWallet> heldWallets;
+        int neighborhoodID;
+        int previousSequenceNumber = -1;
+        
         static int issuedCoins;
         static int neighborhoodSize;
+        static int neighborhoodCount;
+        static std::vector<std::vector<LocalWallet>> walletsForNeighborhoods;
+        static std::unordered_map<long, int> peerIDToNeighborhoodIndex;
     };
 
-    Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *generateSim();
+    Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>> *generateSim();
 }
 #endif /* EyeWitnessPeer_hpp */
