@@ -14,91 +14,56 @@ namespace quantas
 {
 	// =============== implementation of underlying consensus algorithm ===============
 
-	void PBFTRequest::updateConsensus(EyeWitnessMessage m)
+	void PBFTRequest::updateConsensus()
 	{
-		// TODO: each instance of this class only needs to deal with one transaction (but could still store received messages)
-		// and also instead of calling broadcast() it should add to outbox
-		// might be local consensus
-		if (m.trans.sender.storedBy == m.trans.receiver.storedBy) {
-			//if (m.trans.sender.storedBy.leader == id()) {
-				// submit new transaction as I am the leader. Need a way to figure that out
-			//}
+		if (leader && status == "pre-prepare") {
+			status = "prepare";
+			EyeWitnessMessage message;
+			message.sequenceNum = sequenceNum;
+			message.messageType = "pre-prepare";
+			message.trans = transaction;
+			addToConsensus(message);
+			outbox.push_back(message);
+		} else if (status == "pre-prepare") {
+			if (statusCount["pre-prepare"] > 0) {
+				status = "prepare";
+				EyeWitnessMessage message;
+				message.sequenceNum = sequenceNum;
+				message.messageType = "prepare";
+				message.trans = transaction;
+				addToConsensus(message);
+				outbox.push_back(message);
+		    }
 		}
-		
-		// if (id() == 0 && m.messageType == "pre-prepare") {
-		//     for (int i = 0; i < transactions.size(); i++) {
-		//         bool skip = false;
-		//         for (int j = 0; j < confirmedTrans.size(); j++) {
-		//             if (transactions[i].trans == confirmedTrans[j].trans) {
-		//                 skip = true;
-		//                 break;
-		//             }
-		//         }
-		//         if (!skip) {
-		//             status = "prepare";
-		//             EyeWitnessMessage message = transactions[i];
-		//             message.messageType = "pre-prepare";
-		//             message.Id = id();
-		//             message.sequenceNum = sequenceNum;
-		//             broadcast(message);
-		//             if (receivedMessages.size() < sequenceNum + 1) {
-		//                 receivedMessages.push_back(vector<EyeWitnessMessage>());
-		//             }
-		//             receivedMessages[sequenceNum].push_back(message);
-		//             break;
-		//         }
-		//     }
-		// } else if (m.messageType == "pre-prepare" && receivedMessages.size() >= sequenceNum + 1) {
-		//     for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-		//         EyeWitnessMessage message = receivedMessages[sequenceNum][i];
-		//         if (message.messageType == "pre-prepare") {
-		//             status = "prepare";
-		//             EyeWitnessMessage newMsg = message;
-		//             newMsg.messageType = "prepare";
-		//             newMsg.Id = id();
-		//             broadcast(newMsg);
-		//             receivedMessages[sequenceNum].push_back(newMsg);
-		//         }
-		//     }
-		// }
-		// bool prepared = false;
-		// if (m.messageType == "prepare") {
-		//     int count = 0;
-		//     for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-		//         EyeWitnessMessage message = receivedMessages[sequenceNum][i];
-		//         if (message.messageType == "prepare") {
-		//             count++;
-		//         }
-		//     }
-		//     if (count > (neighbors().size() * 2 / 3)) {
-		//         status = "commit";
-		//         EyeWitnessMessage newMsg = receivedMessages[sequenceNum][0];
-		//         newMsg.messageType = "commit";
-		//         newMsg.Id = id();
-		//         broadcast(newMsg);
-		//         receivedMessages[sequenceNum].push_back(newMsg);
-		//     }
-		// }
 
-		// if (status == "commit") {
-		//     int count = 0;
-		//     for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-		//         EyeWitnessMessage message = receivedMessages[sequenceNum][i];
-		//         if (message.messageType == "commit") {
-		//             count++;
-		//         }
-		//     }
-		//     if (count > (neighbors().size() * 2 / 3)) {
-		//         status = "pre-prepare";
-		//         confirmedTrans.push_back(receivedMessages[sequenceNum][0]);
-		//         latency += getRound() - receivedMessages[sequenceNum][0].roundSubmitted;
-		//         sequenceNum++;
-		//         if (id() == 0) {
-		//             submitTrans(currentTransaction);
-		//         }
-		//         checkContents();
-		//     }
-		// }
+		if (status == "prepare") {
+		    if (statusCount["prepare"] > (neighborhoodSize * 2 / 3)) {
+		        status = "commit";
+				EyeWitnessMessage message;
+				message.sequenceNum = sequenceNum;
+		        message.messageType = "prepare";
+				message.trans = transaction;
+				addToConsensus(message);
+				outbox.push_back(message);
+		    }
+		}
+
+		if (status == "commit") {
+		    if (statusCount["commit"] > (neighborhoodSize * 2 / 3)) {
+		        status = "committed";
+		    }
+		}
+	}
+
+	void PBFTRequest::addToConsensus(EyeWitnessMessage message)
+	{
+		// increment the number of times we've seen this type of message for this request
+		statusCount[message.messageType]++;
+	}
+
+	bool PBFTRequest::consensusSucceeded() const
+	{
+		return status == "committed";
 	}
 
 	// ================= peer class that participates directly in the network =================
@@ -136,7 +101,7 @@ namespace quantas
 			int seqNum = message.sequenceNum;
 			std::unordered_map<int, StateChangeRequest>::iterator s;
 			if ((s = localRequests.find(seqNum)) != localRequests.end()) {
-				s->second.updateConsensus(message);
+				s->second.addToConsensus(message);
 				if (s->second.consensusSucceeded()) {
 					// if (message.trans.receiver.storedBy == message.trans.sender.storedBy) {
 						// local transaction; commit changes, update wallets
@@ -150,7 +115,7 @@ namespace quantas
 					}
 				}
 			} else if ((s = superRequests.find(seqNum)) != superRequests.end()) {
-				s->second.updateConsensus(message);
+				s->second.addToConsensus(message);
 				if (s->second.consensusSucceeded()) {
 					// update internal coin snapshots for transaction; if this
 					// is in the receiver neighborhood, add new wallet and then
