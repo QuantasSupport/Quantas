@@ -10,66 +10,164 @@ You should have received a copy of the GNU General Public License along with QUA
 #ifndef EyeWitnessPeer_hpp
 #define EyeWitnessPeer_hpp
 
-#include <deque>
+#include <unordered_set>
+#include <unordered_map>
 #include "../Common/Peer.hpp"
 #include "../Common/Simulation.hpp"
 
-namespace quantas{
+// unsolved design problems:
 
-    struct EyeWitnessPeerMessage {
+// how to find your neighborhood from a specific state change request
+// transaction's history; you could be in the history more than once as part of
+// multiple neighborhoods
 
-        int 				Id = -1; // node who sent the message
-        int					trans = -1; // the transaction id
-        int                 sequenceNum = -1;
-        string              messageType = ""; // phase
-        int                 roundSubmitted;
+// warning messages: other nodes in neighborhood being like "this person who is
+// trying to spend this money has provably signed it away"
+
+
+namespace quantas
+{
+    // =============== basic data storage types ===============
+
+    struct Neighborhood
+    {
+        // ¯\_( ͡° ͜ʖ ͡°)_/¯
+        std::unordered_set<long> memberIDs;
+        bool operator==(const Neighborhood& rhs) { return memberIDs == rhs.memberIDs; }
     };
 
-    class EyeWitnessPeer : public Peer<EyeWitnessPeerMessage>{
+    struct WalletLocation
+    {
+        // this is all we need to know for wallets stored in transaction
+        // histories
+
+        int address;
+        Neighborhood storedBy;
+    };
+
+    struct TransactionRecord
+    {
+        // maybe store something symbolizing the sender's signature?
+
+        WalletLocation sender;
+        WalletLocation receiver;
+    };
+
+    struct Coin
+    {
+        // id needs to be unique across all coins across all peers; use static
+        // counter variable in peer class? or uuid generator.
+        int id;
+        vector<TransactionRecord> history;
+    };
+
+    struct LocalWallet : public WalletLocation {
+        // we do not care about these things for wallets that are only mentioned
+        // in transactions, but we need to store them for local wallets
+
+        vector<Coin> coins;
+        vector<Coin> pastCoins;
+    };
+
+    struct OngoingTransaction: public TransactionRecord {
+        // we just need this to verify history for transactions we are currently
+        // validating
+
+        Coin coin;
+    };
+
+    struct EyeWitnessMessage
+    {
+        OngoingTransaction trans;
+        int sequenceNum = -1;
+        // phase for PBFT. i think there should also be an "announcement"
+        // message type for sending a transaction from a peer that just
+        // "received" it to other neighborhoods that will also need to come to
+        // consensus on it. kind of like the request from the client in classic
+        // PBFT
+        string messageType = "";
+        int roundSubmitted;
+    };
+
+    // =============== implementation of underlying consensus algorithm ===============
+
+    class StateChangeRequest
+    {
     public:
-        // methods that must be defined when deriving from Peer
-        EyeWitnessPeer                             (long);
-        EyeWitnessPeer                             (const EyeWitnessPeer &rhs);
-        ~EyeWitnessPeer                            ();
+        virtual bool consensusSucceeded() const = 0;
+        virtual void updateConsensus(EyeWitnessMessage) = 0;
+        bool outboxEmpty() { return outbox.size() == 0; }
 
-        // perform one step of the Algorithm with the messages in inStream
-        void                 performComputation();
-        // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(const vector<Peer<EyeWitnessPeerMessage>*>& _peers);
+        // Precondition: !outboxEmpty()
+        EyeWitnessMessage getMessage()
+        {
+            EyeWitnessMessage m = outbox.back();
+            outbox.pop_back();
+            return m;
+        }
 
-        // addintal method that have defulte implementation from Peer but can be overwritten
-        void                 log()const { printTo(*_log); };
-        ostream&             printTo(ostream&)const;
-        friend ostream& operator<<         (ostream&, const EyeWitnessPeer&);
-        
-
-        // string indicating the current status of a node
-        string                          status = "pre-prepare";
-        // current squence number
-        int                             sequenceNum = 0;
-        // vector of vectors of messages that have been received
-        vector<vector<EyeWitnessPeerMessage>> receivedMessages;
-        // vector of recieved transactions
-        vector<EyeWitnessPeerMessage>		    transactions;
-        // vector of confirmed transactions
-        vector<EyeWitnessPeerMessage>		    confirmedTrans;
-        // latency of confirmed transactions
-        int                             latency = 0;
-        // rate at which to submit transactions ie 1 in x chance for all n nodes
-        int                             submitRate = 20;
-        
-        // the id of the next transaction to submit
-        static int                      currentTransaction;
-
-
-        // checkInStrm loops through the in stream adding messsages to receivedMessages or transactions
-        void                  checkInStrm();
-        // checkContents loops through the receivedMessages attempting to advance the status of consensus
-        void                  checkContents();
-        // submitTrans creates a transaction and broadcasts it to everyone
-        void                  submitTrans(int tranID);
+    protected:
+        vector<EyeWitnessMessage> outbox;
     };
 
-    Simulation<quantas::EyeWitnessPeerMessage, quantas::EyeWitnessPeer>* generateSim();
+    class PBFTRequest : public StateChangeRequest
+    {
+    public:
+        PBFTRequest(OngoingTransaction t, int neighbors, int seq)
+            : transaction(t), neighborhoodSize(neighbors), sequenceNumber(seq)
+        {
+        }
+        void updateConsensus(EyeWitnessMessage c) override
+        {
+            // TODO: put real code here
+            return;
+        }
+        bool consensusSucceeded() const override
+        {
+            // TODO: put real code here
+            return oneInXChance(10);
+        }
+
+    protected:
+        OngoingTransaction transaction;
+        int neighborhoodSize;
+        int sequenceNumber;
+        string status = "pre-prepare";
+    };
+
+    // ================= peer class that participates directly in the network =================
+
+    class EyeWitnessPeer : public Peer<EyeWitnessMessage>
+    {
+    public:
+        EyeWitnessPeer();
+        
+        // methods that must be defined when deriving from Peer
+
+        EyeWitnessPeer(long);
+        EyeWitnessPeer(const EyeWitnessPeer &rhs);
+        ~EyeWitnessPeer();
+
+        void initParameters (const vector<Peer*>& _peers, json parameters) override;
+
+        // perform one step of the algorithm with the messages in inStream
+        void performComputation() override;
+
+        // perform any calculations needed at the end of a round such as
+        // determining the throughput (only ran once, not for every peer)
+        void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers) override;
+
+        void broadcastTo(EyeWitnessMessage, Neighborhood);
+        void initiateTransaction(bool withinNeighborhood);
+
+    private:
+        std::unordered_map<int, StateChangeRequest> localRequests;
+        std::unordered_map<int, StateChangeRequest> superRequests;
+        std::vector<LocalWallet> heldWallets;
+        static int issuedCoins;
+        static int neighborhoodSize;
+    };
+
+    Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *generateSim();
 }
 #endif /* EyeWitnessPeer_hpp */

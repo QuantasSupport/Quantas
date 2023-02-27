@@ -10,161 +10,178 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include "EyeWitnessPeer.hpp"
 
-namespace quantas {
+namespace quantas
+{
+	// =============== implementation of underlying consensus algorithm ===============
 
-	int EyeWitnessPeer::currentTransaction = 1;
+	void PBFTRequest::updateConsensus(EyeWitnessMessage m)
+	{
+		// TODO: each instance of this class only needs to deal with one transaction (but could still store received messages)
+		// and also instead of calling broadcast() it should add to outbox
+		// if (id() == 0 && status == "pre-prepare") {
+		//     for (int i = 0; i < transactions.size(); i++) {
+		//         bool skip = false;
+		//         for (int j = 0; j < confirmedTrans.size(); j++) {
+		//             if (transactions[i].trans == confirmedTrans[j].trans) {
+		//                 skip = true;
+		//                 break;
+		//             }
+		//         }
+		//         if (!skip) {
+		//             status = "prepare";
+		//             EyeWitnessMessage message = transactions[i];
+		//             message.messageType = "pre-prepare";
+		//             message.Id = id();
+		//             message.sequenceNum = sequenceNum;
+		//             broadcast(message);
+		//             if (receivedMessages.size() < sequenceNum + 1) {
+		//                 receivedMessages.push_back(vector<EyeWitnessMessage>());
+		//             }
+		//             receivedMessages[sequenceNum].push_back(message);
+		//             break;
+		//         }
+		//     }
+		// } else if (status == "pre-prepare" && receivedMessages.size() >= sequenceNum + 1) {
+		//     for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
+		//         EyeWitnessMessage message = receivedMessages[sequenceNum][i];
+		//         if (message.messageType == "pre-prepare") {
+		//             status = "prepare";
+		//             EyeWitnessMessage newMsg = message;
+		//             newMsg.messageType = "prepare";
+		//             newMsg.Id = id();
+		//             broadcast(newMsg);
+		//             receivedMessages[sequenceNum].push_back(newMsg);
+		//         }
+		//     }
+		// }
 
-	EyeWitnessPeer::~EyeWitnessPeer() {
+		// if (status == "prepare") {
+		//     int count = 0;
+		//     for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
+		//         EyeWitnessMessage message = receivedMessages[sequenceNum][i];
+		//         if (message.messageType == "prepare") {
+		//             count++;
+		//         }
+		//     }
+		//     if (count > (neighbors().size() * 2 / 3)) {
+		//         status = "commit";
+		//         EyeWitnessMessage newMsg = receivedMessages[sequenceNum][0];
+		//         newMsg.messageType = "commit";
+		//         newMsg.Id = id();
+		//         broadcast(newMsg);
+		//         receivedMessages[sequenceNum].push_back(newMsg);
+		//     }
+		// }
 
+		// if (status == "commit") {
+		//     int count = 0;
+		//     for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
+		//         EyeWitnessMessage message = receivedMessages[sequenceNum][i];
+		//         if (message.messageType == "commit") {
+		//             count++;
+		//         }
+		//     }
+		//     if (count > (neighbors().size() * 2 / 3)) {
+		//         status = "pre-prepare";
+		//         confirmedTrans.push_back(receivedMessages[sequenceNum][0]);
+		//         latency += getRound() - receivedMessages[sequenceNum][0].roundSubmitted;
+		//         sequenceNum++;
+		//         if (id() == 0) {
+		//             submitTrans(currentTransaction);
+		//         }
+		//         checkContents();
+		//     }
+		// }
 	}
 
-	EyeWitnessPeer::EyeWitnessPeer(const EyeWitnessPeer& rhs) : Peer<EyeWitnessPeerMessage>(rhs) {
+	// ================= peer class that participates directly in the network =================
+
+	int EyeWitnessPeer::issuedCoins = 0;
+
+	void EyeWitnessPeer::initParameters(const vector<Peer<EyeWitnessMessage>*>& _peers, json parameters) {
+		neighborhoodSize = parameters["neighborhoodSize"];
+		// we need a pool of valid wallets from the whole network to use in
+		// simulated transactions
+	};
+
+	EyeWitnessPeer::EyeWitnessPeer() {
+		// get this peer's valid wallets from the pool?
+	}
+
+	EyeWitnessPeer::~EyeWitnessPeer()
+	{
+	}
+
+	EyeWitnessPeer::EyeWitnessPeer(const EyeWitnessPeer &rhs) : Peer<EyeWitnessMessage>(rhs)
+	{
+	}
+
+	EyeWitnessPeer::EyeWitnessPeer(long id) : Peer(id)
+	{
+	}
+
+	void EyeWitnessPeer::performComputation()
+	{
+		while (!inStreamEmpty())
+		{
+			Packet<EyeWitnessMessage> p = popInStream();
+			EyeWitnessMessage message = p.getMessage();
+			int seqNum = message.sequenceNum;
+			std::unordered_map<int, StateChangeRequest>::iterator s;
+			if ((s = localRequests.find(seqNum)) != localRequests.end()) {
+				s->second.updateConsensus(message);
+				if (s->second.consensusSucceeded()) {
+					// if (message.trans.receiver.storedBy == message.trans.sender.storedBy) {
+						// local transaction; commit changes, update wallets
+					// } else {
+						// nonlocal transaction; start state change request in superRequests
+					// }
+				} else {
+					while (!s->second.outboxEmpty()) {
+						// choose message recipients and relay
+						// TODO: need way of determining this peer's neighborhood for the purposes of this transaction
+					}
+				}
+			} else if ((s = superRequests.find(seqNum)) != superRequests.end()) {
+				s->second.updateConsensus(message);
+				if (s->second.consensusSucceeded()) {
+					// update internal coin snapshots for transaction; if this
+					// is in the receiver neighborhood, add new wallet and then
+					// conduct internal transaction
+				}else {
+					while (!s->second.outboxEmpty()) {
+						// choose message recipients and relay
+					}
+				}
+			} else {
+				// if this is a valid pre-prepare message or announcement
+				// message, create a StateChangeRequest and start using it.
+			}
+		}
+		if (oneInXChance(10)) {
+			initiateTransaction();
+		}
+	}
+
+	void EyeWitnessPeer::broadcastTo(EyeWitnessMessage m, Neighborhood n) {
+		for (const long& i : n.memberIDs) {
+			unicastTo(m, i);
+		}
+	}
+
+	void EyeWitnessPeer::initiateTransaction(bool withinNeighborhood = true) {
+		// choose random wallet
+		// choose random coin
+		// choose destination... within neighborhood for now?
+		// create StateChangeRequest
+		WalletLocation& sender = heldWallets[randMod(heldWallets.size())];
 		
 	}
 
-	EyeWitnessPeer::EyeWitnessPeer(long id) : Peer(id) {
+	Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *generateSim()
+	{
 
+		Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *sim = new Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer>;
+		return sim;
 	}
-
-	void EyeWitnessPeer::performComputation() {
-		if (id() == 0 && getRound() == 0) {
-			submitTrans(currentTransaction);
-		}
-		if (true)
-			checkInStrm();
-
-		if (true)
-			checkContents();
-
-	}
-
-	void EyeWitnessPeer::endOfRound(const vector<Peer<EyeWitnessPeerMessage>*>& _peers) {
-		const vector<EyeWitnessPeer*> peers = reinterpret_cast<vector<EyeWitnessPeer*> const&>(_peers);
-		double length = peers[0]->confirmedTrans.size();
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["latency"].push_back(latency / length);
-	}
-
-	void EyeWitnessPeer::checkInStrm() {
-		while (!inStreamEmpty()) {
-			Packet<EyeWitnessPeerMessage> newMsg = popInStream();
-			
-			if (newMsg.getMessage().messageType == "trans") {
-				transactions.push_back(newMsg.getMessage());
-			}
-			else {
-				while (receivedMessages.size() < newMsg.getMessage().sequenceNum + 1) {
-					receivedMessages.push_back(vector<EyeWitnessPeerMessage>());
-				}
-				receivedMessages[newMsg.getMessage().sequenceNum].push_back(newMsg.getMessage());
-			}
-		}
-	}
-	void EyeWitnessPeer::checkContents() {
-		if (id() == 0 && status == "pre-prepare") {
-			for (int i = 0; i < transactions.size(); i++) {
-				bool skip = false;
-				for (int j = 0; j < confirmedTrans.size(); j++) {
-					if (transactions[i].trans == confirmedTrans[j].trans) {
-						skip = true;
-						break;
-					}
-				}
-				if (!skip) {
-					status = "prepare";
-					EyeWitnessPeerMessage message = transactions[i];
-					message.messageType = "pre-prepare";
-					message.Id = id();
-					message.sequenceNum = sequenceNum;
-					broadcast(message);
-					if (receivedMessages.size() < sequenceNum + 1) {
-						receivedMessages.push_back(vector<EyeWitnessPeerMessage>());
-					}
-					receivedMessages[sequenceNum].push_back(message);
-					break;
-				}
-			}
-		} else if (status == "pre-prepare" && receivedMessages.size() >= sequenceNum + 1) {
-			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				EyeWitnessPeerMessage message = receivedMessages[sequenceNum][i];
-				if (message.messageType == "pre-prepare") {
-					status = "prepare";
-					EyeWitnessPeerMessage newMsg = message;
-					newMsg.messageType = "prepare";
-					newMsg.Id = id();
-					broadcast(newMsg);
-					receivedMessages[sequenceNum].push_back(newMsg);
-				}
-			}
-		}
-
-		if (status == "prepare") {
-			int count = 0;
-			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				EyeWitnessPeerMessage message = receivedMessages[sequenceNum][i];
-				if (message.messageType == "prepare") {
-					count++;
-				}
-			}
-			if (count > (neighbors().size() * 2 / 3)) {
-				status = "commit";
-				EyeWitnessPeerMessage newMsg = receivedMessages[sequenceNum][0];
-				newMsg.messageType = "commit";
-				newMsg.Id = id();
-				broadcast(newMsg);
-				receivedMessages[sequenceNum].push_back(newMsg);
-			}
-		}
-
-		if (status == "commit") {
-			int count = 0;
-			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				EyeWitnessPeerMessage message = receivedMessages[sequenceNum][i];
-				if (message.messageType == "commit") {
-					count++;
-				}
-			}
-			if (count > (neighbors().size() * 2 / 3)) {
-				status = "pre-prepare";
-				confirmedTrans.push_back(receivedMessages[sequenceNum][0]);
-				latency += getRound() - receivedMessages[sequenceNum][0].roundSubmitted;
-				sequenceNum++;
-				if (id() == 0) {
-					submitTrans(currentTransaction);
-				}
-				checkContents();
-			}
-		}
-
-	}
-
-	void EyeWitnessPeer::submitTrans(int tranID) {
-		EyeWitnessPeerMessage message;
-		message.messageType = "trans";
-		message.trans = tranID;
-		message.Id = id();
-		message.roundSubmitted = getRound();
-		broadcast(message);
-		transactions.push_back(message);
-		currentTransaction++;
-	}
-
-	ostream& EyeWitnessPeer::printTo(ostream& out)const {
-		Peer<EyeWitnessPeerMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const EyeWitnessPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-
-	Simulation<quantas::EyeWitnessPeerMessage, quantas::EyeWitnessPeer>* generateSim() {
-        
-        Simulation<quantas::EyeWitnessPeerMessage, quantas::EyeWitnessPeer>* sim = new Simulation<quantas::EyeWitnessPeerMessage, quantas::EyeWitnessPeer>;
-        return sim;
-    }
 }

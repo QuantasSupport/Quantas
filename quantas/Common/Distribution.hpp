@@ -42,6 +42,9 @@ namespace quantas{
     // exclusiveMax, but thread-safe)
     int randMod(const int exclusiveMax);
 
+    // returns true with odds of 1 in x (e.g. 1 in 100)
+    bool oneInXChance(const int x);
+
     static const string                POISSON = "POISSON";
     static const string                UNIFORM = "UNIFORM";
     static const string                ONE     = "ONE";
