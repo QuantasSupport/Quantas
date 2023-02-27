@@ -12,6 +12,7 @@ You should have received a copy of the GNU General Public License along with QUA
 
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include "../Common/Peer.hpp"
 #include "../Common/Simulation.hpp"
 
@@ -33,6 +34,7 @@ namespace quantas
     {
         // ¯\_( ͡° ͜ʖ ͡°)_/¯
         std::unordered_set<long> memberIDs;
+        int leader; // id of the leader of this neighborhood
         bool operator==(const Neighborhood& rhs) { return memberIDs == rhs.memberIDs; }
     };
 
@@ -163,6 +165,7 @@ namespace quantas
     private:
         std::unordered_map<int, StateChangeRequest> localRequests;
         std::unordered_map<int, StateChangeRequest> superRequests;
+        std::multimap<int, PBFTRequest> recievedRequests; 
         std::vector<LocalWallet> heldWallets;
         static int issuedCoins;
         static int neighborhoodSize;

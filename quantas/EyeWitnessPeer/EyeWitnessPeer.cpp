@@ -18,7 +18,14 @@ namespace quantas
 	{
 		// TODO: each instance of this class only needs to deal with one transaction (but could still store received messages)
 		// and also instead of calling broadcast() it should add to outbox
-		// if (id() == 0 && status == "pre-prepare") {
+		// might be local consensus
+		if (m.trans.sender.storedBy == m.trans.receiver.storedBy) {
+			//if (m.trans.sender.storedBy.leader == id()) {
+				// submit new transaction as I am the leader. Need a way to figure that out
+			//}
+		}
+		
+		// if (id() == 0 && m.messageType == "pre-prepare") {
 		//     for (int i = 0; i < transactions.size(); i++) {
 		//         bool skip = false;
 		//         for (int j = 0; j < confirmedTrans.size(); j++) {
@@ -41,7 +48,7 @@ namespace quantas
 		//             break;
 		//         }
 		//     }
-		// } else if (status == "pre-prepare" && receivedMessages.size() >= sequenceNum + 1) {
+		// } else if (m.messageType == "pre-prepare" && receivedMessages.size() >= sequenceNum + 1) {
 		//     for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
 		//         EyeWitnessMessage message = receivedMessages[sequenceNum][i];
 		//         if (message.messageType == "pre-prepare") {
@@ -54,8 +61,8 @@ namespace quantas
 		//         }
 		//     }
 		// }
-
-		// if (status == "prepare") {
+		// bool prepared = false;
+		// if (m.messageType == "prepare") {
 		//     int count = 0;
 		//     for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
 		//         EyeWitnessMessage message = receivedMessages[sequenceNum][i];
