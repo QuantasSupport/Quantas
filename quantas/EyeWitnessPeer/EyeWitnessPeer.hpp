@@ -76,19 +76,20 @@ namespace quantas
         // validating
 
         Coin coin;
+        int roundSubmitted;
+        int roundCompleted;
     };
 
     struct EyeWitnessMessage
     {
         OngoingTransaction trans;
-        int sequenceNum = -1;
         // phase for PBFT. i think there should also be an "announcement"
         // message type for sending a transaction from a peer that just
         // "received" it to other neighborhoods that will also need to come to
         // consensus on it. kind of like the request from the client in classic
         // PBFT
+        int sequenceNum;
         string messageType = "";
-        int roundSubmitted;
     };
 
     // =============== implementation of underlying consensus algorithm ===============
@@ -97,7 +98,8 @@ namespace quantas
     {
     public:
         virtual bool consensusSucceeded() const = 0;
-        virtual void updateConsensus(EyeWitnessMessage) = 0;
+        virtual void updateConsensus() = 0;
+        virtual void addToConsensus(EyeWitnessMessage) = 0;
         bool outboxEmpty() { return outbox.size() == 0; }
 
         // Precondition: !outboxEmpty()
@@ -115,22 +117,24 @@ namespace quantas
     class PBFTRequest : public StateChangeRequest
     {
     public:
-        PBFTRequest(OngoingTransaction t, int neighbors, int seq)
-            : transaction(t), neighborhoodSize(neighbors), sequenceNumber(seq)
+        PBFTRequest(OngoingTransaction t, int neighbors, int seq, bool amLeader)
+            : transaction(t), neighborhoodSize(neighbors), sequenceNum(seq), leader(amLeader)
         {
         }
-        void updateConsensus(EyeWitnessMessage c) override;
-        bool consensusSucceeded() const override
-        {
-            // TODO: put real code here
-            return oneInXChance(10);
-        }
+        
+        void updateConsensus() override;
+        void addToConsensus(EyeWitnessMessage c) override;
+        bool consensusSucceeded() const override;
 
     protected:
         OngoingTransaction transaction;
         int neighborhoodSize;
-        int sequenceNumber;
+        int sequenceNum;
         string status = "pre-prepare";
+        bool leader;
+        std::map<string, int> statusCount = {{"pre-prepare", 0}, // Count of the number of times we've seen these messages
+              {"prepare", 0}, 
+              {"commit", 0}};
     };
 
     // ================= peer class that participates directly in the network =================
