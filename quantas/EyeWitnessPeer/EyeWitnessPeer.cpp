@@ -39,7 +39,7 @@ namespace quantas
 		        status = "commit";
 				EyeWitnessMessage message;
 				message.sequenceNum = sequenceNum;
-		        message.messageType = "prepare";
+		        message.messageType = "commit";
 				message.trans = transaction;
 				addToConsensus(message);
 				outbox.push_back(message);
