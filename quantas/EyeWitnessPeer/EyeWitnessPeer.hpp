@@ -76,7 +76,7 @@ namespace quantas
             coins.erase(
                 std::remove_if(
                     coins.begin(), coins.end(), [&target](Coin c){return c.id == target.id;}
-                )
+                ), coins.end()
             );
             pastCoins.push_back(target);
         }
@@ -179,9 +179,11 @@ namespace quantas
         int sequenceNum;
         string status;
         bool leader;
-        std::map<string, int> statusCount = {{"pre-prepare", 0}, // Count of the number of times we've seen these messages
-              {"prepare", 0}, 
-              {"commit", 0}};
+        std::map<string, int> statusCount = {
+            {"pre-prepare", 0}, // Count of the number of times we've seen these messages
+            {"prepare", 0}, 
+            {"commit", 0}
+        };
     };
 
     // ================= peer class that participates directly in the network =================
@@ -209,6 +211,7 @@ namespace quantas
     private:
         std::unordered_map<int, ConsensusRequest> localRequests;
         std::unordered_map<int, ConsensusRequest> superRequests;
+        std::vector<ConsensusRequest> finishedRequests;
         // std::multimap<int, PBFTRequest> recievedRequests;
         // TODO: this should also probably be a container with lookup based on id (address)
         std::vector<LocalWallet> heldWallets;
@@ -361,10 +364,11 @@ namespace quantas
             }
         }
         // update consensus on in-progress requests:
-        for (auto& s: localRequests) {
-            s.second.updateConsensus();
-            if (s.second.consensusSucceeded()) {
-                OngoingTransaction trans = s.second.getTransaction();
+        for (auto s = localRequests.begin(); s != localRequests.end();) {
+            ConsensusRequest& r = s->second;
+            r.updateConsensus();
+            if (r.consensusSucceeded()) {
+                OngoingTransaction trans = r.getTransaction();
                 if (trans.receiver.storedBy == trans.sender.storedBy) {
                     // local transaction; commit changes, update wallets
                     // TODO: optimize this search
@@ -385,19 +389,26 @@ namespace quantas
                         moving.history.push_back(trans);
                         localSender->moveToHistory(moving);
                         localReceiver->coins.push_back(moving);
+                        std::cout << "completed transaction " << r.getSequenceNumber()
+                            << " in round " << getRound() << ". Transferred coin "
+                            << moving.id << " from wallet " << localSender->address
+                            << " to wallet " << localReceiver->address << std::endl;
                     }
                     // TODO: log transaction latency?
+                    finishedRequests.push_back(r);
+                    s = localRequests.erase(s);
                 } else {
                     // nonlocal transaction; start state change request in superRequests
                 }
             } else {
-                while (!s.second.outboxEmpty()) {
-                    EyeWitnessMessage m = s.second.getMessage();
+                while (!r.outboxEmpty()) {
+                    EyeWitnessMessage m = r.getMessage();
                     broadcastTo(
                         m,
-                        contacts.at(s.second.getSequenceNumber()).getOwn(id())
+                        contacts.at(r.getSequenceNumber()).getOwn(id())
                     );
                 }
+                ++s;
             }
         }
         for (auto& s: superRequests) {
@@ -406,7 +417,7 @@ namespace quantas
                 // update internal coin snapshots for transaction; if this
                 // is in the receiver neighborhood, add new wallet and then
                 // conduct internal transaction
-            }else {
+            } else {
                 while (!s.second.outboxEmpty()) {
                     // choose message recipients and relay
                     // use contacts
@@ -417,8 +428,9 @@ namespace quantas
         // wallet stored by our neighborhood we're a leader in every wallet
         // stored by our neighborhood
         // std::cout << "Peer " << id() << " is contemplating initiating a transaction" << std::endl;
-        bool randomness = randMod(5) == 0;
+        bool randomness = randMod(10) == 0;
         // std::cout << "Randomness: "<<(randomness?"true":"false")<<std::endl;
+        // std::cout << "Current peer: " << id() << std::endl;
         // std::cout << "Leader: "<<heldWallets[0].storedBy.leader<<std::endl;
         if (randomness && heldWallets[0].storedBy.leader == id()) {
             initiateTransaction();
@@ -439,7 +451,7 @@ namespace quantas
     void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(bool withinNeighborhood) {
         vector<LocalWallet> haveCoins;
         std::copy_if(heldWallets.begin(), heldWallets.end(), std::back_inserter(haveCoins),
-            [](const LocalWallet& w){return w.coins.size() > 0;}
+            [](const LocalWallet& w){ return w.coins.size() > 0; }
         );
         if (haveCoins.size() == 0) {
             return;
@@ -459,14 +471,16 @@ namespace quantas
                 // TODO: create cross-neighborhood transaction
             }
         } while (receiver.address == sender.address);
-        OngoingTransaction t = {sender, receiver, c};
+        OngoingTransaction t = {sender, receiver, c, getRound(), -1};
         int seqNum = ++previousSequenceNumber;
         ConsensusRequest request(
             t, neighborhoods[neighborhoodsForPeers[id()]].size(), seqNum, true
         );
         localRequests.insert({seqNum, request});
         contacts.insert({seqNum, ConsensusContacts(c, validatorNeighborhoods)});
-        // std::cout << "initiated transaction in round " << getRound() << std::endl;
+        std::cout << "initiated transaction in round " << getRound() << ". Transferring "
+            << "coin " << c.id << " from wallet " << sender.address << " to wallet "
+            << receiver.address << std::endl;
     }
 }
 #endif /* EyeWitnessPeer_hpp */
