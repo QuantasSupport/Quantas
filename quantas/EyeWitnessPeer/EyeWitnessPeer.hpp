@@ -265,7 +265,7 @@ namespace quantas
                 peerIDToNeighborhoodIndex[peerID] = i;
             }
             for (int j=0; j<walletsPerNeighborhood; ++j) {
-                LocalWallet w = {all.size(), newNeighborhood, {}, {}};
+                LocalWallet w = {static_cast<int>(all.size()), newNeighborhood, {}, {}};
                 walletsForNeighborhoods[i].push_back(w);
                 all.push_back({w.address, newNeighborhood});
             }
