@@ -14,6 +14,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <unordered_map>
 #include <map>
 #include <algorithm>
+#include <iostream>
 #include "../Common/Peer.hpp"
 #include "../Common/Simulation.hpp"
 
@@ -109,6 +110,11 @@ namespace quantas
     struct ConsensusContacts
     {
         std::vector<Neighborhood> participants;
+        ConsensusContacts(Coin c, int validatorCount) {
+            for (int i=0; i<validatorCount && i<c.history.size(); i++) {
+                participants.push_back(c.history[c.history.size()-i-1].receiver.storedBy);
+            }
+        }
         // Precondition: peerID is an id in one of the neighborhoods
         Neighborhood getOwn(long peerID) {
             auto own = std::find_if(
@@ -164,6 +170,7 @@ namespace quantas
         void addToConsensus(EyeWitnessMessage c) override;
         bool consensusSucceeded() const override;
         OngoingTransaction getTransaction() { return transaction; }
+        int getSequenceNumber() { return sequenceNum; }
 
     protected:
         OngoingTransaction transaction;
@@ -247,6 +254,7 @@ namespace quantas
         maxNeighborhoodSize = parameters["neighborhoodSize"];
         const int walletsPerNeighborhood = parameters["walletsPerNeighborhood"];
         neighborhoodCount = ceil(static_cast<float>(_peers.size()) / maxNeighborhoodSize);
+        walletsForNeighborhoods.resize(neighborhoodCount);
         vector<WalletLocation> all;
         for (int i=0; i<neighborhoodCount; ++i) {
             Neighborhood newNeighborhood;
@@ -273,12 +281,23 @@ namespace quantas
                 }
             }
         }
+
+        for (auto& n: _peers) {
+            // it would be less weird to set these in the constructor, but
+            // because this function (initParameters) is not static, at least
+            // one Peer needs to be constructed *before* this function can run
+            EyeWitnessPeer* e = dynamic_cast<EyeWitnessPeer*>(n);
+            assert(e);
+            e->neighborhoodID = peerIDToNeighborhoodIndex[e->id()];
+            e->heldWallets = walletsForNeighborhoods[neighborhoodID];
+        }
+
+        std::cout << "Initialized network parameters" << std::endl;
     }
 
     template<typename ConsensusRequest>
     EyeWitnessPeer<ConsensusRequest>::EyeWitnessPeer(long id): Peer<EyeWitnessMessage>(id) {
-        neighborhoodID = peerIDToNeighborhoodIndex[id];
-        heldWallets = walletsForNeighborhoods[neighborhoodID];
+        
     }
 
     template<typename ConsensusRequest>
@@ -299,7 +318,15 @@ namespace quantas
                 if (message.messageType == "announcement") {
                     // make super ConsensusRequest
                 } else if (message.messageType == "pre-prepare") {
-                    // make local ConsensusRequest
+                    // assuming that only the sender needs to reach local consensus
+                    ConsensusRequest request(
+                        message.trans, message.trans.sender.storedBy.memberIDs.size(),  // hmm
+                        message.sequenceNum, false
+                    );
+                    contacts.insert({
+                        message.sequenceNum,
+                        ConsensusContacts(message.trans.coin, validatorNeighborhoods)
+                    });
                 }
             }
         }
@@ -335,8 +362,10 @@ namespace quantas
                 }
             } else {
                 while (!s.second.outboxEmpty()) {
-                    // choose message recipients and relay
-                    // TODO: need way of determining this peer's neighborhood for the purposes of this transaction
+                    broadcastTo(
+                        s.second.getMessage(),
+                        contacts.at(s.second.getSequenceNumber()).getOwn(id())
+                    );
                 }
             }
         }
@@ -398,11 +427,7 @@ namespace quantas
             t, neighborhoodSizes[peerIDToNeighborhoodIndex[id()]], seqNum, true
         );
         localRequests.insert({seqNum, request});
-        vector<Neighborhood> newContacts;
-        for (int i=0; i<validatorNeighborhoods && i<c.history.size(); i++) {
-            newContacts.push_back(c.history[c.history.size()-i-1].receiver.storedBy);
-        }
-        contacts[seqNum] = ConsensusContacts {newContacts};
+        contacts.insert({seqNum, ConsensusContacts(c, validatorNeighborhoods)});
     }
 }
 #endif /* EyeWitnessPeer_hpp */
