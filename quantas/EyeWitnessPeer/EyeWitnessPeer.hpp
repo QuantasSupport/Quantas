@@ -72,7 +72,7 @@ namespace quantas
         // moves a Coin from coins to pastCoins. assumes that the version of the
         // Coin passed as an argument has the most recent history and should be
         // stored
-        void sendToHistory(Coin target) {
+        void moveToHistory(Coin target) {
             coins.erase(
                 std::remove_if(
                     coins.begin(), coins.end(), [&target](Coin c){return c.id == target.id;}
@@ -163,6 +163,7 @@ namespace quantas
         void updateConsensus() override;
         void addToConsensus(EyeWitnessMessage c) override;
         bool consensusSucceeded() const override;
+        OngoingTransaction getTransaction() { return transaction; }
 
     protected:
         OngoingTransaction transaction;
@@ -179,14 +180,11 @@ namespace quantas
     template <typename ConsensusRequest=PBFTRequest>
     class EyeWitnessPeer : public Peer<EyeWitnessMessage>
     {
-    public:
-        EyeWitnessPeer();
-        
+    public:        
         // methods that must be defined when deriving from Peer
 
-        EyeWitnessPeer(long);
-        EyeWitnessPeer(const EyeWitnessPeer &rhs);
-        ~EyeWitnessPeer();
+        EyeWitnessPeer(long id);
+        // EyeWitnessPeer(const EyeWitnessPeer &rhs);
 
         void initParameters (const vector<Peer*>& _peers, json parameters) override;
 
@@ -195,7 +193,7 @@ namespace quantas
 
         // perform any calculations needed at the end of a round such as
         // determining the throughput (only ran once, not for every peer)
-        void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers) override;
+        // void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers) override;
 
         void broadcastTo(EyeWitnessMessage, Neighborhood);
         void initiateTransaction(bool withinNeighborhood=true);
@@ -210,26 +208,25 @@ namespace quantas
         std::unordered_map<int, ConsensusContacts> contacts;
 
         // technically not realistic for this to be known to all nodes
-        static int previousSequenceNumber = -1;
-        static int issuedCoins;
+        inline static int previousSequenceNumber=-1;
+        inline static int issuedCoins=0;
         
         // parameters from input file; read in initParameters
-        static int maxNeighborhoodSize;
-        static int neighborhoodCount;
-        static int validatorNeighborhoods;
+        inline static int maxNeighborhoodSize=-1;
+        inline static int neighborhoodCount=-1;
+        inline static int validatorNeighborhoods=-1;
 
         // global neighborhood data; populated as a side effect of initParameters
-        static std::vector<std::vector<LocalWallet>> walletsForNeighborhoods;
-        static std::vector<int> neighborhoodSizes;
-        static std::unordered_map<long, int> peerIDToNeighborhoodIndex;
+        inline static std::vector<std::vector<LocalWallet>> walletsForNeighborhoods;
+        inline static std::vector<int> neighborhoodSizes;
+        inline static std::unordered_map<long, int> peerIDToNeighborhoodIndex;
     };
 
     Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>> *generateSim();
 
 	// ================= peer class that participates directly in the network =================
 
-    template <typename ConsensusRequest>
-    int EyeWitnessPeer<ConsensusRequest>::issuedCoins = 0;
+    
 
     // gives each peer a neighborhood and gives each neighborhood a set of wallets.
     // precondition: "validatorNeighborhoods", "neighborhoodSize", and
@@ -279,8 +276,8 @@ namespace quantas
     }
 
     template<typename ConsensusRequest>
-    EyeWitnessPeer<ConsensusRequest>::EyeWitnessPeer() {
-        neighborhoodID = peerIDToNeighborhoodIndex[id()];
+    EyeWitnessPeer<ConsensusRequest>::EyeWitnessPeer(long id): Peer<EyeWitnessMessage>(id) {
+        neighborhoodID = peerIDToNeighborhoodIndex[id];
         heldWallets = walletsForNeighborhoods[neighborhoodID];
     }
 
@@ -300,41 +297,36 @@ namespace quantas
             } else {
                 // message about previously unknown transaction
                 if (message.messageType == "announcement") {
-                    
-                    ConsensusRequest c(
-                        message.trans,
-                        neighborhoodSizes[neighborhoodID],
-                        ++previousSequenceNumber,
-
-                    );
+                    // make super ConsensusRequest
                 } else if (message.messageType == "pre-prepare") {
-
+                    // make local ConsensusRequest
                 }
             }
         }
         // update consensus on in-progress requests:
         for (auto& s: localRequests) {
-            s->second.updateConsensus();
-            if (s->second.consensusSucceeded()) {
-                if (message.trans.receiver.storedBy == message.trans.sender.storedBy) {
+            s.second.updateConsensus();
+            if (s.second.consensusSucceeded()) {
+                OngoingTransaction trans = s.second.getTransaction();
+                if (trans.receiver.storedBy == trans.sender.storedBy) {
                     // local transaction; commit changes, update wallets
                     // TODO: optimize this search
                     auto localSender = std::find_if(
                         heldWallets.begin(),
                         heldWallets.end(),
-                        [message](LocalWallet w){
-                            return w.address == message.trans.sender.address;
+                        [trans](LocalWallet w){
+                            return w.address == trans.sender.address;
                     });
                     auto localReceiver = std::find_if(
                         heldWallets.begin(),
                         heldWallets.end(),
-                        [message](LocalWallet w){
-                            return w.address == message.trans.receiver.address;
+                        [trans](LocalWallet w){
+                            return w.address == trans.receiver.address;
                     });
                     if (localReceiver != heldWallets.end() && localSender != heldWallets.end()) {
-                        Coin moving = message.trans.coin;
-                        moving.history.push_back(message.trans);
-                        localSender->sendToHistory(moving, message.trans);
+                        Coin moving = trans.coin;
+                        moving.history.push_back(trans);
+                        localSender->moveToHistory(moving);
                         localReceiver->coins.push_back(moving);
                     }
                     // TODO: log transaction latency?
@@ -342,20 +334,20 @@ namespace quantas
                     // nonlocal transaction; start state change request in superRequests
                 }
             } else {
-                while (!s->second.outboxEmpty()) {
+                while (!s.second.outboxEmpty()) {
                     // choose message recipients and relay
                     // TODO: need way of determining this peer's neighborhood for the purposes of this transaction
                 }
             }
         }
         for (auto& s: superRequests) {
-            s->second.updateConsensus();
-            if (s->second.consensusSucceeded()) {
+            s.second.updateConsensus();
+            if (s.second.consensusSucceeded()) {
                 // update internal coin snapshots for transaction; if this
                 // is in the receiver neighborhood, add new wallet and then
                 // conduct internal transaction
             }else {
-                while (!s->second.outboxEmpty()) {
+                while (!s.second.outboxEmpty()) {
                     // choose message recipients and relay
                     // use contacts
                 }
@@ -405,12 +397,12 @@ namespace quantas
         ConsensusRequest request(
             t, neighborhoodSizes[peerIDToNeighborhoodIndex[id()]], seqNum, true
         );
-        localRequests[seqNum] = request;
+        localRequests.insert({seqNum, request});
         vector<Neighborhood> newContacts;
         for (int i=0; i<validatorNeighborhoods && i<c.history.size(); i++) {
-            newContacts.push_back(c.history[c.history.size()-i-1].receiver);
+            newContacts.push_back(c.history[c.history.size()-i-1].receiver.storedBy);
         }
-        contacts[seqNum] = newContacts;
+        contacts[seqNum] = ConsensusContacts {newContacts};
     }
 }
 #endif /* EyeWitnessPeer_hpp */
