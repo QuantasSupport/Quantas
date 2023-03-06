@@ -32,7 +32,9 @@ namespace quantas
     {
         std::unordered_set<long> memberIDs;
         int leader; // id of the leader of this neighborhood
-        bool operator==(const Neighborhood& rhs) { return memberIDs == rhs.memberIDs; }
+        bool operator==(const Neighborhood& rhs) {
+            return memberIDs == rhs.memberIDs && leader == rhs.leader;
+        }
         int size(){ return memberIDs.size(); }
     };
 
@@ -160,7 +162,8 @@ namespace quantas
     {
     public:
         PBFTRequest(OngoingTransaction t, int neighbors, int seq, bool amLeader)
-            : transaction(t), neighborhoodSize(neighbors), sequenceNum(seq), leader(amLeader)
+            : transaction(t), neighborhoodSize(neighbors), sequenceNum(seq),
+            leader(amLeader), status("pre-prepare")
         {
         }
 
@@ -174,7 +177,7 @@ namespace quantas
         OngoingTransaction transaction;
         int neighborhoodSize;
         int sequenceNum;
-        string status = "pre-prepare";
+        string status;
         bool leader;
         std::map<string, int> statusCount = {{"pre-prepare", 0}, // Count of the number of times we've seen these messages
               {"prepare", 0}, 
@@ -291,11 +294,30 @@ namespace quantas
             EyeWitnessPeer* e = dynamic_cast<EyeWitnessPeer*>(n);
             assert(e);
             e->neighborhoodID = neighborhoodsForPeers[e->id()];
-            e->heldWallets = walletsForNeighborhoods[neighborhoodID];
+            e->heldWallets = walletsForNeighborhoods[e->neighborhoodID];
 
         }
 
         std::cout << "Initialized network parameters" << std::endl;
+        std::cout << "Setup:" << std::endl;
+        std::cout << "Max neighborhood size: " << maxNeighborhoodSize << std::endl;
+        std::cout << "Wallets per neighborhood: " << walletsPerNeighborhood << std::endl;
+        std::cout << "Neighborhood count: " << neighborhoodCount << std::endl;
+
+        int w=0;
+        for (auto& n: neighborhoods) {
+            std::cout << "Neighborhood. Leader: "<<n.leader<<", members: ";
+            for (const auto& m: n.memberIDs) {
+                std::cout << m << " ";
+            }
+            std::cout << ", wallets: ";
+            for (auto & wallet: walletsForNeighborhoods[w++]) {
+                std::cout << wallet.address << " ";
+                assert(wallet.storedBy == n);
+            }
+            std::cout << std::endl;
+        }
+
     }
 
     template<typename ConsensusRequest>
@@ -326,9 +348,14 @@ namespace quantas
                         message.trans, message.trans.sender.storedBy.memberIDs.size(),  // hmm
                         message.sequenceNum, false
                     );
+                    request.addToConsensus(message);
                     contacts.insert({
                         message.sequenceNum,
                         ConsensusContacts(message.trans.coin, validatorNeighborhoods)
+                    });
+                    localRequests.insert({
+                        request.getSequenceNumber(),
+                        request
                     });
                 }
             }
@@ -365,8 +392,9 @@ namespace quantas
                 }
             } else {
                 while (!s.second.outboxEmpty()) {
+                    EyeWitnessMessage m = s.second.getMessage();
                     broadcastTo(
-                        s.second.getMessage(),
+                        m,
                         contacts.at(s.second.getSequenceNumber()).getOwn(id())
                     );
                 }
@@ -388,7 +416,11 @@ namespace quantas
         // assuming non-overlapping neighborhoods, so if we're the leader in one
         // wallet stored by our neighborhood we're a leader in every wallet
         // stored by our neighborhood
-        if (oneInXChance(2) && heldWallets[0].storedBy.leader == id()) {
+        // std::cout << "Peer " << id() << " is contemplating initiating a transaction" << std::endl;
+        bool randomness = randMod(5) == 0;
+        // std::cout << "Randomness: "<<(randomness?"true":"false")<<std::endl;
+        // std::cout << "Leader: "<<heldWallets[0].storedBy.leader<<std::endl;
+        if (randomness && heldWallets[0].storedBy.leader == id()) {
             initiateTransaction();
         }
     }
@@ -405,7 +437,6 @@ namespace quantas
     // Postcondition: ConsensusRequest created UNLESS there are no coins to send
     // in this neighborhood's wallets
     void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(bool withinNeighborhood) {
-        std::cout << "initiating transaction" << std::endl;
         vector<LocalWallet> haveCoins;
         std::copy_if(heldWallets.begin(), heldWallets.end(), std::back_inserter(haveCoins),
             [](const LocalWallet& w){return w.coins.size() > 0;}
@@ -435,6 +466,7 @@ namespace quantas
         );
         localRequests.insert({seqNum, request});
         contacts.insert({seqNum, ConsensusContacts(c, validatorNeighborhoods)});
+        // std::cout << "initiated transaction in round " << getRound() << std::endl;
     }
 }
 #endif /* EyeWitnessPeer_hpp */

@@ -34,9 +34,7 @@ namespace quantas
 				addToConsensus(message);
 				outbox.push_back(message);
 		    }
-		}
-
-		if (status == "prepare") {
+		} else if (status == "prepare") {
 		    if (statusCount["prepare"] > (neighborhoodSize * 2 / 3)) {
 		        status = "commit";
 				EyeWitnessMessage message;
@@ -46,9 +44,7 @@ namespace quantas
 				addToConsensus(message);
 				outbox.push_back(message);
 		    }
-		}
-
-		if (status == "commit") {
+		} else if (status == "commit") {
 		    if (statusCount["commit"] > (neighborhoodSize * 2 / 3)) {
 		        status = "committed";
 		    }
