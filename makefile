@@ -91,6 +91,9 @@ $(PROJECT_DIR)/%.o: $(PROJECT_DIR)/%.c
 run: all
 	./$(EXE) $(INPUTFILE)
 
+run_debug: debug
+	./$(EXE) $(INPUTFILE)
+
 # in the future this could be generalized to go through every file in "Tests"
 rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.cpp
 	$(CXX) $^ -o $@.exe
