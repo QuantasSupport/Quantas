@@ -9,14 +9,16 @@ namespace quantas
     
     int uniformInt(const int min, const int max)
     {
+        static thread_local std::mt19937 generator(clock() + _hasher(std::this_thread::get_id()));
         std::uniform_int_distribution<int> distribution(min, max);
-        return distribution(RANDOM_GENERATOR);
+        return distribution(generator);
     }
 
     int randMod(const int exclusiveMax)
     {
+        static thread_local std::mt19937 generator(clock() + _hasher(std::this_thread::get_id()));
         std::uniform_int_distribution<int> distribution(0, exclusiveMax - 1);
-        return distribution(RANDOM_GENERATOR);
+        return distribution(generator);
     }
 
     bool oneInXChance(const int x) {
