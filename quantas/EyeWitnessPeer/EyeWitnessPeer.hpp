@@ -20,10 +20,6 @@ You should have received a copy of the GNU General Public License along with QUA
 
 // unsolved design problems:
 
-// how to find your neighborhood from a specific state change request
-// transaction's history; you could be in the history more than once as part of
-// multiple neighborhoods
-
 // warning messages: other nodes in neighborhood being like "this person who is
 // trying to spend this money has provably signed it away"
 
@@ -37,6 +33,7 @@ namespace quantas
         std::unordered_set<long> memberIDs;
         int leader; // id of the leader of this neighborhood
         bool operator==(const Neighborhood& rhs) { return memberIDs == rhs.memberIDs; }
+        int size(){ return memberIDs.size(); }
     };
 
     struct WalletLocation
@@ -111,6 +108,7 @@ namespace quantas
     {
         std::vector<Neighborhood> participants;
         ConsensusContacts(Coin c, int validatorCount) {
+            // TODO: change first condition from i<validatorCount to uniqueValidators<validatorCount
             for (int i=0; i<validatorCount && i<c.history.size(); i++) {
                 participants.push_back(c.history[c.history.size()-i-1].receiver.storedBy);
             }
@@ -225,8 +223,8 @@ namespace quantas
 
         // global neighborhood data; populated as a side effect of initParameters
         inline static std::vector<std::vector<LocalWallet>> walletsForNeighborhoods;
-        inline static std::vector<int> neighborhoodSizes;
-        inline static std::unordered_map<long, int> peerIDToNeighborhoodIndex;
+        inline static std::unordered_map<long, int> neighborhoodsForPeers;
+        inline static std::vector<Neighborhood> neighborhoods;
     };
 
     Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>> *generateSim();
@@ -235,13 +233,13 @@ namespace quantas
 
     
 
-    // gives each peer a neighborhood and gives each neighborhood a set of wallets.
-    // precondition: "validatorNeighborhoods", "neighborhoodSize", and
+    // gives each peer a neighborhood and gives each neighborhood a set of
+    // wallets. precondition: "validatorNeighborhoods", "neighborhoodSize", and
     // "walletsPerNeighborhood" are set as parameters in the input file
-    // postcondition: neighborhoodSize is set (from the simulation input
-    // parameters); neighborhoodCount is set; walletsForNeighborhoods contains a
-    // vector of LocalWallets for each neighborhood; peerIDToNeighborhoodIndex
-    // maps a peer's id to the index of the neighborhood it's in
+    // postcondition: maxNeighborhoodSize is set; neighborhoodCount is set;
+    // walletsForNeighborhoods contains a vector of LocalWallets for each
+    // neighborhood; neighborhoodsForPeers maps a peer's id to the index of
+    // the neighborhood it's in
     template <typename ConsensusRequest>
     void EyeWitnessPeer<ConsensusRequest>::initParameters(const vector<Peer<EyeWitnessMessage>*>& _peers, json parameters) {
         // divide peers into neighborhoods: if the neighborhood size is 5, then
@@ -259,16 +257,20 @@ namespace quantas
         for (int i=0; i<neighborhoodCount; ++i) {
             Neighborhood newNeighborhood;
             newNeighborhood.leader = i*maxNeighborhoodSize;
-            for (int n=0; n<maxNeighborhoodSize&&i*maxNeighborhoodSize+n<_peers.size();++n) {
+            int actualNeighborhoodSize = std::min(
+                maxNeighborhoodSize, static_cast<int>(_peers.size())-i*maxNeighborhoodSize
+            );
+            for (int n=0; n<actualNeighborhoodSize;++n) {
                 const long peerID = i*maxNeighborhoodSize+n;
                 newNeighborhood.memberIDs.insert(peerID);
-                peerIDToNeighborhoodIndex[peerID] = i;
+                neighborhoodsForPeers[peerID] = i;
             }
             for (int j=0; j<walletsPerNeighborhood; ++j) {
                 LocalWallet w = {static_cast<int>(all.size()), newNeighborhood, {}, {}};
                 walletsForNeighborhoods[i].push_back(w);
                 all.push_back({w.address, newNeighborhood});
             }
+            neighborhoods.push_back(newNeighborhood);
         }
 
         const int coinsPerWallet = 5;
@@ -288,8 +290,9 @@ namespace quantas
             // one Peer needs to be constructed *before* this function can run
             EyeWitnessPeer* e = dynamic_cast<EyeWitnessPeer*>(n);
             assert(e);
-            e->neighborhoodID = peerIDToNeighborhoodIndex[e->id()];
+            e->neighborhoodID = neighborhoodsForPeers[e->id()];
             e->heldWallets = walletsForNeighborhoods[neighborhoodID];
+
         }
 
         std::cout << "Initialized network parameters" << std::endl;
@@ -385,10 +388,9 @@ namespace quantas
         // assuming non-overlapping neighborhoods, so if we're the leader in one
         // wallet stored by our neighborhood we're a leader in every wallet
         // stored by our neighborhood
-        if (oneInXChance(10) && heldWallets[0].storedBy.leader == id()) {
+        if (oneInXChance(2) && heldWallets[0].storedBy.leader == id()) {
             initiateTransaction();
         }
-
     }
 
     template<typename ConsensusRequest>
@@ -403,6 +405,7 @@ namespace quantas
     // Postcondition: ConsensusRequest created UNLESS there are no coins to send
     // in this neighborhood's wallets
     void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(bool withinNeighborhood) {
+        std::cout << "initiating transaction" << std::endl;
         vector<LocalWallet> haveCoins;
         std::copy_if(heldWallets.begin(), heldWallets.end(), std::back_inserter(haveCoins),
             [](const LocalWallet& w){return w.coins.size() > 0;}
@@ -412,6 +415,10 @@ namespace quantas
         }
         LocalWallet sender = haveCoins[randMod(haveCoins.size())];
         Coin& c = sender.coins[randMod(sender.coins.size())];
+        Neighborhood thisNeighborhood = neighborhoods[neighborhoodsForPeers[id()]];
+        if (c.history.size() == 0) {
+            c.history.push_back({{-1, {}}, sender});
+        }
         LocalWallet receiver = sender;
         // obtain a receiver that is not the sender
         do {
@@ -424,7 +431,7 @@ namespace quantas
         OngoingTransaction t = {sender, receiver, c};
         int seqNum = ++previousSequenceNumber;
         ConsensusRequest request(
-            t, neighborhoodSizes[peerIDToNeighborhoodIndex[id()]], seqNum, true
+            t, neighborhoods[neighborhoodsForPeers[id()]].size(), seqNum, true
         );
         localRequests.insert({seqNum, request});
         contacts.insert({seqNum, ConsensusContacts(c, validatorNeighborhoods)});
