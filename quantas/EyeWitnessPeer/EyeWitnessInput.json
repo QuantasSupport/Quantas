@@ -1,9 +1,13 @@
 {
   "experiments": [
     {
-      "algorithm": "PBFT",
-      "logFile": "PBFTDelay1.txt",
-      "threadCount": 1,
+      "algorithm": "EyeWitness",
+      "parameters": {
+        "validatorNeighborhoods": 4,
+        "neighborhoodSize": 4,
+        "walletsPerNeighborhood": 5
+      },
+      "logFile": "EyeWitnessLocal1.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -13,40 +17,8 @@
         "initialPeers": 20,
         "totalPeers": 20
       },
-      "tests": 10,
-      "rounds": 100
-    },
-    {
-      "algorithm": "PBFT",
-      "logFile": "PBFTDelay5.txt",
-      "threadCount": 1,
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 5
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 20,
-        "totalPeers": 20
-      },
-      "tests": 10,
-      "rounds": 100
-    },
-    {
-      "algorithm": "PBFT",
-      "logFile": "PBFTDelay10.txt",
-      "threadCount": 1,
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 10
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 20,
-        "totalPeers": 20
-      },
-      "tests": 10,
-      "rounds": 100
+      "tests": 1,
+      "rounds": 50
     }
   ]
 }

@@ -19,9 +19,9 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-INPUTFILE := ExampleInput.json
+INPUTFILE := EyeWitnessInput.json
 
-ALGFILE := ExamplePeer
+ALGFILE := EyeWitnessPeer
 
 # ALGFILE := BitcoinPeer
 
@@ -89,6 +89,9 @@ $(PROJECT_DIR)/%.o: $(PROJECT_DIR)/%.c
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 run: all
+	./$(EXE) $(INPUTFILE)
+
+run_debug: debug
 	./$(EXE) $(INPUTFILE)
 
 # in the future this could be generalized to go through every file in "Tests"
