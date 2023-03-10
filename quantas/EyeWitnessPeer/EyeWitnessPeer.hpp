@@ -246,7 +246,7 @@ generateSim();
 // postcondition: maxNeighborhoodSize is set; neighborhoodCount is set;
 // walletsForNeighborhoods contains a vector of LocalWallets for each
 // neighborhood; neighborhoodsForPeers maps a peer's id to the index of
-// the neighborhood it's in
+// the neighborhood it's in; static members are reset
 template <typename ConsensusRequest>
 void EyeWitnessPeer<ConsensusRequest>::initParameters(
     const vector<Peer<EyeWitnessMessage> *> &_peers, json parameters) {
@@ -255,6 +255,12 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     // peers, and so on. if the total number of peers is not a multiple of
     // 5, an "extra" neighborhood stores the spares. then, each neighborhood
     // gets a set of wallets to take care of.
+
+    previousSequenceNumber = -1;
+    issuedCoins = 0;
+    walletsForNeighborhoods = std::vector<std::vector<LocalWallet>>();
+    neighborhoodsForPeers = std::unordered_map<long, int>();
+    neighborhoods = std::vector<Neighborhood>();
 
     validatorNeighborhoods = parameters["validatorNeighborhoods"];
     maxNeighborhoodSize = parameters["neighborhoodSize"];
@@ -414,8 +420,11 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                               << localSender->address << " to wallet "
                               << localReceiver->address << std::endl;
                 }
-                // TODO: log transaction latency?
                 finishedRequests.push_back(r);
+                LogWriter::instance()->getTestLog()["validations"].push_back(
+                    {{"round", getRound()},
+                     {"seqNum", r.getSequenceNumber()},
+                     {"peer", id()}});
                 s = localRequests.erase(s);
             }
         } else {
@@ -452,7 +461,9 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                       << " from wallet " << trans.sender.address
                       << " to wallet " << trans.receiver.address << std::endl;
             LogWriter::instance()->getTestLog()["validations"].push_back(
-                {{"seqNum", r.getSequenceNumber()}, {"peer", id()}});
+                {{"round", getRound()},
+                 {"seqNum", r.getSequenceNumber()},
+                 {"peer", id()}});
             s = superRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
@@ -541,7 +552,8 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
     }
 
     LogWriter::instance()->getTestLog()["transactions"].push_back(
-        {{"seqNum", seqNum},
+        {{"round", getRound()},
+         {"seqNum", seqNum},
          {"validatorCount", newContacts.getValidatorNodeCount()}});
 
     std::cout << "initiated transaction " << seqNum << " in round "

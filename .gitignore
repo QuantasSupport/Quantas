@@ -21,3 +21,4 @@
 Debug/
 enc_temp_folder/
 quantas/EyeWitnessPeer/*.txt
+quantas/EyeWitnessPeer/*Log.json

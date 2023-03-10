@@ -7,7 +7,7 @@
         "neighborhoodSize": 4,
         "walletsPerNeighborhood": 5
       },
-      "logFile": "quantas/EyeWitnessPeer/EyeWitnessFast.txt",
+      "logFile": "quantas/EyeWitnessPeer/FastLog.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -19,6 +19,26 @@
       },
       "tests": 1,
       "rounds": 50
+    },
+    {
+      "algorithm": "EyeWitness",
+      "parameters": {
+        "validatorNeighborhoods": 4,
+        "neighborhoodSize": 7,
+        "walletsPerNeighborhood": 10
+      },
+      "logFile": "quantas/EyeWitnessPeer/LargerLog.json",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 200,
+        "totalPeers": 200
+      },
+      "tests": 1,
+      "rounds": 100
     }
   ]
 }
