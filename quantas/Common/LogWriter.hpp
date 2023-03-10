@@ -46,6 +46,7 @@ namespace quantas {
         int                 getTest         ()const         { return _test; }
         void                setRound        (int round)     { _round = round; }
         int                 getRound        ()const         { return _round; }
+        json&               getTestLog      ()              { return data["tests"][getTest()]; }
 
     private:
         // copying and creation prohibited by clients

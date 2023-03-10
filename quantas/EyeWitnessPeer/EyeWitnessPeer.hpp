@@ -182,11 +182,9 @@ class PBFTRequest : public StateChangeRequest {
     int sequenceNum;
     string status;
     bool leader;
+    // Count of the number of times we've seen these messages
     std::map<string, int> statusCount = {
-        {"pre-prepare",
-         0}, // Count of the number of times we've seen these messages
-        {"prepare", 0},
-        {"commit", 0}};
+        {"pre-prepare", 0}, {"prepare", 0}, {"commit", 0}};
 };
 
 // -- peer class that participates directly in the network --
@@ -443,26 +441,19 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                 Coin moving = trans.coin;
                 moving.history.push_back(trans);
                 localSender->moveToHistory(moving);
-            } else if (trans.receiver.storedBy.has(id())) {
-                auto localReceiver =
-                    std::find_if(heldWallets.begin(), heldWallets.end(),
-                                 [trans](LocalWallet w) {
-                                     return w.address == trans.receiver.address;
-                                 });
-                Coin moving = trans.coin;
-                moving.history.push_back(trans);
-                localReceiver->coins.push_back(moving);
             } else {
                 // find coin in a wallet's pastCoins and edit its history, for
                 // validation
             }
             finishedRequests.push_back(r);
-            s = superRequests.erase(s);
             std::cout << "completed non-local transaction "
                       << r.getSequenceNumber() << " in round " << getRound()
                       << ". Transferred coin " << trans.coin.id
                       << " from wallet " << trans.sender.address
                       << " to wallet " << trans.receiver.address << std::endl;
+            LogWriter::instance()->getTestLog()["validations"].push_back(
+                {{"seqNum", r.getSequenceNumber()}, {"peer", id()}});
+            s = superRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
                 EyeWitnessMessage m = r.getMessage();
@@ -549,10 +540,15 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
         contacts.insert({seqNum, newContacts});
     }
 
+    LogWriter::instance()->getTestLog()["transactions"].push_back(
+        {{"seqNum", seqNum},
+         {"validatorCount", newContacts.getValidatorNodeCount()}});
+
     std::cout << "initiated transaction " << seqNum << " in round "
               << getRound() << ". Transferring "
               << "coin " << c.id << " from wallet " << sender.address
               << " to wallet " << receiver.address << ". ";
+
     if (!withinNeighborhood) {
         std::cout << "neighborhoods ";
         for (const Neighborhood &n : newContacts.getOthers(id())) {

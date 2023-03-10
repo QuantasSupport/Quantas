@@ -20,3 +20,4 @@
 *.user
 Debug/
 enc_temp_folder/
+quantas/EyeWitnessPeer/*.txt

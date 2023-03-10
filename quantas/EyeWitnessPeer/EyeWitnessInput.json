@@ -7,7 +7,7 @@
         "neighborhoodSize": 4,
         "walletsPerNeighborhood": 5
       },
-      "logFile": "EyeWitnessLocal1.txt",
+      "logFile": "quantas/EyeWitnessPeer/EyeWitnessFast.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
