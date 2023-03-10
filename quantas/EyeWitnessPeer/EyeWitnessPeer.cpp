@@ -25,7 +25,7 @@ void PBFTRequest::updateConsensus() {
         message.sequenceNum = sequenceNum;
         message.messageType = "pre-prepare";
         message.trans = transaction;
-        addToConsensus(message);
+        // addToConsensus(message);
         outbox.push_back(message);
     } else if (status == "pre-prepare") {
         if (statusCount["pre-prepare"] > 0) {
@@ -34,7 +34,7 @@ void PBFTRequest::updateConsensus() {
             message.sequenceNum = sequenceNum;
             message.messageType = "prepare";
             message.trans = transaction;
-            addToConsensus(message);
+            // addToConsensus(message);
             outbox.push_back(message);
         }
     } else if (status == "prepare") {
@@ -44,7 +44,7 @@ void PBFTRequest::updateConsensus() {
             message.sequenceNum = sequenceNum;
             message.messageType = "commit";
             message.trans = transaction;
-            addToConsensus(message);
+            // addToConsensus(message);
             outbox.push_back(message);
         }
     } else if (status == "commit") {
