@@ -18,13 +18,20 @@ class EventTimelineMuxer:
     timeline.
     """
 
+    Timeline = dict[int, int|float]
+    """
+    A timeline is here defined as a dict mapping each timestamp in a range to
+    the number (int) or the average number of events (float) known to have
+    happened by that timestamp.
+    """
+
     def __init__(self, lowest_timestamp: int, highest_timestamp: int):
         """
         min: lowest event timestamp to include in a timeline; inclusive
         max: highest event timestamp to include in a timeline; exclusive
 
-        these bounds are used later to output complete cumulative timelines
-        where each valid timestamp maps to some number of events, even if no
+        these bounds are used later to output the complete, cumulative timelines
+        where every valid timestamp maps to some quantity of events, even if no
         events were directly input for that timestamp. half-open range.
         """
         self.min = lowest_timestamp
@@ -32,17 +39,20 @@ class EventTimelineMuxer:
         self.timelines = defaultdict(lambda: defaultdict(lambda: 0))
         self.events_by_round_cache = None
     
-    def add_event(self, time: int, timeline_id: int=0):
+    def add_event(self, time: int, timeline_id: int=0) -> None:
         """
         time: integer timestamp between lowest and highest timestamps
-        timeline_id: id of the timeline to store the event under; ignore if you
-        only have one timeline
+        timeline_id: id of the timeline the event belongs to
         """
         assert self.min <= time < self.max
         self.events_by_round_cache = None
         self.timelines[timeline_id][time] += 1
     
-    def get_cumulative_timelines(self):
+    def get_cumulative_timelines(self) -> dict[int, Timeline]:
+        """
+        Crunches the numbers for the data passed to `add_event` so far. Returns
+        a dict that maps each known timeline_id to a complete cumulative timeline.
+        """
         if self.events_by_round_cache is not None:
             return self.events_by_round_cache
         self.events_by_round_cache = {}
@@ -55,38 +65,46 @@ class EventTimelineMuxer:
             self.events_by_round_cache[timeline_id] = cumulative
         return self.events_by_round_cache
 
-    def get_cumulative_timeline(self, timeline_id=0):
-        return self.get_cumulative_timelines()[timeline_id]
-
-    def get_average_cumulative_timeline(self):
+    def get_average_cumulative_timeline(self) -> Timeline:
+        """
+        Returns a dict that maps each valid timestamp to the average number of
+        events known to have occurred by that timestamp across each distinct
+        timeline seen by `add_event`.
+        """
         average_timeline = {}
         for i in range(self.min, self.max):
             sum = 0
             for timeline_id in self.timelines.keys():
-                sum += self.get_cumulative_timeline(timeline_id)[i]
+                sum += self.get_cumulative_timelines()[timeline_id][i]
             average_timeline[i] = sum / len(self.timelines.keys())
         return average_timeline
 
+
 EYEWITNESS_PATH = Path(__file__).parent
-
-# todo: include how many rounds are being used in log and then retrieve it here
-NUM_ROUNDS = 100
-
-tx_starts = EventTimelineMuxer(0, NUM_ROUNDS)
-tx_completes = EventTimelineMuxer(0, NUM_ROUNDS)
-local_messages = EventTimelineMuxer(0, NUM_ROUNDS)
-all_messages = EventTimelineMuxer(0, NUM_ROUNDS)
-
-validators_still_needed = {}
-"""maps sequence numbers of initiated transactions to the number of validation
-events that are needed before they can be marked as completed"""
-
-tolerance_fraction = 2/3
-"""fraction of validators that need to confirm a transaction for it to be marked
-as completed"""
 
 
 def plot(logfile: str):
+
+    # todo: include how many rounds are being used in log and then retrieve it
+    # below instead of having a hard-coded constant
+    NUM_ROUNDS = 100
+
+    # graph 1:
+    tx_starts = EventTimelineMuxer(0, NUM_ROUNDS)
+    tx_completes = EventTimelineMuxer(0, NUM_ROUNDS)
+
+    # graph 2:
+    local_messages = EventTimelineMuxer(0, NUM_ROUNDS)
+    all_messages = EventTimelineMuxer(0, NUM_ROUNDS)
+
+    validators_still_needed = {}
+    """maps sequence numbers of initiated transactions to the number of validation
+    events that are needed before they can be marked as completed"""
+
+    tolerance_fraction = 2/3
+    """fraction of validators that need to confirm a transaction for it to be marked
+    as completed"""
+
     with open(logfile) as logfileobj:
         log = json.load(logfileobj)
     
@@ -114,6 +132,7 @@ def plot(logfile: str):
         
     graph_timestamp = round(time())
 
+    plt.title("Transactions Over Time")
     tx_starts_avg_tl = tx_starts.get_average_cumulative_timeline()
     plt.plot(tx_starts_avg_tl.keys(), tx_starts_avg_tl.values(),
              color="blue", label="Transactions started")
@@ -121,10 +140,10 @@ def plot(logfile: str):
     plt.plot(tx_completes_avg_tl.keys(), tx_completes_avg_tl.values(),
              color="green", label="Transactions finished")
     plt.legend(loc="upper left")
-    plt.title("Transactions Over Time")
     plt.savefig(EYEWITNESS_PATH / f"graph_transactions_{graph_timestamp}.png")
     plt.show()
 
+    plt.title("Messages Over Time")
     local_messages_avg_tl = local_messages.get_average_cumulative_timeline()
     plt.plot(local_messages_avg_tl.keys(), local_messages_avg_tl.values(),
              color="blue", label="Messages Sent for Local Transactions")
@@ -132,7 +151,6 @@ def plot(logfile: str):
     plt.plot(all_messages_avg_tl.keys(), all_messages_avg_tl.values(),
              color="green", label="Messages Sent for All Transactions")
     plt.legend(loc="upper left")
-    plt.title("Messages Over Time")
     plt.savefig(EYEWITNESS_PATH / f"graph_messages_{graph_timestamp}.png")
     plt.show()
 
