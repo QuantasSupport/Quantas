@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import matplotlib.pyplot as plt
 from collections import defaultdict
+from time import time
 
 class EventTimelineMuxer:
     """
@@ -66,6 +67,8 @@ class EventTimelineMuxer:
             average_timeline[i] = sum / len(self.timelines.keys())
         return average_timeline
 
+EYEWITNESS_PATH = Path(__file__).parent
+
 # todo: include how many rounds are being used in log and then retrieve it here
 NUM_ROUNDS = 100
 
@@ -75,7 +78,12 @@ local_messages = EventTimelineMuxer(0, NUM_ROUNDS)
 all_messages = EventTimelineMuxer(0, NUM_ROUNDS)
 
 validators_still_needed = {}
+"""maps sequence numbers of initiated transactions to the number of validation
+events that are needed before they can be marked as completed"""
+
 tolerance_fraction = 2/3
+"""fraction of validators that need to confirm a transaction for it to be marked
+as completed"""
 
 
 def plot(logfile: str):
@@ -83,9 +91,8 @@ def plot(logfile: str):
         log = json.load(logfileobj)
     
     for test_index, test in enumerate(log["tests"]):
-        # they are probably sorted already?
-        transactions = sorted(test["transactions"], key=lambda t: t["round"])
-        validations = sorted(test["validations"], key=lambda t: t["round"])
+        transactions = test["transactions"]
+        validations = test["validations"]
         messages = test["messages"]
 
         for transaction in transactions:
@@ -105,6 +112,7 @@ def plot(logfile: str):
             if message["transactionType"] == "local":
                 local_messages.add_event(message["round"], test_index)
         
+    graph_timestamp = round(time())
 
     tx_starts_avg_tl = tx_starts.get_average_cumulative_timeline()
     plt.plot(tx_starts_avg_tl.keys(), tx_starts_avg_tl.values(),
@@ -113,6 +121,8 @@ def plot(logfile: str):
     plt.plot(tx_completes_avg_tl.keys(), tx_completes_avg_tl.values(),
              color="green", label="Transactions finished")
     plt.legend(loc="upper left")
+    plt.title("Transactions Over Time")
+    plt.savefig(EYEWITNESS_PATH / f"graph_transactions_{graph_timestamp}.png")
     plt.show()
 
     local_messages_avg_tl = local_messages.get_average_cumulative_timeline()
@@ -122,7 +132,9 @@ def plot(logfile: str):
     plt.plot(all_messages_avg_tl.keys(), all_messages_avg_tl.values(),
              color="green", label="Messages Sent for All Transactions")
     plt.legend(loc="upper left")
+    plt.title("Messages Over Time")
+    plt.savefig(EYEWITNESS_PATH / f"graph_messages_{graph_timestamp}.png")
     plt.show()
 
 if __name__ == "__main__":
-    plot(Path(__file__).parent / "LargeLog.json")
+    plot(EYEWITNESS_PATH / "LargeLog.json")
