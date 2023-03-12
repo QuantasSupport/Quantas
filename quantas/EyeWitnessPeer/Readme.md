@@ -18,4 +18,6 @@ Issues that should be addressed:
 
 - Each wallet stores coins and past coins; it is currently hard to find them for updates. There should be some kind of clever map that makes it easy to find coins to update their histories and potentially move them from "coins" to "past coins" in the wallets they are in. This is especially crucial for non-sender, non-receiver validator nodes because the wallet addresses that hold a "past coin" that will need to be edited history-wise when a transaction concludes are not stored in transactions.
 
-These items roughly correspond to "TODO" comments in the code, I think.
+These items roughly correspond to "TODO" comments in the code, I think. Also:
+
+- The Python file that does graphs uses the industry-standard library matplotlib. I can't seem to install that library on the jadamek machines, so I've been running the program there and then copying the log files to my local computer to generate the graphs. This is not ideal but I do not know if it can be fixed by us; it's probably a permissions issue; the problem seems to be that a dependency of matplotlib called Pillow wants the package zlib-dev to be installed by the operating system package manager, which I cannot do.

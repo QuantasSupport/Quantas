@@ -451,8 +451,8 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                 moving.history.push_back(trans);
                 localSender->moveToHistory(moving);
             } else {
-                // find coin in a wallet's pastCoins and edit its history, for
-                // validation
+                // TODO: find coin in a wallet's pastCoins and edit its history,
+                // for validation
             }
             finishedRequests.push_back(r);
             std::cout << "completed non-local transaction "
