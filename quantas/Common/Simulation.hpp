@@ -83,8 +83,6 @@ namespace quantas {
 			_threadCount = config["topology"]["totalPeers"];
 		}
 		int networkSize = static_cast<int>(config["topology"]["totalPeers"]);
-		// int grainSize = networkSize / _threadCount;
-		// vector<thread> threads(_threadCount);
 		
 		BS::thread_pool pool(_threadCount);
 		for (int i = 0; i < config["tests"]; i++) {
@@ -110,46 +108,10 @@ namespace quantas {
 				BS::multi_future<void> compute_loop = pool.parallelize_loop(networkSize, [this](int a, int b){system.performComputation(a, b);});
 				compute_loop.wait();
 
-        		// int work_pos = 0;
-				// for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
-				// 	*it = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, work_pos + grainSize);
-				// 	work_pos += grainSize;
-				// }
-				// threads.back() = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, networkSize);
-
-				// for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
-				// 	it->join();
-				// }
-
-				// do the perform computation phase of the round
-				// work_pos = 0;
-				// for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
-				// 	*it = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, work_pos + grainSize);
-				// 	work_pos += grainSize;
-				// }
-				// threads.back() = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, networkSize);
-
-				// for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
-				// 	it->join();
-				// }
-
 				system.endOfRound(); // do any end of round computations
 
 				BS::multi_future<void> transmit_loop = pool.parallelize_loop(networkSize, [this](int a, int b){system.transmit(a, b);});
 				transmit_loop.wait();
-
-				// do the transmit phase of the round
-				// work_pos = 0;
-				// for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
-				// 	*it = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, work_pos + grainSize);
-				// 	work_pos += grainSize;
-				// }
-				// threads.back() = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, networkSize);
-
-				// for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
-				// 	it->join();
-				// }
-
 			}
 		}
 		
