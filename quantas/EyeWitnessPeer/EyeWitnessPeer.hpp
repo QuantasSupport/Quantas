@@ -202,6 +202,8 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     // perform one step of the algorithm with the messages in inStream
     void performComputation() override;
 
+    void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers) override;
+
     // perform any calculations needed at the end of a round such as
     // determining the throughput (only ran once, not for every peer)
     // void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers)
@@ -220,6 +222,13 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     std::vector<LocalWallet> heldWallets;
     int neighborhoodID;
     std::unordered_map<int, ConsensusContacts> contacts;
+
+    // logs that are gathered up and sent to the LogWriter all at once in the
+    // last endOfRound(); events aren't sent to the LogWriter directly because
+    // that is not thread-safe
+    std::vector<json> transactions;
+    std::vector<json> validations;
+    std::vector<json> messages;
 
     // technically not realistic for this to be known to all nodes
     inline static std::atomic<int> previousSequenceNumber = -1;
@@ -422,17 +431,16 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                               << localReceiver->address << std::endl;
                 }
                 finishedRequests.push_back(r);
-                LogWriter::instance()->getTestLog()["validations"].push_back(
-                    {{"round", getRound()},
-                     {"seqNum", r.getSequenceNumber()},
-                     {"peer", id()}});
+                validations.push_back({{"round", getRound()},
+                                       {"seqNum", r.getSequenceNumber()},
+                                       {"peer", id()}});
                 s = localRequests.erase(s);
             }
         } else {
             while (!r.outboxEmpty()) {
                 EyeWitnessMessage m = r.getMessage();
                 broadcastTo(m, r.getTransaction().sender.storedBy);
-                LogWriter::instance()->getTestLog()["messages"].push_back(
+                messages.push_back(
                     {{"round", getRound()},
                      {"transactionType", "local"},
                      {"batchSize", r.getTransaction().sender.storedBy.size()}});
@@ -465,17 +473,16 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                       << ". Transferred coin " << trans.coin.id
                       << " from wallet " << trans.sender.address
                       << " to wallet " << trans.receiver.address << std::endl;
-            LogWriter::instance()->getTestLog()["validations"].push_back(
-                {{"round", getRound()},
-                 {"seqNum", r.getSequenceNumber()},
-                 {"peer", id()}});
+            validations.push_back({{"round", getRound()},
+                                   {"seqNum", r.getSequenceNumber()},
+                                   {"peer", id()}});
             s = superRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
                 EyeWitnessMessage m = r.getMessage();
                 std::vector<Neighborhood> recipients =
                     contacts.at(r.getSequenceNumber()).participants;
-                LogWriter::instance()->getTestLog()["messages"].push_back(
+                messages.push_back(
                     {{"round", getRound()},
                      {"transactionType", "non-local"},
                      {"batchSize", contacts.at(r.getSequenceNumber())
@@ -501,6 +508,28 @@ void EyeWitnessPeer<ConsensusRequest>::broadcastTo(EyeWitnessMessage m,
                                                    Neighborhood n) {
     for (const long &i : n.memberIDs) {
         unicastTo(m, i);
+    }
+}
+
+template <typename ConsensusRequest>
+void EyeWitnessPeer<ConsensusRequest>::endOfRound(
+    const vector<Peer<EyeWitnessMessage> *> &_peers) {
+    if (lastRound()) {
+        LogWriter::getTestLog()["transactions"] = json::array();
+        LogWriter::getTestLog()["validations"] = json::array();
+        LogWriter::getTestLog()["messages"] = json::array();
+        for (const auto &genericPeer : _peers) {
+            EyeWitnessPeer<ConsensusRequest> *peer =
+                dynamic_cast<EyeWitnessPeer<ConsensusRequest> *>(genericPeer);
+            std::copy(
+                peer->transactions.begin(), peer->transactions.end(),
+                std::back_inserter(LogWriter::getTestLog()["transactions"]));
+            std::copy(
+                peer->validations.begin(), peer->validations.end(),
+                std::back_inserter(LogWriter::getTestLog()["validations"]));
+            std::copy(peer->messages.begin(), peer->messages.end(),
+                      std::back_inserter(LogWriter::getTestLog()["messages"]));
+        }
     }
 }
 
@@ -561,7 +590,7 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
         contacts.insert({seqNum, newContacts});
     }
 
-    LogWriter::instance()->getTestLog()["transactions"].push_back(
+    transactions.push_back(
         {{"round", getRound()},
          {"seqNum", seqNum},
          {"validatorCount", newContacts.getValidatorNodeCount()}});
