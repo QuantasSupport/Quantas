@@ -431,6 +431,10 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
             while (!r.outboxEmpty()) {
                 EyeWitnessMessage m = r.getMessage();
                 broadcastTo(m, r.getTransaction().sender.storedBy);
+                LogWriter::instance()->getTestLog()["messages"].push_back(
+                    {{"round", getRound()},
+                     {"transactionType", "local"},
+                     {"batchSize", r.getTransaction().sender.storedBy.size()}});
             }
             ++s;
         }
@@ -470,6 +474,11 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                 EyeWitnessMessage m = r.getMessage();
                 std::vector<Neighborhood> recipients =
                     contacts.at(r.getSequenceNumber()).participants;
+                LogWriter::instance()->getTestLog()["messages"].push_back(
+                    {{"round", getRound()},
+                     {"transactionType", "non-local"},
+                     {"batchSize", contacts.at(r.getSequenceNumber())
+                                       .getValidatorNodeCount()}});
                 for (auto &recipient : recipients) {
                     broadcastTo(m, recipient);
                 }
