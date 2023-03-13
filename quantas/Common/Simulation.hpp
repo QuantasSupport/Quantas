@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with QUA
 
 #include "Network.hpp"
 #include "LogWriter.hpp"
+#include "BS_thread_pool.hpp"
+
 
 using std::ofstream;
 using std::thread;
@@ -82,7 +84,9 @@ namespace quantas {
 		}
 		int networkSize = static_cast<int>(config["topology"]["totalPeers"]);
 		int grainSize = networkSize / _threadCount;
-		vector<thread> threads(_threadCount);
+		// vector<thread> threads(_threadCount);
+		
+		BS::thread_pool pool(_threadCount);
 		for (int i = 0; i < config["tests"]; i++) {
 			LogWriter::instance()->setTest(i);
 
@@ -99,42 +103,52 @@ namespace quantas {
 				LogWriter::instance()->setRound(j); // Set the round number for logging
 
 				// do the receive phase of the round
-        		int work_pos = 0;
-				for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
-					*it = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, work_pos + grainSize);
-					work_pos += grainSize;
-				}
-				threads.back() = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, networkSize);
 
-				for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
-					it->join();
-				}
+				BS::multi_future<void> receive_loop = pool.parallelize_loop(networkSize, [this](int a, int b){system.receive(a, b);});
+				receive_loop.wait();
+
+				BS::multi_future<void> compute_loop = pool.parallelize_loop(networkSize, [this](int a, int b){system.performComputation(a, b);});
+				compute_loop.wait();
+
+        		// int work_pos = 0;
+				// for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
+				// 	*it = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, work_pos + grainSize);
+				// 	work_pos += grainSize;
+				// }
+				// threads.back() = thread([this] (int i, int j) { system.receive(i,j); }, work_pos, networkSize);
+
+				// for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
+				// 	it->join();
+				// }
 
 				// do the perform computation phase of the round
-				work_pos = 0;
-				for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
-					*it = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, work_pos + grainSize);
-					work_pos += grainSize;
-				}
-				threads.back() = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, networkSize);
+				// work_pos = 0;
+				// for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
+				// 	*it = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, work_pos + grainSize);
+				// 	work_pos += grainSize;
+				// }
+				// threads.back() = thread([this] (int i, int j) { system.performComputation(i,j); }, work_pos, networkSize);
 
-				for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
-					it->join();
-				}
+				// for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
+				// 	it->join();
+				// }
 
 				system.endOfRound(); // do any end of round computations
 
-				// do the transmit phase of the round
-				work_pos = 0;
-				for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
-					*it = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, work_pos + grainSize);
-					work_pos += grainSize;
-				}
-				threads.back() = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, networkSize);
+				BS::multi_future<void> transmit_loop = pool.parallelize_loop(networkSize, [this](int a, int b){system.transmit(a, b);});
+				transmit_loop.wait();
 
-				for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
-					it->join();
-				}
+				// do the transmit phase of the round
+				// work_pos = 0;
+				// for (vector<thread>::iterator it = threads.begin(); it != threads.end() - 1; ++it) {
+				// 	*it = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, work_pos + grainSize);
+				// 	work_pos += grainSize;
+				// }
+				// threads.back() = thread([this] (int i, int j) { system.transmit(i,j); }, work_pos, networkSize);
+
+				// for (vector<thread>::iterator it = threads.begin(); it != threads.end(); ++it) {
+				// 	it->join();
+				// }
 
 			}
 		}
