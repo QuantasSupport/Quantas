@@ -16,6 +16,7 @@ QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 #define EyeWitnessPeer_hpp
 
 #include <algorithm>
+#include <atomic>
 #include <iostream>
 #include <map>
 #include <unordered_map>
@@ -221,7 +222,7 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     std::unordered_map<int, ConsensusContacts> contacts;
 
     // technically not realistic for this to be known to all nodes
-    inline static int previousSequenceNumber = -1;
+    inline static std::atomic<int> previousSequenceNumber = -1;
     inline static int issuedCoins = 0;
 
     // parameters from input file; read in initParameters
