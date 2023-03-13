@@ -19,11 +19,12 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-INPUTFILE := ExampleInput.json
+# INPUTFILE := ExampleInput.json
 
-ALGFILE := ExamplePeer
+# ALGFILE := ExamplePeer
 
-# ALGFILE := BitcoinPeer
+ALGFILE := BitcoinPeer
+INPUTFILE := BitcoinSpeedTest.json
 
 # ALGFILE := EthereumPeer
 

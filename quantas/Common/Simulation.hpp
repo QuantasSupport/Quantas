@@ -83,7 +83,7 @@ namespace quantas {
 			_threadCount = config["topology"]["totalPeers"];
 		}
 		int networkSize = static_cast<int>(config["topology"]["totalPeers"]);
-		int grainSize = networkSize / _threadCount;
+		// int grainSize = networkSize / _threadCount;
 		// vector<thread> threads(_threadCount);
 		
 		BS::thread_pool pool(_threadCount);
