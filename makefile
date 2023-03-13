@@ -96,7 +96,7 @@ run_debug: debug
 
 # in the future this could be generalized to go through every file in "Tests"
 rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.cpp
-	$(CXX) $^ -o $@.exe
+	$(CXX) -pthread -std=c++17 $^ -o $@.exe
 	./$@.exe
 
 TESTS = rand_test test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_SmartShards test_LinearChord test_Kademlia test_AltBit test_StableDataLink test_ChangRoberts test_Dynamic test_KPT test_KSM
