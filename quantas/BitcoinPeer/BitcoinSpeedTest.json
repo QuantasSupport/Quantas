@@ -1,0 +1,19 @@
+{
+  "experiments": [
+    {
+      "algorithm": "bitcoin",
+      "logFile": "bitcoinspeedtest.txt",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 300,
+        "totalPeers": 300
+      },
+      "tests": 10,
+      "rounds": 1000
+    }
+  ]
+}
