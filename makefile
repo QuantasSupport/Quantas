@@ -22,6 +22,7 @@ PROJECT_DIR := quantas
 INPUTFILE := EyeWitnessInput.json
 
 ALGFILE := EyeWitnessPeer
+# ALGFILE := ExamplePeer
 
 # ALGFILE := BitcoinPeer
 
