@@ -14,7 +14,7 @@ Other documentation can be found in comments in the code.
 
 Issues that should be addressed:
 
-- Each node stores an vector of LocalWallet objects that correspond to the wallets that their neighborhood (shard) stores. These wallets need to be made easier to find for updates with an unordered_map or something. (I don't think we need regular, ordered maps for anything)
+- Each node stores a vector of LocalWallet objects that correspond to the wallets that their neighborhood (shard) stores. These wallets need to be made easier to find for updates with an unordered_map or something. (I don't think we need regular, ordered maps for anything)
 
 - Each wallet stores coins and past coins; it is currently hard to find them for updates. There should be some kind of clever map that makes it easy to find coins to update their histories and potentially move them from "coins" to "past coins" in the wallets they are in. This is especially crucial for non-sender, non-receiver validator nodes because the wallet addresses that hold a "past coin" that will need to be edited history-wise when a transaction concludes are not stored in transactions.
 
