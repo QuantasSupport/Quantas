@@ -339,27 +339,6 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
         e->neighborhoodID = neighborhoodsForPeers[e->id()];
         e->heldWallets = walletsForNeighborhoods[e->neighborhoodID];
     }
-
-    std::cout << "Initialized network parameters" << std::endl;
-    std::cout << "Setup:" << std::endl;
-    std::cout << "Max neighborhood size: " << maxNeighborhoodSize << std::endl;
-    std::cout << "Wallets per neighborhood: " << walletsPerNeighborhood
-              << std::endl;
-    std::cout << "Neighborhood count: " << neighborhoodCount << std::endl;
-
-    int w = 0;
-    for (auto &n : neighborhoods) {
-        std::cout << "Neighborhood. Leader: " << n.leader << ", members: ";
-        for (const auto &m : n.memberIDs) {
-            std::cout << m << " ";
-        }
-        std::cout << ", wallets: ";
-        for (auto &wallet : walletsForNeighborhoods[w++]) {
-            std::cout << wallet.address << " ";
-            assert(wallet.storedBy == n);
-        }
-        std::cout << std::endl;
-    }
 }
 
 template <typename ConsensusRequest>
@@ -431,12 +410,6 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                     moving.history.push_back(trans);
                     localSender->moveToHistory(moving);
                     localReceiver->coins.push_back(moving);
-                    std::cout << "completed local transaction "
-                              << r.getSequenceNumber() << " in round "
-                              << getRound() << ". Transferred coin "
-                              << moving.id << " from wallet "
-                              << localSender->address << " to wallet "
-                              << localReceiver->address << std::endl;
                 }
                 finishedRequests.push_back(r);
                 validations.push_back({{"round", getRound()},
@@ -476,11 +449,6 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                 // for validation
             }
             finishedRequests.push_back(r);
-            std::cout << "completed non-local transaction "
-                      << r.getSequenceNumber() << " in round " << getRound()
-                      << ". Transferred coin " << trans.coin.id
-                      << " from wallet " << trans.sender.address
-                      << " to wallet " << trans.receiver.address << std::endl;
             validations.push_back({{"round", getRound()},
                                    {"seqNum", r.getSequenceNumber()},
                                    {"peer", id()}});
@@ -601,21 +569,7 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
     transactions.push_back(
         {{"round", getRound()},
          {"seqNum", seqNum},
-         {"validatorCount", newContacts.getValidatorNodeCount()}});
-
-    std::cout << "initiated transaction " << seqNum << " in round "
-              << getRound() << ". Transferring "
-              << "coin " << c.id << " from wallet " << sender.address
-              << " to wallet " << receiver.address << ". ";
-
-    if (!withinNeighborhood) {
-        std::cout << "neighborhoods ";
-        for (const Neighborhood &n : newContacts.getOthers(id())) {
-            std::cout << n.id << " ";
-        }
-        std::cout << "will participate in validation";
-    }
-    std::cout << std::endl;
+        {"receiver", receiver.address}});
 }
 } // namespace quantas
 #endif /* EyeWitnessPeer_hpp */
