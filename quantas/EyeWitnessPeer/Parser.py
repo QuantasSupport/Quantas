@@ -157,10 +157,6 @@ def parser(logfile: str):
         validations = test["validations"]
         messages = test["messages"]
 
-
-                    # "coin": 20,
-                    # "receiver": 2,
-                    # "sender": 4,
         max_seq_num = -1
         for transaction in transactions:
             if (transaction["seqNum"] > max_seq_num):

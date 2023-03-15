@@ -517,7 +517,7 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
                       std::back_inserter(LogWriter::getTestLog()["messages"]));
         }
     } else if (byzantineRound == getRound()) {
-        int corruptNeighborhood = rand() % walletsForNeighborhoods.size();
+        int corruptNeighborhood = randMod(walletsForNeighborhoods.size());
         for (int i = 0; i < walletsForNeighborhoods[corruptNeighborhood].size(); i++) {
             LogWriter::getTestLog()["corruptWallets"].push_back(walletsForNeighborhoods[corruptNeighborhood][i].address);
         }
