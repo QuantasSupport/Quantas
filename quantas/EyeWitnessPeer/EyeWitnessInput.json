@@ -25,12 +25,13 @@
       "parameters": {
         "validatorNeighborhoods": 4,
         "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10
+        "walletsPerNeighborhood": 10,
+        "byzantineRound": 50
       },
       "logFile": "quantas/EyeWitnessPeer/LargerLog.json",
       "distribution": {
         "type": "uniform",
-        "maxDelay": 3
+        "maxDelay": 1
       },
       "topology": {
         "type": "complete",

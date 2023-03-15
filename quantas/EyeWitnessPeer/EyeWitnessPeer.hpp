@@ -238,6 +238,7 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     inline static int maxNeighborhoodSize = -1;
     inline static int neighborhoodCount = -1;
     inline static int validatorNeighborhoods = -1;
+    inline static int byzantineRound = -1;
 
     // global neighborhood data; populated as a side effect of initParameters
     inline static std::vector<std::vector<LocalWallet>> walletsForNeighborhoods;
@@ -250,13 +251,13 @@ generateSim();
 
 // -- peer class that participates directly in the network --
 
-// gives each peer a neighborhood and gives each neighborhood a set of
-// wallets. precondition: "validatorNeighborhoods", "neighborhoodSize", and
+// gives each peer a neighborhood and gives each neighborhood a set of wallets.
+// precondition: "validatorNeighborhoods", "neighborhoodSize", and
 // "walletsPerNeighborhood" are set as parameters in the input file
 // postcondition: maxNeighborhoodSize is set; neighborhoodCount is set;
-// walletsForNeighborhoods contains a vector of LocalWallets for each
-// neighborhood; neighborhoodsForPeers maps a peer's id to the index of
-// the neighborhood it's in; static members are reset
+// byzantineRound is set; walletsForNeighborhoods contains a vector of
+// LocalWallets for each neighborhood; neighborhoodsForPeers maps a peer's id to
+// the index of the neighborhood it's in; static members are reset
 template <typename ConsensusRequest>
 void EyeWitnessPeer<ConsensusRequest>::initParameters(
     const vector<Peer<EyeWitnessMessage> *> &_peers, json parameters) {
@@ -275,6 +276,13 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     validatorNeighborhoods = parameters["validatorNeighborhoods"];
     maxNeighborhoodSize = parameters["neighborhoodSize"];
     const int walletsPerNeighborhood = parameters["walletsPerNeighborhood"];
+    if (parameters.contains("byzantineRound")) {
+        byzantineRound = parameters["byzantineRound"];
+    }
+
+    LogWriter::getTestLog()["roundInfo"]["rounds"] = getLastRound();
+    LogWriter::getTestLog()["roundInfo"]["byzantineRound"] = byzantineRound;
+
     neighborhoodCount =
         ceil(static_cast<float>(_peers.size()) / maxNeighborhoodSize);
     walletsForNeighborhoods.resize(neighborhoodCount);
