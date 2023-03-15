@@ -65,7 +65,7 @@ struct TransactionRecord {
 struct Coin {
     // id needs to be unique across all coins across all peers; use static
     // counter variable in peer class? or uuid generator.
-    int id;
+    int id = -1;
     vector<TransactionRecord> history;
 };
 
@@ -213,6 +213,7 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     void initiateTransaction(bool withinNeighborhood = true);
 
   private:
+    
     std::unordered_map<int, ConsensusRequest> localRequests;
     std::unordered_map<int, ConsensusRequest> superRequests;
     std::vector<ConsensusRequest> finishedRequests;
@@ -229,6 +230,8 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     std::vector<json> transactions;
     std::vector<json> validations;
     std::vector<json> messages;
+
+    bool corrupt = false;
 
     // technically not realistic for this to be known to all nodes
     inline static std::atomic<int> previousSequenceNumber = -1;
@@ -382,6 +385,8 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                     superRequests.insert(
                         {request.getSequenceNumber(), request});
                 }
+            } else {
+                // unknown message recieved
             }
         }
     }
@@ -474,8 +479,14 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
     // assuming non-overlapping neighborhoods, so if we're the leader in one
     // wallet stored by our neighborhood we're a leader in every wallet
     // stored by our neighborhood
-    if (oneInXChance(10) && heldWallets[0].storedBy.leader == id()) {
-        initiateTransaction(!oneInXChance(4));
+    if (!corrupt) {
+        if (oneInXChance(10) && heldWallets[0].storedBy.leader == id()) {
+            initiateTransaction(!oneInXChance(4));
+        }
+    } else {
+        if (heldWallets[0].storedBy.leader == id()) {
+            initiateTransaction(false);
+        }
     }
 }
 
@@ -490,13 +501,12 @@ void EyeWitnessPeer<ConsensusRequest>::broadcastTo(EyeWitnessMessage m,
 template <typename ConsensusRequest>
 void EyeWitnessPeer<ConsensusRequest>::endOfRound(
     const vector<Peer<EyeWitnessMessage> *> &_peers) {
+    const vector<EyeWitnessPeer*> peers = reinterpret_cast<vector<EyeWitnessPeer*> const&>(_peers);
     if (lastRound()) {
         LogWriter::getTestLog()["transactions"] = json::array();
         LogWriter::getTestLog()["validations"] = json::array();
         LogWriter::getTestLog()["messages"] = json::array();
-        for (const auto &genericPeer : _peers) {
-            EyeWitnessPeer<ConsensusRequest> *peer =
-                dynamic_cast<EyeWitnessPeer<ConsensusRequest> *>(genericPeer);
+        for (const auto &peer : peers) {
             std::copy(
                 peer->transactions.begin(), peer->transactions.end(),
                 std::back_inserter(LogWriter::getTestLog()["transactions"]));
@@ -506,8 +516,19 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
             std::copy(peer->messages.begin(), peer->messages.end(),
                       std::back_inserter(LogWriter::getTestLog()["messages"]));
         }
+    } else if (byzantineRound == getRound()) {
+        int corruptNeighborhood = rand() % walletsForNeighborhoods.size();
+        for (int i = 0; i < walletsForNeighborhoods[corruptNeighborhood].size(); i++) {
+            LogWriter::getTestLog()["corruptWallets"].push_back(walletsForNeighborhoods[corruptNeighborhood][i].address);
+        }
+        for (int i = 0; i < peers.size(); i++) {
+            if (neighborhoods[corruptNeighborhood].memberIDs.count(peers[i]->id()) > 0) {
+                peers[i]->corrupt = true;
+            }
+        }
     }
 }
+
 
 template <typename ConsensusRequest>
 // Precondition: peer is a leader in their (single) neighborhood
@@ -515,15 +536,32 @@ template <typename ConsensusRequest>
 // in this neighborhood's wallets
 void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
     bool withinNeighborhood) {
-    vector<LocalWallet> haveCoins;
-    std::copy_if(heldWallets.begin(), heldWallets.end(),
-                 std::back_inserter(haveCoins),
-                 [](const LocalWallet &w) { return w.coins.size() > 0; });
-    if (haveCoins.size() == 0) {
-        return;
+    
+    LocalWallet sender;
+    Coin c;
+
+    if (corrupt) {
+        vector<LocalWallet> haveCoins;
+        std::copy_if(heldWallets.begin(), heldWallets.end(),
+                    std::back_inserter(haveCoins),
+                    [](const LocalWallet &w) { return w.pastCoins.size() > 0; });
+        if (haveCoins.size() != 0) {
+            sender = haveCoins[randMod(haveCoins.size())];
+            c = sender.pastCoins[randMod(sender.pastCoins.size())];
+        }
     }
-    LocalWallet sender = haveCoins[randMod(haveCoins.size())];
-    Coin &c = sender.coins[randMod(sender.coins.size())];
+    if (c.id == -1) {
+        vector<LocalWallet> haveCoins;
+        std::copy_if(heldWallets.begin(), heldWallets.end(),
+                    std::back_inserter(haveCoins),
+                    [](const LocalWallet &w) { return w.coins.size() > 0; });
+        if (haveCoins.size() == 0) {
+            return;
+        }
+        sender = haveCoins[randMod(haveCoins.size())];
+        c = sender.coins[randMod(sender.coins.size())];
+    }
+
     Neighborhood thisNeighborhood = neighborhoods[neighborhoodsForPeers[id()]];
     if (c.history.size() == 0) {
         // hack to allow coins to be processed with no history; should be
@@ -556,19 +594,22 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
     if (withinNeighborhood) {
         newContacts = ConsensusContacts(c, 1);
         ConsensusRequest request(t, newContacts.getValidatorNodeCount(), seqNum,
-                                 true);
+                                true);
         localRequests.insert({seqNum, request});
     } else {
         newContacts = ConsensusContacts(c, validatorNeighborhoods);
         ConsensusRequest request(t, newContacts.getValidatorNodeCount(), seqNum,
-                                 true);
+                                true);
         superRequests.insert({seqNum, request});
         contacts.insert({seqNum, newContacts});
     }
 
     transactions.push_back(
         {{"round", getRound()},
-         {"seqNum", seqNum},
+        {"seqNum", seqNum},
+        {"validatorCount", newContacts.getValidatorNodeCount()},
+        {"coin", c.id},
+        {"sender", sender.address},
         {"receiver", receiver.address}});
 }
 } // namespace quantas
