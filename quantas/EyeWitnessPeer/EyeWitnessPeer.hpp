@@ -139,6 +139,13 @@ struct ConsensusContacts {
             }
         }
     }
+    void sabotageWithOwn(Neighborhood n) {
+        if (std::find(participants.begin(), participants.end(), n) ==
+            participants.end()) {
+            participants.pop_back();
+            participants.push_back(n);
+        }
+    }
     // Precondition: peerID is an id in one of the neighborhoods
     Neighborhood getOwn(long peerID) {
         auto own = std::find_if(
@@ -229,6 +236,7 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
   private:
     bool validateTransaction(OngoingTransaction);
     bool transactionInProgressFor(Coin);
+    ConsensusContacts chooseContactsFor(OngoingTransaction, bool);
 
     std::unordered_map<int, ConsensusRequest> localRequests;
     std::unordered_map<int, ConsensusRequest> superRequests;
@@ -406,8 +414,8 @@ bool EyeWitnessPeer<ConsensusRequest>::validateTransaction(OngoingTransaction t
     // for now, just checking to see if the coin was last known to be in the
     // sending neighborhood (because internal transactions in the neighborhood
     // aren't visible and need signatures to be checked)
-    return t.sender.storedBy.id ==
-           coinDB[t.coin.id]->history.back().receiver.storedBy.id;
+    return corrupt || (t.sender.storedBy.id ==
+                       coinDB[t.coin.id]->history.back().receiver.storedBy.id);
 }
 
 template <typename ConsensusRequest>
@@ -440,24 +448,20 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                 if (coinDB.count(message.trans.coin.id) > 0) {
                     if (message.trans.sender.storedBy ==
                         message.trans.receiver.storedBy) {
+                        ConsensusContacts newContacts =
+                            chooseContactsFor(message.trans, true);
                         ConsensusRequest request(
-                            message.trans,
-                            message.trans.sender.storedBy.memberIDs.size(
-                            ), // hmm
+                            message.trans, newContacts.getValidatorNodeCount(),
                             message.sequenceNum, false
                         );
                         request.addToConsensus(message);
-                        contacts.insert(
-                            {message.sequenceNum,
-                             ConsensusContacts(message.trans.coin, 1)}
-                        );
+                        contacts.insert({message.sequenceNum, newContacts});
                         localRequests.insert(
                             {request.getSequenceNumber(), request}
                         );
                     } else {
-                        ConsensusContacts newContacts(
-                            message.trans.coin, validatorNeighborhoods
-                        );
+                        ConsensusContacts newContacts =
+                            chooseContactsFor(message.trans, false);
                         ConsensusRequest request(
                             message.trans, newContacts.getValidatorNodeCount(),
                             message.sequenceNum, false
@@ -473,10 +477,10 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                         << "received pre-prepare message about unknown coin\n";
                 }
             } else if (message.messageType == "post-commit") {
-                // TODO: robustness
+                // TODO: robustness. should check if coin sender is part of this
                 receivedPostCommits.insert(message.sequenceNum);
                 if (receivedPostCommits.count(message.sequenceNum) >
-                    validatorNeighborhoods * maxNeighborhoodSize * 2) {
+                    2. / 3. * validatorNeighborhoods * maxNeighborhoodSize) {
                     auto localReceiver = std::find_if(
                         heldWallets.begin(), heldWallets.end(),
                         [message](LocalWallet w) {
@@ -487,8 +491,9 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                         localReceiver->add(message.trans.coin);
                 }
             } else {
-                std::cout << "received non-prepare, non-post-commit message "
-                             "about unknown transaction\n";
+                std::cout
+                    << "received non-pre-prepare, non-post-commit message "
+                       "about unknown transaction\n";
             }
         }
     }
@@ -603,7 +608,8 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
     // assuming non-overlapping neighborhoods, so if we're the leader in one
     // wallet stored by our neighborhood we're a leader in every wallet
     // stored by our neighborhood
-    if (oneInXChance(10) && heldWallets[0].storedBy.leader == id()) {
+    if ((oneInXChance(10) || corrupt) &&
+        heldWallets[0].storedBy.leader == id()) {
         // corrupt nodes always go for out-of-neighborhood transactions
         initiateTransaction(!(corrupt || oneInXChance(4)));
     }
@@ -681,13 +687,28 @@ bool EyeWitnessPeer<ConsensusRequest>::transactionInProgressFor(Coin c) {
 }
 
 template <typename ConsensusRequest>
+ConsensusContacts EyeWitnessPeer<ConsensusRequest>::chooseContactsFor(
+    OngoingTransaction t, bool local
+) {
+    ConsensusContacts result;
+    if (local) {
+        result = ConsensusContacts(t.coin, 1);
+    } else {
+        result = ConsensusContacts(t.coin, validatorNeighborhoods);
+    }
+    if (corrupt) {
+        result.sabotageWithOwn(neighborhoods[neighborhoodID]);
+    }
+    return result;
+}
+
+template <typename ConsensusRequest>
 // Precondition: peer is a leader in their (single) neighborhood
 // Postcondition: ConsensusRequest created UNLESS there are no coins to send
 // in this neighborhood's wallets
 void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
     bool withinNeighborhood
 ) {
-
     LocalWallet sender;
     Coin c;
     bool honest;
@@ -769,7 +790,7 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
         );
         localRequests.insert({seqNum, request});
     } else {
-        newContacts = ConsensusContacts(c, validatorNeighborhoods);
+        newContacts = chooseContactsFor(t, false);
         ConsensusRequest request(
             t, newContacts.getValidatorNodeCount(), seqNum, true
         );
