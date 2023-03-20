@@ -5,7 +5,8 @@
       "parameters": {
         "validatorNeighborhoods": 4,
         "neighborhoodSize": 4,
-        "walletsPerNeighborhood": 5
+        "walletsPerNeighborhood": 5,
+        "byzantineRound": 10
       },
       "logFile": "quantas/EyeWitnessPeer/FastLog.json",
       "distribution": {
