@@ -83,7 +83,7 @@ class EventTimelineMuxer:
 EYEWITNESS_PATH = Path(__file__).parent
 GRAPH_TIMESTAMPS = round(time())
 
-def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer, tx_completes: EventTimelineMuxer):
+def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer, tx_completes: EventTimelineMuxer, outfile: str):
     plt.title("Transactions Over Time")
     tx_starts_avg_tl = tx_starts.get_average_cumulative_timeline()
     htx_starts_avg_tl = honest_tx_starts.get_average_cumulative_timeline()
@@ -95,11 +95,11 @@ def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer,
     plt.plot(tx_completes_avg_tl.keys(), tx_completes_avg_tl.values(),
              color="blue", label="Transactions finished")
     plt.legend(loc="upper left")
-    plt.savefig(EYEWITNESS_PATH / f"graph_transactions_{GRAPH_TIMESTAMPS}.png")
+    plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
     plt.clf()
 
-def plotMOT(local_messages: EventTimelineMuxer, all_messages: EventTimelineMuxer):
+def plotMOT(local_messages: EventTimelineMuxer, all_messages: EventTimelineMuxer, outfile: str):
     plt.title("Messages Over Time")
     local_messages_avg_tl = local_messages.get_average_cumulative_timeline()
     plt.plot(local_messages_avg_tl.keys(), local_messages_avg_tl.values(),
@@ -108,17 +108,17 @@ def plotMOT(local_messages: EventTimelineMuxer, all_messages: EventTimelineMuxer
     plt.plot(all_messages_avg_tl.keys(), all_messages_avg_tl.values(),
              color="green", label="Messages Sent for All Transactions")
     plt.legend(loc="upper left")
-    plt.savefig(EYEWITNESS_PATH / f"graph_messages_{GRAPH_TIMESTAMPS}.png")
+    plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
     plt.clf()
 
-def plotCOT(corrupt_wallets: EventTimelineMuxer):
+def plotCOT(corrupt_wallets: EventTimelineMuxer, outfile: str, label: str):
     plt.title("Corrupt Wallets Over Time")
     corrupt_wallets_avg_tl = corrupt_wallets.get_average_cumulative_timeline()
     plt.plot(corrupt_wallets_avg_tl.keys(), corrupt_wallets_avg_tl.values(),
-             color="blue", label="no validation")
+             color="blue", label=label)
     plt.legend(loc="upper left")
-    plt.savefig(EYEWITNESS_PATH / f"graph_wallets_{GRAPH_TIMESTAMPS}.png")
+    plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
     plt.clf()
 
@@ -150,7 +150,6 @@ def parser(logfile: str):
     as completed"""
 
     
-    
     for test_index, test in enumerate(log["tests"]):
         transactions = test["transactions"]
         validations = test["validations"]
@@ -178,7 +177,7 @@ def parser(logfile: str):
                     tx_completes.add_event(validation["round"], test_index)
                     proposals[validation["seqNum"]]["roundConfirmed"] = validation["round"]
         
-        for corruption in test["corruptWallets"]:
+        for _ in test["corruptWallets"]:
             corrupt_wallets.add_event(test["roundInfo"]["byzantineRound"], test_index)
         
         """
@@ -230,11 +229,16 @@ def parser(logfile: str):
             if message["transactionType"] == "local":
                 local_messages.add_event(message["round"], test_index)
 
-    plotTOT(tx_starts, honest_tx_starts, tx_completes)
-    plotMOT(local_messages, all_messages)
-    plotCOT(corrupt_wallets)
+    plotTOT(tx_starts, honest_tx_starts, tx_completes, f"{Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png")
+    plotMOT(local_messages, all_messages, f"{Path(logfile).stem}_msgs_{GRAPH_TIMESTAMPS}.png")
+    plotCOT(
+        corrupt_wallets,
+        f"{Path(logfile).stem}_wlt_{GRAPH_TIMESTAMPS}.png",
+        "no validators" if "NoBFT" in str(logfile) else "validators"  # "temporary" hack
+    )
 
-    
 
 if __name__ == "__main__":
+    parser(EYEWITNESS_PATH / "FastLog.json")
     parser(EYEWITNESS_PATH / "LargerLog.json")
+    parser(EYEWITNESS_PATH / "LargerNoBFTLog.json")
