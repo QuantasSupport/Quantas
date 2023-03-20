@@ -66,8 +66,8 @@ Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>> *
 generateSim() {
 
     Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>>
-        *sim = new Simulation<quantas::EyeWitnessMessage,
-                              quantas::EyeWitnessPeer<PBFTRequest>>;
+        *sim = new Simulation<
+            quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>>;
     return sim;
 }
 } // namespace quantas
