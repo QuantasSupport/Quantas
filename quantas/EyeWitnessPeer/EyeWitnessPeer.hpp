@@ -575,6 +575,11 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                     m.messageType = "post-commit";
                     m.sequenceNum = seqNum;
                     broadcastTo(m, trans.receiver.storedBy);
+                    messages.push_back(
+                        {{"round", getRound()},
+                         {"transactionType", "non-local"},
+                         {"batchSize", trans.receiver.storedBy.storedBy.size()}}
+                    );
                 } else {
                     std::cout << "reached consensus on an unknown coin?\n";
                 }
