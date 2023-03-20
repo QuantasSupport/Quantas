@@ -83,14 +83,17 @@ class EventTimelineMuxer:
 EYEWITNESS_PATH = Path(__file__).parent
 GRAPH_TIMESTAMPS = round(time())
 
-def plotTOT(tx_starts: EventTimelineMuxer, tx_completes: EventTimelineMuxer):
+def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer, tx_completes: EventTimelineMuxer):
     plt.title("Transactions Over Time")
     tx_starts_avg_tl = tx_starts.get_average_cumulative_timeline()
+    htx_starts_avg_tl = honest_tx_starts.get_average_cumulative_timeline()
     plt.plot(tx_starts_avg_tl.keys(), tx_starts_avg_tl.values(),
-             color="blue", label="Transactions started")
+             color="orange", label="Transactions started")
+    plt.plot(htx_starts_avg_tl.keys(), htx_starts_avg_tl.values(),
+             color="green", label="Honest transactions started")
     tx_completes_avg_tl = tx_completes.get_average_cumulative_timeline()
     plt.plot(tx_completes_avg_tl.keys(), tx_completes_avg_tl.values(),
-             color="green", label="Transactions finished")
+             color="blue", label="Transactions finished")
     plt.legend(loc="upper left")
     plt.savefig(EYEWITNESS_PATH / f"graph_transactions_{GRAPH_TIMESTAMPS}.png")
     plt.show()
@@ -124,23 +127,19 @@ def parser(logfile: str):
     with open(logfile) as logfileobj:
         log = json.load(logfileobj)
     
-    # todo: include how many rounds are being used in log and then retrieve it
-    # below instead of having a hard-coded constant
-    NUM_ROUNDS = log["tests"][0]["roundInfo"]["rounds"] + 1
+    num_rounds = log["tests"][0]["roundInfo"]["rounds"] + 1
 
     # graph 1:
-    tx_starts = EventTimelineMuxer(0, NUM_ROUNDS)
-    tx_completes = EventTimelineMuxer(0, NUM_ROUNDS)
+    tx_starts = EventTimelineMuxer(0, num_rounds)
+    honest_tx_starts = EventTimelineMuxer(0, num_rounds)
+    tx_completes = EventTimelineMuxer(0, num_rounds)
 
     # graph 2:
-    local_messages = EventTimelineMuxer(0, NUM_ROUNDS)
-    all_messages = EventTimelineMuxer(0, NUM_ROUNDS)
+    local_messages = EventTimelineMuxer(0, num_rounds)
+    all_messages = EventTimelineMuxer(0, num_rounds)
 
     # graph 3:
-    corrupt_wallets = EventTimelineMuxer(0, NUM_ROUNDS)
-
-    # graph 4:
-    corrupt_coins = EventTimelineMuxer(0, NUM_ROUNDS)
+    corrupt_wallets = EventTimelineMuxer(0, num_rounds)
 
     proposals = {}
     """maps sequence numbers of initiated transactions to the transaction and the number of validation
@@ -163,11 +162,12 @@ def parser(logfile: str):
                 max_seq_num = transaction["seqNum"]
             
             tx_starts.add_event(transaction["round"], test_index)
+            if transaction["honest"]:
+                honest_tx_starts.add_event(transaction["round"], test_index)
             proposals[transaction["seqNum"]] = (
-                {"validators_still_needed": tolerance_fraction*transaction["validatorCount"],
-                "coin": transaction["coin"],
-                "receiver": transaction["receiver"],
-                "sender": transaction["sender"]
+                {
+                    "validators_still_needed": tolerance_fraction*transaction["validatorCount"],
+                    **transaction                
                 }
             )
         
@@ -199,40 +199,38 @@ def parser(logfile: str):
         """maps wallet ids to corruptedness"""
 
         for i in range(max_seq_num):
-            if proposals[i]["validators_still_needed"] <= 0:
-                if (proposals[i]["coin"] in coins):
-                    if (proposals[i]["sender"] == coins[proposals[i]["coin"]]):
-                        coins[proposals[i]["coin"]] = proposals[i]["receiver"]
+            prop = proposals[i]
+            if prop["validators_still_needed"] <= 0:
+                if (prop["coin"] in coins):
+                    if (prop["sender"] == coins[prop["coin"]]):
+                        coins[prop["coin"]] = prop["receiver"]
                     else:
-                        coins[proposals[i]["coin"]] = -1
+                        coins[prop["coin"]] = -1
 
-                        if proposals[i]["sender"] not in wallets:
-                            wallets[proposals[i]["sender"]] = False
+                        if prop["sender"] not in wallets:
+                            wallets[prop["sender"]] = False
 
-                        if proposals[i]["receiver"] not in wallets:
-                            wallets[proposals[i]["receiver"]] = False
+                        if prop["receiver"] not in wallets:
+                            wallets[prop["receiver"]] = False
 
-                        if not wallets[proposals[i]["sender"]]:
-                            corrupt_wallets.add_event(proposals[i]["roundConfirmed"], test_index)
-                            wallets[proposals[i]["sender"]] = True
-                        if not wallets[proposals[i]["receiver"]]:
-                            corrupt_wallets.add_event(proposals[i]["roundConfirmed"], test_index)
-                            wallets[proposals[i]["receiver"]] = True
+                        if not wallets[prop["sender"]]:
+                            corrupt_wallets.add_event(prop["roundConfirmed"], test_index)
+                            wallets[prop["sender"]] = True
+                        if not wallets[prop["receiver"]]:
+                            corrupt_wallets.add_event(prop["roundConfirmed"], test_index)
+                            wallets[prop["receiver"]] = True
 
                 else:
-                    coins[proposals[i]["coin"]] = proposals[i]["receiver"]
-                    wallets[proposals[i]["sender"]] = False
-                    wallets[proposals[i]["receiver"]] = False
-
-
-        
+                    coins[prop["coin"]] = prop["receiver"]
+                    wallets[prop["sender"]] = not prop["honest"]
+                    wallets[prop["receiver"]] = not prop["honest"]
 
         for message in messages:
             all_messages.add_event(message["round"], test_index)
             if message["transactionType"] == "local":
                 local_messages.add_event(message["round"], test_index)
 
-    plotTOT(tx_starts, tx_completes)
+    plotTOT(tx_starts, honest_tx_starts, tx_completes)
     plotMOT(local_messages, all_messages)
     plotCOT(corrupt_wallets)
 
