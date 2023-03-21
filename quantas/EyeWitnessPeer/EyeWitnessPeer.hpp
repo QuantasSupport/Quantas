@@ -273,6 +273,7 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     inline static int neighborhoodCount = -1;
     inline static int validatorNeighborhoods = -1;
     inline static int byzantineRound = -1;
+    inline static int submitRate = 10;
 
     // global neighborhood data; populated as a side effect of initParameters
     inline static std::vector<std::vector<LocalWallet>> walletsForNeighborhoods;
@@ -314,6 +315,9 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     if (parameters.contains("byzantineRound")) {
         byzantineRound = parameters["byzantineRound"];
     }
+    if (parameters.contains("submitRate")) {
+        submitRate = parameters["submitRate"];
+    }
 
     LogWriter::getTestLog()["roundInfo"]["rounds"] = getLastRound();
     LogWriter::getTestLog()["roundInfo"]["byzantineRound"] = byzantineRound;
@@ -345,18 +349,31 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     }
 
     const int coinsPerWallet = 5;
-    const int fakeHistoryLength = 10;
+    int fakeHistoryLength = validatorNeighborhoods;
     int neighborhood = 0;
+    auto rng = std::default_random_engine {};
     // temporarily maps wallet addresses to past coins
     std::map<int, std::vector<Coin>> pastCoins;
     for (auto &wallets : walletsForNeighborhoods) {
         for (auto &wallet : wallets) {
             for (int i = 0; i < coinsPerWallet; ++i) {
                 Coin c = {issuedCoins++, {}};
+
+                if (all.size() < fakeHistoryLength) {
+                    std::cout << "Not enough neighborhoods." << std::endl;
+                }
                 // establish coin history
                 WalletLocation sender = all[randMod(all.size())];
-                for (int j = 0; j < fakeHistoryLength - 1; ++j) {
-                    c.history.push_back({sender, all[randMod(all.size())]});
+                // options is used to pick unique locations for the history
+                std::vector<int> options(all.size(), 0);
+                for (int j = 0; j < all.size(); j++) {
+                    options[j] = j;
+                }
+                std::shuffle(options.begin(), options.end(), rng);
+                for (int j = 0; j < fakeHistoryLength - 1; j++) {
+                    WalletLocation reciever = all[options.back()];
+                    options.pop_back();
+                    c.history.push_back({sender, reciever});
                     sender = c.history.back().receiver;
                 }
                 c.history.push_back(TransactionRecord{

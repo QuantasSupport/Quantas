@@ -5,7 +5,8 @@
       "parameters": {
         "validatorNeighborhoods": 4,
         "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10
+        "walletsPerNeighborhood": 10,
+        "submitRate": 1
       },
       "logFile": "quantas/EyeWitnessPeer/LogFT1.json",
       "distribution": {
@@ -25,7 +26,8 @@
       "parameters": {
         "validatorNeighborhoods": 7,
         "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10
+        "walletsPerNeighborhood": 10,
+        "submitRate": 1
       },
       "logFile": "quantas/EyeWitnessPeer/LogFT2.json",
       "distribution": {
@@ -45,7 +47,8 @@
       "parameters": {
         "validatorNeighborhoods": 10,
         "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10
+        "walletsPerNeighborhood": 10,
+        "submitRate": 1
       },
       "logFile": "quantas/EyeWitnessPeer/LogFT3.json",
       "distribution": {
@@ -65,7 +68,8 @@
       "parameters": {
         "validatorNeighborhoods": 13,
         "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10
+        "walletsPerNeighborhood": 10,
+        "submitRate": 1
       },
       "logFile": "quantas/EyeWitnessPeer/LogFT4.json",
       "distribution": {
@@ -85,7 +89,8 @@
       "parameters": {
         "validatorNeighborhoods": 16,
         "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10
+        "walletsPerNeighborhood": 10,
+        "submitRate": 1
       },
       "logFile": "quantas/EyeWitnessPeer/LogFT5.json",
       "distribution": {
@@ -105,7 +110,8 @@
       "parameters": {
         "validatorNeighborhoods": 19,
         "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10
+        "walletsPerNeighborhood": 10,
+        "submitRate": 1
       },
       "logFile": "quantas/EyeWitnessPeer/LogFT6.json",
       "distribution": {
@@ -125,7 +131,8 @@
       "parameters": {
         "validatorNeighborhoods": 22,
         "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10
+        "walletsPerNeighborhood": 10,
+        "submitRate": 1
       },
       "logFile": "quantas/EyeWitnessPeer/LogFT7.json",
       "distribution": {
@@ -145,7 +152,8 @@
       "parameters": {
         "validatorNeighborhoods": 25,
         "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10
+        "walletsPerNeighborhood": 10,
+        "submitRate": 1
       },
       "logFile": "quantas/EyeWitnessPeer/LogFT8.json",
       "distribution": {
@@ -165,7 +173,8 @@
       "parameters": {
         "validatorNeighborhoods": 28,
         "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10
+        "walletsPerNeighborhood": 10,
+        "submitRate": 1
       },
       "logFile": "quantas/EyeWitnessPeer/LogFT9.json",
       "distribution": {
