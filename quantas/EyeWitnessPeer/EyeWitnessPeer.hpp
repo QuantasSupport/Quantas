@@ -578,7 +578,7 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                     messages.push_back(
                         {{"round", getRound()},
                          {"transactionType", "non-local"},
-                         {"batchSize", trans.receiver.storedBy.storedBy.size()}}
+                         {"batchSize", trans.receiver.storedBy.size()}}
                     );
                 } else {
                     std::cout << "reached consensus on an unknown coin?\n";
