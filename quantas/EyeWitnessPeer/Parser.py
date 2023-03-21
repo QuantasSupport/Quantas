@@ -42,14 +42,14 @@ class EventTimelineMuxer:
         self.timelines = defaultdict(lambda: defaultdict(lambda: 0))
         self.events_by_round_cache = None
     
-    def add_event(self, time: int, timeline_id: int=0) -> None:
+    def add_event(self, time: int, timeline_id: int=0, num_times: int=1) -> None:
         """
         time: integer timestamp between lowest and highest timestamps
         timeline_id: id of the timeline the event belongs to
         """
         assert self.min <= time < self.max
         self.events_by_round_cache = None
-        self.timelines[timeline_id][time] += 1
+        self.timelines[timeline_id][time] += num_times
     
     def get_cumulative_timelines(self) -> dict[int, Timeline]:
         """
@@ -82,20 +82,27 @@ class EventTimelineMuxer:
             average_timeline[i] = sum / len(self.timelines.keys())
         return average_timeline
 
-def plotTOT(tx_starts: EventTimelineMuxer, tx_completes: EventTimelineMuxer):
+
+EYEWITNESS_PATH = Path(__file__).parent
+GRAPH_TIMESTAMPS = round(time())
+
+def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer, tx_completes: EventTimelineMuxer, outfile: str):
     plt.title("Transactions Over Time")
     tx_starts_avg_tl = tx_starts.get_average_cumulative_timeline()
+    htx_starts_avg_tl = honest_tx_starts.get_average_cumulative_timeline()
     plt.plot(tx_starts_avg_tl.keys(), tx_starts_avg_tl.values(),
-             color="blue", label="Transactions started")
+             color="orange", label="Transactions started")
+    plt.plot(htx_starts_avg_tl.keys(), htx_starts_avg_tl.values(),
+             color="green", label="Honest transactions started")
     tx_completes_avg_tl = tx_completes.get_average_cumulative_timeline()
     plt.plot(tx_completes_avg_tl.keys(), tx_completes_avg_tl.values(),
-             color="green", label="Transactions finished")
+             color="blue", label="Transactions finished")
     plt.legend(loc="upper left")
-    plt.savefig(EYEWITNESS_PATH / f"graph_transactions_{GRAPH_TIMESTAMPS}.png")
+    plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
     plt.clf()
 
-def plotMOT(local_messages: EventTimelineMuxer, all_messages: EventTimelineMuxer):
+def plotMOT(local_messages: EventTimelineMuxer, all_messages: EventTimelineMuxer, outfile: str):
     plt.title("Messages Over Time")
     local_messages_avg_tl = local_messages.get_average_cumulative_timeline()
     plt.plot(local_messages_avg_tl.keys(), local_messages_avg_tl.values(),
@@ -104,21 +111,20 @@ def plotMOT(local_messages: EventTimelineMuxer, all_messages: EventTimelineMuxer
     plt.plot(all_messages_avg_tl.keys(), all_messages_avg_tl.values(),
              color="green", label="Messages Sent for All Transactions")
     plt.legend(loc="upper left")
-    plt.savefig(EYEWITNESS_PATH / f"graph_messages_{GRAPH_TIMESTAMPS}.png")
+    plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
     plt.clf()
 
-def plotCOT(corrupt_wallets: EventTimelineMuxer):
+def plotCOT(corrupt_wallets: EventTimelineMuxer, outfile: str, label: str):
     plt.title("Corrupt Wallets Over Time")
     corrupt_wallets_avg_tl = corrupt_wallets.get_average_cumulative_timeline()
     plt.plot(corrupt_wallets_avg_tl.keys(), corrupt_wallets_avg_tl.values(),
-             color="blue", label="no validation")
+             color="blue", label=label)
     plt.legend(loc="upper left")
-    plt.savefig(EYEWITNESS_PATH / f"graph_wallets_{GRAPH_TIMESTAMPS}.png")
+    plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
     plt.clf()
 
-# hard coded parameter 10 i.e. 1-9 fault tolerant shards
 def plotFT():
     NUM_FT = 10
     local_messages = {}
@@ -129,19 +135,19 @@ def plotFT():
         output = parser(EYEWITNESS_PATH / f"LogFT{i}.json")
 
         local_messages_avg_tl = output["local_messages"].get_average_cumulative_timeline()
-        local_messages[i] = local_messages_avg_tl[output["local_messages"].max - 1]
+        local_messages[i * 3 + 1] = local_messages_avg_tl[output["local_messages"].max - 1]
 
         all_messages_avg_tl = output["all_messages"].get_average_cumulative_timeline()
-        all_messages[i] = all_messages_avg_tl[output["all_messages"].max - 1]
+        all_messages[i * 3 + 1] = all_messages_avg_tl[output["all_messages"].max - 1]
 
         tx_starts_avg_tl = output["tx_starts"].get_average_cumulative_timeline()
-        tx_starts[i] = tx_starts_avg_tl[output["all_messages"].max - 1]
+        tx_starts[i * 3 + 1] = tx_starts_avg_tl[output["all_messages"].max - 1]
 
         tx_completes_avg_tl = output["tx_completes"].get_average_cumulative_timeline()
-        tx_completes[i] = tx_completes_avg_tl[output["all_messages"].max - 1]
+        tx_completes[i * 3 + 1] = tx_completes_avg_tl[output["all_messages"].max - 1]
 
 
-    plt.title("Messages per # fault tolerant committees")
+    plt.title("Messages wrt # of validating committees")
     plt.plot(local_messages.keys(), local_messages.values(),
              color="blue", label="Messages Sent for Local Transactions")
     plt.plot(all_messages.keys(), all_messages.values(),
@@ -151,7 +157,7 @@ def plotFT():
     plt.show()
     plt.clf()
 
-    plt.title("Transactions per # fault tolerant committees")
+    plt.title("Transactions wrt # of validating committees")
     
     plt.plot(tx_starts.keys(), tx_starts.values(),
              color="blue", label="Transactions started")
@@ -167,20 +173,19 @@ def parser(logfile: str):
     with open(logfile) as logfileobj:
         log = json.load(logfileobj)
     
-    # todo: include how many rounds are being used in log and then retrieve it
-    # below instead of having a hard-coded constant
-    NUM_ROUNDS = log["tests"][0]["roundInfo"]["rounds"] + 1
+    num_rounds = log["tests"][0]["roundInfo"]["rounds"] + 1
 
     # graph 1:
-    tx_starts = EventTimelineMuxer(0, NUM_ROUNDS)
-    tx_completes = EventTimelineMuxer(0, NUM_ROUNDS)
+    tx_starts = EventTimelineMuxer(0, num_rounds)
+    honest_tx_starts = EventTimelineMuxer(0, num_rounds)
+    tx_completes = EventTimelineMuxer(0, num_rounds)
 
     # graph 2:
-    local_messages = EventTimelineMuxer(0, NUM_ROUNDS)
-    all_messages = EventTimelineMuxer(0, NUM_ROUNDS)
+    local_messages = EventTimelineMuxer(0, num_rounds)
+    all_messages = EventTimelineMuxer(0, num_rounds)
 
     # graph 3:
-    corrupt_wallets = EventTimelineMuxer(0, NUM_ROUNDS)
+    corrupt_wallets = EventTimelineMuxer(0, num_rounds)
 
     proposals = {}
     """maps sequence numbers of initiated transactions to the transaction and the number of validation
@@ -190,7 +195,6 @@ def parser(logfile: str):
     """fraction of validators that need to confirm a transaction for it to be marked
     as completed"""
 
-    
     
     for test_index, test in enumerate(log["tests"]):
         transactions = test["transactions"]
@@ -203,11 +207,12 @@ def parser(logfile: str):
                 max_seq_num = transaction["seqNum"]
             
             tx_starts.add_event(transaction["round"], test_index)
+            if transaction["honest"]:
+                honest_tx_starts.add_event(transaction["round"], test_index)
             proposals[transaction["seqNum"]] = (
-                {"validators_still_needed": tolerance_fraction*transaction["validatorCount"],
-                "coin": transaction["coin"],
-                "receiver": transaction["receiver"],
-                "sender": transaction["sender"]
+                {
+                    "validators_still_needed": tolerance_fraction*transaction["validatorCount"],
+                    **transaction                
                 }
             )
         
@@ -219,7 +224,7 @@ def parser(logfile: str):
                     proposals[validation["seqNum"]]["roundConfirmed"] = validation["round"]
         
         if "corruptWallets" in test:
-            for corruption in test["corruptWallets"]:
+            for _ in test["corruptWallets"]:
                 corrupt_wallets.add_event(test["roundInfo"]["byzantineRound"], test_index)
             
             """
@@ -240,46 +245,61 @@ def parser(logfile: str):
             """maps wallet ids to corruptedness"""
 
             for i in range(max_seq_num):
-                if proposals[i]["validators_still_needed"] <= 0:
-                    if (proposals[i]["coin"] in coins):
-                        if (proposals[i]["sender"] == coins[proposals[i]["coin"]]):
-                            coins[proposals[i]["coin"]] = proposals[i]["receiver"]
+                prop = proposals[i]
+                if prop["validators_still_needed"] <= 0:
+                    if (prop["coin"] in coins):
+                        if (prop["sender"] == coins[prop["coin"]]):
+                            coins[prop["coin"]] = prop["receiver"]
                         else:
-                            coins[proposals[i]["coin"]] = -1
+                            coins[prop["coin"]] = -1
 
-                            if proposals[i]["sender"] not in wallets:
-                                wallets[proposals[i]["sender"]] = False
+                            if prop["sender"] not in wallets:
+                                wallets[prop["sender"]] = False
 
-                            if proposals[i]["receiver"] not in wallets:
-                                wallets[proposals[i]["receiver"]] = False
+                            if prop["receiver"] not in wallets:
+                                wallets[prop["receiver"]] = False
 
-                            if not wallets[proposals[i]["sender"]]:
-                                corrupt_wallets.add_event(proposals[i]["roundConfirmed"], test_index)
-                                wallets[proposals[i]["sender"]] = True
-                            if not wallets[proposals[i]["receiver"]]:
-                                corrupt_wallets.add_event(proposals[i]["roundConfirmed"], test_index)
-                                wallets[proposals[i]["receiver"]] = True
+                            if not wallets[prop["sender"]]:
+                                corrupt_wallets.add_event(prop["roundConfirmed"], test_index)
+                                wallets[prop["sender"]] = True
+                            if not wallets[prop["receiver"]]:
+                                corrupt_wallets.add_event(prop["roundConfirmed"], test_index)
+                                wallets[prop["receiver"]] = True
 
                     else:
-                        coins[proposals[i]["coin"]] = proposals[i]["receiver"]
-                        wallets[proposals[i]["sender"]] = False
-                        wallets[proposals[i]["receiver"]] = False
-
-
-        
+                        coins[prop["coin"]] = prop["receiver"]
+                        wallets[prop["sender"]] = not prop["honest"]
+                        wallets[prop["receiver"]] = not prop["honest"]
 
         for message in messages:
-            all_messages.add_event(message["round"], test_index)
+            all_messages.add_event(message["round"], test_index, message["batchSize"])
             if message["transactionType"] == "local":
-                local_messages.add_event(message["round"], test_index)
-    output = {"tx_starts": tx_starts, "tx_completes": tx_completes, "local_messages": local_messages, "all_messages": all_messages, "corrupt_wallets": corrupt_wallets}
+                local_messages.add_event(message["round"], test_index, message["batchSize"])
+        
+    output = {}
+    output["tx_starts"] = tx_starts
+    output["honest_tx_starts"] = honest_tx_starts
+    output["tx_completes"] = tx_completes
+    output["local_messages"] = local_messages
+    output["all_messages"] = all_messages
+    output["corrupt_wallets"] = corrupt_wallets
     return output
 
-    
+def make_these_plots(data, logfile):
+    plotTOT(data["tx_starts"], data["honest_tx_starts"], data["tx_completes"], f"{Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png")
+    plotMOT(data["local_messages"], data["all_messages"], f"{Path(logfile).stem}_msgs_{GRAPH_TIMESTAMPS}.png")
+    plotCOT(
+        data["corrupt_wallets"],
+        f"{Path(logfile).stem}_wlt_{GRAPH_TIMESTAMPS}.png",
+        "no validators" if "NoBFT" in str(logfile) else "validators"  # "temporary" hack
+    )
+
 
 if __name__ == "__main__":
     plotFT()
+    # output = parser(EYEWITNESS_PATH / "FastLog.json")
+    # make_these_plots(output, EYEWITNESS_PATH / "FastLog.json")
     # output = parser(EYEWITNESS_PATH / "LargerLog.json")
-    # plotTOT(output.tx_starts, output.tx_completes)
-    # plotMOT(output.local_messages, output.all_messages)
-    # plotCOT(output.corrupt_wallets)
+    # make_these_plots(output, EYEWITNESS_PATH / "LargerLog.json")
+    # output = parser(EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    # make_these_plots(output, EYEWITNESS_PATH / "LargerNoBFTLog.json")
