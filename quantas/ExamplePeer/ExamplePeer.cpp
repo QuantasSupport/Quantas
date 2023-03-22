@@ -35,10 +35,13 @@ namespace quantas {
 		Packet<ExampleMessage> newMsg(getRound(), id(), id());
 		newMsg.setMessage(msg);
 		pushToOutSteam(newMsg);
+		pushToOutSteam(newMsg);
 
 		// Send hello to everyone else
 		msg.message = "Message: Hello From " + std::to_string(id()) + ". Sent on round: " + std::to_string(getRound());
 		msg.aPeerId = std::to_string(id());
+		broadcast(msg);
+		broadcast(msg);
 		broadcast(msg);
 
 		while (!inStreamEmpty()) {
