@@ -127,27 +127,30 @@ def plotCOT(corrupt_wallets: EventTimelineMuxer, outfile: str, label: str):
 
 def plotFT():
     NUM_FT = 10
+    NUM_SHARDS = 29
+    NUM_PEERS = 200
+    NUM_ROUNDS = 100
     local_messages = {}
     all_messages = {}
     tx_starts = {}
     tx_completes = {}
     for i in range(1,NUM_FT):
-        output = parser(EYEWITNESS_PATH / f"LogFT{i}.json")
+        output = parser(EYEWITNESS_PATH / f"FT{i}Log.json")
 
         local_messages_avg_tl = output["local_messages"].get_average_cumulative_timeline()
-        local_messages[i * 3 + 1] = local_messages_avg_tl[output["local_messages"].max - 1]
+        local_messages[i] = local_messages_avg_tl[output["local_messages"].max - 1] / NUM_PEERS / NUM_ROUNDS
 
         all_messages_avg_tl = output["all_messages"].get_average_cumulative_timeline()
-        all_messages[i * 3 + 1] = all_messages_avg_tl[output["all_messages"].max - 1]
+        all_messages[i] = all_messages_avg_tl[output["all_messages"].max - 1] / NUM_PEERS / NUM_ROUNDS
 
         tx_starts_avg_tl = output["tx_starts"].get_average_cumulative_timeline()
-        tx_starts[i * 3 + 1] = tx_starts_avg_tl[output["all_messages"].max - 1]
+        tx_starts[i] = tx_starts_avg_tl[output["all_messages"].max - 1] / NUM_SHARDS
 
         tx_completes_avg_tl = output["tx_completes"].get_average_cumulative_timeline()
-        tx_completes[i * 3 + 1] = tx_completes_avg_tl[output["all_messages"].max - 1]
+        tx_completes[i] = tx_completes_avg_tl[output["all_messages"].max - 1] / NUM_SHARDS
 
 
-    plt.title("Messages wrt # of validating committees")
+    plt.title("Messages wrt F")
     plt.plot(local_messages.keys(), local_messages.values(),
              color="blue", label="Messages Sent for Local Transactions")
     plt.plot(all_messages.keys(), all_messages.values(),
@@ -157,7 +160,7 @@ def plotFT():
     plt.show()
     plt.clf()
 
-    plt.title("Transactions wrt # of validating committees")
+    plt.title("Transactions wrt F")
     
     plt.plot(tx_starts.keys(), tx_starts.values(),
              color="blue", label="Transactions started")

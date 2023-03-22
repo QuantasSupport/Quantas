@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <memory>
 #include <thread>
 #include <algorithm>
+#include <bits/stdc++.h>
 #include "Peer.hpp"
 #include "Distribution.hpp"
 
@@ -165,8 +166,14 @@ namespace quantas{
             delete _peers[i];
         }
         _peers = vector<Peer<type_msg>*>();
+        // if there isn't one assume INT_MAX
+        int maxMsgRec = INT_MAX;
+        if (topology.contains("maxMsgRec")) {
+            maxMsgRec = topology["maxMsgRec"];
+        }
 		for (int i = 0; i < topology["totalPeers"]; i++) {
 			_peers.push_back(new peer_type(i));
+            _peers[i]->setMaxMsgsRec(maxMsgRec);
 			addEdges(_peers[i]);
 		}
         if (topology["identifiers"] == "random") {
@@ -202,7 +209,7 @@ namespace quantas{
             dynamic(topology["initialPeers"], topology["sourcePoolSize"]);
         }
         else {
-            std::cerr << "Error: need an input file" << std::endl;
+            std::cerr << "Error: need an input for 'type' of topology" << std::endl;
         }
         Peer<type_msg>::initializeRound();
 	    Peer<type_msg>::initializeLastRound(lastRound -1);

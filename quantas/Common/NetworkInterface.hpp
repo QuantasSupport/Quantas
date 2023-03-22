@@ -92,12 +92,13 @@ namespace quantas{
         typedef deque<Packet<message> >                 aChannel;
 
         interfaceId                                     _id;
-        map<interfaceId,aChannel>                       _inBoundChannels;// channels from all other interfaces into this interface
-        map<interfaceId,int>                            _outBoundChannelDelays;// list of channels delays by there target interface id
+        map<interfaceId,aChannel>                       _inBoundChannels; // channels from all other interfaces into this interface
+        map<interfaceId,int>                            _outBoundChannelDelays; // list of channels delays by there target interface id
         map<interfaceId, NetworkInterface<message>* >   _outBoundChannels; // list of all other interfaces in the network (weather they are a neighbor or not) use send to send them a message
-        deque<Packet<message> >                         _inStream;// messages that have arrived at this peer
-        deque<Packet<message> >                         _outStream;// messages waiting to be sent by this peer
+        deque<Packet<message> >                         _inStream; // messages that have arrived at this peer
+        deque<Packet<message> >                         _outStream; // messages waiting to be sent by this peer
         vector<interfaceId>                             _neighbors; // list of interfaces that are directly connected to this one (i.e. they can send messages directly to each other)
+        int                                             _maxMsgsRec; // max number of messages recieved per channel per round
         
          // send a message to this peer
         void                               send                  (Packet<message>);
@@ -144,6 +145,7 @@ namespace quantas{
         Packet<message>                    popInStream           ();
         void                               addNeighbor           (interfaceId neighborIdAdd)                {_neighbors.push_back(neighborIdAdd);};
         void                               removeNeighbor        (interfaceId neighborIdToRemove);
+        void                               setMaxMsgsRec         (int maxMsgsRec)                           {_maxMsgsRec = maxMsgsRec;}
 
         // moves msgs from the channel to the inStream if msg delay is 0 else decrease msg delay by 1
         void                               receive               ();
@@ -329,9 +331,11 @@ namespace quantas{
     template <class message>
     void NetworkInterface<message>::receive() {
         for (int i = 0; i != _inBoundChannels.size(); ++i) {
-            while(!_inBoundChannels[i].empty() && _inBoundChannels[i].front().hasArrived()){
+            int rec = 0;
+            while(!_inBoundChannels[i].empty() && _inBoundChannels[i].front().hasArrived() && rec < _maxMsgsRec){
                 _inStream.push_back(_inBoundChannels[i].front());
                 _inBoundChannels[i].pop_front();
+                rec++;
             }
         }
     }

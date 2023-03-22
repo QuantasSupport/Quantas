@@ -8,7 +8,7 @@
         "walletsPerNeighborhood": 10,
         "submitRate": 1
       },
-      "logFile": "quantas/EyeWitnessPeer/LogFT1.json",
+      "logFile": "quantas/EyeWitnessPeer/FTLog1.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -16,7 +16,8 @@
       "topology": {
         "type": "complete",
         "initialPeers": 200,
-        "totalPeers": 200
+        "totalPeers": 200,
+        "maxMsgsRec": 1
       },
       "tests": 5,
       "rounds": 100
@@ -29,7 +30,7 @@
         "walletsPerNeighborhood": 10,
         "submitRate": 1
       },
-      "logFile": "quantas/EyeWitnessPeer/LogFT2.json",
+      "logFile": "quantas/EyeWitnessPeer/FTLog2.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -37,7 +38,8 @@
       "topology": {
         "type": "complete",
         "initialPeers": 200,
-        "totalPeers": 200
+        "totalPeers": 200,
+        "maxMsgsRec": 1
       },
       "tests": 5,
       "rounds": 100
@@ -50,7 +52,7 @@
         "walletsPerNeighborhood": 10,
         "submitRate": 1
       },
-      "logFile": "quantas/EyeWitnessPeer/LogFT3.json",
+      "logFile": "quantas/EyeWitnessPeer/FTLog3.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -58,7 +60,8 @@
       "topology": {
         "type": "complete",
         "initialPeers": 200,
-        "totalPeers": 200
+        "totalPeers": 200,
+        "maxMsgsRec": 1
       },
       "tests": 5,
       "rounds": 100
@@ -71,7 +74,7 @@
         "walletsPerNeighborhood": 10,
         "submitRate": 1
       },
-      "logFile": "quantas/EyeWitnessPeer/LogFT4.json",
+      "logFile": "quantas/EyeWitnessPeer/FTLog4.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -79,7 +82,8 @@
       "topology": {
         "type": "complete",
         "initialPeers": 200,
-        "totalPeers": 200
+        "totalPeers": 200,
+        "maxMsgsRec": 1
       },
       "tests": 5,
       "rounds": 100
@@ -92,7 +96,7 @@
         "walletsPerNeighborhood": 10,
         "submitRate": 1
       },
-      "logFile": "quantas/EyeWitnessPeer/LogFT5.json",
+      "logFile": "quantas/EyeWitnessPeer/FTLog5.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -100,7 +104,8 @@
       "topology": {
         "type": "complete",
         "initialPeers": 200,
-        "totalPeers": 200
+        "totalPeers": 200,
+        "maxMsgsRec": 1
       },
       "tests": 5,
       "rounds": 100
@@ -113,7 +118,7 @@
         "walletsPerNeighborhood": 10,
         "submitRate": 1
       },
-      "logFile": "quantas/EyeWitnessPeer/LogFT6.json",
+      "logFile": "quantas/EyeWitnessPeer/FTLog6.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -121,7 +126,8 @@
       "topology": {
         "type": "complete",
         "initialPeers": 200,
-        "totalPeers": 200
+        "totalPeers": 200,
+        "maxMsgsRec": 1
       },
       "tests": 5,
       "rounds": 100
@@ -134,7 +140,7 @@
         "walletsPerNeighborhood": 10,
         "submitRate": 1
       },
-      "logFile": "quantas/EyeWitnessPeer/LogFT7.json",
+      "logFile": "quantas/EyeWitnessPeer/FTLog7.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -142,7 +148,8 @@
       "topology": {
         "type": "complete",
         "initialPeers": 200,
-        "totalPeers": 200
+        "totalPeers": 200,
+        "maxMsgsRec": 1
       },
       "tests": 5,
       "rounds": 100
@@ -155,7 +162,7 @@
         "walletsPerNeighborhood": 10,
         "submitRate": 1
       },
-      "logFile": "quantas/EyeWitnessPeer/LogFT8.json",
+      "logFile": "quantas/EyeWitnessPeer/FTLog8.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -163,7 +170,8 @@
       "topology": {
         "type": "complete",
         "initialPeers": 200,
-        "totalPeers": 200
+        "totalPeers": 200,
+        "maxMsgsRec": 1
       },
       "tests": 5,
       "rounds": 100
@@ -176,7 +184,7 @@
         "walletsPerNeighborhood": 10,
         "submitRate": 1
       },
-      "logFile": "quantas/EyeWitnessPeer/LogFT9.json",
+      "logFile": "quantas/EyeWitnessPeer/FTLog9.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -184,7 +192,8 @@
       "topology": {
         "type": "complete",
         "initialPeers": 200,
-        "totalPeers": 200
+        "totalPeers": 200,
+        "maxMsgsRec": 1
       },
       "tests": 5,
       "rounds": 100
