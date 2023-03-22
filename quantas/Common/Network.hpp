@@ -167,13 +167,13 @@ namespace quantas{
         }
         _peers = vector<Peer<type_msg>*>();
         // if there isn't one assume INT_MAX
-        int maxMsgRec = INT_MAX;
-        if (topology.contains("maxMsgRec")) {
-            maxMsgRec = topology["maxMsgRec"];
+        int maxMsgsRec = INT_MAX;
+        if (topology.contains("maxMsgsRec")) {
+            maxMsgsRec = topology["maxMsgsRec"];
         }
 		for (int i = 0; i < topology["totalPeers"]; i++) {
 			_peers.push_back(new peer_type(i));
-            _peers[i]->setMaxMsgsRec(maxMsgRec);
+            _peers[i]->setMaxMsgsRec(maxMsgsRec);
 			addEdges(_peers[i]);
 		}
         if (topology["identifiers"] == "random") {
