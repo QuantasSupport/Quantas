@@ -36,7 +36,7 @@ int main(int argc, const char* argv[]) {
    std::ifstream inFile(argv[1]);
 	
    if (inFile.fail()) {
-      std::cerr << "error: cannot open input file" << std::endl;
+      std::cerr << "error: cannot open input file: " << argv[1] << std::endl;
       return 1;
    }
 	
