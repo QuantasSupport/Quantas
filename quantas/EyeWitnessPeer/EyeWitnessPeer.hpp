@@ -394,7 +394,9 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
                     sender = c.history.back().receiver;
                 }
                 c.history.push_back(TransactionRecord{
-                    c.history.back().receiver, wallet});
+                    fakeHistoryLength > 1 ? c.history.back().receiver
+                                          : all[options.back()],
+                    wallet});
 
                 // this is overkill since every neighborhood only needs the coin
                 // once
@@ -688,20 +690,29 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
             );
         }
     } else if (byzantineRound == getRound()) {
-        int corruptNeighborhood = randMod(walletsForNeighborhoods.size());
-        for (int i = 0; i < walletsForNeighborhoods[corruptNeighborhood].size();
-             i++) {
-            LogWriter::getTestLog()["corruptWallets"].push_back(
-                walletsForNeighborhoods[corruptNeighborhood][i].address
-            );
-        }
-        for (int i = 0; i < peers.size(); i++) {
-            if (peers[i]->neighborhoodID == corruptNeighborhood) {
-                std::cout << "corrupting " << peers[i]->id() << std::endl;
-                peers[i]->corrupt = true;
-                if (walletsForNeighborhoods[corruptNeighborhood][0]
-                        .storedBy.leader == peers[i]->id()) {
-                    byzantineLeader = peers[i]->id();
+        std::vector<int> shuffledNBHs(neighborhoods.size());
+        std::iota(shuffledNBHs.begin(), shuffledNBHs.end(), 0);
+        std::shuffle(
+            shuffledNBHs.begin(), shuffledNBHs.end(), RANDOM_GENERATOR
+        );
+
+        for (int indexIntoShuffle = 0;
+             indexIntoShuffle < maliciousNeighborhoods; ++indexIntoShuffle) {
+            int corruptNeighborhood = shuffledNBHs[indexIntoShuffle];
+            for (int i = 0;
+                 i < walletsForNeighborhoods[corruptNeighborhood].size(); i++) {
+                LogWriter::getTestLog()["corruptWallets"].push_back(
+                    walletsForNeighborhoods[corruptNeighborhood][i].address
+                );
+            }
+            for (int i = 0; i < peers.size(); i++) {
+                if (peers[i]->neighborhoodID == corruptNeighborhood) {
+                    std::cout << "corrupting " << peers[i]->id() << std::endl;
+                    peers[i]->corrupt = true;
+                    if (walletsForNeighborhoods[corruptNeighborhood][0]
+                            .storedBy.leader == peers[i]->id()) {
+                        byzantineLeader = peers[i]->id();
+                    }
                 }
             }
         }
