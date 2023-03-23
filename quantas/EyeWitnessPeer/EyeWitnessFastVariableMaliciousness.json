@@ -7,7 +7,8 @@
                 "neighborhoodSize": 4,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 10,
-                "maliciousNeighborhoods": 1
+                "maliciousNeighborhoods": 1,
+                "submitRate": 3
             },
             "logFile": "quantas/EyeWitnessPeer/FastML1Log.json",
             "distribution": {
@@ -29,7 +30,8 @@
                 "neighborhoodSize": 4,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 10,
-                "maliciousNeighborhoods": 2
+                "maliciousNeighborhoods": 2,
+                "submitRate": 3
             },
             "logFile": "quantas/EyeWitnessPeer/FastML2Log.json",
             "distribution": {
@@ -51,7 +53,8 @@
                 "neighborhoodSize": 4,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 10,
-                "maliciousNeighborhoods": 3
+                "maliciousNeighborhoods": 3,
+                "submitRate": 3
             },
             "logFile": "quantas/EyeWitnessPeer/FastML3Log.json",
             "distribution": {
@@ -73,7 +76,8 @@
                 "neighborhoodSize": 4,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 10,
-                "maliciousNeighborhoods": 4
+                "maliciousNeighborhoods": 4,
+                "submitRate": 3
             },
             "logFile": "quantas/EyeWitnessPeer/FastML4Log.json",
             "distribution": {
@@ -95,7 +99,8 @@
                 "neighborhoodSize": 4,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 10,
-                "maliciousNeighborhoods": 5
+                "maliciousNeighborhoods": 5,
+                "submitRate": 3
             },
             "logFile": "quantas/EyeWitnessPeer/FastML5Log.json",
             "distribution": {
