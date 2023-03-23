@@ -1,0 +1,114 @@
+{
+    "experiments": [
+        {
+            "algorithm": "EyeWitness",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 4,
+                "walletsPerNeighborhood": 5,
+                "byzantineRound": 10,
+                "maliciousNeighborhoods": 1
+            },
+            "logFile": "quantas/EyeWitnessPeer/FastML1Log.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 50,
+                "totalPeers": 50
+            },
+            "tests": 1,
+            "rounds": 50
+        },
+        {
+            "algorithm": "EyeWitness",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 4,
+                "walletsPerNeighborhood": 5,
+                "byzantineRound": 10,
+                "maliciousNeighborhoods": 2
+            },
+            "logFile": "quantas/EyeWitnessPeer/FastML2Log.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 50,
+                "totalPeers": 50
+            },
+            "tests": 1,
+            "rounds": 50
+        },
+        {
+            "algorithm": "EyeWitness",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 4,
+                "walletsPerNeighborhood": 5,
+                "byzantineRound": 10,
+                "maliciousNeighborhoods": 3
+            },
+            "logFile": "quantas/EyeWitnessPeer/FastML3Log.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 50,
+                "totalPeers": 50
+            },
+            "tests": 1,
+            "rounds": 50
+        },
+        {
+            "algorithm": "EyeWitness",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 4,
+                "walletsPerNeighborhood": 5,
+                "byzantineRound": 10,
+                "maliciousNeighborhoods": 4
+            },
+            "logFile": "quantas/EyeWitnessPeer/FastML4Log.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 50,
+                "totalPeers": 50
+            },
+            "tests": 1,
+            "rounds": 50
+        },
+        {
+            "algorithm": "EyeWitness",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 4,
+                "walletsPerNeighborhood": 5,
+                "byzantineRound": 10,
+                "maliciousNeighborhoods": 5
+            },
+            "logFile": "quantas/EyeWitnessPeer/FastML5Log.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 50,
+                "totalPeers": 50
+            },
+            "tests": 1,
+            "rounds": 50
+        }
+    ]
+}
