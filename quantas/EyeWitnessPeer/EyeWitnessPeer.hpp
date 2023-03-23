@@ -274,6 +274,7 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     inline static int validatorNeighborhoods = -1;
     inline static int byzantineRound = -1;
     inline static int submitRate = 10;
+    inline static int maliciousNeighborhoods = 0;
 
     // global neighborhood data; populated as a side effect of initParameters
     inline static std::vector<std::vector<LocalWallet>> walletsForNeighborhoods;
@@ -314,9 +315,25 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     const int walletsPerNeighborhood = parameters["walletsPerNeighborhood"];
     if (parameters.contains("byzantineRound")) {
         byzantineRound = parameters["byzantineRound"];
+        if (!parameters.contains("maliciousNeighborhoods")) {
+            std::cout << "WARNING: parameter byzantineRound is set but "
+                         "maliciousNeighborhoods is not specified. Defaulting "
+                         "to 1 malicious neighborhood\n";
+            maliciousNeighborhoods = 1;
+        }
     }
     if (parameters.contains("submitRate")) {
         submitRate = parameters["submitRate"];
+    }
+    if (parameters.contains("maliciousNeighborhoods")) {
+        maliciousNeighborhoods = parameters["maliciousNeighborhoods"];
+        if (!parameters.contains("byzantineRound")) {
+            std::cout
+                << "WARNING: parameter maliciousNeighborhoods is set but "
+                   "byzantineRound is not specified. Defaulting "
+                   "to creating the malicious neighborhoods at round 10\n";
+            byzantineRound = 10;
+        }
     }
 
     LogWriter::getTestLog()["roundInfo"]["rounds"] = getLastRound();
@@ -351,7 +368,7 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     const int coinsPerWallet = 5;
     int fakeHistoryLength = validatorNeighborhoods;
     int neighborhood = 0;
-    auto rng = std::default_random_engine {};
+    auto rng = std::default_random_engine{};
     // temporarily maps wallet addresses to past coins
     std::map<int, std::vector<Coin>> pastCoins;
     for (auto &wallets : walletsForNeighborhoods) {
