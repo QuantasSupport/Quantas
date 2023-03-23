@@ -171,6 +171,22 @@ def plotFT():
     plt.show()
     plt.clf()
 
+def plot_malicious_effects():
+    MALICIOUS_RANGE = range(1, 5)
+    corrupt_at_end: dict[int, int] = {}
+    for i in MALICIOUS_RANGE:
+        output = parser(EYEWITNESS_PATH / F"FastML{I}Log.JSON")
+        avg_corrupt = output["corrupt_wallets"].get_average_cumulative_timeline()
+        corrupt_at_end[i] = avg_corrupt[output["corrupt_wallets"].max-1]
+    
+    plt.title("Corrupt Wallets Caused by # of Malicious Peers")
+    plt.plot(corrupt_at_end.keys(), corrupt_at_end.values(), color="blue")
+    plt.xlabel("Malicious Neighborhoods")
+    plt.ylabel("Corrupt Wallets at End")
+    plt.savefig(EYEWITNESS_PATH / f"graph_maliciousness_{GRAPH_TIMESTAMPS}.png")
+    plt.show()
+    plt.clf()
+
 def parser(logfile: str):
 
     with open(logfile) as logfileobj:
@@ -299,7 +315,8 @@ def make_these_plots(data, logfile):
 
 
 if __name__ == "__main__":
-    plotFT()
+    # plotFT()
+    plot_malicious_effects()
     # output = parser(EYEWITNESS_PATH / "FastLog.json")
     # make_these_plots(output, EYEWITNESS_PATH / "FastLog.json")
     # output = parser(EYEWITNESS_PATH / "LargerLog.json")
