@@ -158,6 +158,8 @@ namespace quantas {
 		}
 	}
 
+	// NOTE: If number of total edges, n, is not divisible by the number of allowed edges per state, m,
+	// then every [floor(n/m) + 1] rounds there will only be [n – (floor(n/m)*m)] edge(s).
 	void CycleOfTreesPeer::pickEdges() {
 
 		presentEdges.clear();
