@@ -53,18 +53,18 @@ namespace quantas {
 		}
 
 		// create cycle
-        for (int i = 1; i < cycleSize; ++i) {
+                for (int i = 1; i < cycleSize; ++i) {
 			allEdges.push_back(list<int>{(i - 1), i});
-        }
+                }
 		allEdges.push_back(list<int>{(cycleSize - 1), 0});
 
-        // create random trees
+                // create random trees
 		numberOfNodes = _peers.size();
-        int positionedPeerID = 0;
-        for (int i = cycleSize; i < numberOfNodes; ++i) {
+                int positionedPeerID = 0;
+                for (int i = cycleSize; i < numberOfNodes; ++i) {
 			positionedPeerID = uniformInt(0, (i - 1));    // interval: [0, i - 1]
 			allEdges.push_back(list<int>{positionedPeerID, i});
-        }
+                }
 
 		unusedEdges = allEdges;
 
@@ -170,22 +170,12 @@ namespace quantas {
 		auto it = unusedEdges.begin();
 		while (i < noOfEdges) {
 			if (it == unusedEdges.end()) {
-				/*unusedEdges = allEdges;
-
-				std::shuffle(unusedEdges.begin(), unusedEdges.end(), generator);
-				it = unusedEdges.begin();*/
 				break;
 			}
 
-			//if (std::find(presentEdges.begin(), presentEdges.end(), *it) == presentEdges.end()) {
-				presentEdges.push_back(std::move(*it));
-				it = unusedEdges.erase(it);
-				++i;
-			//}
-
-			/*else {
-				++it;
-			}*/
+			presentEdges.push_back(std::move(*it));
+			it = unusedEdges.erase(it);
+			++i;
 		}
 	}
 
