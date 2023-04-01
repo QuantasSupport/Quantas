@@ -30,24 +30,24 @@ namespace quantas {
     class CycleOfTreesPeer : public Peer<CycleOfTreesMessage> {
     public:
         // methods that must be defined when deriving from Peer
-        CycleOfTreesPeer(long);
-        CycleOfTreesPeer(const CycleOfTreesPeer& rhs);
+        CycleOfTreesPeer (long);
+        CycleOfTreesPeer (const CycleOfTreesPeer& rhs);
         ~CycleOfTreesPeer();
 
         // initialize the configuration of the system
-        void                 initParameters(const vector<Peer<CycleOfTreesMessage>*>& _peers, json parameters);
+        void                 initParameters    (const vector<Peer<CycleOfTreesMessage>*>& _peers, json parameters);
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(const vector<Peer<CycleOfTreesMessage>*>& _peers);
+        void                 endOfRound        (const vector<Peer<CycleOfTreesMessage>*>& _peers);
 
         // additional methods that have default implementation from Peer but can be overwritten
-        void                 log()         const { printTo(*_log); };
-        ostream& printTo(ostream&) const;
-        friend ostream& operator<<             (ostream&, const CycleOfTreesPeer&);
+        void                 log        ()         const { printTo(*_log); };
+        ostream&             printTo    (ostream&) const;
+        friend ostream&      operator<< (ostream&, const CycleOfTreesPeer&);
 
         // highest ID detected in the cycle (knot)
-        int                  highestID = -1;
+        int                  highestID      = -1;
         // nodes you have received messages from
         set<int>             nodesHeardFrom = { id() };
 
@@ -57,11 +57,11 @@ namespace quantas {
         static int           noOfCycleNodes;
 
         // checkInStrm checks messages
-        void                 checkInStrm();
+        void                 checkInStrm ();
         // sendMessage sends a node a message
-        void                 sendMessage();
+        void                 sendMessage ();
         // pickEdges picks the edges which will be present at a particular state/round
-        void                 pickEdges();
+        void                 pickEdges   ();
         // setHighestID sets the highest ID detected in the cycle to the parameter passed
         void                 setHighestID(int);
     };
