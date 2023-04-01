@@ -50,6 +50,8 @@ INPUTFILE := BitcoinSpeedTest.json
 
 # ALGFILE := KSMPeer
 
+# ALGFILE := CycleOfTreesPeer
+
 ####### end algorithm configuration
 
 ####### All algorithms
