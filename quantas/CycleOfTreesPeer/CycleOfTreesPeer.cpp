@@ -96,7 +96,7 @@ namespace quantas {
 			
 			avgKnotOutputNumerator   = 0;
 			avgKnotOutputDenominator = 0;
-			numberOfNodes			 = 0;
+			numberOfNodes            = 0;
 
 			allEdges.clear();
 			unusedEdges.clear();
