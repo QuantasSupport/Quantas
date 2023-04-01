@@ -70,4 +70,4 @@ namespace quantas {
 
 }
 
-#endif /* cycleTreePeer_hpp */
+#endif /* CycleOfTreesPeer_hpp */
