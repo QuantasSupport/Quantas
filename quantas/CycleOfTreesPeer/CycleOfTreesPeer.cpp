@@ -113,23 +113,25 @@ namespace quantas {
 	}
 
 	void CycleOfTreesPeer::checkInStrm() {    // check messages
-		while (!inStreamEmpty()) {
-			Packet<CycleOfTreesMessage> newMsg = popInStream();
+		if (highestID == -1) {
+			while (!inStreamEmpty()) {
+				Packet<CycleOfTreesMessage> newMsg = popInStream();
 
-			set<int> messageSet = newMsg.getMessage().nodesMessageHasReached;
+				set<int> messageSet = newMsg.getMessage().nodesMessageHasReached;
 
-			if ((messageSet.find(id()) != messageSet.end()) && (highestID == -1)) {    // if message contains the node's ID, then the cycle was found!
-				setHighestID(*(messageSet.rbegin()));    // sets are ordered, so the last element is the highest ID
-			}
+				if (messageSet.find(id()) != messageSet.end()) {    // if message contains the node's ID, then the cycle was found!
+					setHighestID(*(messageSet.rbegin()));    // sets are ordered, so the last element is the highest ID
+				}
 
-			if ((newMsg.getMessage().highestIdInKnot != -1) && (highestID == -1)) {    // someone else has detected the knot!
-				setHighestID(newMsg.getMessage().highestIdInKnot);
-			}
+				if (newMsg.getMessage().highestIdInKnot != -1) {    // someone else has detected the knot!
+					setHighestID(newMsg.getMessage().highestIdInKnot);
+				}
 
-			else if ((!messageSet.empty()) && (highestID == -1)) {    // add IDs from message to the set of IDs heard from
-				std::for_each(messageSet.begin(), messageSet.end(), [&](int id) {
-					nodesHeardFrom.insert(id);
-					});
+				else if (!messageSet.empty()) {    // add IDs from message to the set of IDs heard from
+					std::for_each(messageSet.begin(), messageSet.end(), [&](int id) {
+						nodesHeardFrom.insert(id);
+						});
+				}
 			}
 		}
 	}
