@@ -336,8 +336,9 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
         }
     }
 
-    LogWriter::getTestLog()["roundInfo"]["rounds"] = getLastRound();
+    LogWriter::getTestLog()["roundInfo"]["roundCount"] = getLastRound() + 1;
     LogWriter::getTestLog()["roundInfo"]["byzantineRound"] = byzantineRound;
+    LogWriter::getTestLog()["peerInfo"]["peerCount"] = _peers.size();
 
     neighborhoodCount =
         ceil(static_cast<float>(_peers.size()) / maxNeighborhoodSize);
@@ -364,6 +365,8 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
         }
         neighborhoods.push_back(newNeighborhood);
     }
+
+    LogWriter::getTestLog()["walletInfo"]["walletCount"] = all.size();
 
     const int coinsPerWallet = 5;
     int fakeHistoryLength = validatorNeighborhoods;

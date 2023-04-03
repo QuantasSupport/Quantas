@@ -28,7 +28,7 @@ class EventTimelineMuxer:
     happened by that timestamp.
     """
 
-    def __init__(self, lowest_timestamp: int, highest_timestamp: int):
+    def __init__(self, lowest_timestamp: int, highest_timestamp: int, normalization_factor: int=1):
         """
         min: lowest event timestamp to include in a timeline; inclusive
         max: highest event timestamp to include in a timeline; exclusive
@@ -40,6 +40,7 @@ class EventTimelineMuxer:
         self.min = lowest_timestamp
         self.max = highest_timestamp
         self.timelines = defaultdict(lambda: defaultdict(lambda: 0))
+        self.normalization_factor = normalization_factor
         self.events_by_round_cache = None
     
     def add_event(self, time: int, timeline_id: int=0, num_times: int=1) -> None:
@@ -68,7 +69,7 @@ class EventTimelineMuxer:
             self.events_by_round_cache[timeline_id] = cumulative
         return self.events_by_round_cache
 
-    def get_average_cumulative_timeline(self) -> Timeline:
+    def get_average_cumulative_timeline(self, normalize: bool=False) -> Timeline:
         """
         Returns a dict that maps each valid timestamp to the average number of
         events known to have occurred by that timestamp across each distinct
@@ -79,7 +80,11 @@ class EventTimelineMuxer:
             sum = 0
             for timeline_id in self.timelines.keys():
                 sum += self.get_cumulative_timelines()[timeline_id][i]
-            average_timeline[i] = sum / len(self.timelines.keys())
+            average_timeline[i] = (
+                sum /
+                len(self.timelines.keys()) /
+                (self.normalization_factor if normalize else 1)
+            )
         return average_timeline
 
 
@@ -102,24 +107,32 @@ def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer,
     plt.show()
     plt.clf()
 
-def plotMOT(local_messages: EventTimelineMuxer, all_messages: EventTimelineMuxer, outfile: str):
+def plotMOT(local_messages: EventTimelineMuxer, all_messages: EventTimelineMuxer, outfile: str, normalize: bool = False):
     plt.title("Messages Over Time")
-    local_messages_avg_tl = local_messages.get_average_cumulative_timeline()
+    local_messages_avg_tl = local_messages.get_average_cumulative_timeline(normalize)
     plt.plot(local_messages_avg_tl.keys(), local_messages_avg_tl.values(),
              color="blue", label="Messages Sent for Local Transactions")
-    all_messages_avg_tl = all_messages.get_average_cumulative_timeline()
+    all_messages_avg_tl = all_messages.get_average_cumulative_timeline(normalize)
     plt.plot(all_messages_avg_tl.keys(), all_messages_avg_tl.values(),
              color="green", label="Messages Sent for All Transactions")
+    if normalize:
+        plt.ylabel("Messages normalized by number of peers")
+    else:
+        plt.ylabel("Total # of Messages")
     plt.legend(loc="upper left")
     plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
     plt.clf()
 
-def plotCOT(corrupt_wallets: EventTimelineMuxer, outfile: str, label: str):
+def plotCOT(corrupt_wallets: EventTimelineMuxer, outfile: str, label: str, normalize: bool=False):
     plt.title("Corrupt Wallets Over Time")
-    corrupt_wallets_avg_tl = corrupt_wallets.get_average_cumulative_timeline()
+    corrupt_wallets_avg_tl = corrupt_wallets.get_average_cumulative_timeline(normalize)
     plt.plot(corrupt_wallets_avg_tl.keys(), corrupt_wallets_avg_tl.values(),
              color="blue", label=label)
+    if normalize:
+        plt.ylabel("Fraction of Total Wallets")
+    else:
+        plt.ylabel("Total # of Wallets")
     plt.legend(loc="upper left")
     plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
@@ -171,20 +184,19 @@ def plotFT():
     plt.show()
     plt.clf()
 
-def plot_malicious_effects():
+def plot_malicious_effects(outfile: str, normalize: bool=False):
     MALICIOUS_RANGE = range(1, 6)
     corrupt_at_end: dict[int, int] = {}
     corrupt_at_end_bft: dict[int, int] = {}
     for i in MALICIOUS_RANGE:
         output = parser(EYEWITNESS_PATH / F"ML{i}Log.json")
-        avg_corrupt = output["corrupt_wallets"].get_average_cumulative_timeline()
+        avg_corrupt = output["corrupt_wallets"].get_average_cumulative_timeline(normalize)
         corrupt_at_end[i] = avg_corrupt[output["corrupt_wallets"].max-1]
         bft_output = parser(EYEWITNESS_PATH / F"ML{i}ValidatedLog.json")
-        avg_corrupt_bft = bft_output["corrupt_wallets"].get_average_cumulative_timeline()
+        avg_corrupt_bft = bft_output["corrupt_wallets"].get_average_cumulative_timeline(normalize)
         corrupt_at_end_bft[i] = avg_corrupt_bft[bft_output["corrupt_wallets"].max-1]
     
     plt.title("Corrupt Wallets Due to # Malicious Neighborhoods")
-
     fig, ax = plt.subplots()
     bar_width = 0.35
     ax.bar(
@@ -205,8 +217,11 @@ def plot_malicious_effects():
     plt.xlabel("Malicious Neighborhoods")
     ax.set_xticklabels(corrupt_at_end.keys())
     plt.xticks([x+bar_width/2 for x in corrupt_at_end.keys()])
-    plt.ylabel("Corrupt Wallets at End")
-    plt.savefig(EYEWITNESS_PATH / f"graph_maliciousness_{GRAPH_TIMESTAMPS}.png")
+    if normalize:
+        plt.ylabel("Fraction of Corrupt Wallets at End")
+    else:
+        plt.ylabel("# of Corrupt Wallets at End")
+    plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
     plt.clf()
 
@@ -215,19 +230,18 @@ def parser(logfile: str):
     with open(logfile) as logfileobj:
         log = json.load(logfileobj)
     
-    num_rounds = log["tests"][0]["roundInfo"]["rounds"] + 1
+    num_rounds = log["tests"][0]["roundInfo"]["roundCount"]
+    num_peers = log["tests"][0]["peerInfo"]["peerCount"]
+    num_wallets = log["tests"][0]["walletInfo"]["walletCount"]
 
-    # graph 1:
     tx_starts = EventTimelineMuxer(0, num_rounds)
     honest_tx_starts = EventTimelineMuxer(0, num_rounds)
     tx_completes = EventTimelineMuxer(0, num_rounds)
 
-    # graph 2:
-    local_messages = EventTimelineMuxer(0, num_rounds)
-    all_messages = EventTimelineMuxer(0, num_rounds)
+    local_messages = EventTimelineMuxer(0, num_rounds, num_peers)
+    all_messages = EventTimelineMuxer(0, num_rounds, num_peers)
 
-    # graph 3:
-    corrupt_wallets = EventTimelineMuxer(0, num_rounds)
+    corrupt_wallets = EventTimelineMuxer(0, num_rounds, num_wallets)
 
     proposals = {}
     """maps sequence numbers of initiated transactions to the transaction and the number of validation
@@ -327,22 +341,30 @@ def parser(logfile: str):
     output["corrupt_wallets"] = corrupt_wallets
     return output
 
-def make_these_plots(data, logfile):
+def make_timing_diagrams(data, logfile):
     plotTOT(data["tx_starts"], data["honest_tx_starts"], data["tx_completes"], f"{Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png")
     plotMOT(data["local_messages"], data["all_messages"], f"{Path(logfile).stem}_msgs_{GRAPH_TIMESTAMPS}.png")
+    plotMOT(data["local_messages"], data["all_messages"], f"normalized_{Path(logfile).stem}_msgs_{GRAPH_TIMESTAMPS}.png", True)
     plotCOT(
         data["corrupt_wallets"],
         f"{Path(logfile).stem}_wlt_{GRAPH_TIMESTAMPS}.png",
         "no validators" if "NoBFT" in str(logfile) else "validators"  # "temporary" hack
     )
+    plotCOT(
+        data["corrupt_wallets"],
+        f"normalized_{Path(logfile).stem}_wlt_{GRAPH_TIMESTAMPS}.png",
+        "no validators" if "NoBFT" in str(logfile) else "validators",  # "temporary" hack
+        True
+    )
 
 
 if __name__ == "__main__":
     # plotFT()
-    plot_malicious_effects()
-    # output = parser(EYEWITNESS_PATH / "FastLog.json")
-    # make_these_plots(output, EYEWITNESS_PATH / "FastLog.json")
-    # output = parser(EYEWITNESS_PATH / "LargerLog.json")
-    # make_these_plots(output, EYEWITNESS_PATH / "LargerLog.json")
-    # output = parser(EYEWITNESS_PATH / "LargerNoBFTLog.json")
-    # make_these_plots(output, EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    plot_malicious_effects(f"graph_maliciousness_{GRAPH_TIMESTAMPS}.png")
+    plot_malicious_effects(f"normalized_graph_maliciousness_{GRAPH_TIMESTAMPS}.png", True)
+    output = parser(EYEWITNESS_PATH / "FastLog.json")
+    make_timing_diagrams(output, EYEWITNESS_PATH / "FastLog.json")
+    output = parser(EYEWITNESS_PATH / "LargerLog.json")
+    make_timing_diagrams(output, EYEWITNESS_PATH / "LargerLog.json")
+    output = parser(EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    make_timing_diagrams(output, EYEWITNESS_PATH / "LargerNoBFTLog.json")
