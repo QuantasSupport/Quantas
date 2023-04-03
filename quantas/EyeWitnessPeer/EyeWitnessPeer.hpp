@@ -254,7 +254,7 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
 
     // counts how many post-commit messages have been received for a given
     // sequence number
-    std::unordered_set<int> receivedPostCommits;
+    std::unordered_multiset<int> receivedPostCommits;
 
     // logs that are gathered up and sent to the LogWriter all at once in the
     // last endOfRound(); events aren't sent to the LogWriter directly because
