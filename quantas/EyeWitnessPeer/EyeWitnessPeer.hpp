@@ -450,6 +450,10 @@ bool EyeWitnessPeer<ConsensusRequest>::validateTransaction(OngoingTransaction t
     // for now, just checking to see if the coin was last known to be in the
     // sending neighborhood (because internal transactions in the neighborhood
     // aren't visible and need signatures to be checked)
+    if (coinDB.count(t.coin.id) == 0) {
+        std::cout << "asked to validated transaction with unknown coin\n";
+        return false;
+    }
     return corrupt || (t.sender.storedBy.id ==
                        coinDB[t.coin.id]->history.back().receiver.storedBy.id);
 }
@@ -464,13 +468,13 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
         typename std::unordered_map<int, ConsensusRequest>::iterator s;
         if ((s = localRequests.find(seqNum)) != localRequests.end()) {
             if (!validateTransaction(message.trans)) {
-                std::cout << "invalid transaction message ignored\n";
+                // std::cout << "invalid transaction message ignored\n";
                 continue;
             }
             s->second.addToConsensus(message);
         } else if ((s = superRequests.find(seqNum)) != superRequests.end()) {
             if (!validateTransaction(message.trans)) {
-                std::cout << "invalid transaction message ignored\n";
+                // std::cout << "invalid transaction message ignored\n";
                 continue;
             }
             s->second.addToConsensus(message);
@@ -478,7 +482,7 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
             // message about previously unknown transaction
             if (message.messageType == "pre-prepare") {
                 if (!validateTransaction(message.trans)) {
-                    std::cout << "invalid transaction message ignored\n";
+                    // std::cout << "invalid transaction message ignored\n";
                     continue;
                 }
                 if (coinDB.count(message.trans.coin.id) > 0) {

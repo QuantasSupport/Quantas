@@ -174,15 +174,37 @@ def plotFT():
 def plot_malicious_effects():
     MALICIOUS_RANGE = range(1, 6)
     corrupt_at_end: dict[int, int] = {}
+    corrupt_at_end_bft: dict[int, int] = {}
     for i in MALICIOUS_RANGE:
         output = parser(EYEWITNESS_PATH / F"ML{i}Log.json")
         avg_corrupt = output["corrupt_wallets"].get_average_cumulative_timeline()
         corrupt_at_end[i] = avg_corrupt[output["corrupt_wallets"].max-1]
+        bft_output = parser(EYEWITNESS_PATH / F"ML{i}ValidatedLog.json")
+        avg_corrupt_bft = bft_output["corrupt_wallets"].get_average_cumulative_timeline()
+        corrupt_at_end_bft[i] = avg_corrupt_bft[bft_output["corrupt_wallets"].max-1]
     
     plt.title("Corrupt Wallets Due to # Malicious Neighborhoods")
-    plt.plot(corrupt_at_end.keys(), corrupt_at_end.values(), color="blue")
+
+    fig, ax = plt.subplots()
+    bar_width = 0.35
+    ax.bar(
+        corrupt_at_end.keys(),
+        corrupt_at_end.values(),
+        bar_width,
+        label="without supercommittee validation",
+        color="blue"
+    )
+    ax.bar(
+        [x+bar_width for x in corrupt_at_end_bft.keys()],
+        corrupt_at_end_bft.values(),
+        bar_width,
+        label="with supercommittee validation",
+        color="green"
+    )
+    plt.legend(loc="upper left")
     plt.xlabel("Malicious Neighborhoods")
-    plt.xticks(list(corrupt_at_end.keys()))
+    ax.set_xticklabels(corrupt_at_end.keys())
+    plt.xticks([x+bar_width/2 for x in corrupt_at_end.keys()])
     plt.ylabel("Corrupt Wallets at End")
     plt.savefig(EYEWITNESS_PATH / f"graph_maliciousness_{GRAPH_TIMESTAMPS}.png")
     plt.show()
