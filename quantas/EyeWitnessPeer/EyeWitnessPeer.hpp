@@ -127,12 +127,15 @@ struct EyeWitnessMessage {
 struct ConsensusContacts {
     std::vector<Neighborhood> participants;
     ConsensusContacts() = default;
-    ConsensusContacts(Coin c, int validatorCount) {
+    ConsensusContacts(
+        Coin c, int validatorCount, bool skipLastRecipient = false
+    ) {
         std::unordered_set<int> uniques;
         for (int i = 0; uniques.size() < validatorCount && i < c.history.size();
              i++) {
             Neighborhood &prevNeighborhood =
-                c.history[c.history.size() - i - 1].receiver.storedBy;
+                c.history[c.history.size() - i - (skipLastRecipient ? 2 : 1)]
+                    .receiver.storedBy;
             if (uniques.count(prevNeighborhood.id) == 0) {
                 participants.push_back(prevNeighborhood);
                 uniques.insert(prevNeighborhood.id);
@@ -232,6 +235,7 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
 
     void broadcastTo(EyeWitnessMessage, Neighborhood);
     void initiateTransaction(bool withinNeighborhood = true);
+    void initiateRollbacks();
 
   private:
     bool validateTransaction(OngoingTransaction);
@@ -275,11 +279,15 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     inline static int byzantineRound = -1;
     inline static int submitRate = 10;
     inline static int maliciousNeighborhoods = 0;
+    inline static bool attemptRollback = false;
 
     // global neighborhood data; populated as a side effect of initParameters
     inline static std::vector<std::vector<LocalWallet>> walletsForNeighborhoods;
     inline static std::unordered_map<long, int> neighborhoodsForPeers;
     inline static std::vector<Neighborhood> neighborhoods;
+
+    // populated in endOfRound if byzantine parameters are set
+    inline static std::unordered_set<int> corruptNeighborhoods;
 };
 
 Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>> *
@@ -335,6 +343,9 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
             byzantineRound = 10;
         }
     }
+    if (parameters.contains("attemptRollback")) {
+        attemptRollback = parameters["attemptRollback"];
+    }
 
     LogWriter::getTestLog()["roundInfo"]["roundCount"] = getLastRound() + 1;
     LogWriter::getTestLog()["roundInfo"]["byzantineRound"] = byzantineRound;
@@ -369,7 +380,7 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     LogWriter::getTestLog()["walletInfo"]["walletCount"] = all.size();
 
     const int coinsPerWallet = 5;
-    int fakeHistoryLength = validatorNeighborhoods;
+    int fakeHistoryLength = validatorNeighborhoods * 2;
     int neighborhood = 0;
     auto rng = std::default_random_engine{};
     // temporarily maps wallet addresses to past coins
@@ -653,13 +664,17 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
         }
     }
 
-    // assuming non-overlapping neighborhoods, so if we're the leader in one
-    // wallet stored by our neighborhood we're a leader in every wallet
-    // stored by our neighborhood
-    if ((oneInXChance(submitRate) || corrupt) &&
-        heldWallets[0].storedBy.leader == id()) {
-        // corrupt nodes always go for out-of-neighborhood transactions
-        initiateTransaction(!(corrupt || oneInXChance(4)));
+    if (heldWallets[0].storedBy.leader == id()) {
+        if (byzantineRound != -1 && getRound() == byzantineRound + 1) {
+            initiateRollbacks();
+        }
+        // assuming non-overlapping neighborhoods, so if we're the leader in one
+        // wallet stored by our neighborhood we're a leader in every wallet
+        // stored by our neighborhood
+        if ((oneInXChance(submitRate) || corrupt)) {
+            // corrupt nodes always go for out-of-neighborhood transactions
+            initiateTransaction(!(corrupt || oneInXChance(4)));
+        }
     }
 }
 
@@ -706,11 +721,16 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
         for (int indexIntoShuffle = 0;
              indexIntoShuffle < maliciousNeighborhoods; ++indexIntoShuffle) {
             int corruptNeighborhood = shuffledNBHs[indexIntoShuffle];
+            corruptNeighborhoods.insert(corruptNeighborhood);
             for (int i = 0;
                  i < walletsForNeighborhoods[corruptNeighborhood].size(); i++) {
                 LogWriter::getTestLog()["corruptWallets"].push_back(
                     walletsForNeighborhoods[corruptNeighborhood][i].address
                 );
+                for (const auto &c :
+                     walletsForNeighborhoods[corruptNeighborhood][i].coins) {
+                    LogWriter::getTestLog()["untrustedCoin"].push_back(c.first);
+                }
             }
             for (int i = 0; i < peers.size(); i++) {
                 if (peers[i]->neighborhoodID == corruptNeighborhood) {
@@ -760,9 +780,43 @@ ConsensusContacts EyeWitnessPeer<ConsensusRequest>::chooseContactsFor(
 }
 
 template <typename ConsensusRequest>
+void EyeWitnessPeer<ConsensusRequest>::initiateRollbacks() {
+    for (const auto &w : heldWallets) {
+        for (const auto &c : w.pastCoins) {
+            const auto lastTransaction = c.second.history.back();
+            if (lastTransaction.sender.storedBy.leader == id()) {
+                const auto inWallet = lastTransaction.receiver;
+                if (corruptNeighborhoods.count(inWallet.storedBy.id) > 0) {
+                    OngoingTransaction t = {
+                        inWallet, lastTransaction.sender, c, getRound(), -1};
+                    int seqNum = ++previousSequenceNumber;
+                    ConsensusContacts newContacts(
+                        c, validatorNeighborhoods, true
+                    );
+                    ConsensusRequest r(t, newContacts, seqNum, true);
+                    superRequests.insert({seqNum, request});
+                    contacts.insert({seqNum, newContacts});
+                    transactions.push_back(
+                        {{"round", getRound()},
+                         {"seqNum", seqNum},
+                         {"validatorCount",
+                          newContacts.getValidatorNodeCount()},
+                         {"coin", c.id},
+                         {"sender", sender.address},
+                         {"honest", true},
+                         {"receiver", receiver.address},
+                         {"rollback", true}}
+                    );
+                }
+            }
+        }
+    }
+}
+
+template <typename ConsensusRequest>
 // Precondition: peer is a leader in their (single) neighborhood
-// Postcondition: ConsensusRequest created UNLESS there are no coins to send
-// in this neighborhood's wallets
+// Postcondition: ConsensusRequest created UNLESS there are no coins to send in
+// this neighborhood's wallets
 void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
     bool withinNeighborhood
 ) {
@@ -862,7 +916,8 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
          {"coin", c.id},
          {"sender", sender.address},
          {"honest", honest},
-         {"receiver", receiver.address}}
+         {"receiver", receiver.address},
+         {"rollback", false}}
     );
 }
 } // namespace quantas
