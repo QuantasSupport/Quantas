@@ -122,6 +122,7 @@ def plotMOT(local_messages: EventTimelineMuxer, all_messages: EventTimelineMuxer
     else:
         plt.ylabel("Total # of Messages")
     plt.legend(loc="upper left")
+    plt.tight_layout()
     plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
     plt.clf()
@@ -280,7 +281,7 @@ def parser(logfile: str):
             if (transaction["seqNum"] > max_seq_num):
                 max_seq_num = transaction["seqNum"]
             
-            if transaction["rollback"]:
+            if "rollback" in transaction and transaction["rollback"]:
                 rollback_ids.add(transaction["seqNum"])
             
             tx_starts.add_event(transaction["round"], test_index)
@@ -385,6 +386,7 @@ def make_timing_diagrams(data, logfile):
         "no validators" if "NoBFT" in str(logfile) else "validators",  # "temporary" hack
         True
     )
+    plot_coins_lost(output["coins_lost"], f"{Path(logfile).stem}_coins_lost_{GRAPH_TIMESTAMPS}.png")
 
 
 if __name__ == "__main__":
@@ -393,9 +395,9 @@ if __name__ == "__main__":
     # plot_malicious_effects(f"normalized_graph_maliciousness_{GRAPH_TIMESTAMPS}.png", True)
     # output = parser(EYEWITNESS_PATH / "FastLog.json")
     # make_timing_diagrams(output, EYEWITNESS_PATH / "FastLog.json")
-    # output = parser(EYEWITNESS_PATH / "LargerLog.json")
-    # make_timing_diagrams(output, EYEWITNESS_PATH / "LargerLog.json")
-    # output = parser(EYEWITNESS_PATH / "LargerNoBFTLog.json")
-    # make_timing_diagrams(output, EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    output = parser(EYEWITNESS_PATH / "LargerLog.json")
+    make_timing_diagrams(output, EYEWITNESS_PATH / "LargerLog.json")
+    output = parser(EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    make_timing_diagrams(output, EYEWITNESS_PATH / "LargerNoBFTLog.json")
     output = parser(EYEWITNESS_PATH/"LargerRollbackLog.json")
-    plot_coins_lost(output["coins_lost"], f"coins_lost_{GRAPH_TIMESTAMPS}.png")
+    make_timing_diagrams(output, EYEWITNESS_PATH / "LargerRollbackLog.json")
