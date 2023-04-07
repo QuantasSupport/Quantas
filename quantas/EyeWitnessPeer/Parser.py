@@ -332,8 +332,8 @@ def parser(logfile: str):
             for i in range(max_seq_num):
                 prop = proposals[i]
                 if prop["validators_still_needed"] <= 0:
-                    if (prop["coin"] in coins):
-                        if (prop["sender"] == coins[prop["coin"]]):
+                    if prop["coin"] in coins:
+                        if prop["sender"] == coins[prop["coin"]] or prop["rollback"]:
                             coins[prop["coin"]] = prop["receiver"]
                         else:
                             coins[prop["coin"]] = -1
