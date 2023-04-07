@@ -51,6 +51,8 @@ class EventTimelineMuxer:
         assert self.min <= time < self.max
         self.events_by_round_cache = None
         self.timelines[timeline_id][time] += num_times
+        if num_times == 0:
+            print("well that was a waste of time")
     
     def get_cumulative_timelines(self) -> dict[int, Timeline]:
         """

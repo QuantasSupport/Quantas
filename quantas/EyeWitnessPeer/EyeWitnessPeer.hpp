@@ -312,6 +312,7 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     // 5, an "extra" neighborhood stores the spares. then, each neighborhood
     // gets a set of wallets to take care of.
 
+    corruptNeighborhoods.clear();
     previousSequenceNumber = -1;
     issuedCoins = 0;
     walletsForNeighborhoods = std::vector<std::vector<LocalWallet>>();
