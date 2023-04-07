@@ -354,7 +354,7 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     neighborhoodCount =
         ceil(static_cast<float>(_peers.size()) / maxNeighborhoodSize);
     walletsForNeighborhoods.resize(neighborhoodCount);
-    vector<WalletLocation> all;
+    vector<WalletLocation> allWallets;
     for (int i = 0; i < neighborhoodCount; ++i) {
         Neighborhood newNeighborhood;
         newNeighborhood.id = i;
@@ -370,17 +370,18 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
         }
         for (int j = 0; j < walletsPerNeighborhood; ++j) {
             LocalWallet w = {
-                static_cast<int>(all.size()), newNeighborhood, {}, {}};
+                static_cast<int>(allWallets.size()), newNeighborhood, {}, {}};
             walletsForNeighborhoods[i].push_back(w);
-            all.push_back({w.address, newNeighborhood});
+            allWallets.push_back({w.address, newNeighborhood});
         }
         neighborhoods.push_back(newNeighborhood);
     }
 
-    LogWriter::getTestLog()["walletInfo"]["walletCount"] = all.size();
+    LogWriter::getTestLog()["walletInfo"]["walletCount"] = allWallets.size();
 
     const int coinsPerWallet = 5;
-    int fakeHistoryLength = validatorNeighborhoods * 2;
+    int fakeHistoryLength =
+        validatorNeighborhoods + 1; // need 1 extra in case of rollback
     int neighborhood = 0;
     auto rng = std::default_random_engine{};
     // temporarily maps wallet addresses to past coins
@@ -388,32 +389,37 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     for (auto &wallets : walletsForNeighborhoods) {
         for (auto &wallet : wallets) {
             for (int i = 0; i < coinsPerWallet; ++i) {
+                // create coin with no history
                 Coin c = {issuedCoins++, {}};
 
-                if (all.size() < fakeHistoryLength) {
+                if (allWallets.size() < fakeHistoryLength) {
                     std::cout << "Not enough neighborhoods." << std::endl;
                 }
-                // establish coin history
-                WalletLocation sender = all[randMod(all.size())];
-                // options is used to pick unique locations for the history
-                std::vector<int> options(all.size(), 0);
-                for (int j = 0; j < all.size(); j++) {
-                    options[j] = j;
+                // add the coin history
+                std::vector<int> nbrhoodIndexes(neighborhoodCount, 0);
+                for (int j = 0; j < neighborhoodCount; j++) {
+                    nbrhoodIndexes[j] = j;
                 }
-                std::shuffle(options.begin(), options.end(), rng);
+                std::shuffle(nbrhoodIndexes.begin(), nbrhoodIndexes.end(), rng);
+                WalletLocation sender;
                 for (int j = 0; j < fakeHistoryLength - 1; j++) {
-                    WalletLocation reciever = all[options.back()];
-                    options.pop_back();
+                    if (j == 0) {
+                        sender = walletsForNeighborhoods[nbrhoodIndexes.back(
+                        )][randMod(walletsPerNeighborhood)];
+                        nbrhoodIndexes.pop_back();
+                    }
+                    WalletLocation reciever =
+                        walletsForNeighborhoods[nbrhoodIndexes.back(
+                        )][randMod(walletsPerNeighborhood)];
+                    nbrhoodIndexes.pop_back();
                     c.history.push_back({sender, reciever});
                     sender = c.history.back().receiver;
                 }
                 c.history.push_back(TransactionRecord{
                     fakeHistoryLength > 1 ? c.history.back().receiver
-                                          : all[options.back()],
+                                          : allWallets[nbrhoodIndexes.back()],
                     wallet});
 
-                // this is overkill since every neighborhood only needs the coin
-                // once
                 for (const auto &t : c.history) {
                     pastCoins[t.sender.address].push_back(c);
                 }
@@ -527,8 +533,9 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                         );
                     }
                 } else {
-                    std::cout
-                        << "received pre-prepare message about unknown coin\n";
+                    // std::cout
+                    //     << "received pre-prepare message about unknown
+                    //     coin\n";
                 }
             } else if (message.messageType == "post-commit") {
                 // TODO: robustness. should check if coin sender is part of this
@@ -545,9 +552,9 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                         localReceiver->add(message.trans.coin);
                 }
             } else {
-                std::cout
-                    << "received non-pre-prepare, non-post-commit message "
-                       "about unknown transaction\n";
+                // std::cout
+                //     << "received non-pre-prepare, non-post-commit message "
+                //        "about unknown transaction\n";
             }
         }
     }
@@ -665,7 +672,8 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
     }
 
     if (heldWallets[0].storedBy.leader == id()) {
-        if (byzantineRound != -1 && getRound() == byzantineRound + 1) {
+        if (byzantineRound != -1 && getRound() == byzantineRound + 1 &&
+            !corrupt) {
             initiateRollbacks();
         }
         // assuming non-overlapping neighborhoods, so if we're the leader in one
@@ -729,7 +737,7 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
                 );
                 for (const auto &c :
                      walletsForNeighborhoods[corruptNeighborhood][i].coins) {
-                    LogWriter::getTestLog()["untrustedCoin"].push_back(c.first);
+                    LogWriter::getTestLog()["lostCoins"].push_back(c.first);
                 }
             }
             for (int i = 0; i < peers.size(); i++) {
@@ -770,6 +778,10 @@ ConsensusContacts EyeWitnessPeer<ConsensusRequest>::chooseContactsFor(
     ConsensusContacts result;
     if (local) {
         result = ConsensusContacts(t.coin, 1);
+    } else if (corruptNeighborhoods.count(t.sender.storedBy.id) > 0) {
+        // assuming a rollback transaction. corrupt senders should be stopped by
+        // legit validation in message retrieval in performComputation
+        result = ConsensusContacts(t.coin, validatorNeighborhoods, true);
     } else {
         result = ConsensusContacts(t.coin, validatorNeighborhoods);
     }
@@ -781,19 +793,29 @@ ConsensusContacts EyeWitnessPeer<ConsensusRequest>::chooseContactsFor(
 
 template <typename ConsensusRequest>
 void EyeWitnessPeer<ConsensusRequest>::initiateRollbacks() {
+    std::unordered_set<int> rollingBack;
     for (const auto &w : heldWallets) {
-        for (const auto &c : w.pastCoins) {
-            const auto lastTransaction = c.second.history.back();
+        for (const auto &[cid, c] : w.pastCoins) {
+            const auto lastTransaction = c.history.back();
             if (lastTransaction.sender.storedBy.leader == id()) {
                 const auto inWallet = lastTransaction.receiver;
                 if (corruptNeighborhoods.count(inWallet.storedBy.id) > 0) {
+                    if (rollingBack.count(cid) > 0) {
+                        std::cout << "already rolling that one back!"
+                                  << std::endl;
+                    }
+                    rollingBack.insert(cid);
+                    auto sender = inWallet;
+                    auto receiver = lastTransaction.sender;
                     OngoingTransaction t = {
                         inWallet, lastTransaction.sender, c, getRound(), -1};
                     int seqNum = ++previousSequenceNumber;
                     ConsensusContacts newContacts(
                         c, validatorNeighborhoods, true
                     );
-                    ConsensusRequest r(t, newContacts, seqNum, true);
+                    ConsensusRequest request(
+                        t, newContacts.getValidatorNodeCount(), seqNum, true
+                    );
                     superRequests.insert({seqNum, request});
                     contacts.insert({seqNum, newContacts});
                     transactions.push_back(

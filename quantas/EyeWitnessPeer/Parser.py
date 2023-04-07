@@ -138,6 +138,19 @@ def plotCOT(corrupt_wallets: EventTimelineMuxer, outfile: str, label: str, norma
     plt.show()
     plt.clf()
 
+def plot_coins_lost(lost_coins: EventTimelineMuxer, outfile: str):
+    plt.title("Lost Coins Over Time")
+    lost_coins_avg_tl = lost_coins.get_average_cumulative_timeline()
+    plt.plot(lost_coins_avg_tl.keys(), lost_coins_avg_tl.values(),
+             color="blue")
+    if False:  # normalize later
+        plt.ylabel("Fraction of Total Wallets")
+    else:
+        plt.ylabel("Total # of Coins")
+    plt.savefig(EYEWITNESS_PATH / outfile)
+    plt.show()
+    plt.clf()
+
 def plotFT():
     NUM_FT = 10
     NUM_SHARDS = 29
@@ -243,6 +256,8 @@ def parser(logfile: str):
 
     corrupt_wallets = EventTimelineMuxer(0, num_rounds, num_wallets)
 
+    coins_lost = EventTimelineMuxer(0, num_rounds)
+
     proposals = {}
     """maps sequence numbers of initiated transactions to the transaction and the number of validation
     events that are needed before it can be marked as completed"""
@@ -256,11 +271,15 @@ def parser(logfile: str):
         transactions = test["transactions"]
         validations = test["validations"]
         messages = test["messages"]
+        rollback_ids = set()
 
         max_seq_num = -1
         for transaction in transactions:
             if (transaction["seqNum"] > max_seq_num):
                 max_seq_num = transaction["seqNum"]
+            
+            if transaction["rollback"]:
+                rollback_ids.add(transaction["seqNum"])
             
             tx_starts.add_event(transaction["round"], test_index)
             if transaction["honest"]:
@@ -272,13 +291,20 @@ def parser(logfile: str):
                 }
             )
         
+        if "lostCoins" in test:
+            for _ in test["lostCoins"]:
+                coins_lost.add_event(test["roundInfo"]["byzantineRound"], test_index)
+        
         for validation in validations:
             if proposals[validation["seqNum"]]["validators_still_needed"] > 0:
                 proposals[validation["seqNum"]]["validators_still_needed"] -= 1
                 if proposals[validation["seqNum"]]["validators_still_needed"] <= 0:
                     tx_completes.add_event(validation["round"], test_index)
                     proposals[validation["seqNum"]]["roundConfirmed"] = validation["round"]
+                    if validation["seqNum"] in rollback_ids:
+                        coins_lost.add_event(validation["round"], test_index, -1)
         
+
         if "corruptWallets" in test:
             for _ in test["corruptWallets"]:
                 corrupt_wallets.add_event(test["roundInfo"]["byzantineRound"], test_index)
@@ -339,6 +365,7 @@ def parser(logfile: str):
     output["local_messages"] = local_messages
     output["all_messages"] = all_messages
     output["corrupt_wallets"] = corrupt_wallets
+    output["coins_lost"] = coins_lost
     return output
 
 def make_timing_diagrams(data, logfile):
@@ -360,11 +387,13 @@ def make_timing_diagrams(data, logfile):
 
 if __name__ == "__main__":
     # plotFT()
-    plot_malicious_effects(f"graph_maliciousness_{GRAPH_TIMESTAMPS}.png")
-    plot_malicious_effects(f"normalized_graph_maliciousness_{GRAPH_TIMESTAMPS}.png", True)
-    output = parser(EYEWITNESS_PATH / "FastLog.json")
-    make_timing_diagrams(output, EYEWITNESS_PATH / "FastLog.json")
-    output = parser(EYEWITNESS_PATH / "LargerLog.json")
-    make_timing_diagrams(output, EYEWITNESS_PATH / "LargerLog.json")
-    output = parser(EYEWITNESS_PATH / "LargerNoBFTLog.json")
-    make_timing_diagrams(output, EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    # plot_malicious_effects(f"graph_maliciousness_{GRAPH_TIMESTAMPS}.png")
+    # plot_malicious_effects(f"normalized_graph_maliciousness_{GRAPH_TIMESTAMPS}.png", True)
+    # output = parser(EYEWITNESS_PATH / "FastLog.json")
+    # make_timing_diagrams(output, EYEWITNESS_PATH / "FastLog.json")
+    # output = parser(EYEWITNESS_PATH / "LargerLog.json")
+    # make_timing_diagrams(output, EYEWITNESS_PATH / "LargerLog.json")
+    # output = parser(EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    # make_timing_diagrams(output, EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    output = parser(EYEWITNESS_PATH/"LargerRollbackLog.json")
+    plot_coins_lost(output["coins_lost"], f"coins_lost_{GRAPH_TIMESTAMPS}.png")
