@@ -372,22 +372,24 @@ def parser(logfile: str):
     return output
 
 def make_timing_diagrams(data, logfile):
-    plotTOT(data["tx_starts"], data["honest_tx_starts"], data["tx_completes"], f"{Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png")
-    plotMOT(data["local_messages"], data["all_messages"], f"{Path(logfile).stem}_msgs_{GRAPH_TIMESTAMPS}.png")
-    plotMOT(data["local_messages"], data["all_messages"], f"normalized_{Path(logfile).stem}_msgs_{GRAPH_TIMESTAMPS}.png", True)
+    # non-normalized:
+    plotTOT(data["tx_starts"], data["honest_tx_starts"], data["tx_completes"], f"log {Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png")
+    plot_coins_lost(output["coins_lost"], f"log {Path(logfile).stem}_coins_lost_{GRAPH_TIMESTAMPS}.png")
+    # plotMOT(data["local_messages"], data["all_messages"], f"{Path(logfile).stem}_msgs_{GRAPH_TIMESTAMPS}.png")
+    # plotCOT(
+    #     data["corrupt_wallets"],
+    #     f"{Path(logfile).stem}_wlt_{GRAPH_TIMESTAMPS}.png",
+    #     "no validators" if "NoBFT" in str(logfile) else "validators"  # "temporary" hack
+    # )
+
+    # normalized:
+    plotMOT(data["local_messages"], data["all_messages"], f"log normalized_{Path(logfile).stem}_msgs_{GRAPH_TIMESTAMPS}.png", True)
     plotCOT(
         data["corrupt_wallets"],
-        f"{Path(logfile).stem}_wlt_{GRAPH_TIMESTAMPS}.png",
-        "no validators" if "NoBFT" in str(logfile) else "validators"  # "temporary" hack
-    )
-    plotCOT(
-        data["corrupt_wallets"],
-        f"normalized_{Path(logfile).stem}_wlt_{GRAPH_TIMESTAMPS}.png",
+        f"log normalized_{Path(logfile).stem}_wlt_{GRAPH_TIMESTAMPS}.png",
         "no validators" if "NoBFT" in str(logfile) else "validators",  # "temporary" hack
         True
     )
-    plot_coins_lost(output["coins_lost"], f"{Path(logfile).stem}_coins_lost_{GRAPH_TIMESTAMPS}.png")
-
 
 if __name__ == "__main__":
     # plotFT()
