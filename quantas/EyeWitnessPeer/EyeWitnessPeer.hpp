@@ -270,7 +270,6 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     // technically not realistic for this to be known to all nodes
     inline static std::atomic<int> previousSequenceNumber = -1;
     inline static int issuedCoins = 0;
-    inline static int byzantineLeader = -1;
 
     // parameters from input file; read in initParameters
     inline static int maxNeighborhoodSize = -1;
@@ -383,8 +382,7 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     LogWriter::getTestLog()["walletInfo"]["walletCount"] = allWallets.size();
 
     const int coinsPerWallet = 5;
-    int fakeHistoryLength =
-        validatorNeighborhoods + 1; // need 1 extra in case of rollback
+    int fakeHistoryLength = validatorNeighborhoods + (attemptRollback ? 1 : 0);
     int neighborhood = 0;
     auto rng = std::default_random_engine{};
     // temporarily maps wallet addresses to past coins
@@ -395,14 +393,21 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
                 // create coin with no history
                 Coin c = {issuedCoins++, {}};
 
-                if (allWallets.size() < fakeHistoryLength) {
-                    std::cout << "Not enough neighborhoods." << std::endl;
-                }
                 // add the coin history
-                std::vector<int> nbrhoodIndexes(neighborhoodCount, 0);
+                std::vector<int> nbrhoodIndexes;
                 for (int j = 0; j < neighborhoodCount; j++) {
-                    nbrhoodIndexes[j] = j;
+                    if (j != neighborhood) {
+                        nbrhoodIndexes.push_back(j);
+                    }
                 }
+
+                if (nbrhoodIndexes.size() < fakeHistoryLength - 1) {
+                    std::cerr << "Not enough neighborhoods to create coin "
+                                 "history of length "
+                              << fakeHistoryLength << std::endl;
+                    exit(1);
+                }
+
                 std::shuffle(nbrhoodIndexes.begin(), nbrhoodIndexes.end(), rng);
                 WalletLocation sender;
                 for (int j = 0; j < fakeHistoryLength - 1; j++) {
@@ -738,10 +743,6 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
                 LogWriter::getTestLog()["corruptWallets"].push_back(
                     walletsForNeighborhoods[corruptNeighborhood][i].address
                 );
-                for (const auto &c :
-                     walletsForNeighborhoods[corruptNeighborhood][i].coins) {
-                    LogWriter::getTestLog()["lostCoins"].push_back(c.first);
-                }
             }
             for (int i = 0; i < peers.size(); i++) {
                 if (peers[i]->neighborhoodID == corruptNeighborhood) {
@@ -749,7 +750,15 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
                     peers[i]->corrupt = true;
                     if (walletsForNeighborhoods[corruptNeighborhood][0]
                             .storedBy.leader == peers[i]->id()) {
-                        byzantineLeader = peers[i]->id();
+                        // using the leader of the byzantine neighborhoods as a
+                        // reference for what coins they hold
+                        for (const auto &w : peers[i]->heldWallets) {
+                            for (const auto &[cid, c] : w.coins) {
+                                LogWriter::getTestLog()["lostCoins"].push_back(
+                                    cid
+                                );
+                            }
+                        }
                     }
                 }
             }
@@ -781,7 +790,7 @@ ConsensusContacts EyeWitnessPeer<ConsensusRequest>::chooseContactsFor(
     ConsensusContacts result;
     if (local) {
         result = ConsensusContacts(t.coin, 1);
-    } else if (corruptNeighborhoods.count(t.sender.storedBy.id) > 0) {
+    } else if (!corrupt && corruptNeighborhoods.count(t.sender.storedBy.id) > 0) {
         // assuming a rollback transaction. corrupt senders should be stopped by
         // legit validation in message retrieval in performComputation
         result = ConsensusContacts(t.coin, validatorNeighborhoods, true);
@@ -799,12 +808,15 @@ void EyeWitnessPeer<ConsensusRequest>::initiateRollbacks() {
     std::unordered_set<int> rollingBack;
     for (const auto &w : heldWallets) {
         for (const auto &[cid, c] : w.pastCoins) {
+            if (cid == 1394) {
+                std::cout << "1394 in past coins\n";
+            }
             const auto lastTransaction = c.history.back();
             if (lastTransaction.sender.storedBy.leader == id()) {
                 const auto inWallet = lastTransaction.receiver;
                 if (corruptNeighborhoods.count(inWallet.storedBy.id) > 0) {
                     if (rollingBack.count(cid) > 0) {
-                        std::cout << "already rolling that one back!"
+                        std::cerr << "already rolling that one back!"
                                   << std::endl;
                     }
                     rollingBack.insert(cid);

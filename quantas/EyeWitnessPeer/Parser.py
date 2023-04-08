@@ -157,7 +157,7 @@ def plot_coins_lost(lost_coins: EventTimelineMuxer, outfile: str):
 def plotFT():
     NUM_FT = 10
     NUM_SHARDS = 29
-    NUM_PEERS = 200
+    NUM_PEERS = 203
     NUM_ROUNDS = 100
     local_messages = {}
     all_messages = {}
@@ -275,6 +275,7 @@ def parser(logfile: str):
         validations = test["validations"]
         messages = test["messages"]
         rollback_ids = set()
+        rollback_coin_ids = set()
 
         max_seq_num = -1
         for transaction in transactions:
@@ -283,6 +284,7 @@ def parser(logfile: str):
             
             if "rollback" in transaction and transaction["rollback"]:
                 rollback_ids.add(transaction["seqNum"])
+                rollback_coin_ids.add(transaction["coin"])
             
             tx_starts.add_event(transaction["round"], test_index)
             if transaction["honest"]:
@@ -294,10 +296,13 @@ def parser(logfile: str):
                 }
             )
         
+        lost_coins = set()
         if "lostCoins" in test:
-            for _ in test["lostCoins"]:
+            for c in test["lostCoins"]:
+                lost_coins.add(c)
                 coins_lost.add_event(test["roundInfo"]["byzantineRound"], test_index)
         
+        rollback_validation_count = 0
         for validation in validations:
             if proposals[validation["seqNum"]]["validators_still_needed"] > 0:
                 proposals[validation["seqNum"]]["validators_still_needed"] -= 1
@@ -306,7 +311,12 @@ def parser(logfile: str):
                     proposals[validation["seqNum"]]["roundConfirmed"] = validation["round"]
                     if validation["seqNum"] in rollback_ids:
                         coins_lost.add_event(validation["round"], test_index, -1)
+                        rollback_validation_count += 1
         
+        print("there are", len(lost_coins), "lost coins")
+        print("there are", len(rollback_ids), "rollback transactions")
+        print("there are", rollback_validation_count, "rollback validations")
+        print("lost with no rollback attempts:", [x for x in lost_coins if x not in rollback_coin_ids])
 
         if "corruptWallets" in test:
             for _ in test["corruptWallets"]:
@@ -383,10 +393,10 @@ def make_timing_diagrams(data, logfile):
     # )
 
     # normalized:
-    plotMOT(data["local_messages"], data["all_messages"], f"log normalized_{Path(logfile).stem}_msgs_{GRAPH_TIMESTAMPS}.png", True)
+    plotMOT(data["local_messages"], data["all_messages"], f"log {Path(logfile).stem}_msgs_normalized_{GRAPH_TIMESTAMPS}.png", True)
     plotCOT(
         data["corrupt_wallets"],
-        f"log normalized_{Path(logfile).stem}_wlt_{GRAPH_TIMESTAMPS}.png",
+        f"log {Path(logfile).stem}_wlt_normalized_{GRAPH_TIMESTAMPS}.png",
         "no validators" if "NoBFT" in str(logfile) else "validators",  # "temporary" hack
         True
     )
@@ -403,3 +413,4 @@ if __name__ == "__main__":
     make_timing_diagrams(output, EYEWITNESS_PATH / "LargerNoBFTLog.json")
     output = parser(EYEWITNESS_PATH/"LargerRollbackLog.json")
     make_timing_diagrams(output, EYEWITNESS_PATH / "LargerRollbackLog.json")
+
