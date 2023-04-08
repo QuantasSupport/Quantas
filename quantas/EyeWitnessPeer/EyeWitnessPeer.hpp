@@ -346,6 +346,8 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     }
     if (parameters.contains("attemptRollback")) {
         attemptRollback = parameters["attemptRollback"];
+    } else {
+        attemptRollback = false;
     }
 
     LogWriter::getTestLog()["roundInfo"]["roundCount"] = getLastRound() + 1;
@@ -674,7 +676,7 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
 
     if (heldWallets[0].storedBy.leader == id()) {
         if (byzantineRound != -1 && getRound() == byzantineRound + 1 &&
-            !corrupt) {
+            !corrupt && attemptRollback) {
             initiateRollbacks();
         }
         // assuming non-overlapping neighborhoods, so if we're the leader in one
