@@ -42,7 +42,7 @@ class EventTimelineMuxer:
         self.timelines = defaultdict(lambda: defaultdict(lambda: 0))
         self.normalization_factor = normalization_factor
         self.events_by_round_cache = None
-    
+
     def add_event(self, time: int, timeline_id: int=0, num_times: int=1) -> None:
         """
         time: integer timestamp between lowest and highest timestamps
@@ -53,7 +53,7 @@ class EventTimelineMuxer:
         self.timelines[timeline_id][time] += num_times
         if num_times == 0:
             print("well that was a waste of time")
-    
+
     def get_cumulative_timelines(self) -> dict[int, Timeline]:
         """
         Crunches the numbers for the data passed to `add_event` so far. Returns
@@ -164,7 +164,7 @@ def plotFT():
     tx_starts = {}
     tx_completes = {}
     for i in range(1,NUM_FT):
-        output = parser(EYEWITNESS_PATH / f"FT{i}Log.json")
+        output = parser(EYEWITNESS_PATH / f"FTLog{i}.json")
 
         local_messages_avg_tl = output["local_messages"].get_average_cumulative_timeline()
         local_messages[i] = local_messages_avg_tl[output["local_messages"].max - 1] / NUM_PEERS / NUM_ROUNDS
@@ -190,7 +190,7 @@ def plotFT():
     plt.clf()
 
     plt.title("Transactions wrt F")
-    
+
     plt.plot(tx_starts.keys(), tx_starts.values(),
              color="blue", label="Transactions started")
     plt.plot(tx_completes.keys(), tx_completes.values(),
@@ -211,7 +211,7 @@ def plot_malicious_effects(outfile: str, normalize: bool=False):
         bft_output = parser(EYEWITNESS_PATH / F"ML{i}ValidatedLog.json")
         avg_corrupt_bft = bft_output["corrupt_wallets"].get_average_cumulative_timeline(normalize)
         corrupt_at_end_bft[i] = avg_corrupt_bft[bft_output["corrupt_wallets"].max-1]
-    
+
     plt.title("Corrupt Wallets Due to # Malicious Neighborhoods")
     fig, ax = plt.subplots()
     bar_width = 0.35
@@ -245,7 +245,7 @@ def parser(logfile: str):
 
     with open(logfile) as logfileobj:
         log = json.load(logfileobj)
-    
+
     num_rounds = log["tests"][0]["roundInfo"]["roundCount"]
     num_peers = log["tests"][0]["peerInfo"]["peerCount"]
     num_wallets = log["tests"][0]["walletInfo"]["walletCount"]
@@ -269,7 +269,7 @@ def parser(logfile: str):
     """fraction of validators that need to confirm a transaction for it to be marked
     as completed"""
 
-    
+
     for test_index, test in enumerate(log["tests"]):
         transactions = test["transactions"]
         validations = test["validations"]
@@ -281,27 +281,27 @@ def parser(logfile: str):
         for transaction in transactions:
             if (transaction["seqNum"] > max_seq_num):
                 max_seq_num = transaction["seqNum"]
-            
+
             if "rollback" in transaction and transaction["rollback"]:
                 rollback_ids.add(transaction["seqNum"])
                 rollback_coin_ids.add(transaction["coin"])
-            
+
             tx_starts.add_event(transaction["round"], test_index)
             if transaction["honest"]:
                 honest_tx_starts.add_event(transaction["round"], test_index)
             proposals[transaction["seqNum"]] = (
                 {
                     "validators_still_needed": tolerance_fraction*transaction["validatorCount"],
-                    **transaction                
+                    **transaction
                 }
             )
-        
+
         lost_coins = set()
         if "lostCoins" in test:
             for c in test["lostCoins"]:
                 lost_coins.add(c)
                 coins_lost.add_event(test["roundInfo"]["byzantineRound"], test_index)
-        
+
         rollback_validation_count = 0
         for validation in validations:
             if proposals[validation["seqNum"]]["validators_still_needed"] > 0:
@@ -312,16 +312,16 @@ def parser(logfile: str):
                     if validation["seqNum"] in rollback_ids:
                         coins_lost.add_event(validation["round"], test_index, -1)
                         rollback_validation_count += 1
-        
-        print("there are", len(lost_coins), "lost coins")
-        print("there are", len(rollback_ids), "rollback transactions")
-        print("there are", rollback_validation_count, "rollback validations")
-        print("lost with no rollback attempts:", [x for x in lost_coins if x not in rollback_coin_ids])
+
+        # print("there are", len(lost_coins), "lost coins")
+        # print("there are", len(rollback_ids), "rollback transactions")
+        # print("there are", rollback_validation_count, "rollback validations")
+        # print("lost with no rollback attempts:", [x for x in lost_coins if x not in rollback_coin_ids])
 
         if "corruptWallets" in test:
             for _ in test["corruptWallets"]:
                 corrupt_wallets.add_event(test["roundInfo"]["byzantineRound"], test_index)
-            
+
             """
             Graphing the number of corrupt wallets:
             A wallet is defined to be corrupt if any of the following are true:
@@ -370,7 +370,7 @@ def parser(logfile: str):
             all_messages.add_event(message["round"], test_index, message["batchSize"])
             if message["transactionType"] == "local":
                 local_messages.add_event(message["round"], test_index, message["batchSize"])
-        
+
     output = {}
     output["tx_starts"] = tx_starts
     output["honest_tx_starts"] = honest_tx_starts
@@ -381,36 +381,28 @@ def parser(logfile: str):
     output["coins_lost"] = coins_lost
     return output
 
-def make_timing_diagrams(data, logfile):
+def make_timing_diagrams(logfile):
+    output = parser(logfile)
     # non-normalized:
-    plotTOT(data["tx_starts"], data["honest_tx_starts"], data["tx_completes"], f"log {Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png")
+    plotTOT(output["tx_starts"], output["honest_tx_starts"], output["tx_completes"], f"log {Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png")
     plot_coins_lost(output["coins_lost"], f"log {Path(logfile).stem}_coins_lost_{GRAPH_TIMESTAMPS}.png")
-    # plotMOT(data["local_messages"], data["all_messages"], f"{Path(logfile).stem}_msgs_{GRAPH_TIMESTAMPS}.png")
-    # plotCOT(
-    #     data["corrupt_wallets"],
-    #     f"{Path(logfile).stem}_wlt_{GRAPH_TIMESTAMPS}.png",
-    #     "no validators" if "NoBFT" in str(logfile) else "validators"  # "temporary" hack
-    # )
 
     # normalized:
-    plotMOT(data["local_messages"], data["all_messages"], f"log {Path(logfile).stem}_msgs_normalized_{GRAPH_TIMESTAMPS}.png", True)
+    plotMOT(output["local_messages"], output["all_messages"], f"log {Path(logfile).stem}_msgs_normalized_{GRAPH_TIMESTAMPS}.png", True)
     plotCOT(
-        data["corrupt_wallets"],
+        output["corrupt_wallets"],
         f"log {Path(logfile).stem}_wlt_normalized_{GRAPH_TIMESTAMPS}.png",
         "no validators" if "NoBFT" in str(logfile) else "validators",  # "temporary" hack
         True
     )
 
 if __name__ == "__main__":
+    # make_timing_diagrams(EYEWITNESS_PATH / "FastLog.json")
+    make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
+    make_timing_diagrams(EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    make_timing_diagrams(EYEWITNESS_PATH / "LargerRollbackLog.json")
+
     # plotFT()
+
     # plot_malicious_effects(f"graph_maliciousness_{GRAPH_TIMESTAMPS}.png")
     # plot_malicious_effects(f"normalized_graph_maliciousness_{GRAPH_TIMESTAMPS}.png", True)
-    # output = parser(EYEWITNESS_PATH / "FastLog.json")
-    # make_timing_diagrams(output, EYEWITNESS_PATH / "FastLog.json")
-    output = parser(EYEWITNESS_PATH / "LargerLog.json")
-    make_timing_diagrams(output, EYEWITNESS_PATH / "LargerLog.json")
-    output = parser(EYEWITNESS_PATH / "LargerNoBFTLog.json")
-    make_timing_diagrams(output, EYEWITNESS_PATH / "LargerNoBFTLog.json")
-    output = parser(EYEWITNESS_PATH/"LargerRollbackLog.json")
-    make_timing_diagrams(output, EYEWITNESS_PATH / "LargerRollbackLog.json")
-
