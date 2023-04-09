@@ -52,7 +52,7 @@ namespace quantas{
         Distribution                        _distribution;
         ostream                             *_log;
 
-        void                                addEdges            (Peer<type_msg>*);
+        void                                addEdges            (Peer<type_msg>*, int, int);
         peer_type*							getPeerById			(string);
 
     public:
@@ -149,14 +149,20 @@ namespace quantas{
 	}
 
 	template<class type_msg, class peer_type>
-	void Network<type_msg, peer_type>::addEdges(Peer<type_msg>* peer) {
+	void Network<type_msg, peer_type>::addEdges(Peer<type_msg>* peer, int maxMsgsRec, int lastRound) {
 		for (int i = 0; i < _peers.size() - 1; i++) {
 			int delay = _distribution.getDelay();
             
-			
+			// determine max total throughput
+            int maxThroughputEver = maxMsgsRec*(lastRound+1);
+            if (maxThroughputEver / (lastRound+1) != maxMsgsRec) {
+                // overflow handling (maxMsgsRec could already be INT_MAX)
+                maxThroughputEver = INT_MAX;
+            }
+
             // Both directions have the same delay
-			peer->addChannel(*_peers[i], delay);
-			_peers[i]->addChannel(*peer, delay);
+			peer->addChannel(*_peers[i], delay, maxThroughputEver);
+			_peers[i]->addChannel(*peer, delay, maxThroughputEver);
 		}
 	}
 
@@ -174,7 +180,7 @@ namespace quantas{
 		for (int i = 0; i < topology["totalPeers"]; i++) {
 			_peers.push_back(new peer_type(i));
             _peers[i]->setMaxMsgsRec(maxMsgsRec);
-			addEdges(_peers[i]);
+			addEdges(_peers[i], maxMsgsRec, lastRound);
 		}
         if (topology["identifiers"] == "random") {
             // randomly shuffle nodes prior to setting up topology

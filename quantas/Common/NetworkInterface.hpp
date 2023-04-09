@@ -94,6 +94,11 @@ namespace quantas{
         interfaceId                                     _id;
         map<interfaceId,aChannel>                       _inBoundChannels; // channels from all other interfaces into this interface
         map<interfaceId,int>                            _outBoundChannelDelays; // list of channels delays by there target interface id
+        // starts at the number of messages a channel could theoretically
+        // process per simulation (e.g. 200 for 100 rounds and max 2 delivered
+        // per round); is decremented as messages are delivered. used to prevent
+        // undeliverable messages from building up in memory
+        map<interfaceId,int>                            _outBoundChannelThroughputLeft;
         map<interfaceId, NetworkInterface<message>* >   _outBoundChannels; // list of all other interfaces in the network (weather they are a neighbor or not) use send to send them a message
         deque<Packet<message> >                         _inStream; // messages that have arrived at this peer
         deque<Packet<message> >                         _outStream; // messages waiting to be sent by this peer
@@ -139,7 +144,7 @@ namespace quantas{
 
         // mutators
         void                               removeChannel         (const NetworkInterface &neighbor)         {_outBoundChannels.erase(neighbor);};
-        void                               addChannel            (NetworkInterface &newNeighbor, int delay);
+        void                               addChannel            (NetworkInterface &newNeighbor, int delay, int totalCapcityEver);
         void                               clearMessages         ();
         void                               pushToOutSteam        (Packet<message> outMsg)                   {_outStream.push_back(outMsg);};
         Packet<message>                    popInStream           ();
@@ -287,7 +292,7 @@ namespace quantas{
     }
 
     template <class message>
-    void NetworkInterface<message>::addChannel(NetworkInterface<message> &newNeighbor, int delay){
+    void NetworkInterface<message>::addChannel(NetworkInterface<message> &newNeighbor, int delay, int totalCapcityEver){
         // guard to make sure delay is at least 1, less then 1 will cause errors when calculating delay (division by 0)
         int edgeDelay = delay;
         if(edgeDelay < 1){
@@ -295,6 +300,7 @@ namespace quantas{
         }
         _outBoundChannels[newNeighbor.id()] = &newNeighbor;
         _outBoundChannelDelays[newNeighbor.id()] = edgeDelay;
+        _outBoundChannelThroughputLeft[newNeighbor.id()] = totalCapcityEver;
         _inBoundChannels[newNeighbor.id()] = deque<Packet<message> >();
     }
 
@@ -321,9 +327,12 @@ namespace quantas{
 			}
 			else {
 				interfaceId targetId = outMessage.targetId();
-				int maxDelay = _outBoundChannelDelays.at(targetId);
-				outMessage.setDelay(maxDelay);
-				_outBoundChannels[targetId]->send(outMessage);
+                if (_outBoundChannelThroughputLeft.at(targetId) > 0){
+                    --_outBoundChannelThroughputLeft[targetId];
+                    int maxDelay = _outBoundChannelDelays.at(targetId);
+                    outMessage.setDelay(maxDelay);
+                    _outBoundChannels[targetId]->send(outMessage);
+                }
 			}
 		}
     }
