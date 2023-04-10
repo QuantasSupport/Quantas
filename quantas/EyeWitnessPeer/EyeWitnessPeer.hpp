@@ -266,6 +266,8 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     std::vector<json> transactions;
     std::vector<json> validations;
     std::vector<json> messages;
+    int localMessagesThisRound = 0;
+    int superMessagesThisRound = 0;
 
     // technically not realistic for this to be known to all nodes
     inline static std::atomic<int> previousSequenceNumber = -1;
@@ -606,11 +608,8 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
             while (!r.outboxEmpty()) {
                 EyeWitnessMessage m = r.getMessage();
                 broadcastTo(m, r.getTransaction().sender.storedBy);
-                messages.push_back(
-                    {{"round", getRound()},
-                     {"transactionType", "local"},
-                     {"batchSize", r.getTransaction().sender.storedBy.size()}}
-                );
+                localMessagesThisRound +=
+                    r.getTransaction().sender.storedBy.size();
             }
             ++s;
         }
@@ -644,11 +643,7 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                     m.messageType = "post-commit";
                     m.sequenceNum = seqNum;
                     broadcastTo(m, trans.receiver.storedBy);
-                    messages.push_back(
-                        {{"round", getRound()},
-                         {"transactionType", "non-local"},
-                         {"batchSize", trans.receiver.storedBy.size()}}
-                    );
+                    superMessagesThisRound += trans.receiver.storedBy.size();
                 } else {
                     std::cout << "reached consensus on an unknown coin?\n";
                 }
@@ -665,12 +660,8 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                 EyeWitnessMessage m = r.getMessage();
                 std::vector<Neighborhood> recipients =
                     contacts.at(r.getSequenceNumber()).participants;
-                messages.push_back(
-                    {{"round", getRound()},
-                     {"transactionType", "non-local"},
-                     {"batchSize", contacts.at(r.getSequenceNumber())
-                                       .getValidatorNodeCount()}}
-                );
+                localMessagesThisRound +=
+                    contacts.at(r.getSequenceNumber()).getValidatorNodeCount();
                 for (auto &recipient : recipients) {
                     broadcastTo(m, recipient);
                 }
@@ -707,6 +698,17 @@ template <typename ConsensusRequest>
 void EyeWitnessPeer<ConsensusRequest>::endOfRound(
     const vector<Peer<EyeWitnessMessage> *> &_peers
 ) {
+    messages.push_back(
+        {{"round", getRound()},
+         {"transactionType", "local"},
+         {"batchSize", localMessagesThisRound}}
+    );
+    localMessagesThisRound = 0;
+    messages.push_back(
+        {{"round", getRound()},
+         {"transactionType", "non-local"},
+         {"batchSize", superMessagesThisRound}}
+    );
     const vector<EyeWitnessPeer *> peers =
         reinterpret_cast<vector<EyeWitnessPeer *> const &>(_peers);
     if (lastRound()) {
