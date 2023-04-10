@@ -260,6 +260,9 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     // sequence number
     std::unordered_multiset<int> receivedPostCommits;
 
+    // messages received for a given sequence number before its pre-prepare
+    std::unordered_map<int, std::vector<EyeWitnessMessage>> errantMessages;
+
     // logs that are gathered up and sent to the LogWriter all at once in the
     // last endOfRound(); events aren't sent to the LogWriter directly because
     // that is not thread-safe
@@ -525,6 +528,12 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                             message.sequenceNum, false
                         );
                         request.addToConsensus(message);
+                        if (errantMessages.count(message.sequenceNum) > 0) {
+                            for (const auto &m :
+                                 errantMessages[message.sequenceNum]) {
+                                request.addToConsensus(m);
+                            }
+                        }
                         contacts.insert({message.sequenceNum, newContacts});
                         localRequests.insert(
                             {request.getSequenceNumber(), request}
@@ -537,6 +546,12 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                             message.sequenceNum, false
                         );
                         request.addToConsensus(message);
+                        if (errantMessages.count(message.sequenceNum) > 0) {
+                            for (const auto &m :
+                                 errantMessages[message.sequenceNum]) {
+                                request.addToConsensus(m);
+                            }
+                        }
                         contacts.insert({message.sequenceNum, newContacts});
                         superRequests.insert(
                             {request.getSequenceNumber(), request}
@@ -562,9 +577,7 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                         localReceiver->add(message.trans.coin);
                 }
             } else {
-                // std::cout
-                //     << "received non-pre-prepare, non-post-commit message "
-                //        "about unknown transaction\n";
+                errantMessages[message.sequenceNum].push_back(message);
             }
         }
     }
