@@ -144,7 +144,7 @@ namespace quantas{
 
         // mutators
         void                               removeChannel         (const NetworkInterface &neighbor)         {_outBoundChannels.erase(neighbor);};
-        void                               addChannel            (NetworkInterface &newNeighbor, int delay, int totalCapcityEver);
+        void                               addChannel            (NetworkInterface &newNeighbor, int delay, int totalCapacityEver);
         void                               clearMessages         ();
         void                               pushToOutSteam        (Packet<message> outMsg)                   {_outStream.push_back(outMsg);};
         Packet<message>                    popInStream           ();
@@ -292,7 +292,7 @@ namespace quantas{
     }
 
     template <class message>
-    void NetworkInterface<message>::addChannel(NetworkInterface<message> &newNeighbor, int delay, int totalCapcityEver){
+    void NetworkInterface<message>::addChannel(NetworkInterface<message> &newNeighbor, int delay, int totalCapacityEver){
         // guard to make sure delay is at least 1, less then 1 will cause errors when calculating delay (division by 0)
         int edgeDelay = delay;
         if(edgeDelay < 1){
@@ -300,7 +300,7 @@ namespace quantas{
         }
         _outBoundChannels[newNeighbor.id()] = &newNeighbor;
         _outBoundChannelDelays[newNeighbor.id()] = edgeDelay;
-        _outBoundChannelThroughputLeft[newNeighbor.id()] = totalCapcityEver;
+        _outBoundChannelThroughputLeft[newNeighbor.id()] = totalCapacityEver;
         _inBoundChannels[newNeighbor.id()] = deque<Packet<message> >();
     }
 
@@ -313,7 +313,7 @@ namespace quantas{
     // called on sender
     template <class message>
     void NetworkInterface<message>::transmit(){
-        // send all messages to there destination peer channels  
+        // send all messages to their destination peer channels  
         while(!_outStream.empty()){
 			Packet<message> outMessage = _outStream.front();
 			_outStream.pop_front();
