@@ -19,9 +19,10 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-INPUTFILE := EyeWitnessFTInput.json
+INPUTFILE := EyeWitnessInput.json
 
 ALGFILE := EyeWitnessPeer
+
 # ALGFILE := ExamplePeer
 
 # ALGFILE := BitcoinPeer

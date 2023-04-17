@@ -6,7 +6,8 @@
         "validatorNeighborhoods": 4,
         "neighborhoodSize": 4,
         "walletsPerNeighborhood": 5,
-        "byzantineRound": 10
+        "byzantineRound": 10,
+        "maliciousNeighborhoods": 1
       },
       "logFile": "quantas/EyeWitnessPeer/FastLog.json",
       "distribution": {
@@ -27,9 +28,33 @@
         "validatorNeighborhoods": 4,
         "neighborhoodSize": 7,
         "walletsPerNeighborhood": 10,
-        "byzantineRound": 50
+        "byzantineRound": 50,
+        "maliciousNeighborhoods": 1
       },
       "logFile": "quantas/EyeWitnessPeer/LargerLog.json",
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 203,
+        "totalPeers": 203
+      },
+      "tests": 5,
+      "rounds": 100
+    },
+    {
+      "algorithm": "EyeWitness",
+      "parameters": {
+        "validatorNeighborhoods": 4,
+        "neighborhoodSize": 7,
+        "walletsPerNeighborhood": 10,
+        "byzantineRound": 50,
+        "maliciousNeighborhoods": 1,
+        "attemptRollback": true
+      },
+      "logFile": "quantas/EyeWitnessPeer/LargerRollbackLog.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
