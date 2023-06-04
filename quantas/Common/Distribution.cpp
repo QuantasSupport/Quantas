@@ -24,4 +24,12 @@ int randMod(const int exclusiveMax) {
 }
 
 bool oneInXChance(const int x) { return uniformInt(1, x) == 1; }
+
+bool trueWithProbability(const double p) {
+    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    static thread_local std::mt19937 generator(
+        clock() + _hasher(std::this_thread::get_id())
+    );
+    return distribution(generator) < p;
+}
 } // namespace quantas
