@@ -175,7 +175,9 @@ def plot_througput_vs_committees():
     used_xs, ys = zip(*sorted(zip(used_xs, ys), key=lambda t: t[0]))
     
     plt.title("Throughput Scaling with Number of Committees")
-    plt.plot(used_xs, ys)
+    plt.xlabel("Number of Committees in Network")
+    plt.ylabel("Transactions Processed in 200 Rounds")
+    plt.plot(used_xs, ys, linestyle='--', marker='o')
     plt.savefig(EYEWITNESS_PATH / "throughput_scaling.png")
     plt.clf()
 

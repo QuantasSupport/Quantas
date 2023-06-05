@@ -1,0 +1,67 @@
+{
+    "experiments": [
+        {
+            "algorithm": "EyeWitness",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 1,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 10.0
+            },
+            "logFile": "quantas/EyeWitnessPeer/varyingCommSizesLogs/1PerCommittee.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2000,
+                "totalPeers": 2000
+            },
+            "tests": 10,
+            "rounds": 200
+        },
+        {
+            "algorithm": "EyeWitness",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 200,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 10.0
+            },
+            "logFile": "quantas/EyeWitnessPeer/varyingCommSizesLogs/200PerCommittee.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2000,
+                "totalPeers": 2000
+            },
+            "tests": 10,
+            "rounds": 200
+        },
+        {
+            "algorithm": "EyeWitness",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 400,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 10.0
+            },
+            "logFile": "quantas/EyeWitnessPeer/varyingCommSizesLogs/400PerCommittee.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2000,
+                "totalPeers": 2000
+            },
+            "tests": 10,
+            "rounds": 200
+        }
+    ]
+}
