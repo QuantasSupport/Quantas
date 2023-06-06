@@ -1,15 +1,15 @@
 import json
 
 def getInputWithNumComms(num, commSize = 13):
-    return {
+    return [{
         "algorithm": "EyeWitness",
         "parameters": {
-            "validatorNeighborhoods": 4,
+            "validatorNeighborhoods": 3*F+1,
             "neighborhoodSize": commSize,
             "walletsPerNeighborhood": 10,
             "submitRate": 50.0
         },
-        "logFile": f"quantas/EyeWitnessPeer/varyingCommsLogs/{num}Committees.json",
+        "logFile": f"quantas/EyeWitnessPeer/varyingCommsLogs/F{F}/{num}Committees.json",
         "distribution": {
             "type": "uniform",
             "maxDelay": 1
@@ -21,7 +21,7 @@ def getInputWithNumComms(num, commSize = 13):
         },
         "tests": 10,
         "rounds": 200
-    }
+    } for F in [0, 3, 6]]
 
 def getInputsWithChangingCommSize():
     peers = 2000
@@ -54,5 +54,5 @@ def getInputsWithChangingCommSize():
         )
     return experiments
 
-# print(json.dumps({"experiments": [getInputWithNumComms(n) for n in range(20, 200, 16)]}))
-print(json.dumps({"experiments": getInputsWithChangingCommSize()}))
+print(json.dumps({"experiments": list(sum([getInputWithNumComms(n) for n in range(20, 200, 16)], []))}))
+# print(json.dumps({"experiments": getInputsWithChangingCommSize()}))
