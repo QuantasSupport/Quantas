@@ -19,7 +19,7 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-INPUTFILE := VaryingCommCountInput.json
+INPUTFILE := VaryingCommSizesInput.json
 
 ALGFILE := EyeWitnessPeer
 

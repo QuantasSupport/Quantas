@@ -54,5 +54,5 @@ def getInputsWithChangingCommSize():
         )
     return experiments
 
-print(json.dumps({"experiments": list(sum([getInputWithNumComms(n) for n in range(20, 200, 16)], []))}))
-# print(json.dumps({"experiments": getInputsWithChangingCommSize()}))
+# print(json.dumps({"experiments": list(sum([getInputWithNumComms(n) for n in range(20, 200, 16)], []))}))
+print(json.dumps({"experiments": getInputsWithChangingCommSize()}))
