@@ -45,6 +45,10 @@ namespace quantas{
     // returns true with odds of 1 in x (e.g. 1 in 100)
     bool oneInXChance(const int x);
 
+    // returns true with probability p (e.g. if p==0.5 it will return true half
+    // of the time)
+    bool trueWithProbability(const double p);
+
     static const string                POISSON = "POISSON";
     static const string                UNIFORM = "UNIFORM";
     static const string                ONE     = "ONE";

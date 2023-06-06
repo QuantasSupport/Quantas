@@ -281,7 +281,8 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     inline static int neighborhoodCount = -1;
     inline static int validatorNeighborhoods = -1;
     inline static int byzantineRound = -1;
-    inline static int submitRate = 10;
+    // average number of transactions to create per round
+    inline static double submitRate = 1.0;
     inline static int maliciousNeighborhoods = 0;
     inline static bool attemptRollback = false;
 
@@ -691,9 +692,14 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
         // assuming non-overlapping neighborhoods, so if we're the leader in one
         // wallet stored by our neighborhood we're a leader in every wallet
         // stored by our neighborhood
-        if ((oneInXChance(submitRate) || corrupt)) {
-            // corrupt nodes always go for out-of-neighborhood transactions
-            initiateTransaction(!(corrupt || oneInXChance(4)));
+
+        double p = submitRate / neighborhoods.size();
+        while (p > 0) {
+            if (trueWithProbability(p - (int)p) || corrupt) {
+                // corrupt nodes always go for out-of-neighborhood transactions
+                initiateTransaction(!(corrupt || oneInXChance(4)));
+            }
+            p -= 1;
         }
     }
 }

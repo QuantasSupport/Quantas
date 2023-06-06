@@ -52,7 +52,7 @@ class EventTimelineMuxer:
         self.events_by_round_cache = None
         self.timelines[timeline_id][time] += num_times
         if num_times == 0:
-            print("well that was a waste of time")
+            pass  # this is weird though right
 
     def get_cumulative_timelines(self) -> dict[int, Timeline]:
         """
@@ -154,8 +154,36 @@ def plot_coins_lost(lost_coins: EventTimelineMuxer, outfile: str):
     plt.show()
     plt.clf()
 
+
+def plot_througput_vs_committees():
+    log_path = EYEWITNESS_PATH / "varyingCommsLogs"
+    log_files = list(log_path.glob("*.json"))
+    xs = [int(x.name[0:x.name.index("C")]) for x in log_files]
+    used_xs = []
+    ys = []
+
+    for i, log in enumerate(log_files):
+        try:
+            ys.append(max(parser(log)["tx_completes"].get_average_cumulative_timeline().values()))
+            used_xs.append(xs[i])
+            print("read", log)
+        except json.decoder.JSONDecodeError:
+            # this error is Probably for an empty file while the program is running
+            print("could not read", log)
+
+    # sort both arrays based on x values
+    used_xs, ys = zip(*sorted(zip(used_xs, ys), key=lambda t: t[0]))
+    
+    plt.title("Throughput Scaling with Number of Committees")
+    plt.xlabel("Number of Committees in Network")
+    plt.ylabel("Transactions Processed in 200 Rounds")
+    plt.plot(used_xs, ys, linestyle='--', marker='o')
+    plt.savefig(EYEWITNESS_PATH / "throughput_scaling.png")
+    plt.clf()
+
+
 def plotFT():
-    NUM_FT = 10
+    NUM_FT = 5
     NUM_SHARDS = 29
     NUM_PEERS = 203
     NUM_ROUNDS = 100
@@ -163,7 +191,7 @@ def plotFT():
     all_messages = {}
     tx_starts = {}
     tx_completes = {}
-    for i in range(1,NUM_FT):
+    for i in range(1,NUM_FT+1):
         output = parser(EYEWITNESS_PATH / f"FTLog{i}.json")
 
         local_messages_avg_tl = output["local_messages"].get_average_cumulative_timeline()
@@ -241,7 +269,7 @@ def plot_malicious_effects(outfile: str, normalize: bool=False):
     plt.show()
     plt.clf()
 
-def parser(logfile: str):
+def parser(logfile: str) -> dict[str, EventTimelineMuxer]:
 
     with open(logfile) as logfileobj:
         log = json.load(logfileobj)
@@ -398,11 +426,13 @@ def make_timing_diagrams(logfile):
 
 if __name__ == "__main__":
     # make_timing_diagrams(EYEWITNESS_PATH / "FastLog.json")
-    make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
-    make_timing_diagrams(EYEWITNESS_PATH / "LargerNoBFTLog.json")
-    make_timing_diagrams(EYEWITNESS_PATH / "LargerRollbackLog.json")
+    # make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
+    # make_timing_diagrams(EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    # make_timing_diagrams(EYEWITNESS_PATH / "LargerRollbackLog.json")
 
     # plotFT()
 
     # plot_malicious_effects(f"graph_maliciousness_{GRAPH_TIMESTAMPS}.png")
     # plot_malicious_effects(f"normalized_graph_maliciousness_{GRAPH_TIMESTAMPS}.png", True)
+
+    plot_througput_vs_committees()
