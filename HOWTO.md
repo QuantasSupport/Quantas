@@ -171,7 +171,7 @@ QUANTAS is not yet aware that the new algorithm is available. One must add it to
 
 ## Step 4: Set up and run an experiment
 
-QUANTAS experiements are planned through a simple json file. For this experiment, we want to run the ``changroberts`` algorithm 10 times, lasting each 15 rounds. The network topology will be a ring of 10 nodes. With these parameters, the ``ChangRobertsInput.json`` file should look as follows:
+QUANTAS experiments are planned through a simple JSON file. For this experiment, we want to run the ``changroberts`` algorithm 10 times, lasting each 15 rounds. The network topology will be a ring of 10 nodes. With these parameters, the ``ChangRobertsInput.json`` file should look as follows:
 
 	{
 	  "experiments": [
@@ -232,13 +232,13 @@ The file ``ChangRoberts.txt`` was created in the current directory, and contains
 
 When simulating to obtain quantitative results, it is often necessary to instrument the code (that is, to output specific variable values at some point in the simulation). Here, we wish to know how long it takes to elect a leader, and how many messages in total are exchanged in each round. Instrumentation in Quantas is done using the ``LogWriter`` class that acts as a JSON dictionary.
 
-For example, to retain how many round were necessary to elect a leader in each test, one can simply write:
+For example, to retain how many rounds were necessary to elect a leader in each test, one can simply write:
 
 	LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
 
 after realizing that a leader was elected (when the received ID is the same as our own).
 
-To collect metric that are related to all peers at every round, one can find the ``endOfRound()`` method handy. For our example, we want to collect all messages sent since the begining of the test once the leader is elected. For this purpose, we add a ``messages_sent`` instance variable to each peer that maintains the number of sent messages, and a ``first_elected`` instance variable to each peer that is set to ``true`` the first time a peer is elected the leader.
+To collect metrics that are related to all peers at every round, one can find the ``endOfRound()`` method handy. For our example, we want to collect all messages sent since the beginning of the test once the leader is elected. For this purpose, we add a ``messages_sent`` instance variable to each peer that maintains the number of sent messages, and a ``first_elected`` instance variable to each peer that is set to ``true`` the first time a peer is elected the leader.
 
 	class ChangRobertsPeer : public Peer<ChangRobertsMessage>{
 		...
@@ -247,7 +247,7 @@ To collect metric that are related to all peers at every round, one can find the
 			long messages_sent;
 	};
 
-This ``messages_sent`` is  initialized to zero, and the ``first_elected`` is initialized to ``false``.
+This ``messages_sent`` is initialized to zero, and the ``first_elected`` is initialized to ``false``.
 
 	ChangRobertsPeer::ChangRobertsPeer(const ChangRobertsPeer& rhs) : Peer<ChangRobertsMessage>(rhs),
 		messages_sent(0), first_elected(false) {
@@ -306,7 +306,7 @@ Then, at the end of each round, we check whether a leader has been elected in th
 		}
 	}
 
-Now that the algorithm is instrumented, we run the simulation again (on a unix-like system):
+Now that the algorithm is instrumented, we run the simulation again (on a Unix-like system):
 
 	make prod
 	make run
