@@ -8,7 +8,7 @@ The Chang and Roberts leader election algorithm runs on a ring shaped networks w
 
 	Initially:
 		Send my ID to whatever neighbor
-		
+
 	Upon receipt of message M from neighbor N:
 		If M.ID = ID Then
 			I am the leader
@@ -21,25 +21,25 @@ The new algorithm has no local variables, and the content of every message is a 
 
 	#ifndef ChangRobertsPeer_hpp
 	#define ChangRobertsPeer_hpp
-	
+
 	#include "Common/Peer.hpp"
 
 	namespace quantas{
 
-	    using std::string; 
+	    using std::string;
 	    using std::ostream;
-	
+
 	    // message body type : ID of a process
-	    struct ChangRobertsMessage{        
+	    struct ChangRobertsMessage{
 	        long aPeerId;
 	    };
-	
+
 	    class ChangRobertsPeer : public Peer<ChangRobertsMessage>{
 	    public:
 	        ChangRobertsPeer                             (long);
 	        ChangRobertsPeer                             (const ChangRobertsPeer &rhs);
 	        ~ChangRobertsPeer                            ();
-	
+
 	        void                 performComputation ();
 	        void                 endOfRound         (const vector<Peer<ChangRobertsMessage>*>& _peers);
 	        void                 log()const { printTo(*_log); };
@@ -53,34 +53,34 @@ Similarly, from the ``ExamplePeer.cpp``, we create the following ``ChangRobertsP
 
 	#include <iostream>
 	#include "ChangRobertsPeer.hpp"
-	
+
 	namespace quantas {
-	
+
 		ChangRobertsPeer::~ChangRobertsPeer() {
 		}
-	
+
 		ChangRobertsPeer::ChangRobertsPeer(const ChangRobertsPeer& rhs) : Peer<ChangRobertsMessage>(rhs) {
 		}
-	
+
 		ChangRobertsPeer::ChangRobertsPeer(long id) : Peer(id) {
 		}
-	
+
 		void ChangRobertsPeer::performComputation() {
 		}
-	
+
 		void ChangRobertsPeer::endOfRound(const vector<Peer<ChangRobertsMessage>*>& _peers) {
 			cout << "End of round " << getRound() << endl;
 		}
-	
+
 		ostream& ChangRobertsPeer::printTo(ostream& out)const {
 			Peer<ChangRobertsMessage>::printTo(out);
-	
+
 			out << id() << endl;
 			out << "counter:" << getRound() << endl;
-	
+
 			return out;
 		}
-	
+
 		ostream& operator<< (ostream& out, const ChangRobertsPeer& peer) {
 			peer.printTo(out);
 			return out;
@@ -123,7 +123,7 @@ The regular part of the algorithm can be implemented using the ``inStreamEmpty()
 				msg.aPeerId = rid;
 				broadcastBut(msg,sid);
 			}
-		}	
+		}
 	}
 
 ### A complete ``performComputation()`` method
@@ -149,7 +149,7 @@ The complete code for the ``performComputation()``method should look as follows:
 					msg.aPeerId = rid;
 					broadcastBut(msg,sid);
 				}
-			}	
+			}
 		}
 	}
 
@@ -157,13 +157,13 @@ The complete code for the ``performComputation()``method should look as follows:
 
 QUANTAS is not yet aware that the new algorithm is available. One must add it to the ``main.cpp`` file as follows:
 
-- at the end of the includes, add: 
+- at the end of the includes, add:
 
 		#ifdef CHANGROBERTS_PEER
 		#include "ChangRobertsPeer.hpp"
 		#endif
 
-- at the end of the elifs, add: 
+- at the end of the elifs, add:
 
 		#elif CHANGROBERTS_PEER
 		Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer> sim;
@@ -208,7 +208,7 @@ If there are no errors, we can run the experiment:
 	make run
 
 This particular execution should output:
- 
+
 	Realizing 9 is the leader
 	Realizing 9 is the leader
 	Realizing 9 is the leader
@@ -221,22 +221,22 @@ This particular execution should output:
 	Realizing 9 is the leader
 
 So, 10 tests were done and the peer with ID = 9 was elected in all of them, as expected.
- 
+
 The file ``ChangRoberts.txt`` was created in the current directory, and contains (actual numbers may vary depending the running machine) only basic statistics:
- 
+
 	{
 		"RunTime": 0.010874242,
 	}
 
 ## Step 5: Instrumenting the simulation
 
-When simulating to obtain quantitative results, it is often necessary to instrument the code (that is, to output specific variable values at some point in the simulation). Here, we wish to know how long it takes to elect a leader, and how many messages in total are exchanged in each round. Instrumentation in Quantas is done using the ``LogWriter`` class that acts as a JSON dictionary. 
+When simulating to obtain quantitative results, it is often necessary to instrument the code (that is, to output specific variable values at some point in the simulation). Here, we wish to know how long it takes to elect a leader, and how many messages in total are exchanged in each round. Instrumentation in Quantas is done using the ``LogWriter`` class that acts as a JSON dictionary.
 
 For example, to retain how many round were necessary to elect a leader in each test, one can simply write:
 
 	LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
 
-after realizing that a leader was elected (when the received ID is the same as our own). 
+after realizing that a leader was elected (when the received ID is the same as our own).
 
 To collect metric that are related to all peers at every round, one can find the ``endOfRound()`` method handy. For our example, we want to collect all messages sent since the begining of the test once the leader is elected. For this purpose, we add a ``messages_sent`` instance variable to each peer that maintains the number of sent messages, and a ``first_elected`` instance variable to each peer that is set to ``true`` the first time a peer is elected the leader.
 
@@ -246,8 +246,8 @@ To collect metric that are related to all peers at every round, one can find the
 			bool first_elected;
 			long messages_sent;
 	};
-    
-This ``messages_sent`` is  initialized to zero, and the ``first_elected`` is initialized to ``false``. 
+
+This ``messages_sent`` is  initialized to zero, and the ``first_elected`` is initialized to ``false``.
 
 	ChangRobertsPeer::ChangRobertsPeer(const ChangRobertsPeer& rhs) : Peer<ChangRobertsMessage>(rhs),
 		messages_sent(0), first_elected(false) {
@@ -281,7 +281,7 @@ Whenever we call ``unicast()`` or ``broadcastBut()``, we increment the ``message
 					broadcastBut(msg,sid);
 					++messages_sent;
 				}
-			}	
+			}
 		}
 	}
 
@@ -312,7 +312,7 @@ Now that the algorithm is instrumented, we run the simulation again (on a unix-l
 	make run
 
 The file ``ChangRoberts.txt`` now contains more detailed statistics:
- 
+
 	{
 	"RunTime": 0.018834804,
 	"tests": [
