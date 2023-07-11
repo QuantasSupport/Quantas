@@ -155,7 +155,7 @@ def plot_coins_lost(lost_coins: EventTimelineMuxer, outfile: str):
     plt.clf()
 
 
-def plot_througput_vs_committees():
+def plot_throughput_vs_committees():
     for F in range(0, 3):
         log_path = EYEWITNESS_PATH / "varyingCommsLogs" / f"F{F}"
         log_files = list(log_path.glob("*.json"))
@@ -175,12 +175,39 @@ def plot_througput_vs_committees():
         # sort both arrays based on x values
         used_xs, ys = zip(*sorted(zip(used_xs, ys), key=lambda t: t[0]))
         plt.plot([x*13 for x in used_xs], [y/200 for y in ys], linestyle='--', marker='o', label=f"F{F}")
-    
+
     plt.title("Throughput Scaling with Number of Committees")
     plt.xlabel("Number of Peers in the Network")
     plt.ylabel("Transaction Rate Per Round")
     plt.legend(loc="best")
     plt.savefig(EYEWITNESS_PATH / "throughput_scaling.png")
+    plt.clf()
+
+
+def plot_throughput_vs_committee_size():
+    log_path = EYEWITNESS_PATH / "varyingCommSizesLogs"
+    log_files = list(log_path.glob("*.json"))
+    xs = [int(x.name[0:x.name.index("P")]) for x in log_files]
+    used_xs = []
+    ys = []
+
+    for i, log in enumerate(log_files):
+        try:
+            ys.append(max(parser(log)["tx_completes"].get_average_cumulative_timeline().values()))
+            used_xs.append(xs[i])
+            print("read", log)
+        except json.decoder.JSONDecodeError:
+            # this error is Probably for an empty file while the program is running
+            print("could not read", log)
+
+    # sort both arrays based on x values
+    used_xs, ys = zip(*sorted(zip(used_xs, ys), key=lambda t: t[0]))
+    
+    plt.title("Throughput vs Committee Size")
+    plt.xlabel("Committee Size With 2000 Peers")
+    plt.ylabel("Transactions Processed in 200 Rounds")
+    plt.plot(used_xs, ys, linestyle='--', marker='o')
+    plt.savefig(EYEWITNESS_PATH / "throughput_comm_size.png")
     plt.clf()
 
 
@@ -437,4 +464,5 @@ if __name__ == "__main__":
     # plot_malicious_effects(f"graph_maliciousness_{GRAPH_TIMESTAMPS}.png")
     # plot_malicious_effects(f"normalized_graph_maliciousness_{GRAPH_TIMESTAMPS}.png", True)
 
-    plot_througput_vs_committees()
+    # plot_throughput_vs_committees()
+    plot_throughput_vs_committee_size()
