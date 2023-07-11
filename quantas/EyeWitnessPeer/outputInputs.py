@@ -17,11 +17,12 @@ def getInputWithNumComms(num, commSize = 13):
         "topology": {
             "type": "complete",
             "initialPeers": num*commSize,
-            "totalPeers": num*commSize
+            "totalPeers": num*commSize,
+            "maxMsgsRec": 1
         },
-        "tests": 10,
+        "tests": 5,
         "rounds": 200
-    } for F in [0, 3, 6]]
+    } for F in [0, 1, 2]]
 
 def getInputsWithChangingCommSize():
     peers = 2000
