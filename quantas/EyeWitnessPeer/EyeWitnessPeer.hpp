@@ -689,18 +689,24 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
             !corrupt && attemptRollback) {
             initiateRollbacks();
         }
+
         // assuming non-overlapping neighborhoods, so if we're the leader in one
         // wallet stored by our neighborhood we're a leader in every wallet
         // stored by our neighborhood
 
-        double p = submitRate / neighborhoods.size();
-        while (p > 0) {
-            if (trueWithProbability(p - (int)p) || corrupt) {
-                // corrupt nodes always go for out-of-neighborhood transactions
-                initiateTransaction(!(corrupt || oneInXChance(4)));
-            }
-            p -= 1;
+        if (localRequests.size() + superRequests.size() < 10) {
+            initiateTransaction(!(corrupt || oneInXChance(4)));
         }
+
+        // double p = submitRate / neighborhoods.size();
+        // while (p > 0) {
+        //     if (trueWithProbability(p - (int)p) || corrupt) {
+        //         // corrupt nodes always go for out-of-neighborhood
+        //         transactions initiateTransaction(!(corrupt ||
+        //         oneInXChance(4)));
+        //     }
+        //     p -= 1;
+        // }
     }
 }
 
