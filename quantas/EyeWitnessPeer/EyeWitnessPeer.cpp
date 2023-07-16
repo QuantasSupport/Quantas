@@ -38,7 +38,7 @@ void PBFTRequest::updateConsensus() {
             outbox.push_back(message);
         }
     } else if (status == "prepare") {
-        if (statusCount["prepare"] > (neighborhoodSize * 2 / 3)) {
+        if (statusCount["prepare"] >= 2 * ((neighborhoodSize - 1) / 3)) {
             status = "commit";
             EyeWitnessMessage message;
             message.sequenceNum = sequenceNum;
@@ -48,7 +48,7 @@ void PBFTRequest::updateConsensus() {
             outbox.push_back(message);
         }
     } else if (status == "commit") {
-        if (statusCount["commit"] > (neighborhoodSize * 2 / 3)) {
+        if (statusCount["commit"] >= 2 * ((neighborhoodSize - 1) / 3) + 1) {
             status = "committed";
         }
     }
