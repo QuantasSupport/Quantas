@@ -444,18 +444,18 @@ def make_timing_diagrams(logfile):
     plotTOT(output["tx_starts"], output["honest_tx_starts"], output["tx_completes"], f"log {Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png")
     plot_coins_lost(output["coins_lost"], f"log {Path(logfile).stem}_coins_lost_{GRAPH_TIMESTAMPS}.png")
 
-    # normalized:
-    plotMOT(output["local_messages"], output["all_messages"], f"log {Path(logfile).stem}_msgs_normalized_{GRAPH_TIMESTAMPS}.png", True)
+    normalize = False
+    plotMOT(output["local_messages"], output["all_messages"], f"log {Path(logfile).stem}_msgs_normalized_{GRAPH_TIMESTAMPS}.png", normalize)
     plotCOT(
         output["corrupt_wallets"],
         f"log {Path(logfile).stem}_wlt_normalized_{GRAPH_TIMESTAMPS}.png",
         "no validators" if "NoBFT" in str(logfile) else "validators",  # "temporary" hack
-        True
+        normalize
     )
 
 if __name__ == "__main__":
     # make_timing_diagrams(EYEWITNESS_PATH / "FastLog.json")
-    # make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
+    make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
     # make_timing_diagrams(EYEWITNESS_PATH / "LargerNoBFTLog.json")
     # make_timing_diagrams(EYEWITNESS_PATH / "LargerRollbackLog.json")
 
@@ -465,4 +465,4 @@ if __name__ == "__main__":
     # plot_malicious_effects(f"normalized_graph_maliciousness_{GRAPH_TIMESTAMPS}.png", True)
 
     # plot_throughput_vs_committees()
-    plot_throughput_vs_committee_size()
+    # plot_throughput_vs_committee_size()

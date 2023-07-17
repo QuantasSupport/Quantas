@@ -5,32 +5,9 @@
       "parameters": {
         "validatorNeighborhoods": 4,
         "neighborhoodSize": 4,
-        "walletsPerNeighborhood": 5,
-        "byzantineRound": 10,
-        "maliciousNeighborhoods": 1
+        "walletsPerNeighborhood": 10
       },
-      "logFile": "quantas/EyeWitnessPeer/FastLog.json",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 20,
-        "totalPeers": 20
-      },
-      "tests": 1,
-      "rounds": 50
-    },
-    {
-      "algorithm": "EyeWitness",
-      "parameters": {
-        "validatorNeighborhoods": 4,
-        "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10,
-        "byzantineRound": 50,
-        "maliciousNeighborhoods": 1
-      },
+      "threadCount": 1,
       "logFile": "quantas/EyeWitnessPeer/LargerLog.json",
       "distribution": {
         "type": "uniform",
@@ -38,54 +15,10 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 203,
-        "totalPeers": 203
+        "initialPeers": 32,
+        "totalPeers": 32
       },
-      "tests": 5,
-      "rounds": 100
-    },
-    {
-      "algorithm": "EyeWitness",
-      "parameters": {
-        "validatorNeighborhoods": 4,
-        "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10,
-        "byzantineRound": 50,
-        "maliciousNeighborhoods": 1,
-        "attemptRollback": true
-      },
-      "logFile": "quantas/EyeWitnessPeer/LargerRollbackLog.json",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 203,
-        "totalPeers": 203
-      },
-      "tests": 5,
-      "rounds": 100
-    },
-    {
-      "algorithm": "EyeWitness",
-      "parameters": {
-        "validatorNeighborhoods": 1,
-        "neighborhoodSize": 7,
-        "walletsPerNeighborhood": 10,
-        "byzantineRound": 50
-      },
-      "logFile": "quantas/EyeWitnessPeer/LargerNoBFTLog.json",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 203,
-        "totalPeers": 203
-      },
-      "tests": 5,
+      "tests": 1,
       "rounds": 100
     }
   ]

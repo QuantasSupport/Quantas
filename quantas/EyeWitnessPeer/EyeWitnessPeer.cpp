@@ -25,7 +25,8 @@ void PBFTRequest::updateConsensus() {
         message.sequenceNum = sequenceNum;
         message.messageType = "pre-prepare";
         message.trans = transaction;
-        addToConsensus(message);
+        message.senderID = ownID;
+        addToConsensus(message, ownID);
         outbox.push_back(message);
     } else if (status == "pre-prepare") {
         if (statusCount["pre-prepare"] > 0) {
@@ -34,7 +35,8 @@ void PBFTRequest::updateConsensus() {
             message.sequenceNum = sequenceNum;
             message.messageType = "prepare";
             message.trans = transaction;
-            addToConsensus(message);
+            message.senderID = ownID;
+            addToConsensus(message, ownID);
             outbox.push_back(message);
         }
     }
@@ -45,7 +47,8 @@ void PBFTRequest::updateConsensus() {
             message.sequenceNum = sequenceNum;
             message.messageType = "commit";
             message.trans = transaction;
-            addToConsensus(message);
+            message.senderID = ownID;
+            addToConsensus(message, ownID);
             outbox.push_back(message);
         }
     }
@@ -73,15 +76,21 @@ Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *generateSim() {
 void CrossShardPBFTRequest::addToConsensus(
     EyeWitnessMessage message, int sourceID
 ) {
+    if (individualMessageCounts.count(
+            std::make_pair(message.messageType, sourceID)
+        ) == 0) {
+        individualMessageCounts[std::make_pair(message.messageType, sourceID)] =
+            0;
+    }
     individualMessageCounts[std::make_pair(message.messageType, sourceID)]++;
     int f = (neighborhoodSize - 1) / 3;
     if (message.messageType == "pre-prepare" &&
-        individualMessageCounts[std::make_pair("pre-prepare", sourceID)] >
+        individualMessageCounts[std::make_pair("pre-prepare", sourceID)] >=
             f + 1) {
         ++statusCount["pre-prepare"];
     } else if (
         (message.messageType == "prepare" || message.messageType == "commit") &&
-        individualMessageCounts[std::make_pair(message.messageType, sourceID)] > 2*f+1){
+        individualMessageCounts[std::make_pair(message.messageType, sourceID)] >= 2*f+1){
         ++statusCount[message.messageType];
     }
 }
@@ -290,12 +299,17 @@ void EyeWitnessPeer::performComputation() {
                 continue;
             }
             s->second.addToConsensus(message);
+        } else if ((s = initRequests.find(seqNum)) != initRequests.end()) {
+            if (!validateTransaction(message.trans)) {
+                continue;
+            }
+            s->second.addToConsensus(message);
         } else if ((t = superRequests.find(seqNum)) != superRequests.end()) {
             if (!validateTransaction(message.trans)) {
                 // std::cout << "invalid transaction message ignored\n";
                 continue;
             }
-            s->second.addToConsensus(message, sourceNeighborhood);
+            t->second.addToConsensus(message, sourceNeighborhood);
         } else {
             // message about previously unknown transaction
             if (message.messageType == "pre-prepare") {
@@ -319,28 +333,62 @@ void EyeWitnessPeer::performComputation() {
                                 request.addToConsensus(m);
                             }
                         }
+                        errantMessages.erase(message.sequenceNum);
                         contacts.insert({message.sequenceNum, newContacts});
                         localRequests.insert(
                             {request.getSequenceNumber(), request}
                         );
                     } else {
-                        ConsensusContacts newContacts =
-                            chooseContactsFor(message.trans, false);
-                        CrossShardPBFTRequest request(
-                            message.trans, newContacts.getValidatorNodeCount(),
-                            message.sequenceNum, false
-                        );
-                        request.addToConsensus(message, sourceNeighborhood);
-                        if (errantMessages.count(message.sequenceNum) > 0) {
-                            for (const auto &m :
-                                 errantMessages[message.sequenceNum]) {
-                                request.addToConsensus(m, sourceNeighborhood);
+                        // if you receive a pre-prepare message about a new
+                        // cross-shard transaction and you're outside the source
+                        // shard, you are part of the cross-shard consensus to
+                        // verify the transaction. if you're inside the source
+                        // shard, you must be starting the consensus process to
+                        // determine what the pre-prepare message that everyone
+                        // else gets should be.
+                        if (message.trans.sender.storedBy.memberIDs.count(id()
+                            ) == 0) {
+                            ConsensusContacts newContacts =
+                                chooseContactsFor(message.trans, false);
+                            CrossShardPBFTRequest request(
+                                message.trans, maxNeighborhoodSize,
+                                message.sequenceNum, false,
+                                neighborhoodsForPeers[id()]
+                            );
+                            request.addToConsensus(message, sourceNeighborhood);
+                            if (errantMessages.count(message.sequenceNum) > 0) {
+                                for (const auto &m :
+                                     errantMessages[message.sequenceNum]) {
+                                    request.addToConsensus(
+                                        m, neighborhoodsForPeers[m.senderID]
+                                    );
+                                }
                             }
+                            errantMessages.erase(message.sequenceNum);
+                            contacts.insert({message.sequenceNum, newContacts});
+                            superRequests.insert(
+                                {request.getSequenceNumber(), request}
+                            );
+                        } else {
+                            ConsensusContacts newContacts =
+                                chooseContactsFor(message.trans, true);
+                            PBFTRequest request(
+                                message.trans, maxNeighborhoodSize,
+                                message.sequenceNum, false
+                            );
+                            request.addToConsensus(message, sourceNeighborhood);
+                            if (errantMessages.count(message.sequenceNum) > 0) {
+                                for (const auto &m :
+                                     errantMessages[message.sequenceNum]) {
+                                    request.addToConsensus(m);
+                                }
+                            }
+                            errantMessages.erase(message.sequenceNum);
+                            contacts.insert({message.sequenceNum, newContacts});
+                            initRequests.insert(
+                                {request.getSequenceNumber(), request}
+                            );
                         }
-                        contacts.insert({message.sequenceNum, newContacts});
-                        superRequests.insert(
-                            {request.getSequenceNumber(), request}
-                        );
                     }
                 } else {
                     // std::cout
@@ -372,41 +420,65 @@ void EyeWitnessPeer::performComputation() {
         r.updateConsensus();
         if (r.consensusSucceeded()) {
             OngoingTransaction trans = r.getTransaction();
-            if (trans.receiver.storedBy == trans.sender.storedBy) {
-                // local transaction; commit changes, update wallets
-                // TODO: optimize this search
-                auto localSender = std::find_if(
-                    heldWallets.begin(), heldWallets.end(),
-                    [trans](LocalWallet w) {
-                        return w.address == trans.sender.address;
-                    }
-                );
-                auto localReceiver = std::find_if(
-                    heldWallets.begin(), heldWallets.end(),
-                    [trans](LocalWallet w) {
-                        return w.address == trans.receiver.address;
-                    }
-                );
-                if (localReceiver != heldWallets.end() &&
-                    localSender != heldWallets.end()) {
-                    Coin moving = trans.coin;
-                    moving.history.push_back(trans);
-                    coinDB[moving.id] = localReceiver->add(moving);
-                    localSender->remove(moving);
+            // local transaction; commit changes, update wallets
+            // TODO: optimize this search
+            auto localSender = std::find_if(
+                heldWallets.begin(), heldWallets.end(),
+                [trans](LocalWallet w) {
+                    return w.address == trans.sender.address;
                 }
-                finishedRequests.push_back(r);
-                validations.push_back(
-                    {{"round", getRound()},
-                     {"seqNum", r.getSequenceNumber()},
-                     {"peer", id()}}
-                );
-                s = localRequests.erase(s);
+            );
+            auto localReceiver = std::find_if(
+                heldWallets.begin(), heldWallets.end(),
+                [trans](LocalWallet w) {
+                    return w.address == trans.receiver.address;
+                }
+            );
+            if (localReceiver != heldWallets.end() &&
+                localSender != heldWallets.end()) {
+                Coin moving = trans.coin;
+                moving.history.push_back(trans);
+                coinDB[moving.id] = localReceiver->add(moving);
+                localSender->remove(moving);
             }
+            validations.push_back(
+                {{"round", getRound()},
+                 {"seqNum", r.getSequenceNumber()},
+                 {"peer", id()}}
+            );
+
+            s = localRequests.erase(s);
+            contacts.erase(r.getSequenceNumber());
         } else {
             while (!r.outboxEmpty()) {
                 EyeWitnessMessage m = r.getMessage();
                 broadcastTo(m, r.getTransaction().sender.storedBy);
                 localMessagesThisRound +=
+                    r.getTransaction().sender.storedBy.size();
+            }
+            ++s;
+        }
+    }
+
+    for (auto s = initRequests.begin(); s != initRequests.end();) {
+        PBFTRequest r = s->second;
+        r.updateConsensus();
+        if (r.consensusSucceeded()) {
+            OngoingTransaction trans = r.getTransaction();
+            s = initRequests.erase(s);
+            contacts.erase(r.getSequenceNumber());
+            ConsensusContacts newContacts = chooseContactsFor(trans, false);
+            CrossShardPBFTRequest request(
+                trans, maxNeighborhoodSize, r.getSequenceNumber(), true,
+                neighborhoodsForPeers[id()]
+            );
+            contacts.insert({r.getSequenceNumber(), newContacts});
+            superRequests.insert({request.getSequenceNumber(), request});
+        } else {
+            while (!r.outboxEmpty()) {
+                EyeWitnessMessage m = r.getMessage();
+                broadcastTo(m, r.getTransaction().sender.storedBy);
+                superMessagesThisRound +=
                     r.getTransaction().sender.storedBy.size();
             }
             ++s;
@@ -440,28 +512,33 @@ void EyeWitnessPeer::performComputation() {
                     m.trans = trans;
                     m.messageType = "reply";
                     m.sequenceNum = seqNum;
+                    m.senderID = id();
                     broadcastTo(m, trans.receiver.storedBy);
                     superMessagesThisRound += trans.receiver.storedBy.size();
                 } else {
                     std::cout << "reached consensus on an unknown coin?\n";
                 }
             }
-            finishedRequests.push_back(r);
             validations.push_back(
                 {{"round", getRound()},
                  {"seqNum", r.getSequenceNumber()},
                  {"peer", id()}}
             );
             s = superRequests.erase(s);
+            contacts.erase(r.getSequenceNumber());
         } else {
             while (!r.outboxEmpty()) {
                 EyeWitnessMessage m = r.getMessage();
                 std::vector<Neighborhood> recipients =
                     contacts.at(r.getSequenceNumber()).participants;
-                localMessagesThisRound +=
-                    contacts.at(r.getSequenceNumber()).getValidatorNodeCount();
                 for (auto &recipient : recipients) {
-                    broadcastTo(m, recipient);
+                    if (!(m.messageType == "pre-prepare" &&
+                          recipient.memberIDs.count(id()) > 0)) {
+                        // don't send a pre-prepare message to own shard;
+                        // consensus was reached on it earlier
+                        broadcastTo(m, recipient);
+                        superMessagesThisRound += recipient.size();
+                    }
                 }
             }
             ++s;
@@ -478,7 +555,8 @@ void EyeWitnessPeer::performComputation() {
         // wallet stored by our neighborhood we're a leader in every wallet
         // stored by our neighborhood
 
-        if (localRequests.size() + superRequests.size() < 10) {
+        if (localRequests.size() + superRequests.size() + initRequests.size() <
+            10) {
             initiateTransaction(!(corrupt || oneInXChance(4)));
         }
     }
@@ -503,8 +581,17 @@ void EyeWitnessPeer::endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers
          {"transactionType", "non-local"},
          {"batchSize", superMessagesThisRound}}
     );
+    superMessagesThisRound = 0;
     const vector<EyeWitnessPeer *> peers =
         reinterpret_cast<vector<EyeWitnessPeer *> const &>(_peers);
+    // for (const auto &peer : peers) {
+    //     if (peer->initRequests.size() + peer->localRequests.size() +
+    //             peer->superRequests.size() >=
+    //         10) {
+    //         std::cout << "peer " << peer->id()
+    //                   << " is full of in-progress transactions" << std::endl;
+    //     }
+    // }
     if (lastRound()) {
         LogWriter::getTestLog()["transactions"] = json::array();
         LogWriter::getTestLog()["validations"] = json::array();
@@ -522,6 +609,14 @@ void EyeWitnessPeer::endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers
                 peer->messages.begin(), peer->messages.end(),
                 std::back_inserter(LogWriter::getTestLog()["messages"])
             );
+            for (const auto &t : peer->superRequests) {
+                const int age =
+                    getRound() - t.second.getTransaction().roundSubmitted;
+                if (age > 10) {
+                    std::cout << "tx " << t.second.getSequenceNumber() << " is "
+                              << age << " rounds old" << std::endl;
+                }
+            }
         }
     } else if (byzantineRound == getRound()) {
         std::vector<int> shuffledNBHs(neighborhoods.size());
@@ -600,9 +695,6 @@ void EyeWitnessPeer::initiateRollbacks() {
     std::unordered_set<int> rollingBack;
     for (const auto &w : heldWallets) {
         for (const auto &[cid, c] : w.pastCoins) {
-            if (cid == 1394) {
-                std::cout << "1394 in past coins\n";
-            }
             const auto lastTransaction = c.history.back();
             if (lastTransaction.sender.storedBy.leader == id()) {
                 const auto inWallet = lastTransaction.receiver;
@@ -621,7 +713,8 @@ void EyeWitnessPeer::initiateRollbacks() {
                         c, validatorNeighborhoods, true
                     );
                     CrossShardPBFTRequest request(
-                        t, newContacts.getValidatorNodeCount(), seqNum, true
+                        t, maxNeighborhoodSize, seqNum, true,
+                        neighborhoodsForPeers[id()]
                     );
                     superRequests.insert({seqNum, request});
                     contacts.insert({seqNum, newContacts});
@@ -719,20 +812,12 @@ void EyeWitnessPeer::initiateTransaction(bool withinNeighborhood) {
     OngoingTransaction t = {sender, receiver, c, getRound(), -1};
     int seqNum = ++previousSequenceNumber;
 
-    ConsensusContacts newContacts;
+    ConsensusContacts newContacts(c, 1);
+    PBFTRequest request(t, newContacts.getValidatorNodeCount(), seqNum, true);
     if (withinNeighborhood) {
-        newContacts = ConsensusContacts(c, 1);
-        PBFTRequest request(
-            t, newContacts.getValidatorNodeCount(), seqNum, true
-        );
         localRequests.insert({seqNum, request});
     } else {
-        newContacts = chooseContactsFor(t, false);
-        CrossShardPBFTRequest request(
-            t, newContacts.getValidatorNodeCount(), seqNum, true
-        );
-        superRequests.insert({seqNum, request});
-        contacts.insert({seqNum, newContacts});
+        initRequests.insert({seqNum, request});
     }
 
     transactions.push_back(

@@ -119,6 +119,7 @@ struct EyeWitnessMessage {
     // receiver of a transaction validation
     string messageType = "";
     int sequenceNum;
+    int senderID;
 };
 
 // TODO: this is a mess.
@@ -180,9 +181,12 @@ struct ConsensusContacts {
 
 class PBFTRequest {
   public:
-    PBFTRequest(OngoingTransaction t, int neighbors, int seq, bool amLeader)
+    PBFTRequest(
+        OngoingTransaction t, int neighbors, int seq, bool amLeader,
+        int ownID = -1
+    )
         : transaction(t), neighborhoodSize(neighbors), sequenceNum(seq),
-          leader(amLeader), status("pre-prepare") {}
+          leader(amLeader), ownID(ownID), status("pre-prepare") {}
 
     bool outboxEmpty() { return outbox.size() == 0; }
 
@@ -196,8 +200,8 @@ class PBFTRequest {
     void updateConsensus();
     virtual void addToConsensus(EyeWitnessMessage c, int sourceID = -1);
     bool consensusSucceeded() const;
-    OngoingTransaction getTransaction() { return transaction; }
-    int getSequenceNumber() { return sequenceNum; }
+    OngoingTransaction getTransaction() const { return transaction; }
+    int getSequenceNumber() const { return sequenceNum; }
 
   protected:
     OngoingTransaction transaction;
@@ -207,6 +211,7 @@ class PBFTRequest {
     int sequenceNum;
     string status;
     bool leader;
+    int ownID;
     // Count of the number of times we've seen these messages
     std::map<string, int> statusCount = {
         {"pre-prepare", 0}, {"prepare", 0}, {"commit", 0}};
@@ -215,9 +220,9 @@ class PBFTRequest {
 class CrossShardPBFTRequest : public PBFTRequest {
   public:
     CrossShardPBFTRequest(
-        OngoingTransaction t, int neighbors, int seq, bool amLeader
+        OngoingTransaction t, int neighbors, int seq, bool amLeader, int ownID
     )
-        : PBFTRequest(t, neighbors, seq, amLeader) {}
+        : PBFTRequest(t, neighbors, seq, amLeader, ownID) {}
     void addToConsensus(EyeWitnessMessage c, int sourceID) override;
 
   protected:
@@ -249,8 +254,10 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     ConsensusContacts chooseContactsFor(OngoingTransaction, bool);
 
     std::unordered_map<int, PBFTRequest> localRequests;
+    std::unordered_map<int, PBFTRequest> initRequests;
     std::unordered_map<int, CrossShardPBFTRequest> superRequests;
-    std::vector<PBFTRequest> finishedRequests;
+    // stores sequence numbers
+    std::unordered_set<int> initsFinished;
     // std::multimap<int, PBFTRequest> recievedRequests;
     // TODO: this should also probably be a container with lookup based on id
     // (address)
