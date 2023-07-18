@@ -396,7 +396,9 @@ void EyeWitnessPeer::performComputation() {
                     //     coin\n";
                 }
             } else if (message.messageType == "reply") {
-                // TODO: robustness. should check if coin sender is part of this
+                // TODO: robustness. should check if coin sender is part of
+                // this. should count incoming messages by neighborhood instead
+                // of just checking if there are enough
                 receivedPostCommits.insert(message.sequenceNum);
                 if (receivedPostCommits.count(message.sequenceNum) >
                     2. / 3. * validatorNeighborhoods * maxNeighborhoodSize) {
@@ -461,7 +463,7 @@ void EyeWitnessPeer::performComputation() {
     }
 
     for (auto s = initRequests.begin(); s != initRequests.end();) {
-        PBFTRequest r = s->second;
+        PBFTRequest &r = s->second;
         r.updateConsensus();
         if (r.consensusSucceeded()) {
             OngoingTransaction trans = r.getTransaction();
@@ -563,6 +565,14 @@ void EyeWitnessPeer::performComputation() {
 }
 
 void EyeWitnessPeer::broadcastTo(EyeWitnessMessage m, Neighborhood n) {
+    // if (m.sequenceNum == x) {
+    //     std::cout << "sending message " << m.messageID
+    //               << " about sequence number 148:\n";
+    //     std::cout << "Type: " << m.messageType << "\n";
+    //     std::cout << "Sender: " << id() << "\n";
+    //     std::cout << "Receiver: neighborhood " << n.id << ", led by "
+    //               << n.leader << "\n\n";
+    // }
     for (const long &i : n.memberIDs) {
         unicastTo(m, i);
     }
@@ -615,6 +625,12 @@ void EyeWitnessPeer::endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers
                 if (age > 10) {
                     std::cout << "tx " << t.second.getSequenceNumber() << " is "
                               << age << " rounds old" << std::endl;
+                    // for (auto thing : t.second.individualMessageCounts) {
+                    //     std::cout << thing.first.first << ", "
+                    //               << thing.first.second << ": " <<
+                    //               thing.second
+                    //               << "\n";
+                    // }
                 }
             }
         }
@@ -666,6 +682,11 @@ bool EyeWitnessPeer::transactionInProgressFor(Coin c) {
         }
     }
     for (auto &r : superRequests) {
+        if (r.second.getTransaction().coin == c) {
+            return true;
+        }
+    }
+    for (auto &r : initRequests) {
         if (r.second.getTransaction().coin == c) {
             return true;
         }
