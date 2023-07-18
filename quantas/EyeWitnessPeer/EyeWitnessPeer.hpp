@@ -185,7 +185,7 @@ class PBFTRequest {
         OngoingTransaction t, int neighbors, int seq, bool amLeader,
         int ownID = -1
     )
-        : transaction(t), neighborhoodSize(neighbors), sequenceNum(seq),
+        : transaction(t), consensusPeers(neighbors), sequenceNum(seq),
           leader(amLeader), ownID(ownID), status("pre-prepare") {}
 
     bool outboxEmpty() { return outbox.size() == 0; }
@@ -207,7 +207,7 @@ class PBFTRequest {
     OngoingTransaction transaction;
     vector<EyeWitnessMessage> outbox;
 
-    int neighborhoodSize;
+    int consensusPeers;
     int sequenceNum;
     string status;
     bool leader;
@@ -220,12 +220,16 @@ class PBFTRequest {
 class CrossShardPBFTRequest : public PBFTRequest {
   public:
     CrossShardPBFTRequest(
-        OngoingTransaction t, int neighbors, int seq, bool amLeader, int ownID
+        OngoingTransaction t, int neighbors, int seq, bool amLeader, int ownID,
+        int neighborhoodSize
     )
-        : PBFTRequest(t, neighbors, seq, amLeader, ownID) {}
+        : PBFTRequest(t, neighbors, seq, amLeader, ownID) {
+        this->neighborhoodSize = neighborhoodSize;
+    }
     void addToConsensus(EyeWitnessMessage c, int sourceID) override;
 
   protected:
+    int neighborhoodSize;
     std::map<std::pair<string, int>, int> individualMessageCounts;
 };
 
@@ -286,7 +290,7 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     int superMessagesThisRound = 0;
 
     // technically not realistic for this to be known to all nodes
-    inline static std::atomic<int> previousSequenceNumber = {-1};
+    inline static std::atomic<std::int32_t> previousSequenceNumber{-1};
     inline static int issuedCoins = 0;
 
     // parameters from input file; read in initParameters

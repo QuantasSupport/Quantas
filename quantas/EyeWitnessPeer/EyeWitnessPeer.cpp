@@ -41,7 +41,7 @@ void PBFTRequest::updateConsensus() {
         }
     }
     if (status == "prepare") {
-        if (statusCount["prepare"] >= 2 * ((neighborhoodSize - 1) / 3)) {
+        if (statusCount["prepare"] >= 2 * ((consensusPeers - 1) / 3)) {
             status = "commit";
             EyeWitnessMessage message;
             message.sequenceNum = sequenceNum;
@@ -53,7 +53,7 @@ void PBFTRequest::updateConsensus() {
         }
     }
     if (status == "commit") {
-        if (statusCount["commit"] >= 2 * ((neighborhoodSize - 1) / 3) + 1) {
+        if (statusCount["commit"] >= 2 * ((consensusPeers - 1) / 3) + 1) {
             status = "committed";
         }
     }
@@ -184,9 +184,9 @@ void EyeWitnessPeer::initParameters(
     LogWriter::getTestLog()["walletInfo"]["walletCount"] = allWallets.size();
 
     const int coinsPerWallet = 5;
-    int fakeHistoryLength = validatorNeighborhoods + (attemptRollback ? 1 : 0);
+    int fakeHistoryLength =
+        std::max(4, validatorNeighborhoods + 1 + (attemptRollback ? 1 : 0));
     int neighborhood = 0;
-    auto rng = std::default_random_engine{};
     // temporarily maps wallet addresses to past coins
     std::map<int, std::vector<Coin>> pastCoins;
     for (auto &wallets : walletsForNeighborhoods) {
@@ -210,7 +210,10 @@ void EyeWitnessPeer::initParameters(
                     exit(1);
                 }
 
-                std::shuffle(nbrhoodIndexes.begin(), nbrhoodIndexes.end(), rng);
+                std::shuffle(
+                    nbrhoodIndexes.begin(), nbrhoodIndexes.end(),
+                    RANDOM_GENERATOR
+                );
                 WalletLocation sender;
                 for (int j = 0; j < fakeHistoryLength - 1; j++) {
                     if (j == 0) {
@@ -276,12 +279,18 @@ bool EyeWitnessPeer::validateTransaction(OngoingTransaction t) {
     // for now, just checking to see if the coin was last known to be in the
     // sending neighborhood (because internal transactions in the neighborhood
     // aren't visible and need signatures to be checked)
-    if (coinDB.count(t.coin.id) == 0) {
-        std::cout << "asked to validated transaction with unknown coin\n";
-        return false;
+    if (corrupt) {
+        return true;
+    } else {
+        if (coinDB.count(t.coin.id) == 0) {
+            std::cout << "asked to validate transaction with unknown coin\n";
+            return false;
+        }
+        return (
+            t.sender.storedBy.id ==
+            coinDB[t.coin.id]->history.back().receiver.storedBy.id
+        );
     }
-    return corrupt || (t.sender.storedBy.id ==
-                       coinDB[t.coin.id]->history.back().receiver.storedBy.id);
 }
 
 void EyeWitnessPeer::performComputation() {
@@ -351,9 +360,9 @@ void EyeWitnessPeer::performComputation() {
                             ConsensusContacts newContacts =
                                 chooseContactsFor(message.trans, false);
                             CrossShardPBFTRequest request(
-                                message.trans, maxNeighborhoodSize,
+                                message.trans, validatorNeighborhoods,
                                 message.sequenceNum, false,
-                                neighborhoodsForPeers[id()]
+                                neighborhoodsForPeers[id()], maxNeighborhoodSize
                             );
                             request.addToConsensus(message, sourceNeighborhood);
                             if (errantMessages.count(message.sequenceNum) > 0) {
@@ -423,7 +432,6 @@ void EyeWitnessPeer::performComputation() {
         if (r.consensusSucceeded()) {
             OngoingTransaction trans = r.getTransaction();
             // local transaction; commit changes, update wallets
-            // TODO: optimize this search
             auto localSender = std::find_if(
                 heldWallets.begin(), heldWallets.end(),
                 [trans](LocalWallet w) {
@@ -467,15 +475,15 @@ void EyeWitnessPeer::performComputation() {
         r.updateConsensus();
         if (r.consensusSucceeded()) {
             OngoingTransaction trans = r.getTransaction();
-            s = initRequests.erase(s);
             contacts.erase(r.getSequenceNumber());
             ConsensusContacts newContacts = chooseContactsFor(trans, false);
             CrossShardPBFTRequest request(
-                trans, maxNeighborhoodSize, r.getSequenceNumber(), true,
-                neighborhoodsForPeers[id()]
+                trans, validatorNeighborhoods, r.getSequenceNumber(), true,
+                neighborhoodsForPeers[id()], maxNeighborhoodSize
             );
             contacts.insert({r.getSequenceNumber(), newContacts});
             superRequests.insert({request.getSequenceNumber(), request});
+            s = initRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
                 EyeWitnessMessage m = r.getMessage();
@@ -625,16 +633,6 @@ void EyeWitnessPeer::endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers
             for (const auto &t : peer->superRequests) {
                 const int age =
                     getRound() - t.second.getTransaction().roundSubmitted;
-                if (age > 10) {
-                    std::cout << "tx " << t.second.getSequenceNumber() << " is "
-                              << age << " rounds old" << std::endl;
-                    // for (auto thing : t.second.individualMessageCounts) {
-                    //     std::cout << thing.first.first << ", "
-                    //               << thing.first.second << ": " <<
-                    //               thing.second
-                    //               << "\n";
-                    // }
-                }
             }
         }
     } else if (byzantineRound == getRound()) {
@@ -737,8 +735,8 @@ void EyeWitnessPeer::initiateRollbacks() {
                         c, validatorNeighborhoods, true
                     );
                     CrossShardPBFTRequest request(
-                        t, maxNeighborhoodSize, seqNum, true,
-                        neighborhoodsForPeers[id()]
+                        t, validatorNeighborhoods, seqNum, true,
+                        neighborhoodsForPeers[id()], maxNeighborhoodSize
                     );
                     superRequests.insert({seqNum, request});
                     contacts.insert({seqNum, newContacts});
@@ -781,6 +779,9 @@ void EyeWitnessPeer::initiateTransaction(bool withinNeighborhood) {
                 sender.pastCoins.begin(), randMod(sender.pastCoins.size())
             );
             c = pcIter->second;
+        } else {
+            std::cout
+                << "unable to find past coin for corrupt transaction :(\n";
         }
         honest = false;
     }

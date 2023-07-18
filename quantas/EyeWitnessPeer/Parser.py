@@ -456,7 +456,7 @@ def make_timing_diagrams(logfile):
 if __name__ == "__main__":
     # make_timing_diagrams(EYEWITNESS_PATH / "FastLog.json")
     make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
-    # make_timing_diagrams(EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    make_timing_diagrams(EYEWITNESS_PATH / "LargerLogNoBFT.json")
     # make_timing_diagrams(EYEWITNESS_PATH / "LargerRollbackLog.json")
 
     # plotFT()
