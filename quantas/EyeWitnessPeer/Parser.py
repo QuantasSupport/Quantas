@@ -93,17 +93,38 @@ class EventTimelineMuxer:
 EYEWITNESS_PATH = Path(__file__).parent
 GRAPH_TIMESTAMPS = round(time())
 
-def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer, tx_completes: EventTimelineMuxer, outfile: str):
-    plt.title("Transactions Over Time")
+def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer, tx_completes: EventTimelineMuxer,
+            outfile: str, inset_centered_on: int=-1):
+
     tx_starts_avg_tl = tx_starts.get_average_cumulative_timeline()
     htx_starts_avg_tl = honest_tx_starts.get_average_cumulative_timeline()
-    plt.plot(tx_starts_avg_tl.keys(), tx_starts_avg_tl.values(),
-             color="orange", label="Transactions started")
-    plt.plot(htx_starts_avg_tl.keys(), htx_starts_avg_tl.values(),
-             color="green", label="Honest transactions started")
     tx_completes_avg_tl = tx_completes.get_average_cumulative_timeline()
-    plt.plot(tx_completes_avg_tl.keys(), tx_completes_avg_tl.values(),
-             color="blue", label="Transactions finished")
+    
+    def plot(axes):
+        axes.plot(tx_starts_avg_tl.keys(), tx_starts_avg_tl.values(),
+                color="black", label="transactions started")
+        axes.plot(htx_starts_avg_tl.keys(), htx_starts_avg_tl.values(),
+                color="black", linestyle="--", label="honest transactions started")
+        axes.plot(tx_completes_avg_tl.keys(), tx_completes_avg_tl.values(),
+                color="gray", label="transactions finished")
+    plot(plt)
+
+    if inset_centered_on != -1:
+        axin = plt.gca().inset_axes([0.55, 0.02, 0.43, 0.43])
+        plot(axin)
+        axin.set_xlim(inset_centered_on-35, inset_centered_on+35)
+        axin.set_ylim(tx_starts_avg_tl[inset_centered_on-35], 
+                      tx_starts_avg_tl[inset_centered_on+35])
+        plt.gca().indicate_inset_zoom(axin)
+
+        # Hide X and Y axes label marks
+        axin.xaxis.set_tick_params(labelbottom=False)
+        axin.yaxis.set_tick_params(labelleft=False)
+
+        # Hide X and Y axes tick marks
+        axin.set_xticks([])
+        axin.set_yticks([])
+
     plt.legend(loc="upper left")
     plt.savefig(EYEWITNESS_PATH / outfile)
     plt.show()
@@ -441,22 +462,26 @@ def parser(logfile: str) -> dict[str, EventTimelineMuxer]:
 def make_timing_diagrams(logfile):
     output = parser(logfile)
     # non-normalized:
-    plotTOT(output["tx_starts"], output["honest_tx_starts"], output["tx_completes"], f"log {Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png")
-    plot_coins_lost(output["coins_lost"], f"log {Path(logfile).stem}_coins_lost_{GRAPH_TIMESTAMPS}.png")
-
-    normalize = False
-    plotMOT(output["local_messages"], output["all_messages"], f"log {Path(logfile).stem}_msgs_normalized_{GRAPH_TIMESTAMPS}.png", normalize)
-    plotCOT(
-        output["corrupt_wallets"],
-        f"log {Path(logfile).stem}_wlt_normalized_{GRAPH_TIMESTAMPS}.png",
-        "no validators" if "NoBFT" in str(logfile) else "validators",  # "temporary" hack
-        normalize
+    plotTOT(output["tx_starts"], output["honest_tx_starts"],
+            output["tx_completes"],
+            f"log {Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png",
+            100
     )
+    # plot_coins_lost(output["coins_lost"], f"log {Path(logfile).stem}_coins_lost_{GRAPH_TIMESTAMPS}.png")
+
+    # normalize = False
+    # plotMOT(output["local_messages"], output["all_messages"], f"log {Path(logfile).stem}_msgs_normalized_{GRAPH_TIMESTAMPS}.png", normalize)
+    # plotCOT(
+    #     output["corrupt_wallets"],
+    #     f"log {Path(logfile).stem}_wlt_normalized_{GRAPH_TIMESTAMPS}.png",
+    #     "no validators" if "NoBFT" in str(logfile) else "validators",  # "temporary" hack
+    #     normalize
+    # )
 
 if __name__ == "__main__":
     # make_timing_diagrams(EYEWITNESS_PATH / "FastLog.json")
-    make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
-    make_timing_diagrams(EYEWITNESS_PATH / "LargerLogNoBFT.json")
+    # make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
+    make_timing_diagrams(EYEWITNESS_PATH / "LargerNoBFTLog.json")
     # make_timing_diagrams(EYEWITNESS_PATH / "LargerRollbackLog.json")
 
     # plotFT()
