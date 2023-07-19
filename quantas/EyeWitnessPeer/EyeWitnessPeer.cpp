@@ -113,6 +113,8 @@ void EyeWitnessPeer::initParameters(
     // 5, an "extra" neighborhood stores the spares. then, each neighborhood
     // gets a set of wallets to take care of.
 
+    std::cout << "started initParameters" << std::endl;
+
     corruptNeighborhoods.clear();
     previousSequenceNumber = -1;
     issuedCoins = 0;
@@ -271,6 +273,7 @@ void EyeWitnessPeer::initParameters(
             ptrs.insert((long)coinPair.second);
         }
     }
+    std::cout << "finished initParameters" << std::endl;
 }
 
 EyeWitnessPeer::EyeWitnessPeer(long id) : Peer<EyeWitnessMessage>(id) {}
@@ -734,11 +737,11 @@ void EyeWitnessPeer::initiateRollbacks() {
                     ConsensusContacts newContacts(
                         c, validatorNeighborhoods, true
                     );
-                    CrossShardPBFTRequest request(
+                    PBFTRequest request(
                         t, validatorNeighborhoods, seqNum, true,
-                        neighborhoodsForPeers[id()], maxNeighborhoodSize
+                        neighborhoodsForPeers[id()]
                     );
-                    superRequests.insert({seqNum, request});
+                    initRequests.insert({seqNum, request});
                     contacts.insert({seqNum, newContacts});
                     transactions.push_back(
                         {{"round", getRound()},
