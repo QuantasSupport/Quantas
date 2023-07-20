@@ -4,7 +4,7 @@
             "algorithm": "EyeWitness",
             "parameters": {
                 "validatorNeighborhoods": 7,
-                "neighborhoodSize": 21,
+                "neighborhoodSize": 22,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 100,
                 "maliciousNeighborhoods": 2,
@@ -17,8 +17,8 @@
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 1050,
-                "totalPeers": 1050
+                "initialPeers": 1100,
+                "totalPeers": 1100
             },
             "tests": 1,
             "rounds": 500
@@ -27,7 +27,7 @@
             "algorithm": "EyeWitness",
             "parameters": {
                 "validatorNeighborhoods": 7,
-                "neighborhoodSize": 21,
+                "neighborhoodSize": 22,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 100,
                 "maliciousNeighborhoods": 2,
@@ -40,8 +40,8 @@
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 1050,
-                "totalPeers": 1050
+                "initialPeers": 1100,
+                "totalPeers": 1100
             },
             "tests": 1,
             "rounds": 500
@@ -50,7 +50,7 @@
             "algorithm": "EyeWitness",
             "parameters": {
                 "validatorNeighborhoods": 7,
-                "neighborhoodSize": 21,
+                "neighborhoodSize": 22,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 100,
                 "maliciousNeighborhoods": 2,
@@ -63,8 +63,8 @@
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 1050,
-                "totalPeers": 1050
+                "initialPeers": 1100,
+                "totalPeers": 1100
             },
             "tests": 1,
             "rounds": 500
@@ -73,7 +73,7 @@
             "algorithm": "EyeWitness",
             "parameters": {
                 "validatorNeighborhoods": 7,
-                "neighborhoodSize": 21,
+                "neighborhoodSize": 22,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 100,
                 "maliciousNeighborhoods": 2,
@@ -86,8 +86,8 @@
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 1050,
-                "totalPeers": 1050
+                "initialPeers": 1100,
+                "totalPeers": 1100
             },
             "tests": 1,
             "rounds": 500
@@ -96,7 +96,7 @@
             "algorithm": "EyeWitness",
             "parameters": {
                 "validatorNeighborhoods": 7,
-                "neighborhoodSize": 21,
+                "neighborhoodSize": 22,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 100,
                 "maliciousNeighborhoods": 2,
@@ -109,8 +109,8 @@
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 1050,
-                "totalPeers": 1050
+                "initialPeers": 1100,
+                "totalPeers": 1100
             },
             "tests": 1,
             "rounds": 500
