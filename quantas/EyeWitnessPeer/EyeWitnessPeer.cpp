@@ -460,8 +460,8 @@ void EyeWitnessPeer::performComputation() {
                  {"peer", id()}}
             );
 
-            s = localRequests.erase(s);
             contacts.erase(r.getSequenceNumber());
+            s = localRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
                 EyeWitnessMessage m = r.getMessage();
@@ -537,8 +537,8 @@ void EyeWitnessPeer::performComputation() {
                  {"seqNum", r.getSequenceNumber()},
                  {"peer", id()}}
             );
-            s = superRequests.erase(s);
             contacts.erase(r.getSequenceNumber());
+            s = superRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
                 EyeWitnessMessage m = r.getMessage();
