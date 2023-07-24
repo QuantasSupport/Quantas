@@ -567,12 +567,12 @@ void EyeWitnessPeer::performComputation() {
         // assuming non-overlapping neighborhoods, so if we're the leader in one
         // wallet stored by our neighborhood we're a leader in every wallet
         // stored by our neighborhood
-        // const int inProgressTxs =
-        //     localRequests.size() + superRequests.size() +
-        //     initRequests.size();
+        const int inProgressTxs =
+            localRequests.size() + superRequests.size() + initRequests.size();
         // std::cout << "inProgressTxs, round " << getRound() << ": "
         //           << inProgressTxs << "\n";
-        if (oneInXChance(4) || (corrupt && oneInXChance(2))) {
+        // if (oneInXChance(4) || (corrupt && oneInXChance(2))) {
+        if (inProgressTxs < 10) {
             initiateTransaction(!(corrupt || oneInXChance(4)));
         }
     }
