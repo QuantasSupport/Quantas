@@ -1,0 +1,26 @@
+{
+    "experiments": [
+        {
+            "algorithm": "EyeWitness",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 50.0
+            },
+            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/132Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1716,
+                "totalPeers": 1716,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        }
+    ]
+}
