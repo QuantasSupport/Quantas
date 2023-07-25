@@ -8,15 +8,15 @@
                 "walletsPerNeighborhood": 10,
                 "submitRate": 50.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/20Committees.json",
+            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/100Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 260,
-                "totalPeers": 260,
+                "initialPeers": 1300,
+                "totalPeers": 1300,
                 "maxMsgsRec": 1
             },
             "tests": 5,
@@ -30,15 +30,15 @@
                 "walletsPerNeighborhood": 10,
                 "submitRate": 50.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/36Committees.json",
+            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/116Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 468,
-                "totalPeers": 468,
+                "initialPeers": 1508,
+                "totalPeers": 1508,
                 "maxMsgsRec": 1
             },
             "tests": 5,
@@ -52,15 +52,15 @@
                 "walletsPerNeighborhood": 10,
                 "submitRate": 50.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/52Committees.json",
+            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/132Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 676,
-                "totalPeers": 676,
+                "initialPeers": 1716,
+                "totalPeers": 1716,
                 "maxMsgsRec": 1
             },
             "tests": 5,
@@ -74,37 +74,15 @@
                 "walletsPerNeighborhood": 10,
                 "submitRate": 50.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/68Committees.json",
+            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/148Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 884,
-                "totalPeers": 884,
-                "maxMsgsRec": 1
-            },
-            "tests": 5,
-            "rounds": 200
-        },
-        {
-            "algorithm": "EyeWitness",
-            "parameters": {
-                "validatorNeighborhoods": 7,
-                "neighborhoodSize": 13,
-                "walletsPerNeighborhood": 10,
-                "submitRate": 50.0
-            },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/84Committees.json",
-            "distribution": {
-                "type": "uniform",
-                "maxDelay": 1
-            },
-            "topology": {
-                "type": "complete",
-                "initialPeers": 1092,
-                "totalPeers": 1092,
+                "initialPeers": 1924,
+                "totalPeers": 1924,
                 "maxMsgsRec": 1
             },
             "tests": 5,
