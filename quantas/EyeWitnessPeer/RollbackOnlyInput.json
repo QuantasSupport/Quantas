@@ -11,7 +11,7 @@
                 "attemptRollback": true,
                 "submitRate": 4
             },
-            "logFile": "quantas/EyeWitnessPeer/RollbackLog1.json",
+            "logFile": "quantas/EyeWitnessPeer/RollbackLog.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -21,7 +21,7 @@
                 "initialPeers": 1100,
                 "totalPeers": 1100
             },
-            "tests": 5,
+            "tests": 15,
             "rounds": 500
         }
     ]

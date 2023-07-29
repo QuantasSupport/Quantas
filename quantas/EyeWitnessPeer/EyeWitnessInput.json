@@ -20,7 +20,7 @@
         "initialPeers": 1100,
         "totalPeers": 1100
       },
-      "tests": 5,
+      "tests": 15,
       "rounds": 500
     }
   ]
