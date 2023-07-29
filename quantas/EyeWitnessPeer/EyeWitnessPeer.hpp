@@ -57,15 +57,11 @@ struct WalletLocation {
 };
 
 struct TransactionRecord {
-    // maybe store something symbolizing the sender's signature?
-
     WalletLocation sender;
     WalletLocation receiver;
 };
 
 struct Coin {
-    // id needs to be unique across all coins across all peers; use static
-    // counter variable in peer class? or uuid generator.
     int id = -1;
     vector<TransactionRecord> history;
     bool operator==(const Coin &rhs) { return id == rhs.id; }
@@ -130,10 +126,10 @@ struct ConsensusContacts {
     std::vector<Neighborhood> participants;
     ConsensusContacts() = default;
     ConsensusContacts(
-        Coin c, int validatorCount, bool skipLastRecipient = false
+        Coin c, int validatorsNeeded, bool skipLastRecipient = false
     ) {
         std::unordered_set<int> uniques;
-        for (int i = 0; uniques.size() < validatorCount && i < c.history.size();
+        for (int i = 0; uniques.size() < validatorsNeeded && i < c.history.size();
              i++) {
             Neighborhood &prevNeighborhood =
                 c.history[c.history.size() - i - (skipLastRecipient ? 2 : 1)]

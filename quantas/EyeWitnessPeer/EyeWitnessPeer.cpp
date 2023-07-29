@@ -420,6 +420,11 @@ void EyeWitnessPeer::performComputation() {
                             return w.address == message.trans.receiver.address;
                         }
                     );
+                    if (coinDB.count(message.trans.coin.id) > 0) {
+                        for (auto &wallet : heldWallets) {
+                            wallet.remove(message.trans.coin);
+                        }
+                    }
                     coinDB[message.trans.coin.id] =
                         localReceiver->add(message.trans.coin);
                 }
@@ -567,12 +572,13 @@ void EyeWitnessPeer::performComputation() {
         // assuming non-overlapping neighborhoods, so if we're the leader in one
         // wallet stored by our neighborhood we're a leader in every wallet
         // stored by our neighborhood
-        const int inProgressTxs =
-            localRequests.size() + superRequests.size() + initRequests.size();
+        // const int inProgressTxs =
+        //     localRequests.size() + superRequests.size() +
+        //     initRequests.size();
         // std::cout << "inProgressTxs, round " << getRound() << ": "
         //           << inProgressTxs << "\n";
-        // if (oneInXChance(4) || (corrupt && oneInXChance(2))) {
-        if (inProgressTxs < 10) {
+        if (oneInXChance(4) || (corrupt && oneInXChance(2))) {
+            // if (inProgressTxs < 10) {
             initiateTransaction(!(corrupt || oneInXChance(4)));
         }
     }
@@ -746,7 +752,7 @@ void EyeWitnessPeer::initiateRollbacks() {
                     transactions.push_back(
                         {{"round", getRound()},
                          {"seqNum", seqNum},
-                         {"validatorCount",
+                         {"validatorsNeeded",
                           newContacts.getValidatorNodeCount()},
                          {"coin", c.id},
                          {"sender", sender.address},
@@ -817,7 +823,6 @@ void EyeWitnessPeer::initiateTransaction(bool withinNeighborhood) {
         honest = true;
     }
 
-    Neighborhood thisNeighborhood = neighborhoods[neighborhoodsForPeers[id()]];
     LocalWallet receiver = sender;
     // obtain a receiver that is not the sender
     if (withinNeighborhood) {
@@ -851,7 +856,10 @@ void EyeWitnessPeer::initiateTransaction(bool withinNeighborhood) {
     transactions.push_back(
         {{"round", getRound()},
          {"seqNum", seqNum},
-         {"validatorCount", newContacts.getValidatorNodeCount()},
+         {"validatorsNeeded",
+          (withinNeighborhood
+               ? newContacts.getValidatorNodeCount()
+               : chooseContactsFor(t, false).getValidatorNodeCount())},
          {"coin", c.id},
          {"sender", sender.address},
          {"honest", honest},
