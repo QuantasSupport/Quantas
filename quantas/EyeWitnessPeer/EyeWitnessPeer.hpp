@@ -57,15 +57,11 @@ struct WalletLocation {
 };
 
 struct TransactionRecord {
-    // maybe store something symbolizing the sender's signature?
-
     WalletLocation sender;
     WalletLocation receiver;
 };
 
 struct Coin {
-    // id needs to be unique across all coins across all peers; use static
-    // counter variable in peer class? or uuid generator.
     int id = -1;
     vector<TransactionRecord> history;
     bool operator==(const Coin &rhs) { return id == rhs.id; }
@@ -130,11 +126,11 @@ struct ConsensusContacts {
     std::vector<Neighborhood> participants;
     ConsensusContacts() = default;
     ConsensusContacts(
-        Coin c, int validatorCount, bool skipLastRecipient = false
+        Coin c, int validatorsNeeded, bool skipLastRecipient = false
     ) {
         std::unordered_set<int> uniques;
-        for (int i = 0; uniques.size() < validatorCount && i < c.history.size();
-             i++) {
+        for (int i = 0;
+             uniques.size() < validatorsNeeded && i < c.history.size(); i++) {
             Neighborhood &prevNeighborhood =
                 c.history[c.history.size() - i - (skipLastRecipient ? 2 : 1)]
                     .receiver.storedBy;
@@ -298,8 +294,8 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     inline static int neighborhoodCount = -1;
     inline static int validatorNeighborhoods = -1;
     inline static int byzantineRound = -1;
-    // average number of transactions to create per round
-    inline static double submitRate = 1.0;
+    // 1 in x chance for each leader to create a transaction in each round
+    inline static int submitRate = -1;
     inline static int maliciousNeighborhoods = 0;
     inline static bool attemptRollback = false;
 

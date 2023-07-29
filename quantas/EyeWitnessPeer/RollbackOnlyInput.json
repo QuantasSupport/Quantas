@@ -8,9 +8,10 @@
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 100,
                 "maliciousNeighborhoods": 2,
-                "attemptRollback": true
+                "attemptRollback": true,
+                "submitRate": 4
             },
-            "logFile": "quantas/EyeWitnessPeer/RollbackLog1.json",
+            "logFile": "quantas/EyeWitnessPeer/RollbackLog.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -20,99 +21,7 @@
                 "initialPeers": 1100,
                 "totalPeers": 1100
             },
-            "tests": 1,
-            "rounds": 500
-        },
-        {
-            "algorithm": "EyeWitness",
-            "parameters": {
-                "validatorNeighborhoods": 7,
-                "neighborhoodSize": 22,
-                "walletsPerNeighborhood": 10,
-                "byzantineRound": 100,
-                "maliciousNeighborhoods": 2,
-                "attemptRollback": true
-            },
-            "logFile": "quantas/EyeWitnessPeer/RollbackLog2.json",
-            "distribution": {
-                "type": "uniform",
-                "maxDelay": 1
-            },
-            "topology": {
-                "type": "complete",
-                "initialPeers": 1100,
-                "totalPeers": 1100
-            },
-            "tests": 1,
-            "rounds": 500
-        },
-        {
-            "algorithm": "EyeWitness",
-            "parameters": {
-                "validatorNeighborhoods": 7,
-                "neighborhoodSize": 22,
-                "walletsPerNeighborhood": 10,
-                "byzantineRound": 100,
-                "maliciousNeighborhoods": 2,
-                "attemptRollback": true
-            },
-            "logFile": "quantas/EyeWitnessPeer/RollbackLog3.json",
-            "distribution": {
-                "type": "uniform",
-                "maxDelay": 1
-            },
-            "topology": {
-                "type": "complete",
-                "initialPeers": 1100,
-                "totalPeers": 1100
-            },
-            "tests": 1,
-            "rounds": 500
-        },
-        {
-            "algorithm": "EyeWitness",
-            "parameters": {
-                "validatorNeighborhoods": 7,
-                "neighborhoodSize": 22,
-                "walletsPerNeighborhood": 10,
-                "byzantineRound": 100,
-                "maliciousNeighborhoods": 2,
-                "attemptRollback": true
-            },
-            "logFile": "quantas/EyeWitnessPeer/RollbackLog4.json",
-            "distribution": {
-                "type": "uniform",
-                "maxDelay": 1
-            },
-            "topology": {
-                "type": "complete",
-                "initialPeers": 1100,
-                "totalPeers": 1100
-            },
-            "tests": 1,
-            "rounds": 500
-        },
-        {
-            "algorithm": "EyeWitness",
-            "parameters": {
-                "validatorNeighborhoods": 7,
-                "neighborhoodSize": 22,
-                "walletsPerNeighborhood": 10,
-                "byzantineRound": 100,
-                "maliciousNeighborhoods": 2,
-                "attemptRollback": true
-            },
-            "logFile": "quantas/EyeWitnessPeer/RollbackLog5.json",
-            "distribution": {
-                "type": "uniform",
-                "maxDelay": 1
-            },
-            "topology": {
-                "type": "complete",
-                "initialPeers": 1100,
-                "totalPeers": 1100
-            },
-            "tests": 1,
+            "tests": 15,
             "rounds": 500
         }
     ]

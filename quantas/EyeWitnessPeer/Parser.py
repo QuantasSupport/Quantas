@@ -3,6 +3,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from time import time
+from pprint import pprint
 
 EYEWITNESS_PATH = Path(__file__).parent
 GRAPH_TIMESTAMPS = round(time())
@@ -383,7 +384,7 @@ def parser(logfile: str) -> dict[str, EventTimelineMuxer]:
                 honest_tx_starts.add_event(transaction["round"], test_index)
             proposals[transaction["seqNum"]] = (
                 {
-                    "validators_still_needed": tolerance_fraction*transaction["validatorCount"],
+                    "validatorsStillNeeded": tolerance_fraction*transaction["validatorsNeeded"],
                     **transaction
                 }
             )
@@ -396,9 +397,9 @@ def parser(logfile: str) -> dict[str, EventTimelineMuxer]:
 
         rollback_validation_count = 0
         for validation in validations:
-            if proposals[validation["seqNum"]]["validators_still_needed"] > 0:
-                proposals[validation["seqNum"]]["validators_still_needed"] -= 1
-                if proposals[validation["seqNum"]]["validators_still_needed"] <= 0:
+            if proposals[validation["seqNum"]]["validatorsStillNeeded"] > 0:
+                proposals[validation["seqNum"]]["validatorsStillNeeded"] -= 1
+                if proposals[validation["seqNum"]]["validatorsStillNeeded"] <= 0:
                     tx_completes.add_event(validation["round"], test_index)
                     proposals[validation["seqNum"]]["roundConfirmed"] = validation["round"]
                     if validation["seqNum"] in rollback_ids:
@@ -432,27 +433,45 @@ def parser(logfile: str) -> dict[str, EventTimelineMuxer]:
             """maps wallet ids to corruptedness"""
 
             for i in range(max_seq_num):
+                # for every transaction proposal, in sequential (chronological) order:
                 prop = proposals[i]
-                if prop["validators_still_needed"] <= 0:
+                # if prop["coin"] == 566:
+                #     pprint(prop)
+                if prop["validatorsStillNeeded"] <= 0:  # if the proposal was confirmed
                     if prop["coin"] in coins:
+                        # if we have seen this coin before and therefore know
+                        # where it should be, we can validate the confirmed
+                        # transaction regarding it
                         if prop["sender"] == coins[prop["coin"]] or prop["rollback"]:
+                            # if the transaction appears valid, we just update
+                            # the coin's current location
                             coins[prop["coin"]] = prop["receiver"]
                         else:
-                            coins[prop["coin"]] = -1
-
+                            # if an invalid transaction was confirmed:
+                            pprint(prop)
+                            print("invalid tx confirmed ^")
                             if prop["sender"] not in wallets:
+                                # if necessary, initialize sending wallet as not
+                                # corrupt by default
                                 wallets[prop["sender"]] = False
 
                             if prop["receiver"] not in wallets:
+                                # if necessary, initialize receiving wallet as
+                                # not corrupt by default
                                 wallets[prop["receiver"]] = False
 
                             if not wallets[prop["sender"]]:
+                                # if the sender was not already marked as
+                                # corrupt, change that and add an event
                                 corrupt_wallets.add_event(prop["roundConfirmed"], test_index)
                                 wallets[prop["sender"]] = True
+                                coins[prop["coin"]] = -1
                             if not wallets[prop["receiver"]]:
+                                # if the receiver was not already marked as
+                                # corrupt, change that and add an event
                                 corrupt_wallets.add_event(prop["roundConfirmed"], test_index)
                                 wallets[prop["receiver"]] = True
-
+                                coins[prop["coin"]] = -1
                     else:
                         coins[prop["coin"]] = prop["receiver"]
                         wallets[prop["sender"]] = not prop["honest"]
@@ -476,32 +495,32 @@ def parser(logfile: str) -> dict[str, EventTimelineMuxer]:
 def make_timing_diagrams(logfile):
     output = parser(logfile)
     # non-normalized:
-    plotTOT(output["tx_starts"], output["honest_tx_starts"],
-            output["tx_completes"],
-            f"log {Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png",
-            100
-    )
+    # plotTOT(output["tx_starts"], output["honest_tx_starts"],
+    #         output["tx_completes"],
+    #         f"log {Path(logfile).stem}_txs_{GRAPH_TIMESTAMPS}.png",
+    #         -1
+    # )
     # plot_coins_lost(output["coins_lost"], f"log {Path(logfile).stem}_coins_lost_{GRAPH_TIMESTAMPS}.png")
 
-    # normalize = False
+    normalize = False
     # plotMOT(output["local_messages"], output["all_messages"], f"log {Path(logfile).stem}_msgs_normalized_{GRAPH_TIMESTAMPS}.png", normalize)
-    # plotCOT(
-    #     output["corrupt_wallets"],
-    #     f"log {Path(logfile).stem}_wlt_normalized_{GRAPH_TIMESTAMPS}.png",
-    #     "no validators" if "NoBFT" in str(logfile) else "validators",  # "temporary" hack
-    #     normalize
-    # )
+    plotCOT(
+        output["corrupt_wallets"],
+        f"log {Path(logfile).stem}_wlt_normalized_{GRAPH_TIMESTAMPS}.png",
+        "no validators" if "NoBFT" in str(logfile) else "validators",  # "temporary" hack
+        normalize
+    )
 
 if __name__ == "__main__":
-    # make_timing_diagrams(EYEWITNESS_PATH / "FastLog.json")
-    # make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
+    # make_timing_diagrams(EYEWITNESS_PATH / "SmallLog.json")
+    make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
     make_timing_diagrams(EYEWITNESS_PATH / "LargerNoBFTLog.json")
-    # make_timing_diagrams(EYEWITNESS_PATH / "LargerRollbackLog.json")
+    make_timing_diagrams(EYEWITNESS_PATH / "LargerRollbackLog.json")
 
     # plotFT()
 
     # plot_malicious_effects(f"graph_maliciousness_{GRAPH_TIMESTAMPS}.png")
     # plot_malicious_effects(f"normalized_graph_maliciousness_{GRAPH_TIMESTAMPS}.png", True)
 
-    # plot_throughput_vs_committees()
+    plot_throughput_vs_committees()
     # plot_throughput_vs_committee_size()

@@ -4,10 +4,11 @@
             "algorithm": "EyeWitness",
             "parameters": {
                 "validatorNeighborhoods": 1,
-                "neighborhoodSize": 21,
+                "neighborhoodSize": 22,
                 "walletsPerNeighborhood": 10,
-                "byzantineRound": 50,
-                "maliciousNeighborhoods": 2
+                "byzantineRound": 100,
+                "maliciousNeighborhoods": 2,
+                "submitRate": 4
             },
             "logFile": "quantas/EyeWitnessPeer/LargerNoBFTLog.json",
             "distribution": {
@@ -16,8 +17,8 @@
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 1050,
-                "totalPeers": 1050
+                "initialPeers": 1100,
+                "totalPeers": 1100
             },
             "tests": 15,
             "rounds": 500

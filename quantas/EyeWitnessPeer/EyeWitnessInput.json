@@ -7,9 +7,10 @@
         "neighborhoodSize": 22,
         "walletsPerNeighborhood": 10,
         "byzantineRound": 100,
-        "maliciousNeighborhoods": 2
+        "maliciousNeighborhoods": 2,
+        "submitRate": 4
       },
-      "logFile": "quantas/EyeWitnessPeer/LargerLog1.json",
+      "logFile": "quantas/EyeWitnessPeer/LargerLog.json",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -19,95 +20,7 @@
         "initialPeers": 1100,
         "totalPeers": 1100
       },
-      "tests": 1,
-      "rounds": 500
-    },
-    {
-      "algorithm": "EyeWitness",
-      "parameters": {
-        "validatorNeighborhoods": 7,
-        "neighborhoodSize": 22,
-        "walletsPerNeighborhood": 10,
-        "byzantineRound": 100,
-        "maliciousNeighborhoods": 2
-      },
-      "logFile": "quantas/EyeWitnessPeer/LargerLog2.json",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 1100,
-        "totalPeers": 1100
-      },
-      "tests": 1,
-      "rounds": 500
-    },
-    {
-      "algorithm": "EyeWitness",
-      "parameters": {
-        "validatorNeighborhoods": 7,
-        "neighborhoodSize": 22,
-        "walletsPerNeighborhood": 10,
-        "byzantineRound": 100,
-        "maliciousNeighborhoods": 2
-      },
-      "logFile": "quantas/EyeWitnessPeer/LargerLog3.json",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 1100,
-        "totalPeers": 1100
-      },
-      "tests": 1,
-      "rounds": 500
-    },
-    {
-      "algorithm": "EyeWitness",
-      "parameters": {
-        "validatorNeighborhoods": 7,
-        "neighborhoodSize": 22,
-        "walletsPerNeighborhood": 10,
-        "byzantineRound": 100,
-        "maliciousNeighborhoods": 2
-      },
-      "logFile": "quantas/EyeWitnessPeer/LargerLog4.json",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 1100,
-        "totalPeers": 1100
-      },
-      "tests": 1,
-      "rounds": 500
-    },
-    {
-      "algorithm": "EyeWitness",
-      "parameters": {
-        "validatorNeighborhoods": 7,
-        "neighborhoodSize": 22,
-        "walletsPerNeighborhood": 10,
-        "byzantineRound": 100,
-        "maliciousNeighborhoods": 2
-      },
-      "logFile": "quantas/EyeWitnessPeer/LargerLog5.json",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 1100,
-        "totalPeers": 1100
-      },
-      "tests": 1,
+      "tests": 15,
       "rounds": 500
     }
   ]
