@@ -104,10 +104,13 @@ def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer,
         axes.plot(tx_starts_avg_tl.keys(), tx_starts_avg_tl.values(),
                 color="black", label="transactions started")
         axes.plot(htx_starts_avg_tl.keys(), htx_starts_avg_tl.values(),
-                color="black", linestyle="--", label="honest transactions started")
+                color="black", linestyle="dashed", label="honest transactions started")
         axes.plot(tx_completes_avg_tl.keys(), tx_completes_avg_tl.values(),
-                color="gray", label="transactions finished")
+                color="black", linestyle="dotted", label="transactions confirmed")
     plot(plt)
+
+    plt.xlabel("rounds")
+    plt.ylabel("transactions")
 
     if inset_centered_on != -1:
         axin = plt.gca().inset_axes([0.55, 0.02, 0.43, 0.43])
@@ -177,6 +180,11 @@ def plot_coins_lost(lost_coins: EventTimelineMuxer, outfile: str):
 
 
 def plot_throughput_vs_committees():
+    line_styles = [
+        {"color": "black"},
+        {"color": "black", "linestyle": "dashed"},
+        {"color": "black", "linestyle": "dotted"}
+    ]
     for F in range(0, 3):
         log_path = EYEWITNESS_PATH / "varyingCommsLogs" / f"F{F}"
         log_files = list(log_path.glob("*.json"))
@@ -195,11 +203,17 @@ def plot_throughput_vs_committees():
 
         # sort both arrays based on x values
         used_xs, ys = zip(*sorted(zip(used_xs, ys), key=lambda t: t[0]))
-        plt.plot([x*13 for x in used_xs], [y/200 for y in ys], linestyle='--', marker='o', label=f"F{F}")
+        neighborhood_size = 13
+        rounds = 200
 
-    plt.title("Throughput Scaling with Number of Committees")
-    plt.xlabel("Number of Peers in the Network")
-    plt.ylabel("Transaction Rate Per Round")
+        plt.plot(
+            [x*neighborhood_size for x in used_xs],
+            [y/rounds for y in ys],
+            **line_styles[F], marker='o', label=f"$F={F}$"
+        )
+
+    plt.xlabel("number of Peers in the Network")
+    plt.ylabel("transaction Rate Per Round")
     plt.legend(loc="best")
     plt.savefig(EYEWITNESS_PATH / "throughput_scaling.png")
     plt.clf()
