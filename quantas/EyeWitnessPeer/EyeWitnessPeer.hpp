@@ -129,8 +129,8 @@ struct ConsensusContacts {
         Coin c, int validatorsNeeded, bool skipLastRecipient = false
     ) {
         std::unordered_set<int> uniques;
-        for (int i = 0; uniques.size() < validatorsNeeded && i < c.history.size();
-             i++) {
+        for (int i = 0;
+             uniques.size() < validatorsNeeded && i < c.history.size(); i++) {
             Neighborhood &prevNeighborhood =
                 c.history[c.history.size() - i - (skipLastRecipient ? 2 : 1)]
                     .receiver.storedBy;
@@ -294,8 +294,8 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     inline static int neighborhoodCount = -1;
     inline static int validatorNeighborhoods = -1;
     inline static int byzantineRound = -1;
-    // average number of transactions to create per round
-    inline static double submitRate = 1.0;
+    // 1 in x chance for each leader to create a transaction in each round
+    inline static int submitRate = -1;
     inline static int maliciousNeighborhoods = 0;
     inline static bool attemptRollback = false;
 

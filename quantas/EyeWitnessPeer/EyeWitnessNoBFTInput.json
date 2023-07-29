@@ -7,7 +7,8 @@
                 "neighborhoodSize": 21,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 50,
-                "maliciousNeighborhoods": 2
+                "maliciousNeighborhoods": 2,
+                "submitRate": 4
             },
             "logFile": "quantas/EyeWitnessPeer/LargerNoBFTLog.json",
             "distribution": {

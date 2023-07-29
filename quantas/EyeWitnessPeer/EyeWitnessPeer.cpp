@@ -569,16 +569,17 @@ void EyeWitnessPeer::performComputation() {
             initiateRollbacks();
         }
 
-        // assuming non-overlapping neighborhoods, so if we're the leader in one
-        // wallet stored by our neighborhood we're a leader in every wallet
-        // stored by our neighborhood
-        // const int inProgressTxs =
-        //     localRequests.size() + superRequests.size() +
-        //     initRequests.size();
-        // std::cout << "inProgressTxs, round " << getRound() << ": "
-        //           << inProgressTxs << "\n";
-        if (oneInXChance(4) || (corrupt && oneInXChance(2))) {
-            // if (inProgressTxs < 10) {
+        bool submit = false;
+        if (submitRate == -1) {
+            const int inProgressTxs = localRequests.size() +
+                                      superRequests.size() +
+                                      initRequests.size();
+            submit = inProgressTxs < 10;
+        } else {
+            submit = oneInXChance(submitRate) ||
+                     (corrupt && oneInXChance(submitRate / 2));
+        }
+        if (submit) {
             initiateTransaction(!(corrupt || oneInXChance(4)));
         }
     }
@@ -619,7 +620,8 @@ void EyeWitnessPeer::endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers
     //             peer->superRequests.size() >=
     //         10) {
     //         std::cout << "peer " << peer->id()
-    //                   << " is full of in-progress transactions" << std::endl;
+    //                   << " is full of in-progress transactions" <<
+    //                   std::endl;
     //     }
     // }
     if (lastRound()) {
@@ -667,8 +669,8 @@ void EyeWitnessPeer::endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers
                     peers[i]->corrupt = true;
                     if (walletsForNeighborhoods[corruptNeighborhood][0]
                             .storedBy.leader == peers[i]->id()) {
-                        // using the leader of the byzantine neighborhoods as a
-                        // reference for what coins they hold
+                        // using the leader of the byzantine neighborhoods
+                        // as a reference for what coins they hold
                         for (const auto &w : peers[i]->heldWallets) {
                             for (const auto &[cid, c] : w.coins) {
                                 LogWriter::getTestLog()["lostCoins"].push_back(
@@ -710,8 +712,9 @@ EyeWitnessPeer::chooseContactsFor(OngoingTransaction t, bool local) {
     if (local) {
         result = ConsensusContacts(t.coin, 1);
     } else if (!corrupt && corruptNeighborhoods.count(t.sender.storedBy.id) > 0) {
-        // assuming a rollback transaction. corrupt senders should be stopped by
-        // legit validation in message retrieval in performComputation
+        // assuming a rollback transaction. corrupt senders should be
+        // stopped by legit validation in message retrieval in
+        // performComputation
         result = ConsensusContacts(t.coin, validatorNeighborhoods, true);
     } else {
         result = ConsensusContacts(t.coin, validatorNeighborhoods);
