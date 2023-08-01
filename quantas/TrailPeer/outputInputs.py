@@ -2,14 +2,14 @@ import json
 
 def getInputWithNumComms(num, commSize = 13):
     return [{
-        "algorithm": "EyeWitness",
+        "algorithm": "Trail",
         "parameters": {
             "validatorNeighborhoods": 3*F+1,
             "neighborhoodSize": commSize,
             "walletsPerNeighborhood": 10,
             "submitRate": 50.0
         },
-        "logFile": f"quantas/EyeWitnessPeer/varyingCommsLogs/F{F}/{num}Committees.json",
+        "logFile": f"quantas/TrailPeer/varyingCommsLogs/F{F}/{num}Committees.json",
         "distribution": {
             "type": "uniform",
             "maxDelay": 1
@@ -32,14 +32,14 @@ def getInputsWithChangingCommSize():
     for size in sizes:
         experiments.append(
             {
-                "algorithm": "EyeWitness",
+                "algorithm": "Trail",
                 "parameters": {
                     "validatorNeighborhoods": 4,
                     "neighborhoodSize": size,
                     "walletsPerNeighborhood": 10,
                     "submitRate": 100.0
                 },
-                "logFile": f"quantas/EyeWitnessPeer/varyingCommSizesLogs/{size}PerCommittee.json",
+                "logFile": f"quantas/TrailPeer/varyingCommSizesLogs/{size}PerCommittee.json",
                 "distribution": {
                     "type": "uniform",
                     "maxDelay": 1

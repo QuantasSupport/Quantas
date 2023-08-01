@@ -1,14 +1,14 @@
 {
     "experiments": [
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/20Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/20Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -23,14 +23,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/20Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/20Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -45,14 +45,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/20Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/20Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -67,14 +67,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/36Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/36Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -89,14 +89,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/36Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/36Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -111,14 +111,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/36Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/36Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -133,14 +133,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/52Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/52Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -155,14 +155,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/52Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/52Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -177,14 +177,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/52Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/52Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -199,14 +199,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/68Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/68Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -221,14 +221,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/68Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/68Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -243,14 +243,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/68Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/68Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -265,14 +265,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/84Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/84Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -287,14 +287,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/84Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/84Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -309,14 +309,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/84Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/84Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -331,14 +331,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/100Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/100Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -353,14 +353,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/100Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/100Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -375,14 +375,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/100Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/100Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -397,14 +397,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/116Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/116Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -419,14 +419,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/116Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/116Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -441,14 +441,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/116Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/116Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -463,14 +463,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/132Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/132Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -485,14 +485,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/132Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/132Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -507,14 +507,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/132Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/132Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -529,14 +529,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/148Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/148Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -551,14 +551,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/148Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/148Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -573,14 +573,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/148Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/148Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -595,14 +595,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/164Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/164Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -617,14 +617,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/164Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/164Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -639,14 +639,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/164Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/164Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -661,14 +661,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/180Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/180Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -683,14 +683,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/180Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/180Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -705,14 +705,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/180Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/180Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -727,14 +727,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 1,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F0/196Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/196Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -749,14 +749,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F1/196Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/196Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
@@ -771,14 +771,14 @@
             "rounds": 200
         },
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "submitRate": 500.0
             },
-            "logFile": "quantas/EyeWitnessPeer/varyingCommsLogs/F2/196Committees.json",
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/196Committees.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1

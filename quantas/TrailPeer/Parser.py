@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 from time import time
 
-EYEWITNESS_PATH = Path(__file__).parent
+TRAIL_PATH = Path(__file__).parent
 GRAPH_TIMESTAMPS = round(time())
 
 class EventTimelineMuxer:
@@ -90,7 +90,7 @@ class EventTimelineMuxer:
         return average_timeline
 
 
-EYEWITNESS_PATH = Path(__file__).parent
+TRAIL_PATH = Path(__file__).parent
 GRAPH_TIMESTAMPS = round(time())
 
 def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer, tx_completes: EventTimelineMuxer,
@@ -129,7 +129,7 @@ def plotTOT(tx_starts: EventTimelineMuxer, honest_tx_starts: EventTimelineMuxer,
         axin.set_yticks([])
 
     plt.legend(loc="upper left")
-    plt.savefig(EYEWITNESS_PATH / outfile)
+    plt.savefig(TRAIL_PATH / outfile)
     plt.show()
     plt.clf()
 
@@ -147,7 +147,7 @@ def plotMOT(local_messages: EventTimelineMuxer, all_messages: EventTimelineMuxer
         plt.ylabel("Total # of Messages")
     plt.legend(loc="upper left")
     plt.tight_layout()
-    plt.savefig(EYEWITNESS_PATH / outfile)
+    plt.savefig(TRAIL_PATH / outfile)
     plt.show()
     plt.clf()
 
@@ -172,7 +172,7 @@ def plotCOT(
     plt.ylabel("compromised wallets, %")
     plt.xlabel("rounds")
     plt.legend(loc="upper left")
-    plt.savefig(EYEWITNESS_PATH / outfile)
+    plt.savefig(TRAIL_PATH / outfile)
     plt.show()
     plt.clf()
 
@@ -185,7 +185,7 @@ def plot_coins_lost(lost_coins: EventTimelineMuxer, outfile: str):
         plt.ylabel("Fraction of Total Wallets")
     else:
         plt.ylabel("Total # of Coins")
-    plt.savefig(EYEWITNESS_PATH / outfile)
+    plt.savefig(TRAIL_PATH / outfile)
     plt.show()
     plt.clf()
 
@@ -197,7 +197,7 @@ def plot_throughput_vs_committees():
         {"color": "black", "linestyle": "dotted"}
     ]
     for F in range(0, 3):
-        log_path = EYEWITNESS_PATH / "varyingCommsLogs" / f"F{F}"
+        log_path = TRAIL_PATH / "varyingCommsLogs" / f"F{F}"
         log_files = list(log_path.glob("*.json"))
         xs = [int(x.name[0:x.name.index("C")]) for x in log_files]
         used_xs = []
@@ -226,12 +226,12 @@ def plot_throughput_vs_committees():
     plt.xlabel("number of Peers in the Network")
     plt.ylabel("transaction Rate Per Round")
     plt.legend(loc="best")
-    plt.savefig(EYEWITNESS_PATH / "throughput_scaling.png")
+    plt.savefig(TRAIL_PATH / "throughput_scaling.png")
     plt.clf()
 
 
 def plot_throughput_vs_committee_size():
-    log_path = EYEWITNESS_PATH / "varyingCommSizesLogs"
+    log_path = TRAIL_PATH / "varyingCommSizesLogs"
     log_files = list(log_path.glob("*.json"))
     xs = [int(x.name[0:x.name.index("P")]) for x in log_files]
     used_xs = []
@@ -253,7 +253,7 @@ def plot_throughput_vs_committee_size():
     plt.xlabel("Committee Size With 2000 Peers")
     plt.ylabel("Transactions Processed in 200 Rounds")
     plt.plot(used_xs, ys, linestyle='--', marker='o')
-    plt.savefig(EYEWITNESS_PATH / "throughput_comm_size.png")
+    plt.savefig(TRAIL_PATH / "throughput_comm_size.png")
     plt.clf()
 
 
@@ -267,7 +267,7 @@ def plotFT():
     tx_starts = {}
     tx_completes = {}
     for i in range(1,NUM_FT+1):
-        output = parser(EYEWITNESS_PATH / f"FTLog{i}.json")
+        output = parser(TRAIL_PATH / f"FTLog{i}.json")
 
         local_messages_avg_tl = output["local_messages"].get_average_cumulative_timeline()
         local_messages[i] = local_messages_avg_tl[output["local_messages"].max - 1] / NUM_PEERS / NUM_ROUNDS
@@ -288,7 +288,7 @@ def plotFT():
     plt.plot(all_messages.keys(), all_messages.values(),
              color="green", label="Messages Sent for All Transactions")
     plt.legend(loc="center right")
-    plt.savefig(EYEWITNESS_PATH / f"graph_FTmessages_{GRAPH_TIMESTAMPS}.png")
+    plt.savefig(TRAIL_PATH / f"graph_FTmessages_{GRAPH_TIMESTAMPS}.png")
     plt.show()
     plt.clf()
 
@@ -299,7 +299,7 @@ def plotFT():
     plt.plot(tx_completes.keys(), tx_completes.values(),
              color="green", label="Transactions finished")
     plt.legend(loc="upper left")
-    plt.savefig(EYEWITNESS_PATH / f"graph_FTtransactions_{GRAPH_TIMESTAMPS}.png")
+    plt.savefig(TRAIL_PATH / f"graph_FTtransactions_{GRAPH_TIMESTAMPS}.png")
     plt.show()
     plt.clf()
 
@@ -308,10 +308,10 @@ def plot_malicious_effects(outfile: str, normalize: bool=False):
     corrupt_at_end: dict[int, int] = {}
     corrupt_at_end_bft: dict[int, int] = {}
     for i in MALICIOUS_RANGE:
-        output = parser(EYEWITNESS_PATH / F"ML{i}Log.json")
+        output = parser(TRAIL_PATH / F"ML{i}Log.json")
         avg_corrupt = output["corrupt_wallets"].get_average_cumulative_timeline(normalize)
         corrupt_at_end[i] = avg_corrupt[output["corrupt_wallets"].max-1]
-        bft_output = parser(EYEWITNESS_PATH / F"ML{i}ValidatedLog.json")
+        bft_output = parser(TRAIL_PATH / F"ML{i}ValidatedLog.json")
         avg_corrupt_bft = bft_output["corrupt_wallets"].get_average_cumulative_timeline(normalize)
         corrupt_at_end_bft[i] = avg_corrupt_bft[bft_output["corrupt_wallets"].max-1]
 
@@ -340,7 +340,7 @@ def plot_malicious_effects(outfile: str, normalize: bool=False):
         plt.ylabel("Fraction of Corrupt Wallets at End")
     else:
         plt.ylabel("# of Corrupt Wallets at End")
-    plt.savefig(EYEWITNESS_PATH / outfile)
+    plt.savefig(TRAIL_PATH / outfile)
     plt.show()
     plt.clf()
 
@@ -476,9 +476,9 @@ def make_timing_diagrams(logfile) -> EventTimelineMuxer:
     return output
 
 if __name__ == "__main__":
-    bft = make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
-    noBFT = make_timing_diagrams(EYEWITNESS_PATH / "LargerNoBFTLog.json")
-    recovery = make_timing_diagrams(EYEWITNESS_PATH / "RollbackLog.json")
+    bft = make_timing_diagrams(TRAIL_PATH / "LargerLog.json")
+    noBFT = make_timing_diagrams(TRAIL_PATH / "LargerNoBFTLog.json")
+    recovery = make_timing_diagrams(TRAIL_PATH / "RollbackLog.json")
     plotCOT(
         bft["corrupt_wallets"], noBFT["corrupt_wallets"], recovery["corrupt_wallets"],
         f"log wlt_normalized_{GRAPH_TIMESTAMPS}.png"

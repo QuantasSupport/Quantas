@@ -12,8 +12,8 @@ You should have received a copy of the GNU General Public License along with
 QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef EyeWitnessPeer_hpp
-#define EyeWitnessPeer_hpp
+#ifndef TrailPeer_hpp
+#define TrailPeer_hpp
 
 #include <algorithm>
 #include <atomic>
@@ -109,7 +109,7 @@ struct OngoingTransaction : public TransactionRecord {
     int roundCompleted;
 };
 
-struct EyeWitnessMessage {
+struct TrailMessage {
     OngoingTransaction trans;
     // this is a PBFT phase or "reply"; reply informs a coin
     // receiver of a transaction validation
@@ -187,21 +187,21 @@ class PBFTRequest {
     bool outboxEmpty() { return outbox.size() == 0; }
 
     // Precondition: !outboxEmpty()
-    EyeWitnessMessage getMessage() {
-        EyeWitnessMessage m = outbox.back();
+    TrailMessage getMessage() {
+        TrailMessage m = outbox.back();
         outbox.pop_back();
         return m;
     }
 
     void updateConsensus();
-    virtual void addToConsensus(EyeWitnessMessage c, int sourceID = -1);
+    virtual void addToConsensus(TrailMessage c, int sourceID = -1);
     bool consensusSucceeded() const;
     OngoingTransaction getTransaction() const { return transaction; }
     int getSequenceNumber() const { return sequenceNum; }
 
   protected:
     OngoingTransaction transaction;
-    vector<EyeWitnessMessage> outbox;
+    vector<TrailMessage> outbox;
 
     int consensusPeers;
     int sequenceNum;
@@ -222,7 +222,7 @@ class CrossShardPBFTRequest : public PBFTRequest {
         : PBFTRequest(t, neighbors, seq, amLeader, ownID) {
         this->neighborhoodSize = neighborhoodSize;
     }
-    void addToConsensus(EyeWitnessMessage c, int sourceID) override;
+    void addToConsensus(TrailMessage c, int sourceID) override;
 
   protected:
     int neighborhoodSize;
@@ -230,21 +230,21 @@ class CrossShardPBFTRequest : public PBFTRequest {
 };
 
 // -- peer class that participates directly in the network --
-class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
+class TrailPeer : public Peer<TrailMessage> {
 
   public:
     // methods that must be defined when deriving from Peer
 
-    EyeWitnessPeer(long id);
+    TrailPeer(long id);
 
     void initParameters(const vector<Peer *> &_peers, json parameters) override;
 
     // perform one step of the algorithm with the messages in inStream
     void performComputation() override;
 
-    void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers) override;
+    void endOfRound(const vector<Peer<TrailMessage> *> &_peers) override;
 
-    void broadcastTo(EyeWitnessMessage, Neighborhood);
+    void broadcastTo(TrailMessage, Neighborhood);
     void initiateTransaction(bool withinNeighborhood = true);
     void initiateRollbacks();
 
@@ -274,7 +274,7 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     std::unordered_multiset<int> receivedPostCommits;
 
     // messages received for a given sequence number before its pre-prepare
-    std::unordered_map<int, std::vector<EyeWitnessMessage>> errantMessages;
+    std::unordered_map<int, std::vector<TrailMessage>> errantMessages;
 
     // logs that are gathered up and sent to the LogWriter all at once in the
     // last endOfRound(); events aren't sent to the LogWriter directly because
@@ -308,6 +308,6 @@ class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
     inline static std::unordered_set<int> corruptNeighborhoods;
 };
 
-Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *generateSim();
+Simulation<quantas::TrailMessage, quantas::TrailPeer> *generateSim();
 } // namespace quantas
-#endif /* EyeWitnessPeer_hpp */
+#endif /* TrailPeer_hpp */

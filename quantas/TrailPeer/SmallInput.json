@@ -1,7 +1,7 @@
 {
     "experiments": [
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
                 "neighborhoodSize": 13,
@@ -9,7 +9,7 @@
                 "byzantineRound": 50,
                 "maliciousNeighborhoods": 1
             },
-            "logFile": "quantas/EyeWitnessPeer/SmallLog.json",
+            "logFile": "quantas/TrailPeer/SmallLog.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1

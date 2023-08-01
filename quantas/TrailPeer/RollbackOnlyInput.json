@@ -1,7 +1,7 @@
 {
     "experiments": [
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 7,
                 "neighborhoodSize": 22,
@@ -11,7 +11,7 @@
                 "attemptRollback": true,
                 "submitRate": 4
             },
-            "logFile": "quantas/EyeWitnessPeer/RollbackLog.json",
+            "logFile": "quantas/TrailPeer/RollbackLog.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1

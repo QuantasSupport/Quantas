@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License along with
 QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "EyeWitnessPeer.hpp"
+#include "TrailPeer.hpp"
 #include <iostream>
 
 namespace quantas {
@@ -21,7 +21,7 @@ namespace quantas {
 void PBFTRequest::updateConsensus() {
     if (leader && status == "pre-prepare") {
         status = "prepare";
-        EyeWitnessMessage message;
+        TrailMessage message;
         message.sequenceNum = sequenceNum;
         message.messageType = "pre-prepare";
         message.trans = transaction;
@@ -31,7 +31,7 @@ void PBFTRequest::updateConsensus() {
     } else if (status == "pre-prepare") {
         if (statusCount["pre-prepare"] > 0) {
             status = "prepare";
-            EyeWitnessMessage message;
+            TrailMessage message;
             message.sequenceNum = sequenceNum;
             message.messageType = "prepare";
             message.trans = transaction;
@@ -43,7 +43,7 @@ void PBFTRequest::updateConsensus() {
     if (status == "prepare") {
         if (statusCount["prepare"] >= 2 * ((consensusPeers - 1) / 3)) {
             status = "commit";
-            EyeWitnessMessage message;
+            TrailMessage message;
             message.sequenceNum = sequenceNum;
             message.messageType = "commit";
             message.trans = transaction;
@@ -59,7 +59,7 @@ void PBFTRequest::updateConsensus() {
     }
 }
 
-void PBFTRequest::addToConsensus(EyeWitnessMessage message, int sourceID) {
+void PBFTRequest::addToConsensus(TrailMessage message, int sourceID) {
     // increment the number of times we've seen this type of message for this
     // request
     ++statusCount[message.messageType];
@@ -67,15 +67,13 @@ void PBFTRequest::addToConsensus(EyeWitnessMessage message, int sourceID) {
 
 bool PBFTRequest::consensusSucceeded() const { return status == "committed"; }
 
-Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *generateSim() {
+Simulation<quantas::TrailMessage, quantas::TrailPeer> *generateSim() {
 
-    Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer> *sim =
-        new Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer>;
+    Simulation<quantas::TrailMessage, quantas::TrailPeer> *sim =
+        new Simulation<quantas::TrailMessage, quantas::TrailPeer>;
     return sim;
 }
-void CrossShardPBFTRequest::addToConsensus(
-    EyeWitnessMessage message, int sourceID
-) {
+void CrossShardPBFTRequest::addToConsensus(TrailMessage message, int sourceID) {
     if (individualMessageCounts.count(
             std::make_pair(message.messageType, sourceID)
         ) == 0) {
@@ -104,8 +102,8 @@ void CrossShardPBFTRequest::addToConsensus(
 // byzantineRound is set; walletsForNeighborhoods contains a vector of
 // LocalWallets for each neighborhood; neighborhoodsForPeers maps a peer's id to
 // the index of the neighborhood it's in; static members are reset
-void EyeWitnessPeer::initParameters(
-    const vector<Peer<EyeWitnessMessage> *> &_peers, json parameters
+void TrailPeer::initParameters(
+    const vector<Peer<TrailMessage> *> &_peers, json parameters
 ) {
     // divide peers into neighborhoods: if the neighborhood size is 5, then
     // the first 5 peers are placed in a neighborhood, then the next 5
@@ -248,7 +246,7 @@ void EyeWitnessPeer::initParameters(
         // it would be less weird to set these in the constructor, but
         // because this function (initParameters) is not static, at least
         // one Peer needs to be constructed *before* this function can run
-        EyeWitnessPeer *e = dynamic_cast<EyeWitnessPeer *>(n);
+        TrailPeer *e = dynamic_cast<TrailPeer *>(n);
         assert(e); // cast should have succeeded
         e->neighborhoodID = neighborhoodsForPeers[e->id()];
         e->heldWallets = walletsForNeighborhoods[e->neighborhoodID];
@@ -266,7 +264,7 @@ void EyeWitnessPeer::initParameters(
     // make sure there is no pointer re-use
     std::unordered_set<long> ptrs;
     for (auto &n : _peers) {
-        EyeWitnessPeer *e = dynamic_cast<EyeWitnessPeer *>(n);
+        TrailPeer *e = dynamic_cast<TrailPeer *>(n);
         assert(e); // cast should have succeeded
         for (auto coinPair : e->coinDB) {
             assert(ptrs.count((long)coinPair.second) == 0);
@@ -276,9 +274,9 @@ void EyeWitnessPeer::initParameters(
     std::cout << "finished initParameters" << std::endl;
 }
 
-EyeWitnessPeer::EyeWitnessPeer(long id) : Peer<EyeWitnessMessage>(id) {}
+TrailPeer::TrailPeer(long id) : Peer<TrailMessage>(id) {}
 
-bool EyeWitnessPeer::validateTransaction(OngoingTransaction t) {
+bool TrailPeer::validateTransaction(OngoingTransaction t) {
     // for now, just checking to see if the coin was last known to be in the
     // sending neighborhood (because internal transactions in the neighborhood
     // aren't visible and need signatures to be checked)
@@ -296,11 +294,11 @@ bool EyeWitnessPeer::validateTransaction(OngoingTransaction t) {
     }
 }
 
-void EyeWitnessPeer::performComputation() {
+void TrailPeer::performComputation() {
     // retrieve messages for requests that are in progress:
     while (!inStreamEmpty()) {
-        Packet<EyeWitnessMessage> p = popInStream();
-        EyeWitnessMessage message = p.getMessage();
+        Packet<TrailMessage> p = popInStream();
+        TrailMessage message = p.getMessage();
         int sourceNeighborhood = neighborhoodsForPeers[p.sourceId()];
         int seqNum = message.sequenceNum;
         typename std::unordered_map<int, PBFTRequest>::iterator s;
@@ -469,7 +467,7 @@ void EyeWitnessPeer::performComputation() {
             s = localRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
-                EyeWitnessMessage m = r.getMessage();
+                TrailMessage m = r.getMessage();
                 broadcastTo(m, r.getTransaction().sender.storedBy);
                 localMessagesThisRound +=
                     r.getTransaction().sender.storedBy.size();
@@ -494,7 +492,7 @@ void EyeWitnessPeer::performComputation() {
             s = initRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
-                EyeWitnessMessage m = r.getMessage();
+                TrailMessage m = r.getMessage();
                 broadcastTo(m, r.getTransaction().sender.storedBy);
                 superMessagesThisRound +=
                     r.getTransaction().sender.storedBy.size();
@@ -526,7 +524,7 @@ void EyeWitnessPeer::performComputation() {
                 // if we are a validator:
                 if (coinDB.count(trans.coin.id) > 0) {
                     coinDB[trans.coin.id]->history.push_back(trans);
-                    EyeWitnessMessage m;
+                    TrailMessage m;
                     m.trans = trans;
                     m.messageType = "reply";
                     m.sequenceNum = seqNum;
@@ -546,7 +544,7 @@ void EyeWitnessPeer::performComputation() {
             s = superRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
-                EyeWitnessMessage m = r.getMessage();
+                TrailMessage m = r.getMessage();
                 std::vector<Neighborhood> recipients =
                     contacts.at(r.getSequenceNumber()).participants;
                 for (auto &recipient : recipients) {
@@ -585,7 +583,7 @@ void EyeWitnessPeer::performComputation() {
     }
 }
 
-void EyeWitnessPeer::broadcastTo(EyeWitnessMessage m, Neighborhood n) {
+void TrailPeer::broadcastTo(TrailMessage m, Neighborhood n) {
     // if (m.sequenceNum == x) {
     //     std::cout << "sending message " << m.messageID
     //               << " about sequence number 148:\n";
@@ -599,8 +597,7 @@ void EyeWitnessPeer::broadcastTo(EyeWitnessMessage m, Neighborhood n) {
     }
 }
 
-void EyeWitnessPeer::endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers
-) {
+void TrailPeer::endOfRound(const vector<Peer<TrailMessage> *> &_peers) {
     messages.push_back(
         {{"round", getRound()},
          {"transactionType", "local"},
@@ -613,8 +610,8 @@ void EyeWitnessPeer::endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers
          {"batchSize", superMessagesThisRound}}
     );
     superMessagesThisRound = 0;
-    const vector<EyeWitnessPeer *> peers =
-        reinterpret_cast<vector<EyeWitnessPeer *> const &>(_peers);
+    const vector<TrailPeer *> peers =
+        reinterpret_cast<vector<TrailPeer *> const &>(_peers);
     // for (const auto &peer : peers) {
     //     if (peer->initRequests.size() + peer->localRequests.size() +
     //             peer->superRequests.size() >=
@@ -687,7 +684,7 @@ void EyeWitnessPeer::endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers
               << (getLastRound() + 1) << "\n";
 }
 
-bool EyeWitnessPeer::transactionInProgressFor(Coin c) {
+bool TrailPeer::transactionInProgressFor(Coin c) {
     for (auto &r : localRequests) {
         if (r.second.getTransaction().coin == c) {
             return true;
@@ -707,7 +704,7 @@ bool EyeWitnessPeer::transactionInProgressFor(Coin c) {
 }
 
 ConsensusContacts
-EyeWitnessPeer::chooseContactsFor(OngoingTransaction t, bool local) {
+TrailPeer::chooseContactsFor(OngoingTransaction t, bool local) {
     ConsensusContacts result;
     if (local) {
         result = ConsensusContacts(t.coin, 1);
@@ -725,7 +722,7 @@ EyeWitnessPeer::chooseContactsFor(OngoingTransaction t, bool local) {
     return result;
 }
 
-void EyeWitnessPeer::initiateRollbacks() {
+void TrailPeer::initiateRollbacks() {
     std::unordered_set<int> rollingBack;
     for (const auto &w : heldWallets) {
         for (const auto &[cid, c] : w.pastCoins) {
@@ -772,7 +769,7 @@ void EyeWitnessPeer::initiateRollbacks() {
 // Precondition: peer is a leader in their (single) neighborhood
 // Postcondition: PBFTRequest created UNLESS there are no coins to send in
 // this neighborhood's wallets
-void EyeWitnessPeer::initiateTransaction(bool withinNeighborhood) {
+void TrailPeer::initiateTransaction(bool withinNeighborhood) {
     LocalWallet sender;
     Coin c;
     bool honest;

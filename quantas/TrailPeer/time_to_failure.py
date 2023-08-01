@@ -53,7 +53,7 @@ for F in [0, 3, 6]:
     # print(std)
     print()
     plt.plot(num_shards[start_index:], mean[start_index:], linestyle="--",
-            marker="o", label="F="+str(F) if F != 0 else "Without Eyewitness")
+            marker="o", label="F="+str(F) if F != 0 else "Without TRAIL")
 
 plt.legend(loc="best")
 plt.savefig("./MTTF.png")
