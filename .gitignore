@@ -20,3 +20,8 @@
 *.user
 Debug/
 enc_temp_folder/
+quantas/TrailPeer/*.txt
+quantas/TrailPeer/*.png
+quantas/TrailPeer/*Log.json
+quantas/TrailPeer/*logs*/**/*
+quantas/TrailPeer/*Logs*/**/*

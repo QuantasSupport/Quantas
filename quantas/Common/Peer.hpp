@@ -57,6 +57,7 @@ namespace quantas{
         // ran once per round, used to submit transactions or collect metrics
         virtual void                       endOfRound              (const vector<Peer<message>*>& _peers) {};
         static int                         getRound                ()                                     { return _round; };
+        static int                         getLastRound            ()                                     { return _lastRound;};
         static void                        initializeRound         ()                                     { _round = 0; };
         static void                        incrementRound          ()                                     { _round++; };
         static void                        initializeLastRound     (int lastRound)                        { _lastRound = lastRound; };

@@ -1,0 +1,26 @@
+{
+    "experiments": [
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "byzantineRound": 50,
+                "maliciousNeighborhoods": 1
+            },
+            "logFile": "quantas/TrailPeer/SmallLog.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 130,
+                "totalPeers": 130
+            },
+            "tests": 3,
+            "rounds": 200
+        }
+    ]
+}

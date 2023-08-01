@@ -19,12 +19,13 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-# INPUTFILE := ExampleInput.json
+INPUTFILE := TrailInput.json
+
+ALGFILE := TrailPeer
 
 # ALGFILE := ExamplePeer
 
-ALGFILE := BitcoinPeer
-INPUTFILE := BitcoinSpeedTest.json
+# ALGFILE := BitcoinPeer
 
 # ALGFILE := EthereumPeer
 
@@ -94,9 +95,12 @@ $(PROJECT_DIR)/%.o: $(PROJECT_DIR)/%.c
 run: all
 	./$(EXE) $(INPUTFILE)
 
+run_debug: debug
+	./$(EXE) $(INPUTFILE)
+
 # in the future this could be generalized to go through every file in "Tests"
 rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.cpp
-	$(CXX) $^ -o $@.exe
+	$(CXX) -pthread -std=c++17 $^ -o $@.exe
 	./$@.exe
 
 TESTS = rand_test test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_SmartShards test_LinearChord test_Kademlia test_AltBit test_StableDataLink test_ChangRoberts test_Dynamic test_KPT test_KSM

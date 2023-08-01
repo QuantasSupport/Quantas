@@ -17,6 +17,10 @@ sudo apt install g++-9
 
 If you would rather use `clang`, use `make clang`.
 
+We are using the JSON interpreter library available on Github [here](https://github.com/nlohmann/json).
+
+We are using the thread pool library available on Github [here](https://github.com/bshoshany/thread-pool).
+
 #### Basic Usage
 To use the simulator, first clone the repository. Once cloned, you need to configure the simulated algorithm for QUANTAS to run and an input file for the algorithm to use. QUANTAS comes with several example algorithms and input files. They are listed in the `makefile` in the root directory. Uncomment the required algorithm and input file, for example:
  
