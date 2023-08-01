@@ -476,9 +476,9 @@ def make_timing_diagrams(logfile) -> EventTimelineMuxer:
     return output
 
 if __name__ == "__main__":
-    bft = make_timing_diagrams(EYEWITNESS_PATH / "logs-2023-07-31/LargerLog.json")
-    noBFT = make_timing_diagrams(EYEWITNESS_PATH / "logs-2023-07-31/LargerNoBFTLog.json")
-    recovery = make_timing_diagrams(EYEWITNESS_PATH / "logs-2023-07-31/RollbackLog.json")
+    bft = make_timing_diagrams(EYEWITNESS_PATH / "LargerLog.json")
+    noBFT = make_timing_diagrams(EYEWITNESS_PATH / "LargerNoBFTLog.json")
+    recovery = make_timing_diagrams(EYEWITNESS_PATH / "RollbackLog.json")
     plotCOT(
         bft["corrupt_wallets"], noBFT["corrupt_wallets"], recovery["corrupt_wallets"],
         f"log wlt_normalized_{GRAPH_TIMESTAMPS}.png"
