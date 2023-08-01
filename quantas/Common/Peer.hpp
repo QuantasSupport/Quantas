@@ -68,9 +68,9 @@ namespace quantas{
         // current round
         static int                         _round;
         // last round
-        static int                        _lastRound;
+        static int                         _lastRound;
         // size of source pool (FOR BLOCKCHAIN IN DYNAMIC NETWORKS)
-        static int                        _sourcePoolSize;
+        static int                         _sourcePoolSize;
     };
 
     template <class message>

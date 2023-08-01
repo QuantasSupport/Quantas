@@ -62,7 +62,7 @@ namespace quantas{
 
         // setters
         void                                initNetwork         (json, int); // initialize network with peers
-        void                                initParameters(json);
+        void                                initParameters      (json);
         void                                fullyConnect        (int);
         void                                star                (int);
         void                                grid                (int, int);
@@ -82,7 +82,6 @@ namespace quantas{
         int                                 avgDelay            ()const                                         {return _distribution.avgDelay();};
         int                                 minDelay            ()const                                         {return _distribution.minDelay();};
         string                              type                ()const                                         {return _distribution.type();};
-
 
         //mutators
         void                                receive             (int begin, int end);

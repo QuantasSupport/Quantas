@@ -51,6 +51,8 @@ ALGFILE := TrailPeer
 
 # ALGFILE := KSMPeer
 
+# ALGFILE := CycleOfTreesPeer
+
 ####### end algorithm configuration
 
 ####### All algorithms

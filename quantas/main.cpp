@@ -19,6 +19,7 @@
 #include <set>
 #include <chrono>
 #include <random>
+#include <filesystem>
 
 #include "Common/Network.hpp"
 #include "Common/NetworkInterface.hpp"
@@ -26,6 +27,7 @@
 #include "Common/Json.hpp"
 
 using nlohmann::json;
+namespace fs = std::filesystem;
 
 int main(int argc, const char* argv[]) {
    if (argc < 2) {
@@ -33,13 +35,18 @@ int main(int argc, const char* argv[]) {
       return 1;
    }
 	
+   if (!fs::is_regular_file(argv[1])) {
+      std::cerr << "error: " << argv[1] << " is not a file." << std::endl;
+      return 1;
+   }
+
    std::ifstream inFile(argv[1]);
 	
    if (inFile.fail()) {
       std::cerr << "error: cannot open input file: " << argv[1] << std::endl;
       return 1;
    }
-	
+
    json config;
    inFile >> config;
 
