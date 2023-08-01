@@ -1,27 +1,26 @@
 {
     "experiments": [
         {
-            "algorithm": "EyeWitness",
+            "algorithm": "Trail",
             "parameters": {
                 "validatorNeighborhoods": 4,
-                "neighborhoodSize": 7,
+                "neighborhoodSize": 13,
                 "walletsPerNeighborhood": 10,
                 "byzantineRound": 50,
-                "maliciousNeighborhoods": 1,
-                "attemptRollback": true
+                "maliciousNeighborhoods": 1
             },
-            "logFile": "quantas/EyeWitnessPeer/LargerRollbackLog.json",
+            "logFile": "quantas/TrailPeer/SmallLog.json",
             "distribution": {
                 "type": "uniform",
                 "maxDelay": 1
             },
             "topology": {
                 "type": "complete",
-                "initialPeers": 203,
-                "totalPeers": 203
+                "initialPeers": 130,
+                "totalPeers": 130
             },
-            "tests": 5,
-            "rounds": 100
+            "tests": 3,
+            "rounds": 200
         }
     ]
 }

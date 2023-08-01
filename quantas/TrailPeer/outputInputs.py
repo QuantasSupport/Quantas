@@ -2,14 +2,14 @@ import json
 
 def getInputWithNumComms(num, commSize = 13):
     return [{
-        "algorithm": "EyeWitness",
+        "algorithm": "Trail",
         "parameters": {
             "validatorNeighborhoods": 3*F+1,
             "neighborhoodSize": commSize,
             "walletsPerNeighborhood": 10,
             "submitRate": 50.0
         },
-        "logFile": f"quantas/EyeWitnessPeer/varyingCommsLogs/F{F}/{num}Committees.json",
+        "logFile": f"quantas/TrailPeer/varyingCommsLogs/F{F}/{num}Committees.json",
         "distribution": {
             "type": "uniform",
             "maxDelay": 1
@@ -17,11 +17,12 @@ def getInputWithNumComms(num, commSize = 13):
         "topology": {
             "type": "complete",
             "initialPeers": num*commSize,
-            "totalPeers": num*commSize
+            "totalPeers": num*commSize,
+            "maxMsgsRec": 1
         },
-        "tests": 10,
+        "tests": 5,
         "rounds": 200
-    } for F in [0, 3, 6]]
+    } for F in [0, 1, 2]]
 
 def getInputsWithChangingCommSize():
     peers = 2000
@@ -31,14 +32,14 @@ def getInputsWithChangingCommSize():
     for size in sizes:
         experiments.append(
             {
-                "algorithm": "EyeWitness",
+                "algorithm": "Trail",
                 "parameters": {
                     "validatorNeighborhoods": 4,
                     "neighborhoodSize": size,
                     "walletsPerNeighborhood": 10,
                     "submitRate": 100.0
                 },
-                "logFile": f"quantas/EyeWitnessPeer/varyingCommSizesLogs/{size}PerCommittee.json",
+                "logFile": f"quantas/TrailPeer/varyingCommSizesLogs/{size}PerCommittee.json",
                 "distribution": {
                     "type": "uniform",
                     "maxDelay": 1
@@ -54,5 +55,5 @@ def getInputsWithChangingCommSize():
         )
     return experiments
 
-print(json.dumps({"experiments": list(sum([getInputWithNumComms(n) for n in range(20, 200, 16)], []))}))
-# print(json.dumps({"experiments": getInputsWithChangingCommSize()}))
+# print(json.dumps({"experiments": list(sum([getInputWithNumComms(n) for n in range(20, 200, 16)], []))}))
+print(json.dumps({"experiments": getInputsWithChangingCommSize()}))

@@ -12,291 +12,86 @@ You should have received a copy of the GNU General Public License along with
 QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef EyeWitnessPeer_hpp
-#define EyeWitnessPeer_hpp
-
-#include <algorithm>
-#include <atomic>
+#include "TrailPeer.hpp"
 #include <iostream>
-#include <map>
-#include <unordered_map>
-#include <unordered_set>
-
-#include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
-
-// unsolved design problems:
-
-// warning messages: other nodes in neighborhood being like "this person who is
-// trying to spend this money has provably signed it away"
 
 namespace quantas {
-// -- basic data storage types --
-
-struct Neighborhood {
-    int id;
-    std::unordered_set<long> memberIDs;
-    int leader; // id of the leader of this neighborhood
-    bool operator==(const Neighborhood &rhs) {
-        return memberIDs == rhs.memberIDs && leader == rhs.leader;
-    }
-    int size() { return memberIDs.size(); }
-    bool has(long peerID) { return memberIDs.count(peerID) > 0; }
-};
-
-struct WalletLocation {
-    // this is all we need to know for wallets stored in transaction
-    // histories
-
-    int address;
-    Neighborhood storedBy;
-    bool operator==(const WalletLocation &rhs) {
-        return address == rhs.address && storedBy == rhs.storedBy;
-    }
-    bool operator!=(const WalletLocation &rhs) { return !(*this == rhs); }
-};
-
-struct TransactionRecord {
-    // maybe store something symbolizing the sender's signature?
-
-    WalletLocation sender;
-    WalletLocation receiver;
-};
-
-struct Coin {
-    // id needs to be unique across all coins across all peers; use static
-    // counter variable in peer class? or uuid generator.
-    int id = -1;
-    vector<TransactionRecord> history;
-    bool operator==(const Coin &rhs) { return id == rhs.id; }
-};
-
-struct LocalWallet : public WalletLocation {
-    // we do not care about these things for wallets that are only mentioned
-    // in transactions, but we need to store them for local wallets
-
-    // coins currently held in this wallet
-    std::unordered_map<int, Coin> coins;
-    // coins held by this wallet in the past; these records are used for
-    // validation when participating in consensus later. this is not a
-    // comprehensive list because every coin only needs to be stored once by
-    // each peer, so this is missing coins that have simply moved to other
-    // wallets stored by this peer at any point
-    std::unordered_map<int, Coin> pastCoins;
-    void remove(Coin target, bool alsoFromHistory = true) {
-        coins.erase(target.id);
-        if (alsoFromHistory) {
-            pastCoins.erase(target.id);
-        }
-    }
-    // moves a Coin from `coins` to `pastCoins`. assumes that the version of the
-    // Coin passed as an argument has the most recent history and should be
-    // stored
-    Coin *moveToHistory(Coin target) {
-        remove(target);
-        auto insertion = pastCoins.insert({target.id, target});
-        return &(insertion.first->second);
-    }
-    // adds a Coin to `coins`
-    Coin *add(Coin target) {
-        auto insertion = coins.insert({target.id, target});
-        return &(insertion.first->second);
-    }
-};
-
-struct OngoingTransaction : public TransactionRecord {
-    // we just need this to verify history for transactions we are currently
-    // validating
-
-    Coin coin;
-    int roundSubmitted;
-    int roundCompleted;
-};
-
-struct EyeWitnessMessage {
-    OngoingTransaction trans;
-    // this is a PBFT phase or "post-commit"; post-commit informs a coin
-    // receiver of a transaction validation
-    string messageType = "";
-    int sequenceNum;
-};
-
-// recipients of different kinds of messages during consensus. i am assuming
-// for this version of the simulation that each peer is in only one
-// neighborhood
-struct ConsensusContacts {
-    std::vector<Neighborhood> participants;
-    ConsensusContacts() = default;
-    ConsensusContacts(
-        Coin c, int validatorCount, bool skipLastRecipient = false
-    ) {
-        std::unordered_set<int> uniques;
-        for (int i = 0; uniques.size() < validatorCount && i < c.history.size();
-             i++) {
-            Neighborhood &prevNeighborhood =
-                c.history[c.history.size() - i - (skipLastRecipient ? 2 : 1)]
-                    .receiver.storedBy;
-            if (uniques.count(prevNeighborhood.id) == 0) {
-                participants.push_back(prevNeighborhood);
-                uniques.insert(prevNeighborhood.id);
-            }
-        }
-    }
-    void sabotageWithOwn(Neighborhood n) {
-        if (std::find(participants.begin(), participants.end(), n) ==
-            participants.end()) {
-            participants.pop_back();
-            participants.push_back(n);
-        }
-    }
-    // Precondition: peerID is an id in one of the neighborhoods
-    Neighborhood getOwn(long peerID) {
-        auto own = std::find_if(
-            participants.begin(), participants.end(),
-            [peerID](Neighborhood &n) { return n.memberIDs.count(peerID) > 0; }
-        );
-        return *own;
-    }
-    std::vector<Neighborhood> getOthers(long peerID) {
-        std::vector<Neighborhood> others;
-        std::copy_if(
-            participants.begin(), participants.end(),
-            std::back_inserter(others),
-            [peerID](Neighborhood &n) { return n.memberIDs.count(peerID) == 0; }
-        );
-        return others;
-    }
-    int getValidatorNodeCount() {
-        int sum = 0;
-        for (const Neighborhood &participant : participants) {
-            sum += participant.memberIDs.size();
-        }
-        return sum;
-    }
-};
-
 // -- implementation of underlying consensus algorithm --
 
-class StateChangeRequest {
-  public:
-    virtual bool consensusSucceeded() const = 0;
-    virtual void updateConsensus() = 0;
-    virtual void addToConsensus(EyeWitnessMessage) = 0;
-    bool outboxEmpty() { return outbox.size() == 0; }
-
-    // Precondition: !outboxEmpty()
-    EyeWitnessMessage getMessage() {
-        EyeWitnessMessage m = outbox.back();
-        outbox.pop_back();
-        return m;
+void PBFTRequest::updateConsensus() {
+    if (leader && status == "pre-prepare") {
+        status = "prepare";
+        TrailMessage message;
+        message.sequenceNum = sequenceNum;
+        message.messageType = "pre-prepare";
+        message.trans = transaction;
+        message.senderID = ownID;
+        addToConsensus(message, ownID);
+        outbox.push_back(message);
+    } else if (status == "pre-prepare") {
+        if (statusCount["pre-prepare"] > 0) {
+            status = "prepare";
+            TrailMessage message;
+            message.sequenceNum = sequenceNum;
+            message.messageType = "prepare";
+            message.trans = transaction;
+            message.senderID = ownID;
+            addToConsensus(message, ownID);
+            outbox.push_back(message);
+        }
     }
+    if (status == "prepare") {
+        if (statusCount["prepare"] >= 2 * ((consensusPeers - 1) / 3)) {
+            status = "commit";
+            TrailMessage message;
+            message.sequenceNum = sequenceNum;
+            message.messageType = "commit";
+            message.trans = transaction;
+            message.senderID = ownID;
+            addToConsensus(message, ownID);
+            outbox.push_back(message);
+        }
+    }
+    if (status == "commit") {
+        if (statusCount["commit"] >= 2 * ((consensusPeers - 1) / 3) + 1) {
+            status = "committed";
+        }
+    }
+}
 
-  protected:
-    vector<EyeWitnessMessage> outbox;
-};
+void PBFTRequest::addToConsensus(TrailMessage message, int sourceID) {
+    // increment the number of times we've seen this type of message for this
+    // request
+    ++statusCount[message.messageType];
+}
 
-class PBFTRequest : public StateChangeRequest {
-  public:
-    PBFTRequest(OngoingTransaction t, int neighbors, int seq, bool amLeader)
-        : transaction(t), neighborhoodSize(neighbors), sequenceNum(seq),
-          leader(amLeader), status("pre-prepare") {}
+bool PBFTRequest::consensusSucceeded() const { return status == "committed"; }
 
-    void updateConsensus() override;
-    void addToConsensus(EyeWitnessMessage c) override;
-    bool consensusSucceeded() const override;
-    OngoingTransaction getTransaction() { return transaction; }
-    int getSequenceNumber() { return sequenceNum; }
+Simulation<quantas::TrailMessage, quantas::TrailPeer> *generateSim() {
 
-  protected:
-    OngoingTransaction transaction;
-    int neighborhoodSize;
-    int sequenceNum;
-    string status;
-    bool leader;
-    // Count of the number of times we've seen these messages
-    std::map<string, int> statusCount = {
-        {"pre-prepare", 0}, {"prepare", 0}, {"commit", 0}};
-};
-
-// -- peer class that participates directly in the network --
-template <typename ConsensusRequest = PBFTRequest>
-class EyeWitnessPeer : public Peer<EyeWitnessMessage> {
-  public:
-    // methods that must be defined when deriving from Peer
-
-    EyeWitnessPeer(long id);
-
-    void initParameters(const vector<Peer *> &_peers, json parameters) override;
-
-    // perform one step of the algorithm with the messages in inStream
-    void performComputation() override;
-
-    void endOfRound(const vector<Peer<EyeWitnessMessage> *> &_peers) override;
-
-    void broadcastTo(EyeWitnessMessage, Neighborhood);
-    void initiateTransaction(bool withinNeighborhood = true);
-    void initiateRollbacks();
-
-  private:
-    bool validateTransaction(OngoingTransaction);
-    bool transactionInProgressFor(Coin);
-    ConsensusContacts chooseContactsFor(OngoingTransaction, bool);
-
-    std::unordered_map<int, ConsensusRequest> localRequests;
-    std::unordered_map<int, ConsensusRequest> superRequests;
-    std::vector<ConsensusRequest> finishedRequests;
-    // std::multimap<int, PBFTRequest> recievedRequests;
-    // TODO: this should also probably be a container with lookup based on id
-    // (address)
-    std::vector<LocalWallet> heldWallets;
-    int neighborhoodID;
-    std::unordered_map<int, ConsensusContacts> contacts;
-    bool corrupt = false;
-
-    // maps coin ids to this peer's record of the coin with that id.
-    std::unordered_map<int, Coin *> coinDB;
-
-    // counts how many post-commit messages have been received for a given
-    // sequence number
-    std::unordered_multiset<int> receivedPostCommits;
-
-    // messages received for a given sequence number before its pre-prepare
-    std::unordered_map<int, std::vector<EyeWitnessMessage>> errantMessages;
-
-    // logs that are gathered up and sent to the LogWriter all at once in the
-    // last endOfRound(); events aren't sent to the LogWriter directly because
-    // that is not thread-safe
-    std::vector<json> transactions;
-    std::vector<json> validations;
-    std::vector<json> messages;
-    int localMessagesThisRound = 0;
-    int superMessagesThisRound = 0;
-
-    // technically not realistic for this to be known to all nodes
-    inline static std::atomic<int> previousSequenceNumber = -1;
-    inline static int issuedCoins = 0;
-
-    // parameters from input file; read in initParameters
-    inline static int maxNeighborhoodSize = -1;
-    inline static int neighborhoodCount = -1;
-    inline static int validatorNeighborhoods = -1;
-    inline static int byzantineRound = -1;
-    // average number of transactions to create per round
-    inline static double submitRate = 1.0;
-    inline static int maliciousNeighborhoods = 0;
-    inline static bool attemptRollback = false;
-
-    // global neighborhood data; populated as a side effect of initParameters
-    inline static std::vector<std::vector<LocalWallet>> walletsForNeighborhoods;
-    inline static std::unordered_map<long, int> neighborhoodsForPeers;
-    inline static std::vector<Neighborhood> neighborhoods;
-
-    // populated in endOfRound if byzantine parameters are set
-    inline static std::unordered_set<int> corruptNeighborhoods;
-};
-
-Simulation<quantas::EyeWitnessMessage, quantas::EyeWitnessPeer<PBFTRequest>> *
-generateSim();
+    Simulation<quantas::TrailMessage, quantas::TrailPeer> *sim =
+        new Simulation<quantas::TrailMessage, quantas::TrailPeer>;
+    return sim;
+}
+void CrossShardPBFTRequest::addToConsensus(TrailMessage message, int sourceID) {
+    if (individualMessageCounts.count(
+            std::make_pair(message.messageType, sourceID)
+        ) == 0) {
+        individualMessageCounts[std::make_pair(message.messageType, sourceID)] =
+            0;
+    }
+    individualMessageCounts[std::make_pair(message.messageType, sourceID)]++;
+    int f = (neighborhoodSize - 1) / 3;
+    if (message.messageType == "pre-prepare" &&
+        individualMessageCounts[std::make_pair("pre-prepare", sourceID)] >=
+            f + 1) {
+        ++statusCount["pre-prepare"];
+    } else if (
+        (message.messageType == "prepare" || message.messageType == "commit") &&
+        individualMessageCounts[std::make_pair(message.messageType, sourceID)] >= 2*f+1){
+        ++statusCount[message.messageType];
+    }
+}
 
 // -- peer class that participates directly in the network --
 
@@ -307,15 +102,16 @@ generateSim();
 // byzantineRound is set; walletsForNeighborhoods contains a vector of
 // LocalWallets for each neighborhood; neighborhoodsForPeers maps a peer's id to
 // the index of the neighborhood it's in; static members are reset
-template <typename ConsensusRequest>
-void EyeWitnessPeer<ConsensusRequest>::initParameters(
-    const vector<Peer<EyeWitnessMessage> *> &_peers, json parameters
+void TrailPeer::initParameters(
+    const vector<Peer<TrailMessage> *> &_peers, json parameters
 ) {
     // divide peers into neighborhoods: if the neighborhood size is 5, then
     // the first 5 peers are placed in a neighborhood, then the next 5
     // peers, and so on. if the total number of peers is not a multiple of
     // 5, an "extra" neighborhood stores the spares. then, each neighborhood
     // gets a set of wallets to take care of.
+
+    std::cout << "started initParameters" << std::endl;
 
     corruptNeighborhoods.clear();
     previousSequenceNumber = -1;
@@ -388,9 +184,9 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     LogWriter::getTestLog()["walletInfo"]["walletCount"] = allWallets.size();
 
     const int coinsPerWallet = 5;
-    int fakeHistoryLength = validatorNeighborhoods + (attemptRollback ? 1 : 0);
+    int fakeHistoryLength =
+        std::max(4, validatorNeighborhoods + 1 + (attemptRollback ? 1 : 0));
     int neighborhood = 0;
-    auto rng = std::default_random_engine{};
     // temporarily maps wallet addresses to past coins
     std::map<int, std::vector<Coin>> pastCoins;
     for (auto &wallets : walletsForNeighborhoods) {
@@ -414,7 +210,10 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
                     exit(1);
                 }
 
-                std::shuffle(nbrhoodIndexes.begin(), nbrhoodIndexes.end(), rng);
+                std::shuffle(
+                    nbrhoodIndexes.begin(), nbrhoodIndexes.end(),
+                    RANDOM_GENERATOR
+                );
                 WalletLocation sender;
                 for (int j = 0; j < fakeHistoryLength - 1; j++) {
                     if (j == 0) {
@@ -447,7 +246,7 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
         // it would be less weird to set these in the constructor, but
         // because this function (initParameters) is not static, at least
         // one Peer needs to be constructed *before* this function can run
-        EyeWitnessPeer *e = dynamic_cast<EyeWitnessPeer *>(n);
+        TrailPeer *e = dynamic_cast<TrailPeer *>(n);
         assert(e); // cast should have succeeded
         e->neighborhoodID = neighborhoodsForPeers[e->id()];
         e->heldWallets = walletsForNeighborhoods[e->neighborhoodID];
@@ -465,53 +264,62 @@ void EyeWitnessPeer<ConsensusRequest>::initParameters(
     // make sure there is no pointer re-use
     std::unordered_set<long> ptrs;
     for (auto &n : _peers) {
-        EyeWitnessPeer *e = dynamic_cast<EyeWitnessPeer *>(n);
+        TrailPeer *e = dynamic_cast<TrailPeer *>(n);
         assert(e); // cast should have succeeded
         for (auto coinPair : e->coinDB) {
             assert(ptrs.count((long)coinPair.second) == 0);
             ptrs.insert((long)coinPair.second);
         }
     }
+    std::cout << "finished initParameters" << std::endl;
 }
 
-template <typename ConsensusRequest>
-EyeWitnessPeer<ConsensusRequest>::EyeWitnessPeer(long id)
-    : Peer<EyeWitnessMessage>(id) {}
+TrailPeer::TrailPeer(long id) : Peer<TrailMessage>(id) {}
 
-template <typename ConsensusRequest>
-bool EyeWitnessPeer<ConsensusRequest>::validateTransaction(OngoingTransaction t
-) {
+bool TrailPeer::validateTransaction(OngoingTransaction t) {
     // for now, just checking to see if the coin was last known to be in the
     // sending neighborhood (because internal transactions in the neighborhood
     // aren't visible and need signatures to be checked)
-    if (coinDB.count(t.coin.id) == 0) {
-        std::cout << "asked to validated transaction with unknown coin\n";
-        return false;
+    if (corrupt) {
+        return true;
+    } else {
+        if (coinDB.count(t.coin.id) == 0) {
+            std::cout << "asked to validate transaction with unknown coin\n";
+            return false;
+        }
+        return (
+            t.sender.storedBy.id ==
+            coinDB[t.coin.id]->history.back().receiver.storedBy.id
+        );
     }
-    return corrupt || (t.sender.storedBy.id ==
-                       coinDB[t.coin.id]->history.back().receiver.storedBy.id);
 }
 
-template <typename ConsensusRequest>
-void EyeWitnessPeer<ConsensusRequest>::performComputation() {
+void TrailPeer::performComputation() {
     // retrieve messages for requests that are in progress:
     while (!inStreamEmpty()) {
-        Packet<EyeWitnessMessage> p = popInStream();
-        EyeWitnessMessage message = p.getMessage();
+        Packet<TrailMessage> p = popInStream();
+        TrailMessage message = p.getMessage();
+        int sourceNeighborhood = neighborhoodsForPeers[p.sourceId()];
         int seqNum = message.sequenceNum;
-        typename std::unordered_map<int, ConsensusRequest>::iterator s;
+        typename std::unordered_map<int, PBFTRequest>::iterator s;
+        typename std::unordered_map<int, CrossShardPBFTRequest>::iterator t;
         if ((s = localRequests.find(seqNum)) != localRequests.end()) {
             if (!validateTransaction(message.trans)) {
                 // std::cout << "invalid transaction message ignored\n";
                 continue;
             }
             s->second.addToConsensus(message);
-        } else if ((s = superRequests.find(seqNum)) != superRequests.end()) {
+        } else if ((s = initRequests.find(seqNum)) != initRequests.end()) {
+            if (!validateTransaction(message.trans)) {
+                continue;
+            }
+            s->second.addToConsensus(message);
+        } else if ((t = superRequests.find(seqNum)) != superRequests.end()) {
             if (!validateTransaction(message.trans)) {
                 // std::cout << "invalid transaction message ignored\n";
                 continue;
             }
-            s->second.addToConsensus(message);
+            t->second.addToConsensus(message, sourceNeighborhood);
         } else {
             // message about previously unknown transaction
             if (message.messageType == "pre-prepare") {
@@ -524,7 +332,7 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                         message.trans.receiver.storedBy) {
                         ConsensusContacts newContacts =
                             chooseContactsFor(message.trans, true);
-                        ConsensusRequest request(
+                        PBFTRequest request(
                             message.trans, newContacts.getValidatorNodeCount(),
                             message.sequenceNum, false
                         );
@@ -535,36 +343,72 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                                 request.addToConsensus(m);
                             }
                         }
+                        errantMessages.erase(message.sequenceNum);
                         contacts.insert({message.sequenceNum, newContacts});
                         localRequests.insert(
                             {request.getSequenceNumber(), request}
                         );
                     } else {
-                        ConsensusContacts newContacts =
-                            chooseContactsFor(message.trans, false);
-                        ConsensusRequest request(
-                            message.trans, newContacts.getValidatorNodeCount(),
-                            message.sequenceNum, false
-                        );
-                        request.addToConsensus(message);
-                        if (errantMessages.count(message.sequenceNum) > 0) {
-                            for (const auto &m :
-                                 errantMessages[message.sequenceNum]) {
-                                request.addToConsensus(m);
+                        // if you receive a pre-prepare message about a new
+                        // cross-shard transaction and you're outside the source
+                        // shard, you are part of the cross-shard consensus to
+                        // verify the transaction. if you're inside the source
+                        // shard, you must be starting the consensus process to
+                        // determine what the pre-prepare message that everyone
+                        // else gets should be.
+                        if (message.trans.sender.storedBy.memberIDs.count(id()
+                            ) == 0) {
+                            ConsensusContacts newContacts =
+                                chooseContactsFor(message.trans, false);
+                            CrossShardPBFTRequest request(
+                                message.trans, validatorNeighborhoods,
+                                message.sequenceNum, false,
+                                neighborhoodsForPeers[id()], maxNeighborhoodSize
+                            );
+                            request.addToConsensus(message, sourceNeighborhood);
+                            if (errantMessages.count(message.sequenceNum) > 0) {
+                                for (const auto &m :
+                                     errantMessages[message.sequenceNum]) {
+                                    request.addToConsensus(
+                                        m, neighborhoodsForPeers[m.senderID]
+                                    );
+                                }
                             }
+                            errantMessages.erase(message.sequenceNum);
+                            contacts.insert({message.sequenceNum, newContacts});
+                            superRequests.insert(
+                                {request.getSequenceNumber(), request}
+                            );
+                        } else {
+                            ConsensusContacts newContacts =
+                                chooseContactsFor(message.trans, true);
+                            PBFTRequest request(
+                                message.trans, maxNeighborhoodSize,
+                                message.sequenceNum, false
+                            );
+                            request.addToConsensus(message, sourceNeighborhood);
+                            if (errantMessages.count(message.sequenceNum) > 0) {
+                                for (const auto &m :
+                                     errantMessages[message.sequenceNum]) {
+                                    request.addToConsensus(m);
+                                }
+                            }
+                            errantMessages.erase(message.sequenceNum);
+                            contacts.insert({message.sequenceNum, newContacts});
+                            initRequests.insert(
+                                {request.getSequenceNumber(), request}
+                            );
                         }
-                        contacts.insert({message.sequenceNum, newContacts});
-                        superRequests.insert(
-                            {request.getSequenceNumber(), request}
-                        );
                     }
                 } else {
                     // std::cout
                     //     << "received pre-prepare message about unknown
                     //     coin\n";
                 }
-            } else if (message.messageType == "post-commit") {
-                // TODO: robustness. should check if coin sender is part of this
+            } else if (message.messageType == "reply") {
+                // TODO: robustness. should check if coin sender is part of
+                // this. should count incoming messages by neighborhood instead
+                // of just checking if there are enough
                 receivedPostCommits.insert(message.sequenceNum);
                 if (receivedPostCommits.count(message.sequenceNum) >
                     2. / 3. * validatorNeighborhoods * maxNeighborhoodSize) {
@@ -574,6 +418,11 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                             return w.address == message.trans.receiver.address;
                         }
                     );
+                    if (coinDB.count(message.trans.coin.id) > 0) {
+                        for (auto &wallet : heldWallets) {
+                            wallet.remove(message.trans.coin);
+                        }
+                    }
                     coinDB[message.trans.coin.id] =
                         localReceiver->add(message.trans.coin);
                 }
@@ -584,43 +433,41 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
     }
     // update consensus on in-progress requests:
     for (auto s = localRequests.begin(); s != localRequests.end();) {
-        ConsensusRequest &r = s->second;
+        PBFTRequest &r = s->second;
         r.updateConsensus();
         if (r.consensusSucceeded()) {
             OngoingTransaction trans = r.getTransaction();
-            if (trans.receiver.storedBy == trans.sender.storedBy) {
-                // local transaction; commit changes, update wallets
-                // TODO: optimize this search
-                auto localSender = std::find_if(
-                    heldWallets.begin(), heldWallets.end(),
-                    [trans](LocalWallet w) {
-                        return w.address == trans.sender.address;
-                    }
-                );
-                auto localReceiver = std::find_if(
-                    heldWallets.begin(), heldWallets.end(),
-                    [trans](LocalWallet w) {
-                        return w.address == trans.receiver.address;
-                    }
-                );
-                if (localReceiver != heldWallets.end() &&
-                    localSender != heldWallets.end()) {
-                    Coin moving = trans.coin;
-                    moving.history.push_back(trans);
-                    coinDB[moving.id] = localReceiver->add(moving);
-                    localSender->remove(moving);
+            // local transaction; commit changes, update wallets
+            auto localSender = std::find_if(
+                heldWallets.begin(), heldWallets.end(),
+                [trans](LocalWallet w) {
+                    return w.address == trans.sender.address;
                 }
-                finishedRequests.push_back(r);
-                validations.push_back(
-                    {{"round", getRound()},
-                     {"seqNum", r.getSequenceNumber()},
-                     {"peer", id()}}
-                );
-                s = localRequests.erase(s);
+            );
+            auto localReceiver = std::find_if(
+                heldWallets.begin(), heldWallets.end(),
+                [trans](LocalWallet w) {
+                    return w.address == trans.receiver.address;
+                }
+            );
+            if (localReceiver != heldWallets.end() &&
+                localSender != heldWallets.end()) {
+                Coin moving = trans.coin;
+                moving.history.push_back(trans);
+                coinDB[moving.id] = localReceiver->add(moving);
+                localSender->remove(moving);
             }
+            validations.push_back(
+                {{"round", getRound()},
+                 {"seqNum", r.getSequenceNumber()},
+                 {"peer", id()}}
+            );
+
+            contacts.erase(r.getSequenceNumber());
+            s = localRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
-                EyeWitnessMessage m = r.getMessage();
+                TrailMessage m = r.getMessage();
                 broadcastTo(m, r.getTransaction().sender.storedBy);
                 localMessagesThisRound +=
                     r.getTransaction().sender.storedBy.size();
@@ -629,8 +476,33 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
         }
     }
 
+    for (auto s = initRequests.begin(); s != initRequests.end();) {
+        PBFTRequest &r = s->second;
+        r.updateConsensus();
+        if (r.consensusSucceeded()) {
+            OngoingTransaction trans = r.getTransaction();
+            contacts.erase(r.getSequenceNumber());
+            ConsensusContacts newContacts = chooseContactsFor(trans, false);
+            CrossShardPBFTRequest request(
+                trans, validatorNeighborhoods, r.getSequenceNumber(), true,
+                neighborhoodsForPeers[id()], maxNeighborhoodSize
+            );
+            contacts.insert({r.getSequenceNumber(), newContacts});
+            superRequests.insert({request.getSequenceNumber(), request});
+            s = initRequests.erase(s);
+        } else {
+            while (!r.outboxEmpty()) {
+                TrailMessage m = r.getMessage();
+                broadcastTo(m, r.getTransaction().sender.storedBy);
+                superMessagesThisRound +=
+                    r.getTransaction().sender.storedBy.size();
+            }
+            ++s;
+        }
+    }
+
     for (auto s = superRequests.begin(); s != superRequests.end();) {
-        ConsensusRequest &r = s->second;
+        CrossShardPBFTRequest &r = s->second;
         r.updateConsensus();
         if (r.consensusSucceeded()) {
             int seqNum = r.getSequenceNumber();
@@ -652,32 +524,37 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
                 // if we are a validator:
                 if (coinDB.count(trans.coin.id) > 0) {
                     coinDB[trans.coin.id]->history.push_back(trans);
-                    EyeWitnessMessage m;
+                    TrailMessage m;
                     m.trans = trans;
-                    m.messageType = "post-commit";
+                    m.messageType = "reply";
                     m.sequenceNum = seqNum;
+                    m.senderID = id();
                     broadcastTo(m, trans.receiver.storedBy);
                     superMessagesThisRound += trans.receiver.storedBy.size();
                 } else {
                     std::cout << "reached consensus on an unknown coin?\n";
                 }
             }
-            finishedRequests.push_back(r);
             validations.push_back(
                 {{"round", getRound()},
                  {"seqNum", r.getSequenceNumber()},
                  {"peer", id()}}
             );
+            contacts.erase(r.getSequenceNumber());
             s = superRequests.erase(s);
         } else {
             while (!r.outboxEmpty()) {
-                EyeWitnessMessage m = r.getMessage();
+                TrailMessage m = r.getMessage();
                 std::vector<Neighborhood> recipients =
                     contacts.at(r.getSequenceNumber()).participants;
-                localMessagesThisRound +=
-                    contacts.at(r.getSequenceNumber()).getValidatorNodeCount();
                 for (auto &recipient : recipients) {
-                    broadcastTo(m, recipient);
+                    if (!(m.messageType == "pre-prepare" &&
+                          recipient.memberIDs.count(id()) > 0)) {
+                        // don't send a pre-prepare message to own shard;
+                        // consensus was reached on it earlier
+                        broadcastTo(m, recipient);
+                        superMessagesThisRound += recipient.size();
+                    }
                 }
             }
             ++s;
@@ -689,34 +566,38 @@ void EyeWitnessPeer<ConsensusRequest>::performComputation() {
             !corrupt && attemptRollback) {
             initiateRollbacks();
         }
-        // assuming non-overlapping neighborhoods, so if we're the leader in one
-        // wallet stored by our neighborhood we're a leader in every wallet
-        // stored by our neighborhood
 
-        double p = submitRate / neighborhoods.size();
-        while (p > 0) {
-            if (trueWithProbability(p - (int)p) || corrupt) {
-                // corrupt nodes always go for out-of-neighborhood transactions
-                initiateTransaction(!(corrupt || oneInXChance(4)));
-            }
-            p -= 1;
+        bool submit = false;
+        if (submitRate == -1) {
+            const int inProgressTxs = localRequests.size() +
+                                      superRequests.size() +
+                                      initRequests.size();
+            submit = inProgressTxs < 10;
+        } else {
+            submit = oneInXChance(submitRate) ||
+                     (corrupt && oneInXChance(submitRate / 2));
+        }
+        if (submit) {
+            initiateTransaction(!(corrupt || oneInXChance(4)));
         }
     }
 }
 
-template <typename ConsensusRequest>
-void EyeWitnessPeer<ConsensusRequest>::broadcastTo(
-    EyeWitnessMessage m, Neighborhood n
-) {
+void TrailPeer::broadcastTo(TrailMessage m, Neighborhood n) {
+    // if (m.sequenceNum == x) {
+    //     std::cout << "sending message " << m.messageID
+    //               << " about sequence number 148:\n";
+    //     std::cout << "Type: " << m.messageType << "\n";
+    //     std::cout << "Sender: " << id() << "\n";
+    //     std::cout << "Receiver: neighborhood " << n.id << ", led by "
+    //               << n.leader << "\n\n";
+    // }
     for (const long &i : n.memberIDs) {
         unicastTo(m, i);
     }
 }
 
-template <typename ConsensusRequest>
-void EyeWitnessPeer<ConsensusRequest>::endOfRound(
-    const vector<Peer<EyeWitnessMessage> *> &_peers
-) {
+void TrailPeer::endOfRound(const vector<Peer<TrailMessage> *> &_peers) {
     messages.push_back(
         {{"round", getRound()},
          {"transactionType", "local"},
@@ -728,8 +609,18 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
          {"transactionType", "non-local"},
          {"batchSize", superMessagesThisRound}}
     );
-    const vector<EyeWitnessPeer *> peers =
-        reinterpret_cast<vector<EyeWitnessPeer *> const &>(_peers);
+    superMessagesThisRound = 0;
+    const vector<TrailPeer *> peers =
+        reinterpret_cast<vector<TrailPeer *> const &>(_peers);
+    // for (const auto &peer : peers) {
+    //     if (peer->initRequests.size() + peer->localRequests.size() +
+    //             peer->superRequests.size() >=
+    //         10) {
+    //         std::cout << "peer " << peer->id()
+    //                   << " is full of in-progress transactions" <<
+    //                   std::endl;
+    //     }
+    // }
     if (lastRound()) {
         LogWriter::getTestLog()["transactions"] = json::array();
         LogWriter::getTestLog()["validations"] = json::array();
@@ -747,6 +638,10 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
                 peer->messages.begin(), peer->messages.end(),
                 std::back_inserter(LogWriter::getTestLog()["messages"])
             );
+            for (const auto &t : peer->superRequests) {
+                const int age =
+                    getRound() - t.second.getTransaction().roundSubmitted;
+            }
         }
     } else if (byzantineRound == getRound()) {
         std::vector<int> shuffledNBHs(neighborhoods.size());
@@ -771,8 +666,8 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
                     peers[i]->corrupt = true;
                     if (walletsForNeighborhoods[corruptNeighborhood][0]
                             .storedBy.leader == peers[i]->id()) {
-                        // using the leader of the byzantine neighborhoods as a
-                        // reference for what coins they hold
+                        // using the leader of the byzantine neighborhoods
+                        // as a reference for what coins they hold
                         for (const auto &w : peers[i]->heldWallets) {
                             for (const auto &[cid, c] : w.coins) {
                                 LogWriter::getTestLog()["lostCoins"].push_back(
@@ -789,8 +684,7 @@ void EyeWitnessPeer<ConsensusRequest>::endOfRound(
               << (getLastRound() + 1) << "\n";
 }
 
-template <typename ConsensusRequest>
-bool EyeWitnessPeer<ConsensusRequest>::transactionInProgressFor(Coin c) {
+bool TrailPeer::transactionInProgressFor(Coin c) {
     for (auto &r : localRequests) {
         if (r.second.getTransaction().coin == c) {
             return true;
@@ -801,19 +695,23 @@ bool EyeWitnessPeer<ConsensusRequest>::transactionInProgressFor(Coin c) {
             return true;
         }
     }
+    for (auto &r : initRequests) {
+        if (r.second.getTransaction().coin == c) {
+            return true;
+        }
+    }
     return false;
 }
 
-template <typename ConsensusRequest>
-ConsensusContacts EyeWitnessPeer<ConsensusRequest>::chooseContactsFor(
-    OngoingTransaction t, bool local
-) {
+ConsensusContacts
+TrailPeer::chooseContactsFor(OngoingTransaction t, bool local) {
     ConsensusContacts result;
     if (local) {
         result = ConsensusContacts(t.coin, 1);
     } else if (!corrupt && corruptNeighborhoods.count(t.sender.storedBy.id) > 0) {
-        // assuming a rollback transaction. corrupt senders should be stopped by
-        // legit validation in message retrieval in performComputation
+        // assuming a rollback transaction. corrupt senders should be
+        // stopped by legit validation in message retrieval in
+        // performComputation
         result = ConsensusContacts(t.coin, validatorNeighborhoods, true);
     } else {
         result = ConsensusContacts(t.coin, validatorNeighborhoods);
@@ -824,14 +722,10 @@ ConsensusContacts EyeWitnessPeer<ConsensusRequest>::chooseContactsFor(
     return result;
 }
 
-template <typename ConsensusRequest>
-void EyeWitnessPeer<ConsensusRequest>::initiateRollbacks() {
+void TrailPeer::initiateRollbacks() {
     std::unordered_set<int> rollingBack;
     for (const auto &w : heldWallets) {
         for (const auto &[cid, c] : w.pastCoins) {
-            if (cid == 1394) {
-                std::cout << "1394 in past coins\n";
-            }
             const auto lastTransaction = c.history.back();
             if (lastTransaction.sender.storedBy.leader == id()) {
                 const auto inWallet = lastTransaction.receiver;
@@ -849,15 +743,16 @@ void EyeWitnessPeer<ConsensusRequest>::initiateRollbacks() {
                     ConsensusContacts newContacts(
                         c, validatorNeighborhoods, true
                     );
-                    ConsensusRequest request(
-                        t, newContacts.getValidatorNodeCount(), seqNum, true
+                    PBFTRequest request(
+                        t, validatorNeighborhoods, seqNum, true,
+                        neighborhoodsForPeers[id()]
                     );
-                    superRequests.insert({seqNum, request});
+                    initRequests.insert({seqNum, request});
                     contacts.insert({seqNum, newContacts});
                     transactions.push_back(
                         {{"round", getRound()},
                          {"seqNum", seqNum},
-                         {"validatorCount",
+                         {"validatorsNeeded",
                           newContacts.getValidatorNodeCount()},
                          {"coin", c.id},
                          {"sender", sender.address},
@@ -871,13 +766,10 @@ void EyeWitnessPeer<ConsensusRequest>::initiateRollbacks() {
     }
 }
 
-template <typename ConsensusRequest>
 // Precondition: peer is a leader in their (single) neighborhood
-// Postcondition: ConsensusRequest created UNLESS there are no coins to send in
+// Postcondition: PBFTRequest created UNLESS there are no coins to send in
 // this neighborhood's wallets
-void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
-    bool withinNeighborhood
-) {
+void TrailPeer::initiateTransaction(bool withinNeighborhood) {
     LocalWallet sender;
     Coin c;
     bool honest;
@@ -896,6 +788,9 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
                 sender.pastCoins.begin(), randMod(sender.pastCoins.size())
             );
             c = pcIter->second;
+        } else {
+            std::cout
+                << "unable to find past coin for corrupt transaction :(\n";
         }
         honest = false;
     }
@@ -928,7 +823,6 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
         honest = true;
     }
 
-    Neighborhood thisNeighborhood = neighborhoods[neighborhoodsForPeers[id()]];
     LocalWallet receiver = sender;
     // obtain a receiver that is not the sender
     if (withinNeighborhood) {
@@ -951,26 +845,21 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
     OngoingTransaction t = {sender, receiver, c, getRound(), -1};
     int seqNum = ++previousSequenceNumber;
 
-    ConsensusContacts newContacts;
+    ConsensusContacts newContacts(c, 1);
+    PBFTRequest request(t, newContacts.getValidatorNodeCount(), seqNum, true);
     if (withinNeighborhood) {
-        newContacts = ConsensusContacts(c, 1);
-        ConsensusRequest request(
-            t, newContacts.getValidatorNodeCount(), seqNum, true
-        );
         localRequests.insert({seqNum, request});
     } else {
-        newContacts = chooseContactsFor(t, false);
-        ConsensusRequest request(
-            t, newContacts.getValidatorNodeCount(), seqNum, true
-        );
-        superRequests.insert({seqNum, request});
-        contacts.insert({seqNum, newContacts});
+        initRequests.insert({seqNum, request});
     }
 
     transactions.push_back(
         {{"round", getRound()},
          {"seqNum", seqNum},
-         {"validatorCount", newContacts.getValidatorNodeCount()},
+         {"validatorsNeeded",
+          (withinNeighborhood
+               ? newContacts.getValidatorNodeCount()
+               : chooseContactsFor(t, false).getValidatorNodeCount())},
          {"coin", c.id},
          {"sender", sender.address},
          {"honest", honest},
@@ -979,4 +868,3 @@ void EyeWitnessPeer<ConsensusRequest>::initiateTransaction(
     );
 }
 } // namespace quantas
-#endif /* EyeWitnessPeer_hpp */

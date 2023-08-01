@@ -19,9 +19,9 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-INPUTFILE := VaryingCommCountInput.json
+INPUTFILE := TrailInput.json
 
-ALGFILE := EyeWitnessPeer
+ALGFILE := TrailPeer
 
 # ALGFILE := ExamplePeer
 
@@ -61,7 +61,7 @@ INPUTFILE := $(PROJECT_DIR)/$(ALGFILE)/$(INPUTFILE)
 
 CPPFLAGS := -Iinclude -MMD -MP
 CXXFLAGS = -pthread -include $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).hpp
-CXX := g++-9
+CXX := g++
 
 EXE := quantas.exe
 OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o $(PROJECT_DIR)/Common/Distribution.o
