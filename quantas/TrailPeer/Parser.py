@@ -223,8 +223,8 @@ def plot_throughput_vs_committees():
             **line_styles[F], marker='o', label=f"$F={F}$"
         )
 
-    plt.xlabel("number of Peers in the Network")
-    plt.ylabel("transaction Rate Per Round")
+    plt.xlabel("number of peers in the network")
+    plt.ylabel("transaction rate per round")
     plt.legend(loc="best")
     plt.savefig(TRAIL_PATH / "throughput_scaling.png")
     plt.clf()
