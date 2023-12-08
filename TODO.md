@@ -1,5 +1,8 @@
 # TODO
 
+1. add tests to verify the results instead of just making sure the program runs
+
+
 1. clean the code so that it runs with -Wall compiler option, add it to makefile by default
 
 1. allow separate peers to run different code
