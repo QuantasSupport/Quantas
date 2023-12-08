@@ -19,11 +19,11 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-INPUTFILE := TrailInput.json
+INPUTFILE := ExampleInput.json
 
-ALGFILE := TrailPeer
+# ALGFILE := TrailPeer
 
-# ALGFILE := ExamplePeer
+ALGFILE := ExamplePeer
 
 # ALGFILE := BitcoinPeer
 
@@ -65,12 +65,21 @@ CPPFLAGS := -Iinclude -MMD -MP
 CXXFLAGS = -pthread -include $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).hpp
 CXX := g++
 
+
+GCC_VERSION := $(shell $(CXX) -dumpversion)
+GCC_MIN_VERSION := 8
+
+check-version:
+	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "Default version of g++ must be higher than 8."; fi
+	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "To change the default version visit: https://linuxconfig.org/how-to-switch-between-multiple-gcc-and-g-compiler-versions-on-ubuntu-20-04-lts-focal-fossa"; fi
+	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then exit 1; fi
+
 EXE := quantas.exe
 OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o $(PROJECT_DIR)/Common/Distribution.o
 
 
 # extra debug and release flags
-release:  CXXFLAGS += -O3 -s -std=c++17
+release: CXXFLAGS += -O3 -s -std=c++17
 debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG -std=c++17
 
 clang: CXX := clang++
@@ -80,8 +89,8 @@ clang: CXXFLAGS += -std=c++17
 
 all: release
 
-release: $(EXE)
-debug: $(EXE)
+release: check-version $(EXE)
+debug: check-version $(EXE)
 
 clang: all
 	./$(EXE) $(INPUTFILE)
@@ -103,7 +112,7 @@ rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.
 	$(CXX) -pthread -std=c++17 $^ -o $@.exe
 	./$@.exe
 
-TESTS = rand_test test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_SmartShards test_LinearChord test_Kademlia test_AltBit test_StableDataLink test_ChangRoberts test_Dynamic test_KPT test_KSM
+TESTS = check-version rand_test test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_SmartShards test_LinearChord test_Kademlia test_AltBit test_StableDataLink test_ChangRoberts test_Dynamic test_KPT test_KSM
 
 ############################### Compile and run all tests - uses a wild card.
 test: $(TESTS)
