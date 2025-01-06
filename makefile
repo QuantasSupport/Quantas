@@ -19,11 +19,12 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-INPUTFILE := ExampleInput.json
+INPUTFILE := LogShardsInput.json
+# INPUTFILE := ExampleInput.json
 
 # ALGFILE := TrailPeer
 
-ALGFILE := ExamplePeer
+# ALGFILE := ExamplePeer
 
 # ALGFILE := BitcoinPeer
 
@@ -33,7 +34,7 @@ ALGFILE := ExamplePeer
 
 # ALGFILE := RaftPeer
 
-# ALGFILE := SmartShardsPeer
+ALGFILE := SmartShardsPeer
 
 # ALGFILE := LinearChordPeer
 
@@ -80,7 +81,7 @@ OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o $(PROJECT_DI
 
 # extra debug and release flags
 release: CXXFLAGS += -O3 -s -std=c++17
-debug: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG -std=c++17
+debug: CXXFLAGS += -O0 -g -D_GLIBCXX_DEBUG -std=c++17
 
 clang: CXX := clang++
 clang: CXXFLAGS += -std=c++17
@@ -105,7 +106,7 @@ run: all
 	./$(EXE) $(INPUTFILE)
 
 run_debug: debug
-	./$(EXE) $(INPUTFILE)
+	gdb --ex run --ex backtrace --batch --args ./$(EXE) $(INPUTFILE)
 
 # in the future this could be generalized to go through every file in "Tests"
 rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.cpp

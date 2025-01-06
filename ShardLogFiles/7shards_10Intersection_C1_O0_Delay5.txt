@@ -1,0 +1,115 @@
+{
+    "RunTime": 3.828991597,
+    "tests": [
+        {
+            "Latency": [
+                17.0
+            ],
+            "NumberOfMessages": [
+                11546.0
+            ],
+            "Throughput": [
+                2.0
+            ]
+        },
+        {
+            "Latency": [
+                16.0
+            ],
+            "NumberOfMessages": [
+                8846.0
+            ],
+            "Throughput": [
+                1.5
+            ]
+        },
+        {
+            "Latency": [
+                16.8
+            ],
+            "NumberOfMessages": [
+                7811.0
+            ],
+            "Throughput": [
+                2.5
+            ]
+        },
+        {
+            "Latency": [
+                17.333333333333332
+            ],
+            "NumberOfMessages": [
+                7432.0
+            ],
+            "Throughput": [
+                1.5
+            ]
+        },
+        {
+            "Latency": [
+                19.5
+            ],
+            "NumberOfMessages": [
+                9035.0
+            ],
+            "Throughput": [
+                2.0
+            ]
+        },
+        {
+            "Latency": [
+                16.0
+            ],
+            "NumberOfMessages": [
+                13730.0
+            ],
+            "Throughput": [
+                4.0
+            ]
+        },
+        {
+            "Latency": [
+                14.0
+            ],
+            "NumberOfMessages": [
+                10933.0
+            ],
+            "Throughput": [
+                4.5
+            ]
+        },
+        {
+            "Latency": [
+                17.0
+            ],
+            "NumberOfMessages": [
+                8741.0
+            ],
+            "Throughput": [
+                3.0
+            ]
+        },
+        {
+            "Latency": [
+                16.0
+            ],
+            "NumberOfMessages": [
+                7315.0
+            ],
+            "Throughput": [
+                1.5
+            ]
+        },
+        {
+            "Latency": [
+                8.571428571428571
+            ],
+            "NumberOfMessages": [
+                8891.0
+            ],
+            "Throughput": [
+                3.5
+            ]
+        }
+    ]
+}

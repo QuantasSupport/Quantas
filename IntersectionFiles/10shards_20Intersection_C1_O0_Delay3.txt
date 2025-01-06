@@ -1,0 +1,175 @@
+{
+    "RunTime": 416.647800053,
+    "tests": [
+        {
+            "Latency": [
+                10.772727272727273
+            ],
+            "NumberOfMessages": [
+                9258519.0
+            ],
+            "Throughput": [
+                88.0
+            ],
+            "joinWaiting": [
+                10.863636363636363
+            ],
+            "leaveWaiting": [
+                9.333333333333334
+            ]
+        },
+        {
+            "Latency": [
+                11.151162790697674
+            ],
+            "NumberOfMessages": [
+                9084796.0
+            ],
+            "Throughput": [
+                86.0
+            ],
+            "joinWaiting": [
+                11.284090909090908
+            ],
+            "leaveWaiting": [
+                8.96774193548387
+            ]
+        },
+        {
+            "Latency": [
+                10.954022988505747
+            ],
+            "NumberOfMessages": [
+                9072135.0
+            ],
+            "Throughput": [
+                87.0
+            ],
+            "joinWaiting": [
+                11.102272727272727
+            ],
+            "leaveWaiting": [
+                9.848484848484848
+            ]
+        },
+        {
+            "Latency": [
+                10.584795321637428
+            ],
+            "NumberOfMessages": [
+                8767895.0
+            ],
+            "Throughput": [
+                85.5
+            ],
+            "joinWaiting": [
+                11.65
+            ],
+            "leaveWaiting": [
+                10.305555555555555
+            ]
+        },
+        {
+            "Latency": [
+                10.891428571428571
+            ],
+            "NumberOfMessages": [
+                9274631.0
+            ],
+            "Throughput": [
+                87.5
+            ],
+            "joinWaiting": [
+                11.689655172413794
+            ],
+            "leaveWaiting": [
+                9.777777777777779
+            ]
+        },
+        {
+            "Latency": [
+                10.6
+            ],
+            "NumberOfMessages": [
+                9461313.0
+            ],
+            "Throughput": [
+                90.0
+            ],
+            "joinWaiting": [
+                11.348314606741573
+            ],
+            "leaveWaiting": [
+                9.892857142857142
+            ]
+        },
+        {
+            "Latency": [
+                10.694117647058823
+            ],
+            "NumberOfMessages": [
+                8785145.0
+            ],
+            "Throughput": [
+                85.0
+            ],
+            "joinWaiting": [
+                11.3125
+            ],
+            "leaveWaiting": [
+                10.142857142857142
+            ]
+        },
+        {
+            "Latency": [
+                10.472527472527473
+            ],
+            "NumberOfMessages": [
+                9193637.0
+            ],
+            "Throughput": [
+                91.0
+            ],
+            "joinWaiting": [
+                11.382022471910112
+            ],
+            "leaveWaiting": [
+                9.615384615384615
+            ]
+        },
+        {
+            "Latency": [
+                10.837209302325581
+            ],
+            "NumberOfMessages": [
+                9062017.0
+            ],
+            "Throughput": [
+                86.0
+            ],
+            "joinWaiting": [
+                11.298850574712644
+            ],
+            "leaveWaiting": [
+                9.5
+            ]
+        },
+        {
+            "Latency": [
+                11.005917159763314
+            ],
+            "NumberOfMessages": [
+                8881810.0
+            ],
+            "Throughput": [
+                84.5
+            ],
+            "joinWaiting": [
+                11.45
+            ],
+            "leaveWaiting": [
+                10.242424242424242
+            ]
+        }
+    ]
+}

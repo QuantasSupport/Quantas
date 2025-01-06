@@ -1,0 +1,175 @@
+{
+    "RunTime": 243.359759042,
+    "tests": [
+        {
+            "Latency": [
+                10.508287292817679
+            ],
+            "NumberOfMessages": [
+                5420658.0
+            ],
+            "Throughput": [
+                90.5
+            ],
+            "joinWaiting": [
+                11.420454545454545
+            ],
+            "leaveWaiting": [
+                9.897435897435898
+            ]
+        },
+        {
+            "Latency": [
+                10.970059880239521
+            ],
+            "NumberOfMessages": [
+                5097353.0
+            ],
+            "Throughput": [
+                83.5
+            ],
+            "joinWaiting": [
+                11.573170731707316
+            ],
+            "leaveWaiting": [
+                9.529411764705882
+            ]
+        },
+        {
+            "Latency": [
+                10.502732240437158
+            ],
+            "NumberOfMessages": [
+                5312618.0
+            ],
+            "Throughput": [
+                91.5
+            ],
+            "joinWaiting": [
+                11.545454545454545
+            ],
+            "leaveWaiting": [
+                10.06060606060606
+            ]
+        },
+        {
+            "Latency": [
+                10.486187845303867
+            ],
+            "NumberOfMessages": [
+                5267161.0
+            ],
+            "Throughput": [
+                90.5
+            ],
+            "joinWaiting": [
+                11.238095238095237
+            ],
+            "leaveWaiting": [
+                10.35135135135135
+            ]
+        },
+        {
+            "Latency": [
+                10.781609195402298
+            ],
+            "NumberOfMessages": [
+                5154489.0
+            ],
+            "Throughput": [
+                87.0
+            ],
+            "joinWaiting": [
+                11.0
+            ],
+            "leaveWaiting": [
+                9.419354838709678
+            ]
+        },
+        {
+            "Latency": [
+                10.946745562130177
+            ],
+            "NumberOfMessages": [
+                4952635.0
+            ],
+            "Throughput": [
+                84.5
+            ],
+            "joinWaiting": [
+                11.726190476190476
+            ],
+            "leaveWaiting": [
+                10.27027027027027
+            ]
+        },
+        {
+            "Latency": [
+                10.764044943820224
+            ],
+            "NumberOfMessages": [
+                5268141.0
+            ],
+            "Throughput": [
+                89.0
+            ],
+            "joinWaiting": [
+                11.069767441860465
+            ],
+            "leaveWaiting": [
+                9.6
+            ]
+        },
+        {
+            "Latency": [
+                10.595505617977528
+            ],
+            "NumberOfMessages": [
+                5114789.0
+            ],
+            "Throughput": [
+                89.0
+            ],
+            "joinWaiting": [
+                11.272727272727273
+            ],
+            "leaveWaiting": [
+                9.696969696969697
+            ]
+        },
+        {
+            "Latency": [
+                10.642424242424243
+            ],
+            "NumberOfMessages": [
+                4828802.0
+            ],
+            "Throughput": [
+                82.5
+            ],
+            "joinWaiting": [
+                11.460526315789474
+            ],
+            "leaveWaiting": [
+                10.612903225806452
+            ]
+        },
+        {
+            "Latency": [
+                10.424242424242424
+            ],
+            "NumberOfMessages": [
+                4639963.0
+            ],
+            "Throughput": [
+                82.5
+            ],
+            "joinWaiting": [
+                11.042857142857143
+            ],
+            "leaveWaiting": [
+                8.970588235294118
+            ]
+        }
+    ]
+}

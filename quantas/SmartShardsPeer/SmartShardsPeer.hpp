@@ -29,6 +29,8 @@ namespace quantas {
     struct SmartShardsMember {
         long Id = -1;
         bool leader = false;
+
+        // TODO? Make it so this is a map and can be accessed easier
         set<int> shards;
     };
 
@@ -36,11 +38,14 @@ namespace quantas {
 
         long 				Id = -1; // node who sent the message
         int					trans = -1; // the transaction id
+        bool                crossShardTransaction = false;
         int                 sequenceNum = -1;
         int                 shard = -1; // shard the transaction is for
         string              messageType = ""; // type of the message being sent; many options
         int                 roundSubmitted;
         vector<std::pair<string, long>> churningNodes; // type of churn and id of nodes churning
+
+        // TODO? Make it so this is a map and can be accessed easier
         vector<SmartShardsMember>       members; // the ids and other shards of the nodes in the shard (used when a node joins the shard)
     };
 
@@ -57,6 +62,9 @@ namespace quantas {
         void                 performComputation();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound(const vector<Peer<SmartShardsMessage>*>& _peers);
+        
+        void createShard(int shardId, const std::vector<SmartShardsPeer*>& peers);
+        void removeShard(int shardId, const std::vector<SmartShardsPeer*>& peers);
 
         // addintal method that have defulte implementation from Peer but can be overwritten
         void                 log()const { printTo(*_log); };
@@ -65,6 +73,7 @@ namespace quantas {
 
         // string indicating the current status of a node in each shard
         map<int, string>                status;
+        // TODO? Make it so I use members map to track who the leader is instead?
         // list of the shards the node is in and if the node is the leader of that shard
         map<int, bool>                  shards;
         // ids and shards of the members of the shards this node is in
@@ -105,8 +114,11 @@ namespace quantas {
         // amount of time node is willing to wait before leaving
         static int                      maxLeaveDelay;
         static int                      numberOfShards;
-         // 0 - joins 2 random, 1 - joins 1 random routed to second, 2 - no churn permitted, 3 - 1 & tries to balance the shardsfor routed joins
+         // 0 - joins 2 random, 1 - joins 1 random routed to second, 2 - no churn permitted, 3 - 1 & tries to balance the shards for routed joins
         static int                      ChurnOption;
+        // specifies the intersection threshold for creating and removing shards
+        static double                   creationThreshold;
+        static double                   removalThreshold;
 
         // checkInStrm loops through the in stream adding messsages to receivedMessages or transactions
         void                  checkInStrm();

@@ -1,0 +1,175 @@
+{
+    "RunTime": 110.183747709,
+    "tests": [
+        {
+            "Latency": [
+                5.676222596964587
+            ],
+            "NumberOfMessages": [
+                2899338.0
+            ],
+            "Throughput": [
+                296.5
+            ],
+            "joinWaiting": [
+                5.0
+            ],
+            "leaveWaiting": [
+                3.9791666666666665
+            ]
+        },
+        {
+            "Latency": [
+                5.619365609348915
+            ],
+            "NumberOfMessages": [
+                2915162.0
+            ],
+            "Throughput": [
+                299.5
+            ],
+            "joinWaiting": [
+                5.0
+            ],
+            "leaveWaiting": [
+                4.5625
+            ]
+        },
+        {
+            "Latency": [
+                5.666666666666667
+            ],
+            "NumberOfMessages": [
+                2898435.0
+            ],
+            "Throughput": [
+                297.0
+            ],
+            "joinWaiting": [
+                5.0
+            ],
+            "leaveWaiting": [
+                4.02
+            ]
+        },
+        {
+            "Latency": [
+                5.62876254180602
+            ],
+            "NumberOfMessages": [
+                2902868.0
+            ],
+            "Throughput": [
+                299.0
+            ],
+            "joinWaiting": [
+                5.0
+            ],
+            "leaveWaiting": [
+                4.02
+            ]
+        },
+        {
+            "Latency": [
+                5.619365609348915
+            ],
+            "NumberOfMessages": [
+                2909271.0
+            ],
+            "Throughput": [
+                299.5
+            ],
+            "joinWaiting": [
+                5.0
+            ],
+            "leaveWaiting": [
+                4.041666666666667
+            ]
+        },
+        {
+            "Latency": [
+                5.6571428571428575
+            ],
+            "NumberOfMessages": [
+                2906385.0
+            ],
+            "Throughput": [
+                297.5
+            ],
+            "joinWaiting": [
+                5.0
+            ],
+            "leaveWaiting": [
+                4.0
+            ]
+        },
+        {
+            "Latency": [
+                5.7147707979626485
+            ],
+            "NumberOfMessages": [
+                2924427.0
+            ],
+            "Throughput": [
+                294.5
+            ],
+            "joinWaiting": [
+                5.0
+            ],
+            "leaveWaiting": [
+                4.0
+            ]
+        },
+        {
+            "Latency": [
+                5.591362126245847
+            ],
+            "NumberOfMessages": [
+                2908507.0
+            ],
+            "Throughput": [
+                301.0
+            ],
+            "joinWaiting": [
+                5.0
+            ],
+            "leaveWaiting": [
+                4.244897959183674
+            ]
+        },
+        {
+            "Latency": [
+                5.705084745762712
+            ],
+            "NumberOfMessages": [
+                2894931.0
+            ],
+            "Throughput": [
+                295.0
+            ],
+            "joinWaiting": [
+                5.0
+            ],
+            "leaveWaiting": [
+                4.02
+            ]
+        },
+        {
+            "Latency": [
+                5.536184210526316
+            ],
+            "NumberOfMessages": [
+                2909187.0
+            ],
+            "Throughput": [
+                304.0
+            ],
+            "joinWaiting": [
+                5.0
+            ],
+            "leaveWaiting": [
+                4.458333333333333
+            ]
+        }
+    ]
+}
