@@ -6,12 +6,12 @@
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 10,
+        "intersections": 5,
         "churnRate": 1,
         "ChurnOption": 0,
         "maxLeaveDelay": 100,
-        "creationThreshold": 11.0,
-        "removalThreshold": 8.0
+        "creationThreshold": 6.0,
+        "removalThreshold": 4.0
       },
       "distribution": {
         "type": "uniform",
@@ -19,8 +19,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 100,
-        "totalPeers": 200
+        "initialPeers": 50,
+        "totalPeers": 150
       },
       "tests": 10,
       "rounds": 100
@@ -31,12 +31,12 @@
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 10,
+        "intersections": 5,
         "churnRate": 2,
         "ChurnOption": 0,
         "maxLeaveDelay": 100,
-        "creationThreshold": 11.0,
-        "removalThreshold": 8.0
+        "creationThreshold": 6.0,
+        "removalThreshold": 4.0
       },
       "distribution": {
         "type": "uniform",
@@ -44,8 +44,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 100,
-        "totalPeers": 300
+        "initialPeers": 50,
+        "totalPeers": 250
       },
       "tests": 10,
       "rounds": 100
@@ -56,12 +56,12 @@
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 10,
+        "intersections": 5,
         "churnRate": 3,
         "ChurnOption": 0,
         "maxLeaveDelay": 100,
-        "creationThreshold": 11.0,
-        "removalThreshold": 8.0
+        "creationThreshold": 6.0,
+        "removalThreshold": 4.0
       },
       "distribution": {
         "type": "uniform",
@@ -69,8 +69,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 100,
-        "totalPeers": 400
+        "initialPeers": 50,
+        "totalPeers": 350
       },
       "tests": 10,
       "rounds": 100
@@ -81,12 +81,12 @@
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 10,
+        "intersections": 5,
         "churnRate": 4,
         "ChurnOption": 0,
         "maxLeaveDelay": 100,
-        "creationThreshold": 11.0,
-        "removalThreshold": 8.0
+        "creationThreshold": 6.0,
+        "removalThreshold": 4.0
       },
       "distribution": {
         "type": "uniform",
@@ -94,8 +94,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 100,
-        "totalPeers": 500
+        "initialPeers": 50,
+        "totalPeers": 450
       },
       "tests": 10,
       "rounds": 100
@@ -106,12 +106,12 @@
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 10,
+        "intersections": 5,
         "churnRate": 5,
         "ChurnOption": 0,
         "maxLeaveDelay": 100,
-        "creationThreshold": 11.0,
-        "removalThreshold": 8.0
+        "creationThreshold": 6.0,
+        "removalThreshold": 4.0
       },
       "distribution": {
         "type": "uniform",
@@ -119,8 +119,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 100,
-        "totalPeers": 600
+        "initialPeers": 50,
+        "totalPeers": 550
       },
       "tests": 10,
       "rounds": 100
@@ -131,12 +131,12 @@
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 10,
+        "intersections": 5,
         "churnRate": 6,
         "ChurnOption": 0,
         "maxLeaveDelay": 100,
-        "creationThreshold": 11.0,
-        "removalThreshold": 8.0
+        "creationThreshold": 6.0,
+        "removalThreshold": 4.0
       },
       "distribution": {
         "type": "uniform",
@@ -144,8 +144,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 100,
-        "totalPeers": 700
+        "initialPeers": 50,
+        "totalPeers": 650
       },
       "tests": 10,
       "rounds": 100
@@ -156,12 +156,12 @@
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 10,
+        "intersections": 5,
         "churnRate": 7,
         "ChurnOption": 0,
         "maxLeaveDelay": 100,
-        "creationThreshold": 11.0,
-        "removalThreshold": 8.0
+        "creationThreshold": 6.0,
+        "removalThreshold": 4.0
       },
       "distribution": {
         "type": "uniform",
@@ -169,8 +169,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 100,
-        "totalPeers": 800
+        "initialPeers": 50,
+        "totalPeers": 750
       },
       "tests": 10,
       "rounds": 100
@@ -181,12 +181,12 @@
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 10,
+        "intersections": 5,
         "churnRate": 8,
         "ChurnOption": 0,
         "maxLeaveDelay": 100,
-        "creationThreshold": 11.0,
-        "removalThreshold": 8.0
+        "creationThreshold": 6.0,
+        "removalThreshold": 4.0
       },
       "distribution": {
         "type": "uniform",
@@ -194,8 +194,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 100,
-        "totalPeers": 900
+        "initialPeers": 50,
+        "totalPeers": 850
       },
       "tests": 10,
       "rounds": 100
@@ -206,12 +206,12 @@
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 10,
+        "intersections": 5,
         "churnRate": 9,
         "ChurnOption": 0,
         "maxLeaveDelay": 100,
-        "creationThreshold": 11.0,
-        "removalThreshold": 8.0
+        "creationThreshold": 6.0,
+        "removalThreshold": 4.0
       },
       "distribution": {
         "type": "uniform",
@@ -219,8 +219,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 100,
-        "totalPeers": 1000
+        "initialPeers": 50,
+        "totalPeers": 950
       },
       "tests": 10,
       "rounds": 100
@@ -231,12 +231,12 @@
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 10,
+        "intersections": 5,
         "churnRate": 10,
         "ChurnOption": 0,
         "maxLeaveDelay": 100,
-        "creationThreshold": 11.0,
-        "removalThreshold": 8.0
+        "creationThreshold": 6.0,
+        "removalThreshold": 4.0
       },
       "distribution": {
         "type": "uniform",
@@ -244,8 +244,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 100,
-        "totalPeers": 1100
+        "initialPeers": 50,
+        "totalPeers": 1050
       },
       "tests": 10,
       "rounds": 100

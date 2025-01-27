@@ -19,7 +19,9 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-INPUTFILE := LogShardsInput.json
+# INPUTFILE := NonSmartShardsInput.json
+# INPUTFILE := FullInput.json
+INPUTFILE := ChurnRateInput.json
 # INPUTFILE := ExampleInput.json
 
 # ALGFILE := TrailPeer

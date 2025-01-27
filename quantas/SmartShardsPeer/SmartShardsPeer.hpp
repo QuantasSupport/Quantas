@@ -99,6 +99,7 @@ namespace quantas {
         // Various metrics
         int                             latency = 0;
         int                             messagesSent = 0;
+        int                             confirmedTransCount = 0;
         int                             timeToJoin = 0;
         int                             timeToLeave = 0;
         // transaction currently being processed in a specific shard
