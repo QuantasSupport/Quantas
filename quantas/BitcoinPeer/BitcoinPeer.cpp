@@ -48,7 +48,7 @@ namespace quantas {
 				index = i;
 			}
 		}
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["throughput"].push_back(length - 1);
+		LogWriter::getTestLog()["throughput"].push_back(length - 1);
 	}
 
 	void BitcoinPeer::checkInStrm() {
@@ -152,19 +152,6 @@ namespace quantas {
 		return nextTransaction;
 	}
 
-	ostream& BitcoinPeer::printTo(ostream& out)const {
-		Peer<BitcoinMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const BitcoinPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
 	Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer>* generateSim() {
         
         Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer>* sim = new Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer>;

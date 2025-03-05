@@ -198,20 +198,6 @@ namespace quantas {
 		}
 	}
 
-	ostream& CycleOfTreesPeer::printTo(ostream& out) const {
-		Peer<CycleOfTreesMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const CycleOfTreesPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-
 	Simulation<quantas::CycleOfTreesMessage, quantas::CycleOfTreesPeer>* generateSim() {
 		Simulation<quantas::CycleOfTreesMessage, quantas::CycleOfTreesPeer>* sim = new Simulation<quantas::CycleOfTreesMessage, quantas::CycleOfTreesPeer>;
 		return sim;

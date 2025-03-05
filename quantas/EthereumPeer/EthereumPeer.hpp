@@ -56,13 +56,6 @@ namespace quantas{
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound(const vector<Peer<EthereumPeerMessage>*>& _peers);
 
-        // addintal method that have defulte implementation from Peer but can be overwritten
-        void                 log()const { printTo(*_log); };
-        ostream&             printTo(ostream&)const;
-        friend ostream& operator<<         (ostream&, const EthereumPeer&);
-        
-
-
         // vector of vectors of blocks that have been mined
         vector<vector<EtherBlock>> blockChain{ { vector<EtherBlock> { EtherBlock() } } };
         // vector of blocks which haven't yet been linked to their previous block

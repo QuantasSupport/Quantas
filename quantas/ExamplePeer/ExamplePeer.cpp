@@ -26,8 +26,37 @@ namespace quantas {
 		
 	}
 
+	void ExamplePeer::initParameters(const vector<Peer<ExampleMessage>*>& _peers, json parameters) {
+		const vector<ExamplePeer*> peers = reinterpret_cast<vector<ExamplePeer*> const&>(_peers);
+		
+		cout << "Initializing parameters of simulation" << endl;
+
+		if (parameters.contains("parameter1")) {
+			cout << "parameter1: " << parameters["parameter1"] << endl;
+		}
+
+		if (parameters.contains("parameter2")) {
+			cout << "parameter2: " << parameters["parameter2"] << endl;
+		}
+
+		if (parameters.contains("parameter3")) {
+			cout << "parameter3: " << parameters["parameter3"] << endl;
+		}
+	}
+
 	void ExamplePeer::performComputation() {
+
 		cout << "Peer:" << id() << " performing computation" << endl;
+
+		// Read messages from other peers
+		while (!inStreamEmpty()) {
+			Packet<ExampleMessage> newMsg = popInStream();
+			cout << endl << std::to_string(id()) << " has receved a message from " << newMsg.getMessage().aPeerId << endl;
+			cout << newMsg.getMessage().message << endl;
+		}
+		cout << endl;
+
+		
 		// Send message to self
 		ExampleMessage msg;
 		msg.message = "Message: it's me " + std::to_string(id()) + "!";
@@ -35,39 +64,15 @@ namespace quantas {
 		Packet<ExampleMessage> newMsg(getRound(), id(), id());
 		newMsg.setMessage(msg);
 		pushToOutSteam(newMsg);
-		pushToOutSteam(newMsg);
 
 		// Send hello to everyone else
 		msg.message = "Message: Hello From " + std::to_string(id()) + ". Sent on round: " + std::to_string(getRound());
 		msg.aPeerId = std::to_string(id());
 		broadcast(msg);
-		broadcast(msg);
-		broadcast(msg);
-
-		while (!inStreamEmpty()) {
-			Packet<ExampleMessage> newMsg = popInStream();
-			cout << endl << std::to_string(id()) << " has receved a message from " << newMsg.getMessage().aPeerId << endl;
-			cout << newMsg.getMessage().message << endl;
-		}
-		cout << endl;
 	}
 
 	void ExamplePeer::endOfRound(const vector<Peer<ExampleMessage>*>& _peers) {
 		cout << "End of round " << getRound() << endl;
-	}
-
-	ostream& ExamplePeer::printTo(ostream& out)const {
-		Peer<ExampleMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const ExamplePeer& peer) {
-		peer.printTo(out);
-		return out;
 	}
 
 	Simulation<quantas::ExampleMessage, quantas::ExamplePeer>* generateSim() {

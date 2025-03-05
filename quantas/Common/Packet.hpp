@@ -74,11 +74,6 @@ namespace quantas{
         int         getDelay        ()const {return _delay;};
         int         getRound        ()const {return _round;};
         
-        // mutators
-        //void        moveForward     (){_delay = _delay > 0 ? _delay-1 : 0;};
-        
-        //void
-        
         Packet&     operator=       (const Packet<message> &rhs);
         bool        operator==      (const Packet<message> &rhs) const;
         bool        operator!=      (const Packet<message> &rhs) const;
@@ -123,7 +118,8 @@ namespace quantas{
     template <class message>
     void Packet<message>::setDelay(int maxDelay, int minDelay){
         // max is not included so delay 1 is next round delay 2 is one round
-        // waiting and then receive in the following round
+        // waiting and then receive in the following round assuming other
+        // messages aren't in the channel
         _delay = uniformInt(minDelay, maxDelay);
     }
 

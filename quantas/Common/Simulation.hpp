@@ -37,21 +37,10 @@ namespace quantas {
     class Simulation : public SimWrapper{
     private:
         Network<type_msg, peer_type> 		system;
-        ostream                             *_log;
     public:
         // Name of log file, will have Test number appended
         void 				run			(json);
-
-        // logging functions
-        ostream& 			printTo		(ostream &out)const;
-        friend ostream&     operator<<  (ostream &out, const Simulation &sim)      {return sim.printTo(out);};
-
     };
-
-	template<class type_msg, class peer_type>
-	ostream& Simulation<type_msg, peer_type>::printTo(ostream& out)const {
-		return out;
-	}
 
 	template<class type_msg, class peer_type>
 	void Simulation<type_msg, peer_type>::run(json config) {

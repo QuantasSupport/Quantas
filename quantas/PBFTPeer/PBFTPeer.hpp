@@ -37,12 +37,6 @@ namespace quantas{
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound(const vector<Peer<PBFTPeerMessage>*>& _peers);
 
-        // addintal method that have defulte implementation from Peer but can be overwritten
-        void                 log()const { printTo(*_log); };
-        ostream&             printTo(ostream&)const;
-        friend ostream& operator<<         (ostream&, const PBFTPeer&);
-        
-
         // string indicating the current status of a node
         string                          status = "pre-prepare";
         // current squence number

@@ -16,6 +16,9 @@ int uniformInt(const int min, const int max) {
 }
 
 int randMod(const int exclusiveMax) {
+    if (exclusiveMax == 0) {
+        throw std::invalid_argument("randMod: exclusiveMax must be > 0, received: " + std::to_string(exclusiveMax));
+    }
     static thread_local std::mt19937 generator(
         clock() + _hasher(std::this_thread::get_id())
     );

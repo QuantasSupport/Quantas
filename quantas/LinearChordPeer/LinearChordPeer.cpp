@@ -215,7 +215,7 @@ namespace quantas {
 			satisfied += peers[i]->requestsSatisfied;
 			hops += peers[i]->totalHops;
 		}
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["averageHops"].push_back(hops / satisfied);
+		LogWriter::getTestLog()["averageHops"].push_back(hops / satisfied);
 	}
 
 	void LinearChordPeer::heartBeat() {
@@ -279,20 +279,6 @@ namespace quantas {
 			sendMessage(id(), message);
 		}
 		currentTransaction++;
-	}
-
-	std::ostream& LinearChordPeer::printTo(std::ostream& out)const {
-		Peer<LinearChordMessage>::printTo(out);
-
-		out << id() << std::endl;
-		out << "counter:" << getRound() << std::endl;
-
-		return out;
-	}
-
-	std::ostream& operator<< (std::ostream& out, const LinearChordPeer& peer) {
-		peer.printTo(out);
-		return out;
 	}
 
 	Simulation<quantas::LinearChordMessage, quantas::LinearChordPeer>* generateSim() {

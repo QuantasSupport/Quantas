@@ -42,9 +42,6 @@ The new algorithm has no local variables, and the content of every message is a 
 
 	        void                 performComputation ();
 	        void                 endOfRound         (const vector<Peer<ChangRobertsMessage>*>& _peers);
-	        void                 log()const { printTo(*_log); };
-	        ostream&             printTo(ostream&)const;
-	        friend ostream& operator<<         (ostream&, const ChangRobertsPeer&);
 	    };
 	}
 	#endif
@@ -70,20 +67,6 @@ Similarly, from the ``ExamplePeer.cpp``, we create the following ``ChangRobertsP
 
 		void ChangRobertsPeer::endOfRound(const vector<Peer<ChangRobertsMessage>*>& _peers) {
 			cout << "End of round " << getRound() << endl;
-		}
-
-		ostream& ChangRobertsPeer::printTo(ostream& out)const {
-			Peer<ChangRobertsMessage>::printTo(out);
-
-			out << id() << endl;
-			out << "counter:" << getRound() << endl;
-
-			return out;
-		}
-
-		ostream& operator<< (ostream& out, const ChangRobertsPeer& peer) {
-			peer.printTo(out);
-			return out;
 		}
 	}
 
@@ -234,7 +217,7 @@ When simulating to obtain quantitative results, it is often necessary to instrum
 
 For example, to retain how many rounds were necessary to elect a leader in each test, one can simply write:
 
-	LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
+	LogWriter::getTestLog()["election_time"] = getRound();
 
 after realizing that a leader was elected (when the received ID is the same as our own).
 
@@ -300,9 +283,9 @@ Then, at the end of each round, we check whether a leader has been elected in th
 			}
 		}
 		if(elected) {
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"] = all_messages_sent;
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["elected_id"] = elected_id;
+			LogWriter::getTestLog()["nb_messages"] = all_messages_sent;
+			LogWriter::getTestLog()["election_time"] = getRound();
+			LogWriter::getTestLog()["elected_id"] = elected_id;
 		}
 	}
 

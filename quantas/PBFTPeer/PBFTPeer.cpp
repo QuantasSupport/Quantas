@@ -41,7 +41,7 @@ namespace quantas {
 	void PBFTPeer::endOfRound(const vector<Peer<PBFTPeerMessage>*>& _peers) {
 		const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
 		double length = peers[0]->confirmedTrans.size();
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["latency"].push_back(latency / length);
+		LogWriter::getTestLog()["latency"].push_back(latency / length);
 	}
 
 	void PBFTPeer::checkInStrm() {
@@ -146,20 +146,6 @@ namespace quantas {
 		broadcast(message);
 		transactions.push_back(message);
 		currentTransaction++;
-	}
-
-	ostream& PBFTPeer::printTo(ostream& out)const {
-		Peer<PBFTPeerMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const PBFTPeer& peer) {
-		peer.printTo(out);
-		return out;
 	}
 
 	Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer>* generateSim() {

@@ -16,10 +16,11 @@ namespace quantas {
 	int SmartShardsPeer::nextJoiningNode = 0;
 	int SmartShardsPeer::numberOfShards = 0;
 	int SmartShardsPeer::churnRate = 0;
-	int SmartShardsPeer::maxLeaveDelay = 100;
+	int SmartShardsPeer::maxLeaveDelay = 10000;
 	int SmartShardsPeer::ChurnOption = 0;
-	double SmartShardsPeer::creationThreshold = 100.0;
+	double SmartShardsPeer::creationThreshold = 10000.0;
 	double SmartShardsPeer::removalThreshold = -1.0;
+	int SmartShardsPeer::flipRound = -1;
 
 	template <typename Map>
 	bool key_compare(Map const& lhs, Map const& rhs) {
@@ -63,15 +64,12 @@ namespace quantas {
 			if (leaving) {
 				leaveDelay++;
 				if (leaveDelay >= maxLeaveDelay) {
-					//cout << "Node " << id() << " LEFT WITHOUT PERMISSION -----------------------" << endl;
-					//cout << "Shards: ";
-					for (auto ip = shards.begin(); ip != shards.end(); ip++) {
-						//cout << ip->first << ", ";
-					}
-					//cout << endl;
+					LogWriter::getTestLog()["Force_Leave_Id"].push_back(id());
+					LogWriter::getTestLog()["Force_Leave_Round"].push_back(getRound());
 					shards.clear();
 					members.clear();
 					status.clear();
+					churnRequests.clear();
 					leaving = false;
 					alive = false;
 					clearMessages();
@@ -90,7 +88,11 @@ namespace quantas {
 		// number of intersections = intersections
 		// total number of nodes n = intersections * s * (s - 1) / L
 		// nodes in a shard = (s - 1) * intersections
-		int s = numberOfShards = parameters["s"];
+		int s;
+		if (parameters.contains("s")) {
+			s = numberOfShards = parameters["s"];
+		}
+
 		int intersections = 0;
 		int shardSize = 0; // used for non overlapping shards
 		if (parameters.contains("intersections")) {
@@ -108,20 +110,6 @@ namespace quantas {
 						shardGrid[i].push_back(nextNode);
 						shardGrid[i + j + 1].push_back(nextNode++);
 					}
-				}
-			}
-		} else if (intersections > 0 && false) {
-			// skip list \_(ツ)_/¯
-			for (int i = 0; i < shardGrid.size(); i++) {
-				int j = 1;
-				while (i + (pow(2,j)) - 1 < shardGrid.size()) {
-					for (int k = 0; k < intersections; k++) {
-						shardGrid[i].push_back(nextNode);
-						int shard2 = i + pow(2,j) - 1;
-						shardGrid[shard2].push_back(nextNode++);
-						// std::cout << "s1 " << i + 1 << " s2 " << (shard2 + 1) << std::endl;
-					}
-					j++;
 				}
 			}
 		} else {
@@ -183,92 +171,111 @@ namespace quantas {
 		if (parameters.contains("removalThreshold")) {
 			removalThreshold = parameters["removalThreshold"];
 		}
+		if (parameters.contains("flipRound")) {
+			flipRound = parameters["flipRound"];
+		}
 	}
 
 	void SmartShardsPeer::endOfRound(const vector<Peer<SmartShardsMessage>*>& _peers) {
 		const vector<SmartShardsPeer*> peers = reinterpret_cast<vector<SmartShardsPeer*> const&>(_peers);
-
-		//for (int j = 0; j < nextJoiningNode; j++) {
-		//	for (auto ip = peers[j]->shards.begin(); ip != peers[j]->shards.end(); ip++) {
-		//		if (ip->second) {
-		//			//cout << "size of shard " << ip->first << " " << peers[j]->members[ip->first].size() << endl;
-		//		}
-		//	}
-		//}
 		if (churnRate != 0) {
 			// Joins
-			// i < churnRate && LogWriter::instance()->getRound() < 50;
-			for (int i = 0; i < churnRate && LogWriter::instance()->getRound() < 50; i++) {
-				SmartShardsPeer* nextNode = peers[nextJoiningNode++];
-				set<int> churnApprovals;
-				int numberOfJoinRequests = 2;
-				if (ChurnOption == 1 || ChurnOption == 3 || ChurnOption == 4) {
-					numberOfJoinRequests = 1; // second join will be routed
-				}
-				while (churnApprovals.size() < numberOfJoinRequests && churnApprovals.size() < numberOfShards) {
-					churnApprovals.insert(randMod(numberOfShards));
+			if (flipRound == -1 || getRound() < flipRound) {
+				for (int i = 0; i < churnRate; i++) {
+					SmartShardsPeer* nextNode = peers[nextJoiningNode++];
 					nextNode->joining = true;
 					nextNode->alive = true;
-				}
+					set<int> churnApprovals;
+					int numberOfJoinRequests = 2;
+					if (ChurnOption == 1 || ChurnOption == 3 || ChurnOption == 4 || numberOfShards == 1) {
+						numberOfJoinRequests = 1; // second join will be routed or there is no overlap
+					}
+					while (churnApprovals.size() < numberOfJoinRequests) {
+						churnApprovals.insert(randMod(numberOfShards));
+					}
 
-				for (auto ip = churnApprovals.begin(); ip != churnApprovals.end(); ip++) {
-					for (int j = 0; j < nextJoiningNode; j++) {
-						if (peers[j]->shards.find(*ip) != peers[j]->shards.end()) {
-							if (peers[j]->shards[*ip]) { // send request directly to leader
-								nextNode->addNeighbor(_peers[j]->id()); // add node as a connection
-								SmartShardsMessage message;
-								message.messageType = "joinRequest";
-								message.Id = nextNode->id();
-								message.shard = *ip;
-								sendMessage(peers[j]->id(), message);
-								break;
+					for (auto ip = churnApprovals.begin(); ip != churnApprovals.end(); ip++) {
+						for (int j = 0; j < nextJoiningNode; j++) {
+							if (peers[j]->shards.find(*ip) != peers[j]->shards.end()) {
+								if (peers[j]->shards[*ip]) { // send request directly to leader
+									nextNode->addNeighbor(_peers[j]->id()); // connect nodes
+									_peers[j]->addNeighbor(nextNode->id());
+									SmartShardsMessage message;
+									message.messageType = "joinRequest";
+									message.Id = nextNode->id();
+									message.shard = *ip;
+									sendMessage(peers[j]->id(), message);
+									break;
+								}
 							}
 						}
 					}
 				}
 			}
-
 			// Leaves
-			vector<int> options(nextJoiningNode);
-			for (int i = 0; i < nextJoiningNode; i++) options[i] = i;
-			shuffle(options.begin(), options.end(), default_random_engine{});
-			
-			// i < churnRate && LogWriter::instance()->getRound() > 50;
-			for (int i = 0; i < churnRate && LogWriter::instance()->getRound() > 50; i++) {
-				if (options.size() == 0) {
-					// ran out of nodes able to churn
-					break;
-				}
-				SmartShardsPeer* leavingNode = peers[options.back()];
-				options.pop_back();
-				// nodes already churning can't leave
-				if (leavingNode->joining || leavingNode->leaving || !leavingNode->alive) { // has to wait until previous action is finished and must be alive
-					i--;
-					continue;
-				}
-				// leaders can't leave
-				bool leader = false;
-				for (auto ip = leavingNode->shards.begin(); ip != leavingNode->shards.end(); ip++) {
-					if (ip->second) {
-						i--;
-						leader = true;
+			if (flipRound == -1 || getRound() > flipRound) {
+				vector<int> options(nextJoiningNode);
+				for (int i = 0; i < nextJoiningNode; i++) options[i] = i;
+				shuffle(options.begin(), options.end(), default_random_engine{});
+				int leaders = 0;
+				int joiners = 0;
+				int leavers = 0;
+				int deads = 0;
+				for (int i = 0; i < churnRate; i++) {
+					if (options.size() == 0) {
+						cout << endl << "Round" << getRound()
+						<< "Nodes: " << nextJoiningNode 
+						<< " Deads: " << deads 
+						<< " Leavers: " << leavers 
+						<< " Joiners: " << joiners 
+						<< " Leaders: " << leaders << endl;
+						// ran out of nodes able to churn
+						// cout << "ran out of nodes able to churn" << endl;
+						LogWriter::getTestLog()["failed_churn"].push_back(getRound());
+						// cout << "Error churn rate options" << endl;
 						break;
 					}
-				}
-
-				if (leader) continue;
-
-				leavingNode->leaving = true;
-				for (int j = 0; j < nextJoiningNode && LogWriter::instance()->getRound() < 50; j++) {
+					SmartShardsPeer* leavingNode = peers[options.back()];
+					options.pop_back();
+					// nodes already churning can't leave
+					if (leavingNode->joining) {
+						--i;
+						++joiners;
+						continue;
+					} else if (leavingNode->leaving) {
+						--i;
+						++leavers;
+						continue;
+					} else if (!leavingNode->alive) { // has to wait until previous action is finished and must be alive
+						--i;
+						++deads;
+						continue;
+					}
+					// leaders can't leave
+					bool leader = false;
 					for (auto ip = leavingNode->shards.begin(); ip != leavingNode->shards.end(); ip++) {
-						if (peers[j]->shards.find(ip->first) != peers[j]->shards.end()) {
-							if (peers[j]->shards[ip->first]) { // send request directly to leaders
-								SmartShardsMessage message;
-								message.messageType = "leaveRequest";
-								message.Id = leavingNode->id();
-								message.shard = ip->first;
-								sendMessage(peers[j]->id(), message);
-								break;
+						if (ip->second) {
+							--i;
+							leader = true;
+							++leaders;
+							break;
+						}
+					}
+
+					if (leader) continue;
+					
+					leavingNode->leaving = true;
+					for (int j = 0; j < nextJoiningNode; j++) {
+						for (auto ip = leavingNode->shards.begin(); ip != leavingNode->shards.end(); ip++) {
+							if (peers[j]->shards.find(ip->first) != peers[j]->shards.end()) {
+								if (peers[j]->shards[ip->first]) { // send request directly to leaders
+									SmartShardsMessage message;
+									message.messageType = "leaveRequest";
+									message.Id = leavingNode->id();
+									message.shard = ip->first;
+									sendMessage(peers[j]->id(), message);
+									break;
+								}
 							}
 						}
 					}
@@ -283,12 +290,6 @@ namespace quantas {
 										[](const auto& peer) { return peer->alive && !peer->leaving;});
 
 		double currentIntersections = (networkSize * 2.0) / (static_cast<double>(numberOfShards) * (static_cast<double>(numberOfShards) - 1.0));
-		// double futureIntersections = (networkSize * 2.0) / (static_cast<double>(numberOfShards) * (static_cast<double>(numberOfShards) + 1.0));
-		// if (futureIntersections > static_cast<double>(creationThreshold)) {
-		// 	createShard(++numberOfShards - 1, peers);
-		// } else if (currentIntersections < static_cast<double>(removalThreshold) && numberOfShards > 1) {
-		// 	removeShard(--numberOfShards, peers);
-		// }
 		if (currentIntersections > static_cast<double>(creationThreshold)) {
 			createShard(++numberOfShards - 1, peers);
 		} else if (currentIntersections < static_cast<double>(removalThreshold) && numberOfShards > 1) {
@@ -297,15 +298,21 @@ namespace quantas {
 
 
 		double count = 0;
+		double addedCount = 0;
+		int leaveCount = 0;
 		for (int i = 0; i < nextJoiningNode; i++) {
-			count += peers[i]->confirmedTrans.size(); 
+			count += peers[i]->confirmedTransCount;
+			addedCount += peers[i]->confirmedTrans.size();
+			if (peers[i]->GuyHasLeft) {
+				leaveCount++;
+			}
 		}
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()][LogWriter::instance()->getRound()]["Network_Size"].push_back(networkSize);
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()][LogWriter::instance()->getRound()]["Round_Throughput"].push_back(count);
-		// if (count > 0) {
-		// 	LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["Latency"].push_back(totalLatency / count);
-		// }
-		if (lastRound() && false) {
+		LogWriter::getTestLog()["Network_Size"].push_back(networkSize);
+		LogWriter::getTestLog()["Shard_Count"].push_back(numberOfShards);
+		LogWriter::getTestLog()["Round_Throughput"].push_back(count);
+		LogWriter::getTestLog()["Round_Confirmed"].push_back(addedCount);
+		LogWriter::getTestLog()["leaveCount"].push_back(leaveCount);
+		if (lastRound()) {
 			// doubles for division
 			double totalMessages = 0;
 			double totalLatency = 0;
@@ -314,8 +321,10 @@ namespace quantas {
 			double leaveTime = 0;
 			double nodesLeftSuccessfully = 0;
 			double count = 0;
+			double addedCount = 0;
 			for (int i = 0; i < nextJoiningNode; i++) {
-				count += peers[i]->confirmedTrans.size(); 
+				count += peers[i]->confirmedTransCount; 
+				addedCount += peers[i]->confirmedTrans.size();
 				totalMessages += peers[i]->messagesSent;
 				totalLatency += peers[i]->latency;
 				joinTime += peers[i]->timeToJoin;
@@ -327,17 +336,17 @@ namespace quantas {
 					nodesLeftSuccessfully++;
 				}
 			}
-			
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["NumberOfMessages"].push_back(totalMessages);
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["Throughput"].push_back(count);
-			if (nodesJoined != 0) {
-				LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["joinWaiting"].push_back(joinTime / nodesJoined);
-			}
-			if (nodesLeftSuccessfully != 0) {
-				LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["leaveWaiting"].push_back(leaveTime / nodesLeftSuccessfully);
-			}
+			LogWriter::getTestLog()["NumberOfMessages"].push_back(totalMessages);
+			LogWriter::getTestLog()["Throughput"].push_back(count);
+			LogWriter::getTestLog()["Confirmed_Transactions"].push_back(addedCount);
+			// if (nodesJoined != 0) {
+			// 	LogWriter::getTestLog()["joinWaiting"].push_back(joinTime / nodesJoined);
+			// }
+			// if (nodesLeftSuccessfully != 0) {
+			// 	LogWriter::getTestLog()["leaveWaiting"].push_back(leaveTime / nodesLeftSuccessfully);
+			// }
 			if (count > 0) {
-				LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["Latency"].push_back(totalLatency / count);
+				LogWriter::getTestLog()["Latency"].push_back(totalLatency / count);
 			}
 		}
 	}
@@ -366,47 +375,26 @@ namespace quantas {
 			membersPerShard = 4;
 		}
 		int attempts = 0;
-		if (false) {
-		while (newShardMembers.size() < membersPerShard * shardId) {
-			auto peer = peers[randMod(nextJoiningNode)];
+		for (const auto& peer : peers) {
 			if (peer->shards.size() > 1) {
-				int randomIndex = randMod(peer->shards.size());
-				auto currentShard = peer->shards.begin();
-				std::advance(currentShard, randomIndex);
-
-				if (peer->alive && !peer->leaving && 
-					!currentShard->second && 
-					membersSoFar[currentShard->first] < membersPerShard &&  // already enough members from this shard
-					find(newShardMembers.begin(), newShardMembers.end(), peer) == newShardMembers.end() // not already moving
-				) {
-					membersSoFar[currentShard->first]++; // planning to add member from this shard
-					newShardMembers.push_back(peer);
-					shardsToLeave.push_back(currentShard->first);
-				} else {
-					attempts++;
-					if (attempts > 5000) {
-						cout << "failed randomness" << endl;
+				for (auto currentShard : peer->shards) {
+					if (peer->alive && !peer->leaving && !currentShard.second && membersSoFar[currentShard.first] < membersPerShard) {
+						membersSoFar[currentShard.first]++; // planning to add member from this shard
+						newShardMembers.push_back(peer);
+						shardsToLeave.push_back(currentShard.first);
 						break;
 					}
 				}
 			}
 		}
-		} else if (true) {
-			for (const auto& peer : peers) {
-				if (peer->shards.size() > 1) {
-					for (auto currentShard : peer->shards) {
-						if (peer->alive && !peer->leaving && !currentShard.second && membersSoFar[currentShard.first] < membersPerShard) {
-							membersSoFar[currentShard.first]++; // planning to add member from this shard
-							newShardMembers.push_back(peer);
-							shardsToLeave.push_back(currentShard.first);
-							break;
-						}
-					}
-				}
-			}
+		if (newShardMembers.size() < numberOfShards) {
+			cout << "Can't create shard" << endl;
+			numberOfShards--;
+			return;
 		}
+		
 
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()][LogWriter::instance()->getRound()]["CreatedShard"].push_back(LogWriter::instance()->getRound());
+		LogWriter::getTestLog()["CreatedShard"].push_back(getRound());
 		// cout << newShardMembers.size() << endl;
 		int i = 0;
 		if (true) {
@@ -454,6 +442,9 @@ namespace quantas {
 
 		for (const auto& member : newShardMembers) {
 			member->members[shardId] = newMembers;
+			for (const auto& member2 : newShardMembers) {
+				member->addNeighbor(member2->id());
+			}
 		}
 
 		newShardMembers[leader]->submitTrans(shardId);
@@ -461,20 +452,56 @@ namespace quantas {
 
 	void SmartShardsPeer::removeShard(int shardId, const std::vector<SmartShardsPeer*>& peers) {
 
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()][LogWriter::instance()->getRound()]["RemoveShard"].push_back(LogWriter::instance()->getRound());
+		LogWriter::getTestLog()["RemoveShard"].push_back(getRound());
 		
 		// Logic for removing an existing shard
 		std::vector<SmartShardsPeer*> shardMembers;
 		for (const auto& peer : peers) {
 			if (peer->shards.count(shardId)) {
 				if (peer->shards[shardId]) {
-					// have leader do stuff with pending transactions Todo
+					// have leader do stuff with pending transactions Todo?
+					int newShard = randMod(numberOfShards);
+					while (newShard == shardId) {
+						newShard = randMod(numberOfShards);
+					}
+					for (int i = 0; i < churnRequests[shardId].size(); i++) {
+						if (churnRequests[shardId][i].first == "join" || churnRequests[shardId][i].first == "join2") {
+							// have peer join a different shard since they never joined this shard which is now being removed
+							bool foundShard = false;
+							for (int k = 0; k < members[shardId].size(); k++) {
+								for (auto ip = members[shardId][k].shards.begin(); ip != members[shardId][k].shards.end(); ip++) {
+									if (*ip == newShard) {
+										SmartShardsMessage joinRequestMessage;
+										joinRequestMessage.messageType = "joinRequest2";
+										joinRequestMessage.Id = churnRequests[shardId][i].second;
+										joinRequestMessage.shard = newShard;
+										sendMessage(members[shardId][k].Id, joinRequestMessage);
+										foundShard = true;
+										break;
+									}
+								}
+								if (foundShard) {
+									break;
+								}
+							}
+						}
+					}
+					churnRequests.clear();
 				}
 				shardMembers.push_back(peer);
 				peer->shards.erase(shardId);
 				peer->members.erase(shardId);
 				peer->status.erase(shardId);
 				peer->workingTrans.erase(shardId);
+				if (peer->shards.size() == 0 && peer->leaving) {
+					leaving = false;
+					timeToLeave += leaveDelay;
+					leaveDelay = 0;
+					alive = false;
+					clearMessages();
+					GuyHasLeft = true;
+					// cout << "Node " << id() << " successfully left" << endl;
+				}
 			}
 		}
 
@@ -488,7 +515,16 @@ namespace quantas {
 				message.messageType = "joinRequest";
 				message.Id = member->id();
 				message.shard = shard;
-				sendMessage(member->id(), message);
+				for (int j = 0; j < nextJoiningNode; j++) {
+					if (peers[j]->shards.find(shard) != peers[j]->shards.end()) {
+						if (peers[j]->shards[shard]) { // send request directly to leader
+							member->addNeighbor(peers[j]->id()); // connect nodes
+							peers[j]->addNeighbor(member->id());
+							sendMessage(peers[j]->id(), message);
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -496,12 +532,17 @@ namespace quantas {
 	void SmartShardsPeer::checkInStrm() {
 		while (!inStreamEmpty()) {
 			SmartShardsMessage newMsg = popInStream().getMessage();
-
+			
 			if (newMsg.messageType == "trans") {
+				if(shards.find(newMsg.shard) == shards.end()) {
+					continue;
+				}
 				transactions.push_back(newMsg);
 			}
 			else if (newMsg.messageType == "joinApproved") {
-
+				if (newMsg.shard >= numberOfShards) {
+					continue; // shard no longer exists
+				}
 				status[newMsg.shard] = "pre-prepare";
 				shards[newMsg.shard] = false;
 				members[newMsg.shard] = newMsg.members;
@@ -532,11 +573,17 @@ namespace quantas {
 				workingTrans[newMsg.shard] = newMsg.trans;
 			}
 			else if (newMsg.messageType == "leaveRequest") {
+				if(shards.find(newMsg.shard) == shards.end()) {
+					continue;
+				}
 				churnRequests[newMsg.shard].push_back(std::make_pair("leave", newMsg.Id));
 			}
 			else if (newMsg.messageType == "joinRequest") {
+				if(shards.find(newMsg.shard) == shards.end()) {
+					continue;
+				}
 				int shard = newMsg.shard;
-				if (shards[newMsg.shard]) {
+				if (shards[shard]) {
 					churnRequests[shard].push_back(std::make_pair("join", newMsg.Id));
 					// need to find other shards for node
 					if (ChurnOption == 1) {
@@ -677,6 +724,7 @@ namespace quantas {
 				if (shards.find(newMsg.shard) == shards.end()) {
 					//cout << "BAD ROUTE |||||||||||||||||||||||" << endl;
 					//cout << "Node " << id() << " got joinrequest2 to shard " << newMsg.shard << endl;
+					continue;
 				}
 				if (shards[newMsg.shard]) {
 					//cout << "Node " << id() << " received routed joinrequest2 for " << newMsg.shard << " for node " << newMsg.Id << endl;
@@ -699,9 +747,15 @@ namespace quantas {
 				}
 			}
 			else if (newMsg.messageType == "updateMember") {
+				if(shards.find(newMsg.shard) == shards.end()) {
+					continue;
+				}
 				updateMember(newMsg.shard, newMsg.members[0]);
 			}
 			else {
+				if(shards.find(newMsg.shard) == shards.end()) {
+					continue;
+				}
 				receivedMessages[newMsg.trans].push_back(newMsg);
 			}
 		}
@@ -720,13 +774,13 @@ namespace quantas {
 			}
 			message.messageType = "pre-prepare";
 			message.Id = id();
-			message.sequenceNum = sequenceNum;
 			if (ChurnOption != 2) {
 				// handl all churn requests if churn is permitted
-				// handle leaves first to figure out where to put joins nodes
+				// handle leaves first to figure out where to put joining nodes
 				for (int i = 0; i < churnRequests[shard].size(); i++) {
 					if (churnRequests[shard][i].first == "leave") {
 						int leavingIndex = -1;
+						// find the reference to this leaving node
 						for (int j = 0; j < members[shard].size(); j++) {
 							if (members[shard][j].Id == churnRequests[shard][i].second) {
 								leavingIndex = j;
@@ -736,28 +790,21 @@ namespace quantas {
 						if (leavingIndex == -1) {
 							break;
 						}
-						for (int j = 0; j < members[shard].size(); j++) {
-							if (j == leavingIndex) continue;
-							if (members[shard][leavingIndex].shards == members[shard][j].shards) {
+						// for (int j = 0; j < members[shard].size(); j++) {
+						// 	if (j == leavingIndex) continue;
+						// 	if (members[shard][leavingIndex].shards == members[shard][j].shards) {
 								// found overlaping node so node can leave
 								message.churningNodes.push_back(churnRequests[shard][i]);
 								churnRequests[shard].erase(churnRequests[shard].begin() + i);
 								i--;
-								break;
-							}
-						}
+						// 		break;
+						// 	}
+						// }
 					}
 				}
 
 				for (int i = 0; i < churnRequests[shard].size(); i++) {
-					if (churnRequests[shard][i].first == "join") {
-
-						message.churningNodes.push_back(churnRequests[shard][i]);
-						churnRequests[shard].erase(churnRequests[shard].begin() + i);
-						i--;
-
-					}
-					else if (churnRequests[shard][i].first == "join2") {
+					if (churnRequests[shard][i].first == "join" || churnRequests[shard][i].first == "join2") {
 						message.churningNodes.push_back(churnRequests[shard][i]);
 						churnRequests[shard].erase(churnRequests[shard].begin() + i);
 						i--;
@@ -768,23 +815,16 @@ namespace quantas {
 			receivedMessages[message.trans].push_back(message);
 		}
 		else if (status[shard] == "pre-prepare") {
-			for (auto ip = receivedMessages.begin(); ip != receivedMessages.end(); ip++) {
-				if (ip->first > workingTrans[shard] && ip->second[0].shard == shard) {
-					workingTrans[shard] = ip->first;
-					if (receivedMessages.find(workingTrans[shard]) != receivedMessages.end()) {
-						for (int i = 0; i < receivedMessages[workingTrans[shard]].size(); i++) {
-							SmartShardsMessage message = receivedMessages[workingTrans[shard]][i];
-							if (message.messageType == "pre-prepare") {
-								status[shard] = "prepare";
-								SmartShardsMessage newMsg = message;
-								newMsg.messageType = "prepare";
-								newMsg.Id = id();
-								sendMessageShard(shard, newMsg);
-								receivedMessages[workingTrans[shard]].push_back(newMsg);
-								break;
-							}
-						}
-					}
+			for (auto ip = receivedMessages.lower_bound(workingTrans[shard] + 1); ip != receivedMessages.end(); ip++) {
+				if (ip->second[0].shard == shard) {
+						SmartShardsMessage message = ip->second[0];
+						workingTrans[shard] = ip->first;
+						status[shard] = "prepare";
+						SmartShardsMessage newMsg = message;
+						newMsg.messageType = "prepare";
+						newMsg.Id = id();
+						sendMessageShard(shard, newMsg);
+						receivedMessages[workingTrans[shard]].push_back(newMsg);
 					break;
 				}
 			}
@@ -819,8 +859,10 @@ namespace quantas {
 			}
 			if (count > (members[shard].size() * 2 / 3)) {
 				status[shard] = "pre-prepare";
-
+				// try to reduce memory use a bit
 				SmartShardsMessage CommitMessage = receivedMessages[workingTrans[shard]][0];
+				receivedMessages.erase(workingTrans[shard]);
+
 
 				for (int i = 0; i < CommitMessage.churningNodes.size(); i++) {
 					if (CommitMessage.churningNodes[i].first == "leave") {
@@ -828,14 +870,15 @@ namespace quantas {
 							shards.erase(shard); // Removes node from shard
 							members[CommitMessage.shard].clear();
 							status.erase(shard);
-							//cout << "Node " << id() << " successfully left shard " << shard << endl;
-							if (shards.size() == 0) {
+							if (shards.size() == 0 && leaving) {
 								leaving = false;
 								timeToLeave += leaveDelay;
 								leaveDelay = 0;
 								alive = false;
 								clearMessages();
-								//cout << "Node " << id() << " successfully left" << endl;
+								GuyHasLeft = true;
+								churnRequests.clear();
+								// cout << "Node " << id() << " successfully left" << endl;
 							}
 							return;
 						}
@@ -858,22 +901,24 @@ namespace quantas {
 				}
 				// If the leader of the shard
 				if (shards[shard] == true) {
-					//cout << "Commits for shard " << shard << endl;
-					for (int j = 0; j < receivedMessages[workingTrans[shard]].size(); j++) {
-						SmartShardsMessage message = receivedMessages[workingTrans[shard]][j];
-						if (message.messageType == "commit") {
-							//cout << "Commit from " << message.Id << endl;
-						}
-					}
+					// cout << "Commits for shard " << shard << endl;
+					// for (int j = 0; j < receivedMessages[workingTrans[shard]].size(); j++) {
+					// 	SmartShardsMessage message = receivedMessages[workingTrans[shard]][j];
+					// 	if (message.messageType == "commit") {
+					// 		cout << "Commit from " << message.Id << endl;
+					// 	}
+					// }
 					CommitMessage.crossShardTransaction = randMod(numberOfShards) != 0;
 					confirmedTrans.push_back(CommitMessage);
+					// LogWriter::getTestLog()["commit_shard"].push_back(shard);
+					// LogWriter::getTestLog()["commit_round"].push_back(getRound());
 					if (CommitMessage.crossShardTransaction) {
-						// cross shards are 2 transactions + transmission (delay is "1" between shards)
+						// cross shards are 2 transactions so count this as half
 						confirmedTransCount += 0.5;
-						latency += ((getRound() - CommitMessage.roundSubmitted) * 2) + 1;
+						latency += (getRound() - CommitMessage.roundSubmitted);
 						if (shards.size() == 1) {
 							messagesSent += (members[shard].size() * members[shard].size());
-							messagesSent += (CommitMessage.churningNodes.size() * members[shard].size() * numberOfShards * (members[shard].size() - 1));
+							messagesSent += (members[shard].size() * numberOfShards * (members[shard].size() - 1));
 						} else {
 							int crossShard = shard;
 							while (crossShard == shard) {
@@ -885,6 +930,7 @@ namespace quantas {
 									++overlapCount;
 								}
 							}
+							// estimate of all the overlapping peers sending the message to the other shard
 							messagesSent += overlapCount * (members[shard].size() - overlapCount);
 						}
 					} else {
@@ -913,7 +959,6 @@ namespace quantas {
 		message.trans = currentTransaction;
 		message.Id = id();
 		message.roundSubmitted = getRound();
-		message.sequenceNum = sequenceNum;
 		message.shard = shard;
 		sendMessageShard(shard, message);
 		transactions.push_back(message);
@@ -936,6 +981,9 @@ namespace quantas {
 	}
 
 	void SmartShardsPeer::updateMember(int shard, SmartShardsMember member) {
+		if(shards.find(shard) == shards.end()) {
+			return;
+		}
 		bool found = false;
 		for (int i = 0; i < members[shard].size(); i++) {
 			if (members[shard][i].Id == member.Id) {
@@ -949,20 +997,6 @@ namespace quantas {
 		}
 	}
 
-	ostream& SmartShardsPeer::printTo(ostream& out)const {
-		Peer<SmartShardsMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const SmartShardsPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-	
 	Simulation<quantas::SmartShardsMessage, quantas::SmartShardsPeer>* generateSim() {
         
         Simulation<quantas::SmartShardsMessage, quantas::SmartShardsPeer>* sim = new Simulation<quantas::SmartShardsMessage, quantas::SmartShardsPeer>;

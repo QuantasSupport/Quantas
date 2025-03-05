@@ -50,7 +50,6 @@ namespace quantas{
 
         vector<Peer<type_msg>*>             _peers;
         Distribution                        _distribution;
-        ostream                             *_log;
 
         void                                addEdges            (Peer<type_msg>*, int, int);
         peer_type*							getPeerById			(string);
@@ -60,7 +59,7 @@ namespace quantas{
         Network                                                 (const Network<type_msg,peer_type>&);
         ~Network                                                ();
 
-        // setters
+        // topologies
         void                                initNetwork         (json, int); // initialize network with peers
         void                                initParameters      (json);
         void                                fullyConnect        (int);
@@ -72,9 +71,8 @@ namespace quantas{
         void                                unidirectionalRing  (int);
         void                                userList            (json);
 	    void                                dynamic             (int, int);
+        
         void                                setDistribution     (json distribution)                             { _distribution.setDistribution(distribution); }
-        void                                setLog              (ostream&);
-        ostream*                            getLog              ()const                                         { return _log; }
 
         // getters
         int                                 size                ()const                                         {return (int)_peers.size();};
@@ -93,15 +91,10 @@ namespace quantas{
         void                                initializeRound();
         // void                                shuffleByzantines   (int);
 
-        // logging and debugging
-        ostream&                            printTo             (ostream&)const;
-        void                                log                 ()const                                         {printTo(*_log);};
-
         // operators
         Network&                            operator=           (const Network&);
         peer_type*                          operator[]          (int);
         const peer_type*                    operator[]          (int)const;
-        friend ostream&                     operator<<          (ostream &out, const Network &system)      {return system.printTo(out);};
         void 								makeRequest	        (Peer<type_msg> * peer)				            { peer->makeRequest(); }
 
     };
@@ -110,7 +103,6 @@ namespace quantas{
     Network<type_msg,peer_type>::Network(){
         _peers = vector<Peer<type_msg>*>();
         _distribution = Distribution();
-        _log = &cout;
     }
 
     template<class type_msg, class peer_type>
@@ -128,7 +120,6 @@ namespace quantas{
             _peers.push_back(new peer_type(*dynamic_cast<peer_type*>(rhs._peers[i])));
         }
         _distribution = rhs.distribution;
-        _log = rhs._log;
     }
 
     template<class type_msg, class peer_type>
@@ -137,15 +128,6 @@ namespace quantas{
             delete _peers[i];
         }
     }
-
-    template<class type_msg, class peer_type>
-    void Network<type_msg,peer_type>::setLog(ostream &out){
-        _log = &out;
-        for(int i = 0; i < _peers.size(); i++){
-            peer_type *p = dynamic_cast<peer_type*>(_peers[i]);
-            p->setLogFile(out);
-        }
-	}
 
 	template<class type_msg, class peer_type>
 	void Network<type_msg, peer_type>::addEdges(Peer<type_msg>* peer, int maxMsgsRec, int lastRound) {
@@ -365,8 +347,7 @@ namespace quantas{
             for (int j = i + 1; j < numberOfPeers; ++j) {
                 if (j >= sourcePoolSize && !(i >= sourcePoolSize)) { // if peer[j] isn't apart of the source pool but peer[i] is...
                     _peers[i]->addNeighbor(_peers[j]->id());   
-	        }
-
+	            }
                 else {
                     _peers[i]->addNeighbor(_peers[j]->id());
                     _peers[j]->addNeighbor(_peers[i]->id());
@@ -400,21 +381,6 @@ namespace quantas{
         for (int i = begin; i < end; i++) {
             _peers[i]->transmit();
         }
-    }
-
-    template<class type_msg, class peer_type>
-    ostream& Network<type_msg,peer_type>::printTo(ostream &out)const{
-        out<< "--- NETWROK SETUP ---"<< endl<< endl;
-        out<< left;
-        out<< '\t'<< setw(LOG_WIDTH)<< "Number of Peers"<< setw(LOG_WIDTH)<< "Distribution"<< setw(LOG_WIDTH)<< "Min Delay"<< setw(LOG_WIDTH)<< "Average Delay"<< setw(LOG_WIDTH)<< "Max Delay"<< endl;
-        out<< '\t'<< setw(LOG_WIDTH)<< _peers.size()<< setw(LOG_WIDTH)<< type() << setw(LOG_WIDTH)<< minDelay() << setw(LOG_WIDTH)<< avgDelay()<< setw(LOG_WIDTH)<< maxDelay() << endl;
-
-        for(int i = 0; i < _peers.size(); i++){
-            peer_type *p = dynamic_cast<peer_type*>(_peers[i]);
-            p->printTo(out);
-        }
-
-        return out;
     }
 
     template<class type_msg, class peer_type>

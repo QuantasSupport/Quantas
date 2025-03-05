@@ -2,11 +2,17 @@
   "experiments": [
     {
       "algorithm": "SmartShards",
-      "logFile": "5shards_1Intersection.txt",
+      "logFile": "5shards_10Intersection_C1_O0_Delay1.txt",
       "threadCount": 1,
       "parameters": {
         "s": 5,
-        "intersections": 1
+        "intersections": 10,
+        "churnRate": 0,
+        "ChurnOption": 0,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
       },
       "distribution": {
         "type": "uniform",
@@ -14,8 +20,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 10,
-        "totalPeers": 10
+        "initialPeers": 100,
+        "totalPeers": 100
       },
       "tests": 1,
       "rounds": 100

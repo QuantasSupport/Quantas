@@ -50,12 +50,7 @@ namespace quantas {
         void                 performComputation ();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound         (const vector<Peer<KPTMessage>*>& _peers);
-
-        // additional methods that have default implementation from Peer but can be overwritten
-        void                 log                () const { printTo(*_log); };
-        ostream&             printTo            (ostream&) const;
-        friend ostream&      operator<<         (ostream&, const KPTPeer&);
-
+        
         // vector of mined blocks (i.e., process' main chain)
         vector<KPTBlock>                    blockChain;
         // vector of per-block labels which stores decisions on whether a block is accepted or rejected. If a block is not present in the vector, it is unlabeled.

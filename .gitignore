@@ -18,6 +18,7 @@
 *.vcxproj
 *.filters
 *.user
+*.txt
 Debug/
 enc_temp_folder/
 quantas/TrailPeer/*.txt

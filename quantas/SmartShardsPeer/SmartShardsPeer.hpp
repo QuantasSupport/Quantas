@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <set>
 #include <mutex>
 #include <iostream>
+#include <random>
+#include <algorithm>
 #include <bits/stdc++.h>
 #include "../Common/Peer.hpp"
 #include "../Common/Simulation.hpp"
@@ -39,7 +41,6 @@ namespace quantas {
         long 				Id = -1; // node who sent the message
         int					trans = -1; // the transaction id
         bool                crossShardTransaction = false;
-        int                 sequenceNum = -1;
         int                 shard = -1; // shard the transaction is for
         string              messageType = ""; // type of the message being sent; many options
         int                 roundSubmitted;
@@ -66,11 +67,6 @@ namespace quantas {
         void createShard(int shardId, const std::vector<SmartShardsPeer*>& peers);
         void removeShard(int shardId, const std::vector<SmartShardsPeer*>& peers);
 
-        // addintal method that have defulte implementation from Peer but can be overwritten
-        void                 log()const { printTo(*_log); };
-        ostream&             printTo(ostream&)const;
-        friend ostream& operator<<         (ostream&, const SmartShardsPeer&);
-
         // string indicating the current status of a node in each shard
         map<int, string>                status;
         // TODO? Make it so I use members map to track who the leader is instead?
@@ -83,13 +79,12 @@ namespace quantas {
         // tracks if node is trying to leave or join
         bool                            leaving = false;
         bool                            joining = false;
+        bool                            GuyHasLeft = false;
         // amount of time passed since sending leave or join request
         int                             leaveDelay = 0;
         int                             joinDelay = 0;
         // tracks if node is awake
         bool                            alive = false;
-        // current squence number
-        int                             sequenceNum = 0;
         // map of vectors of messages that have been received keyed by transaction id
         map<int, vector<SmartShardsMessage>> receivedMessages;
         // vector of recieved transactions
@@ -99,7 +94,7 @@ namespace quantas {
         // Various metrics
         int                             latency = 0;
         int                             messagesSent = 0;
-        int                             confirmedTransCount = 0;
+        double                          confirmedTransCount = 0;
         int                             timeToJoin = 0;
         int                             timeToLeave = 0;
         // transaction currently being processed in a specific shard
@@ -120,6 +115,9 @@ namespace quantas {
         // specifies the intersection threshold for creating and removing shards
         static double                   creationThreshold;
         static double                   removalThreshold;
+        // specifies which round to flip from only joining to only 
+        // if -1 then will do both joins and leaves
+        static int                      flipRound;
 
         // checkInStrm loops through the in stream adding messsages to receivedMessages or transactions
         void                  checkInStrm();

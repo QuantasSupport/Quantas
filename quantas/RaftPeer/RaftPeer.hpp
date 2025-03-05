@@ -37,11 +37,6 @@ namespace quantas{
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound(const vector<Peer<RaftPeerMessage>*>& _peers);
 
-        // addintal method that have defulte implementation from Peer but can be overwritten
-        void                 log()const { printTo(*_log); };
-        ostream&             printTo(ostream&)const;
-        friend ostream& operator<<         (ostream&, const RaftPeer&);
-        
         // id of the node voted as the next leader
         int                             candidate = -1;
         // the id of the next transaction to submit

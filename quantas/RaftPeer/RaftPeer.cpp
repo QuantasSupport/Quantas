@@ -55,7 +55,7 @@ namespace quantas {
 			satisfied += peers[i]->requestsSatisfied;
 			lat += peers[i]->latency;
 		}
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["latency"].push_back(lat / satisfied);
+		LogWriter::getTestLog()["latency"].push_back(lat / satisfied);
 	}
 
 	void RaftPeer::checkInStrm() {
@@ -143,20 +143,6 @@ namespace quantas {
 		Packet<RaftPeerMessage> newMessage(getRound(), peer, id());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
-	}
-
-	ostream& RaftPeer::printTo(ostream& out)const {
-		Peer<RaftPeerMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const RaftPeer& peer) {
-		peer.printTo(out);
-		return out;
 	}
 
 	Simulation<quantas::RaftPeerMessage, quantas::RaftPeer>* generateSim() {

@@ -107,20 +107,6 @@ namespace quantas {
 		return (block.minerId != this->minerId || block.tipMiner != this->tipMiner || block.roundMined != this->roundMined || block.depth != this->depth);
 	}
 
-	ostream& DynamicPeer::printTo(ostream& out) const {
-		Peer<DynamicMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const DynamicPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-
 	Simulation<quantas::DynamicMessage, quantas::DynamicPeer>* generateSim() {
         
         Simulation<quantas::DynamicMessage, quantas::DynamicPeer>* sim = new Simulation<quantas::DynamicMessage, quantas::DynamicPeer>;

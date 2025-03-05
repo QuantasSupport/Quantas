@@ -19,14 +19,11 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-# INPUTFILE := NonSmartShardsInput.json
-# INPUTFILE := FullInput.json
-INPUTFILE := ChurnRateInput.json
-# INPUTFILE := ExampleInput.json
+INPUTFILE := ExampleInput.json
 
 # ALGFILE := TrailPeer
 
-# ALGFILE := ExamplePeer
+ALGFILE := ExamplePeer
 
 # ALGFILE := BitcoinPeer
 
@@ -36,7 +33,7 @@ INPUTFILE := ChurnRateInput.json
 
 # ALGFILE := RaftPeer
 
-ALGFILE := SmartShardsPeer
+# ALGFILE := SmartShardsPeer
 
 # ALGFILE := LinearChordPeer
 
@@ -104,11 +101,19 @@ $(EXE): $(OBJS)
 $(PROJECT_DIR)/%.o: $(PROJECT_DIR)/%.c
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Define a helper function to check dmesg for errors
+define check_failure
+    echo "Make target '$@' failed! Checking dmesg..."; \
+    dmesg | tail -20 | grep -i -E 'oom|killed|segfault|error' || echo "No relevant logs found."
+endef
+
 run: all
-	./$(EXE) $(INPUTFILE)
+	./$(EXE) $(INPUTFILE); exit_code=$$?; \
+	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
 
 run_debug: debug
-	gdb --ex run --ex backtrace --batch --args ./$(EXE) $(INPUTFILE)
+	gdb --ex "set print thread-events off" --ex run --ex backtrace --args ./$(EXE) $(INPUTFILE); exit_code=$$?; \
+	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
 
 # in the future this could be generalized to go through every file in "Tests"
 rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.cpp
@@ -131,7 +136,8 @@ test_%:
 	@$(CXX) $(CXXFLAGS) -c -o quantas/$(ALGFILE)/$(ALGFILE).o quantas/$(ALGFILE)/$(ALGFILE).cpp
 	@$(CXX) $(CXXFLAGS) -c -o quantas/Common/Distribution.o quantas/Common/Distribution.cpp
 	@$(CXX) $(CXXFLAGS)  quantas/main.o quantas/$(ALGFILE)/$(ALGFILE).o quantas/Common/Distribution.o -o $(EXE)
-	@./$(EXE) quantas/$(ALGFILE)/$*Input.json
+	@./$(EXE) quantas/$(ALGFILE)/$*Input.json; exit_code=$$?; \
+	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
 	@$(RM) quantas/$(ALGFILE)/*.o
 	@echo $(ALGFILE) successful
 

@@ -3,7 +3,7 @@
     {
       "algorithm": "SmartShards",
       "logFile": "ShardFiles/5shards_10Intersection_C1_O0_Delay1.txt",
-      "threadCount": 1,
+      "threadCount": 48,
       "parameters": {
         "s": 5,
         "intersections": 10,
@@ -28,7 +28,7 @@
     {
       "algorithm": "SmartShards",
       "logFile": "ShardFiles/10shards_10Intersection_C1_O0_Delay1.txt",
-      "threadCount": 1,
+      "threadCount": 48,
       "parameters": {
         "s": 10,
         "intersections": 10,
@@ -53,7 +53,7 @@
     {
       "algorithm": "SmartShards",
       "logFile": "ShardFiles/15shards_10Intersection_C1_O0_Delay1.txt",
-      "threadCount": 1,
+      "threadCount": 48,
       "parameters": {
         "s": 15,
         "intersections": 10,
@@ -78,7 +78,7 @@
     {
       "algorithm": "SmartShards",
       "logFile": "ShardFiles/5shards_10Intersection_C1_O0_Delay3.txt",
-      "threadCount": 1,
+      "threadCount": 48,
       "parameters": {
         "s": 5,
         "intersections": 10,
@@ -103,7 +103,7 @@
     {
       "algorithm": "SmartShards",
       "logFile": "ShardFiles/10shards_10Intersection_C1_O0_Delay3.txt",
-      "threadCount": 1,
+      "threadCount": 48,
       "parameters": {
         "s": 10,
         "intersections": 10,
@@ -128,7 +128,7 @@
     {
       "algorithm": "SmartShards",
       "logFile": "ShardFiles/15shards_10Intersection_C1_O0_Delay3.txt",
-      "threadCount": 1,
+      "threadCount": 48,
       "parameters": {
         "s": 15,
         "intersections": 10,
@@ -153,7 +153,7 @@
     {
       "algorithm": "SmartShards",
       "logFile": "ShardFiles/5shards_10Intersection_C1_O0_Delay5.txt",
-      "threadCount": 1,
+      "threadCount": 48,
       "parameters": {
         "s": 5,
         "intersections": 10,
@@ -178,7 +178,7 @@
     {
       "algorithm": "SmartShards",
       "logFile": "ShardFiles/10shards_10Intersection_C1_O0_Delay5.txt",
-      "threadCount": 1,
+      "threadCount": 48,
       "parameters": {
         "s": 10,
         "intersections": 10,
@@ -203,7 +203,7 @@
     {
       "algorithm": "SmartShards",
       "logFile": "ShardFiles/15shards_10Intersection_C1_O0_Delay5.txt",
-      "threadCount": 1,
+      "threadCount": 48,
       "parameters": {
         "s": 15,
         "intersections": 10,
