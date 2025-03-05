@@ -34,10 +34,6 @@ namespace quantas {
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
 		void                 endOfRound(const vector<Peer<AltBitMessage>*>& _peers);
 
-		// addintal method that have defulte implementation from Peer but can be overwritten
-		void                 log()const { printTo(*_log); };
-		ostream& printTo(ostream&)const;
-
 		// the id of the next transaction to submit
 		static int                      currentTransaction;
 		// number of requests satisfied

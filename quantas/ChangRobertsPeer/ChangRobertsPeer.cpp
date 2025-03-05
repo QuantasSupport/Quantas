@@ -64,26 +64,12 @@ namespace quantas {
 			}
 		}
 		if(elected) {
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"] = all_messages_sent;
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["elected_id"] = elected_id;
+			LogWriter::getTestLog()["nb_messages"] = all_messages_sent;
+			LogWriter::getTestLog()["election_time"] = getRound();
+			LogWriter::getTestLog()["elected_id"] = elected_id;
 		}
 	}
 
-	ostream& ChangRobertsPeer::printTo(ostream& out)const {
-		Peer<ChangRobertsMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const ChangRobertsPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-	
 	Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer>* generateSim() {
         
         Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer>* sim = new Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer>;

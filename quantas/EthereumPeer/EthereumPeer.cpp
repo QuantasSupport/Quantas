@@ -58,7 +58,7 @@ namespace quantas {
 				index = i;
 			}
 		}
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["throughput"].push_back(length);
+		LogWriter::getTestLog()["throughput"].push_back(length);
 	}
 
 	void EthereumPeer::checkInStrm() {
@@ -194,20 +194,6 @@ namespace quantas {
 			}
 		}
 
-	}
-
-	ostream& EthereumPeer::printTo(ostream& out)const {
-		Peer<EthereumPeerMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const EthereumPeer& peer) {
-		peer.printTo(out);
-		return out;
 	}
 
 	Simulation<quantas::EthereumPeerMessage, quantas::EthereumPeer>* generateSim() {

@@ -84,7 +84,7 @@ namespace quantas {
 			messages += peers[i]->messagesSent;
 		}
 
-		LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["utility"].push_back(satisfied / messages * 100);
+		LogWriter::getTestLog()["utility"].push_back(satisfied / messages * 100);
 	}
 
 	void AltBitPeer::sendMessage(long peer, AltBitMessage message) {
@@ -102,20 +102,7 @@ namespace quantas {
 		sendMessage(1, message);
 		currentTransaction++;
 	}
-
-	std::ostream& AltBitPeer::printTo(std::ostream& out)const {
-		Peer<AltBitMessage>::printTo(out);
-
-		out << id() << std::endl;
-		out << "counter:" << getRound() << std::endl;
-
-		return out;
-	}
-
-	std::ostream& operator<< (std::ostream& out, const AltBitPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
+	
 	Simulation<quantas::AltBitMessage, quantas::AltBitPeer>* generateSim() {
         
         Simulation<quantas::AltBitMessage, quantas::AltBitPeer>* sim = new Simulation<quantas::AltBitMessage, quantas::AltBitPeer>;

@@ -4,6 +4,11 @@
       "algorithm": "example",
       "logFile": "example1.txt",
       "threadCount": 1,
+      "parameters": {
+        "parameter1": 3.14159,
+        "parameter2": "hello",
+        "parameter3": false
+      },
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -25,6 +30,11 @@
       "algorithm": "example",
       "logFile": "example2.txt",
       "threadCount": 1,
+      "parameters": {
+        "parameter1": 100,
+        "parameter2": "world",
+        "parameter3": true
+      },
       "distribution": {
         "type": "uniform",
         "maxDelay": 3

@@ -40,12 +40,6 @@ namespace quantas {
 		void                 performComputation();
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
 		void                 endOfRound(const vector<Peer<KademliaMessage>*>& _peers);
-
-		// addintal method that have defulte implementation from Peer but can be overwritten
-		void                 log()const { printTo(*_log); };
-		ostream& printTo(ostream&)const;
-		friend ostream& operator<<         (ostream&, const KademliaPeer&);
-
 		// the id of the next transaction to submit
 		static int currentTransaction;
 		// size of binary ids

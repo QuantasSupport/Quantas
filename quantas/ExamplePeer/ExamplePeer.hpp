@@ -39,15 +39,12 @@ namespace quantas{
         ExamplePeer                             (const ExamplePeer &rhs);
         ~ExamplePeer                            ();
 
+        // initialize the configuration of the system
+        void                 initParameters(const vector<Peer<ExampleMessage>*>& _peers, json parameters);
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation ();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound         (const vector<Peer<ExampleMessage>*>& _peers);
-
-        // addintal method that have defulte implementation from Peer but can be overwritten
-        void                 log()const { printTo(*_log); };
-        ostream&             printTo(ostream&)const;
-        friend ostream& operator<<         (ostream&, const ExamplePeer&);
     };
 
     Simulation<quantas::ExampleMessage, quantas::ExamplePeer>* generateSim();

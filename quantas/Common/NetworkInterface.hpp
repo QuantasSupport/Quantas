@@ -13,12 +13,12 @@ You should have received a copy of the GNU General Public License along with QUA
 // It also tracks what interfaces (and thus peers) this NetworkInterface is able to communicate with. 
 //
 // This class is responsable for
-// * storeing all the inbound packets to this interface 
+// * storing all the inbound packets to this interface 
 // * updating inbound packets delay (decreaseing the delay each round until it is delivered)
 // * storing a list of neighbors (a.k.a approved interfaces to send to)
 // * storing the maximum delay a packet can have when being sent to a neighbors interface
 // * sending packets to other interfaces (including assigning it a delay between 1 and the maximum)
-// * storeing received packets at this interface
+// * storing received packets at this interface
 //
 // === RECEIVING MESSAGES ===
 // Each instance of NetworkInterface has a list of its neighbors NetworkInterface ID <_neighbors>, 
@@ -79,8 +79,6 @@ namespace quantas{
     using std::boolalpha;
     using std::find;
 
-    
-    static const int  LOG_WIDTH  = 27;  // var used for column width in loggin
     typedef long      interfaceId;
     //
     // Base Peer class
@@ -109,11 +107,6 @@ namespace quantas{
         void                               send                  (Packet<message>);
 
     protected:
-        
-        // logging
-        ostream                                         *_log;
-        bool                                            _printNeighborhood;
-
         // functions for peer
         void                               broadcast             (message msg);
         void                               broadcastBut          (message msg, long id);
@@ -127,9 +120,6 @@ namespace quantas{
         ~NetworkInterface                                        (){};
         // Setters
         void                               setID                 (interfaceId id)                           {_id = id;};
-        void                               setLogFile            (ostream &o)                               {_log = &o;};
-        void                               printNeighborhoodOn   ()                                         {_printNeighborhood = true;}
-        void                               printNeighborhoodOff  ()                                         {_printNeighborhood = false;}
         
         // getters
         vector<interfaceId>                neighbors             ()const                                    {return _neighbors;};
@@ -148,7 +138,7 @@ namespace quantas{
         void                               clearMessages         ();
         void                               pushToOutSteam        (Packet<message> outMsg)                   {_outStream.push_back(outMsg);};
         Packet<message>                    popInStream           ();
-        void                               addNeighbor           (interfaceId neighborIdAdd)                {_neighbors.push_back(neighborIdAdd);};
+        void                               addNeighbor           (interfaceId neighborIdAdd)                {if (!isNeighbor(neighborIdAdd) && (id() != neighborIdAdd)) _neighbors.push_back(neighborIdAdd);};
         void                               removeNeighbor        (interfaceId neighborIdToRemove);
         void                               setMaxMsgsRec         (int maxMsgsRec)                           {_maxMsgsRec = maxMsgsRec;}
 
@@ -159,7 +149,6 @@ namespace quantas{
         void                               transmit              ();
         
         void                               log                   ()const;
-        ostream&                           printTo               (ostream&)const;
         NetworkInterface&                  operator=             (const NetworkInterface&);
 
         // == and != compare all attributes 
@@ -174,8 +163,6 @@ namespace quantas{
         bool                               operator<             (const interfaceId &rhs)const               {return (_id < rhs);};
         bool                               operator>=            (const interfaceId &rhs)const               {return (_id >= rhs);};
         bool                               operator>             (const interfaceId &rhs)const               {return (_id > rhs);};
-        template <class messageType>
-        friend ostream&                    operator<<            (ostream&, const NetworkInterface<messageType>&);
     };
 
     template <class message>
@@ -263,8 +250,6 @@ namespace quantas{
         _outBoundChannels = map<interfaceId, NetworkInterface<message>* >();
         _outBoundChannelDelays = map<interfaceId,int>();
         _inBoundChannels = map<interfaceId,aChannel>();
-        _log = &cout;
-        _printNeighborhood = false;
     }
 
     template <class message>
@@ -275,8 +260,6 @@ namespace quantas{
         _outBoundChannels = map<interfaceId, NetworkInterface<message>* >();
         _outBoundChannelDelays = map<interfaceId,int>();
         _inBoundChannels = map<interfaceId,aChannel>();
-        _log = &cout;
-        _printNeighborhood = false;
     }
 
     template <class message>
@@ -287,8 +270,6 @@ namespace quantas{
         _outBoundChannels = rhs._outBoundChannels;
         _inBoundChannels = rhs._inBoundChannels;
         _outBoundChannelDelays = rhs._outBoundChannelDelays;
-        _log = rhs._log;
-        _printNeighborhood = rhs._printNeighborhood;
     }
 
     template <class message>
@@ -330,7 +311,7 @@ namespace quantas{
                 if (_outBoundChannelThroughputLeft.at(targetId) > 0){
                     --_outBoundChannelThroughputLeft[targetId];
                     int maxDelay = _outBoundChannelDelays.at(targetId);
-                    outMessage.setDelay(maxDelay);
+                    outMessage.setDelay(maxDelay); // uniform 1-max defaulted
                     _outBoundChannels[targetId]->send(outMessage);
                 }
 			}
@@ -399,43 +380,21 @@ namespace quantas{
         if(this == &rhs)
             return *this;
         _id = rhs._id;
-        _inStream = rhs._inStream;
-        _outStream = rhs._outStream;
-        _outBoundChannels = rhs._outBoundChannels;
         _inBoundChannels = rhs._inBoundChannels;
         _outBoundChannelDelays = rhs._outBoundChannelDelays;
-        _log = rhs._log;
-        _printNeighborhood = rhs._printNeighborhood;
 
+        _outBoundChannelThroughputLeft = rhs._outBoundChannelThroughputLeft;
+        _outBoundChannels = rhs._outBoundChannels;
+        _inStream = rhs._inStream;
+        _outStream = rhs._outStream;
+        _neighbors = rhs._neighbors;
+        _maxMsgsRec = rhs._maxMsgsRec;
         return *this;
     }
 
     template <class message>
     void NetworkInterface<message>::log()const{
-        printTo(*_log);
-    }
-
-    template <class message>
-    ostream& NetworkInterface<message>::printTo(ostream &out)const{
-        out<< "-- NetworkInterface ID:"<< _id<< " --"<< endl;
-        out<< left;
-        out<< "\t"<< setw(LOG_WIDTH)<< "In Stream Size"<< setw(LOG_WIDTH)<< "Out Stream Size"<<endl;
-        out<< "\t"<< setw(LOG_WIDTH)<< _inStream.size()<< setw(LOG_WIDTH)<< _outStream.size()<<endl<<endl;
-        if(_printNeighborhood){
-            out<< "\t"<< setw(LOG_WIDTH)<< "Neighbor ID"<< setw(LOG_WIDTH)<< "Delay"<< setw(LOG_WIDTH)<< "Messages In NetworkInterface"<< endl;
-            for (auto it=_outBoundChannels.begin(); it!=_outBoundChannels.end(); ++it){
-                interfaceId neighborId = it->first;
-                out<< "\t"<< setw(LOG_WIDTH)<< neighborId<< setw(LOG_WIDTH)<< getDelayToNeighbor(neighborId)<< setw(LOG_WIDTH)<<  _inBoundChannels.at(neighborId).size()<< endl;
-            }
-        }
-        out << endl;
-        return out;
-    }
-
-    template <class message>
-    ostream& operator<<(ostream &out, const NetworkInterface<message> &peer){
-        peer.printTo(out);
-        return out;
+        //File in
     }
 }
 #endif 

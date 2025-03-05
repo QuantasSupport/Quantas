@@ -34,11 +34,6 @@ namespace quantas {
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
 		void                 endOfRound(const vector<Peer<StableDataLinkMessage>*>& _peers);
 
-		// addintal method that have defulte implementation from Peer but can be overwritten
-		void                 log()const { printTo(*_log); };
-		ostream& printTo(ostream&)const;
-		friend ostream& operator<<         (ostream&, const StableDataLinkPeer&);
-
 		// the id of the next transaction to submit
 		static int                      currentTransaction;
 		// channel size (non fifo channels not implemented channel size limit not implemented)

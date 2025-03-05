@@ -1,0 +1,395 @@
+{
+  "experiments": [
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/5shards_40ShardSize_C1_O0_Delay1.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 5,
+        "shardSize": 40,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 200,
+        "totalPeers": 700
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/10shards_90ShardSize_C1_O0_Delay1.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 10,
+        "shardSize": 90,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 900,
+        "totalPeers": 1400
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/15shards_140ShardSize_C1_O0_Delay1.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 15,
+        "shardSize": 140,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2100,
+        "totalPeers": 2600
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/5shards_40ShardSize_C1_O0_Delay2.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 5,
+        "shardSize": 40,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 2
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 200,
+        "totalPeers": 700
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/10shards_90ShardSize_C1_O0_Delay2.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 10,
+        "shardSize": 90,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 2
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 900,
+        "totalPeers": 1400
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/15shards_140ShardSize_C1_O0_Delay2.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 15,
+        "shardSize": 140,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 2
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2100,
+        "totalPeers": 2600
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/5shards_40ShardSize_C1_O0_Delay3.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 5,
+        "shardSize": 40,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 200,
+        "totalPeers": 700
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/10shards_90ShardSize_C1_O0_Delay3.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 10,
+        "shardSize": 90,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 900,
+        "totalPeers": 1400
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/15shards_140ShardSize_C1_O0_Delay3.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 15,
+        "shardSize": 140,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2100,
+        "totalPeers": 2600
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/5shards_40ShardSize_C1_O0_Delay4.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 5,
+        "shardSize": 40,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 4
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 200,
+        "totalPeers": 700
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/10shards_90ShardSize_C1_O0_Delay4.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 10,
+        "shardSize": 90,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 4
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 900,
+        "totalPeers": 1400
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/15shards_140ShardSize_C1_O0_Delay4.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 15,
+        "shardSize": 140,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 4
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2100,
+        "totalPeers": 2600
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/5shards_40ShardSize_C1_O0_Delay5.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 5,
+        "shardSize": 40,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 5
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 200,
+        "totalPeers": 700
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/10shards_90ShardSize_C1_O0_Delay5.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 10,
+        "shardSize": 90,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 5
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 900,
+        "totalPeers": 1400
+      },
+      "tests": 10,
+      "rounds": 500
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "NotSmartFiles/15shards_140ShardSize_C1_O0_Delay5.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 15,
+        "shardSize": 140,
+        "churnRate": 1,
+        "ChurnOption": 4,
+        "maxLeaveDelay": 10000,
+        "creationThreshold": 10000.0,
+        "removalThreshold": -1.0,
+        "flipRound": -1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 5
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2100,
+        "totalPeers": 2600
+      },
+      "tests": 10,
+      "rounds": 500
+    }
+  ]
+}
+

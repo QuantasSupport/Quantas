@@ -43,14 +43,6 @@ namespace quantas {
         void                 performComputation ();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound         (const vector<Peer<DynamicMessage>*>& _peers);
-
-      
-        // additional methods that have default implementation from Peer but can be overwritten
-        void                 log()                         const { printTo(*_log); };
-        ostream&             printTo            (ostream&) const;
-        friend ostream&      operator<<         (ostream&, const DynamicPeer&);
-
-      
         // vector of mined blocks (i.e., process' main chain)
         vector<DynamicBlock>         blockChain;        
         // rate at which blocks are mine (i.e., 1 in x chance for all n nodes)

@@ -300,20 +300,6 @@ namespace quantas {
 		return (block.minerId == this->minerId && block.tipMiner == this->tipMiner && block.roundMined == this->roundMined && block.depth == this->depth);
 	}
 
-	ostream& KSMPeer::printTo(ostream& out) const {
-		Peer<KSMMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const KSMPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-
 	Simulation<quantas::KSMMessage, quantas::KSMPeer>* generateSim() {
         
         Simulation<quantas::KSMMessage, quantas::KSMPeer>* sim = new Simulation<quantas::KSMMessage, quantas::KSMPeer>;

@@ -57,7 +57,7 @@ namespace quantas{
         int                                 _avgDelay = 1;
         int                                 _maxDelay = 1;
         int                                 _minDelay = 1;
-        string                              _type = ONE;
+        string                              _type = UNIFORM;
 
     public:
         Distribution                                                 () {

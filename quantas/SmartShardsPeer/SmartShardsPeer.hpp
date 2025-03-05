@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <set>
 #include <mutex>
 #include <iostream>
+#include <random>
+#include <algorithm>
 #include <bits/stdc++.h>
 #include "../Common/Peer.hpp"
 #include "../Common/Simulation.hpp"
@@ -29,6 +31,8 @@ namespace quantas {
     struct SmartShardsMember {
         long Id = -1;
         bool leader = false;
+
+        // TODO? Make it so this is a map and can be accessed easier
         set<int> shards;
     };
 
@@ -36,11 +40,13 @@ namespace quantas {
 
         long 				Id = -1; // node who sent the message
         int					trans = -1; // the transaction id
-        int                 sequenceNum = -1;
+        bool                crossShardTransaction = false;
         int                 shard = -1; // shard the transaction is for
         string              messageType = ""; // type of the message being sent; many options
         int                 roundSubmitted;
         vector<std::pair<string, long>> churningNodes; // type of churn and id of nodes churning
+
+        // TODO? Make it so this is a map and can be accessed easier
         vector<SmartShardsMember>       members; // the ids and other shards of the nodes in the shard (used when a node joins the shard)
     };
 
@@ -57,14 +63,13 @@ namespace quantas {
         void                 performComputation();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound(const vector<Peer<SmartShardsMessage>*>& _peers);
-
-        // addintal method that have defulte implementation from Peer but can be overwritten
-        void                 log()const { printTo(*_log); };
-        ostream&             printTo(ostream&)const;
-        friend ostream& operator<<         (ostream&, const SmartShardsPeer&);
+        
+        void createShard(int shardId, const std::vector<SmartShardsPeer*>& peers);
+        void removeShard(int shardId, const std::vector<SmartShardsPeer*>& peers);
 
         // string indicating the current status of a node in each shard
         map<int, string>                status;
+        // TODO? Make it so I use members map to track who the leader is instead?
         // list of the shards the node is in and if the node is the leader of that shard
         map<int, bool>                  shards;
         // ids and shards of the members of the shards this node is in
@@ -74,13 +79,12 @@ namespace quantas {
         // tracks if node is trying to leave or join
         bool                            leaving = false;
         bool                            joining = false;
+        bool                            GuyHasLeft = false;
         // amount of time passed since sending leave or join request
         int                             leaveDelay = 0;
         int                             joinDelay = 0;
         // tracks if node is awake
         bool                            alive = false;
-        // current squence number
-        int                             sequenceNum = 0;
         // map of vectors of messages that have been received keyed by transaction id
         map<int, vector<SmartShardsMessage>> receivedMessages;
         // vector of recieved transactions
@@ -90,6 +94,7 @@ namespace quantas {
         // Various metrics
         int                             latency = 0;
         int                             messagesSent = 0;
+        double                          confirmedTransCount = 0;
         int                             timeToJoin = 0;
         int                             timeToLeave = 0;
         // transaction currently being processed in a specific shard
@@ -105,8 +110,14 @@ namespace quantas {
         // amount of time node is willing to wait before leaving
         static int                      maxLeaveDelay;
         static int                      numberOfShards;
-         // 0 - joins 2 random, 1 - joins 1 random routed to second, 2 - no churn permitted, 3 - 1 & tries to balance the shardsfor routed joins
+         // 0 - joins 2 random, 1 - joins 1 random routed to second, 2 - no churn permitted, 3 - 1 & tries to balance the shards for routed joins
         static int                      ChurnOption;
+        // specifies the intersection threshold for creating and removing shards
+        static double                   creationThreshold;
+        static double                   removalThreshold;
+        // specifies which round to flip from only joining to only 
+        // if -1 then will do both joins and leaves
+        static int                      flipRound;
 
         // checkInStrm loops through the in stream adding messsages to receivedMessages or transactions
         void                  checkInStrm();

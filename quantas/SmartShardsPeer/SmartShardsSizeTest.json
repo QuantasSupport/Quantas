@@ -1,0 +1,30 @@
+{
+  "experiments": [
+    {
+      "algorithm": "SmartShards",
+      "logFile": "G4_30shards_10Intersection_C6_LD1_O2.txt",
+      "threadCount": 48,
+      "parameters": {
+        "s": 30,
+        "intersections": 10,
+        "churnRate": 6,
+        "ChurnOption": 2,
+        "maxLeaveDelay": 1,
+        "creationThreshold": 100.0,
+        "removalThreshold": 0.0
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 4950,
+        "totalPeers": 4950
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}
+

@@ -34,19 +34,16 @@ int main(int argc, const char* argv[]) {
       std::cerr << "usage: " << argv[0] << " inputFileName "<< std::endl;
       return 1;
    }
-	
-   if (!fs::is_regular_file(argv[1])) {
-      std::cerr << "error: " << argv[1] << " is not a file." << std::endl;
-      return 1;
-   }
-
+   // if (!fs::is_regular_file(argv[1])) {
+   //    std::cerr << "error: " << argv[1] << " is not a file." << std::endl;
+   //    return 1;
+   // }
    std::ifstream inFile(argv[1]);
 	
    if (inFile.fail()) {
       std::cerr << "error: cannot open input file: " << argv[1] << std::endl;
       return 1;
    }
-
    json config;
    inFile >> config;
 
