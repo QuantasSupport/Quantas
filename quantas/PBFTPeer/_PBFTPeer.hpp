@@ -79,7 +79,7 @@ namespace quantas{
             currentLeader.store(newLeader);
         }
         int getLeader() const {
-            return currentLeader.load(std::memory_order_relaxed);
+            return currentLeader.load();
         }
         // view change functions
 

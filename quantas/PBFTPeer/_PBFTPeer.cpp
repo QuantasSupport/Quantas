@@ -257,7 +257,7 @@ namespace quantas {
     }
 
     void PBFTsetup(json &input) {
-        // set up json related vars
+        // set up json related vars if we need to
     }
 
     } // namespace quantas
