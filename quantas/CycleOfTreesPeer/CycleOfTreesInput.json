@@ -1,0 +1,25 @@
+{
+  "experiments": [
+    {
+      "algorithm": "CycleOfTrees",
+      "logFile": "cout",
+      "threadCount": 1,
+      "parameters": {
+        "numberOfEdges": 20,
+        "cycleSize": 10
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 100,
+        "totalPeers": 100
+      },
+      "tests": 10,
+      "rounds": 6000
+    }
+  ]
+}
+  

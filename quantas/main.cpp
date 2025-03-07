@@ -40,6 +40,7 @@ int main(int argc, const char* argv[]) {
       std::cerr << "error: cannot open input file: " << argv[1] << std::endl;
       return 1;
    }
+   
    json config;
    inFile >> config;
 

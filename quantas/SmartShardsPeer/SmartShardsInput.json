@@ -1,0 +1,24 @@
+{
+  "experiments": [
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_1Intersection.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 10,
+        "totalPeers": 10
+      },
+      "tests": 1,
+      "rounds": 100
+    }
+  ]
+}

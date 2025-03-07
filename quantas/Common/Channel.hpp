@@ -1,14 +1,8 @@
 
 /**
- * A Channel object that "belongs" to the INBOUND side (the receiver).
- * The inbound side stores a std::shared_ptr<Channel>,
- * while the outbound side keeps only a std::weak_ptr<Channel>.
- *
  * This channel stores a queue of packets that are being delivered
  * to the inbound interface. The outbound interface calls pushPacket(...)
- * via its weak pointer (if still valid). On each simulation step/round,
- * the inbound interface can call processChannel() to reorder/drop/duplicate,
- * and eventually deliver up to 'maxMsgsRec' messages to itself.
+ * via its pointer.
  */
 
 #ifndef CHANNEL_HPP
@@ -106,111 +100,6 @@ public:
         return _packetQueue.front().hasArrived();
     }
 };
-
-// ---------------- Implementation ----------------
-
-inline Channel::Channel(interfaceId targetId, interfaceId targetInternalId,
-                        interfaceId sourceId, interfaceId sourceInternalId,
-                        const nlohmann::json &channelParams)
-: _targetId(targetId),
-  _targetInternalId(targetInternalId),
-  _sourceId(sourceId),
-  _sourceInternalId(sourceInternalId)
-{
-    setParameters(channelParams);
-}
-
-inline void Channel::setParameters(const nlohmann::json &params) {
-    if (params.contains("dropProbability")) {
-        _dropProbability = params["dropProbability"];
-    }
-    if (params.contains("reorderProbability")) {
-        _reorderProbability = params["reorderProbability"];
-    }
-    if (params.contains("duplicateProbability")) {
-        _duplicateProbability = params["duplicateProbability"];
-    }
-    if (params.contains("maxMsgsRec")) {
-        _maxMsgsRec = params["maxMsgsRec"];
-        _throughputLeft = _maxMsgsRec*(RoundManager::instance()->lastRound()+1-RoundManager::instance()->currentRound());
-    }
-    if (params.contains("size")) {
-        _size = params["size"];
-    }
-    if (params.contains("avgDelay")) {
-        _avgDelay = params["avgDelay"];
-    }
-    if (params.contains("minDelay")) {
-        _minDelay = params["minDelay"];
-    }
-    if (params.contains("maxDelay")) {
-        _maxDelay = params["maxDelay"];
-    }
-    if (params.contains("type")) {
-        std::string t = params["type"];
-        if (t == "UNIFORM")  _delayStyle = DelayStyle::DS_UNIFORM;
-        else if (t == "POISSON") _delayStyle = DelayStyle::DS_POISSON;
-        else if (t == "ONE") _delayStyle = DelayStyle::DS_ONE;
-    }
-}
-
-inline int Channel::computeRandomDelay() const {
-    int delay = 1;
-    switch(_delayStyle) {
-    case DelayStyle::DS_UNIFORM:
-        delay = uniformInt(_minDelay, _maxDelay);
-        break;
-    case DelayStyle::DS_POISSON:
-        delay = poissonInt(_avgDelay);
-        // clamp
-        if (delay > _maxDelay) delay = _maxDelay;
-        if (delay < _minDelay) delay = _minDelay;
-        break;
-    case DelayStyle::DS_ONE:
-        delay = 1;
-        break;
-    }
-    return delay;
-}
-
-inline void Channel::pushPacket(Packet pkt) {
-    // possible drop
-    if (trueWithProbability(_dropProbability)) {
-        // drop => do nothing
-        return;
-    }
-
-    do {
-        if (!canSend()) {
-            // No throughput left
-            return;
-        }
-
-        consumeThroughput();
-
-        // set random delay
-        int d = computeRandomDelay();
-        pkt.setDelay(d, d);
-
-        // push into queue
-        _packetQueue.push_back(pkt);
-    
-    } while (trueWithProbability(_duplicateProbability)); // possible duplication
-}
-
-inline void Channel::shuffleChannel() {
-    // reorder
-    if (_packetQueue.size() > 1 && trueWithProbability(_reorderProbability)) {
-        std::shuffle(_packetQueue.begin(), _packetQueue.end(), threadLocalEngine());
-    }
-}
-
-inline Packet Channel::popPacket() {
-    Packet p = std::move(_packetQueue.front());
-    _packetQueue.pop_front();
-    return p;
-}
-
 } // end namespace quantas
 
 #endif

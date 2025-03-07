@@ -1,0 +1,796 @@
+{
+    "experiments": [
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/20Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 260,
+                "totalPeers": 260,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/20Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 260,
+                "totalPeers": 260,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/20Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 260,
+                "totalPeers": 260,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/36Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 468,
+                "totalPeers": 468,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/36Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 468,
+                "totalPeers": 468,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/36Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 468,
+                "totalPeers": 468,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/52Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 676,
+                "totalPeers": 676,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/52Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 676,
+                "totalPeers": 676,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/52Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 676,
+                "totalPeers": 676,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/68Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 884,
+                "totalPeers": 884,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/68Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 884,
+                "totalPeers": 884,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/68Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 884,
+                "totalPeers": 884,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/84Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1092,
+                "totalPeers": 1092,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/84Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1092,
+                "totalPeers": 1092,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/84Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1092,
+                "totalPeers": 1092,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/100Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1300,
+                "totalPeers": 1300,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/100Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1300,
+                "totalPeers": 1300,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/100Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1300,
+                "totalPeers": 1300,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/116Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1508,
+                "totalPeers": 1508,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/116Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1508,
+                "totalPeers": 1508,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/116Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1508,
+                "totalPeers": 1508,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/132Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1716,
+                "totalPeers": 1716,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/132Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1716,
+                "totalPeers": 1716,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/132Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1716,
+                "totalPeers": 1716,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/148Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1924,
+                "totalPeers": 1924,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/148Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1924,
+                "totalPeers": 1924,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/148Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 1924,
+                "totalPeers": 1924,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/164Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2132,
+                "totalPeers": 2132,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/164Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2132,
+                "totalPeers": 2132,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/164Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2132,
+                "totalPeers": 2132,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/180Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2340,
+                "totalPeers": 2340,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/180Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2340,
+                "totalPeers": 2340,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/180Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2340,
+                "totalPeers": 2340,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 1,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F0/196Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2548,
+                "totalPeers": 2548,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 4,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F1/196Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2548,
+                "totalPeers": 2548,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        },
+        {
+            "algorithm": "Trail",
+            "parameters": {
+                "validatorNeighborhoods": 7,
+                "neighborhoodSize": 13,
+                "walletsPerNeighborhood": 10,
+                "submitRate": 500.0
+            },
+            "logFile": "quantas/TrailPeer/varyingCommsLogs/F2/196Committees.json",
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 2548,
+                "totalPeers": 2548,
+                "maxMsgsRec": 1
+            },
+            "tests": 5,
+            "rounds": 200
+        }
+    ]
+}

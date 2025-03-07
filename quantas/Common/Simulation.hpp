@@ -57,10 +57,8 @@ namespace quantas {
    		std::chrono::duration<double> duration; // chrono time interval
 		startTime = std::chrono::high_resolution_clock::now();
 
-		int _threadCount = thread::hardware_concurrency(); // By default, use as many hardware cores as possible
-		if (config.contains("threadCount") && config["threadCount"] > 0) {
-			_threadCount = config["threadCount"];
-		}
+		int _threadCount = config.value("threadCount", thread::hardware_concurrency()); // By default, use as many hardware cores as possible
+		if (_threadCount <= 0) { _threadCount = 1;}
 		if (_threadCount > config["topology"]["initialPeers"]) {
 			_threadCount = config["topology"]["initialPeers"];
 		}

@@ -22,13 +22,13 @@
           "0": [ 1, 2 ],
           "1": [ 2 ]
         },
-        "maxMsgsRec": 1
+        "maxMsgsRec": 1,
+        "initialPeerType": "ExamplePeer"
       },
       "tests": 1,
       "rounds": 3
     },
     {
-      "algorithm": "example",
       "logFile": "example2.txt",
       "threadCount": 1,
       "parameters": {
@@ -43,13 +43,13 @@
       "topology": {
         "type": "complete",
         "initialPeers": 5,
-        "maxMsgsRec": 1
+        "maxMsgsRec": 1,
+        "initialPeerType": "ExamplePeer"
       },
       "tests": 1,
       "rounds": 3
     },
     {
-      "algorithm": "example",
       "logFile": "example3.txt",
       "threadCount": 1,
       "distribution": {
@@ -59,7 +59,8 @@
       "topology": {
         "type": "complete",
         "initialPeers": 3,
-        "maxMsgsRec": 1
+        "maxMsgsRec": 1,
+        "initialPeerType": "ExamplePeer"
       },
       "tests": 1,
       "rounds": 3

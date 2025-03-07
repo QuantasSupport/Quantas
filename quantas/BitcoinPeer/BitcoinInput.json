@@ -12,7 +12,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 20
+        "initialPeers": 20,
+        "initialPeerType": "BitcoinPeer"
       },
       "tests": 10,
       "rounds": 100

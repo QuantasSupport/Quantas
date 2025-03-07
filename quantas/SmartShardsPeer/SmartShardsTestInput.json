@@ -1,0 +1,281 @@
+{
+  "experiments": [
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC1O0.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 1,
+        "ChurnOption": 0,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 150
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC1O1.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 1,
+        "ChurnOption": 1,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 150
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC1O2.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 1,
+        "ChurnOption": 2,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 150
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC2O0.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 2,
+        "ChurnOption": 0,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 250
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC2O1.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 2,
+        "ChurnOption": 1,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 250
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC2O2.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 2,
+        "ChurnOption": 2,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 250
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC3O0.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 3,
+        "ChurnOption": 0,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 350
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC3O1.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 3,
+        "ChurnOption": 1,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 350
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC3O2.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 3,
+        "ChurnOption": 2,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 350
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC4O0.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 4,
+        "ChurnOption": 0,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 450
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC4O1.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 4,
+        "ChurnOption": 1,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 450
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "SmartShards",
+      "logFile": "5shards_5IntersectionC4O2.txt",
+      "threadCount": 1,
+      "parameters": {
+        "s": 5,
+        "intersections": 5,
+        "churnRate": 4,
+        "ChurnOption": 2,
+        "maxLeaveDelay": 1
+      },
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 50,
+        "totalPeers": 450
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}
+

@@ -1,0 +1,22 @@
+{
+    "experiments": [
+      {
+        "algorithm": "KSM",
+        "logFile": "cout",
+        "threadCount": 1,
+        "distribution": {
+          "type": "uniform",
+          "maxDelay": 1
+        },
+        "topology": {
+          "type": "dynamic",
+          "sourcePoolSize": 75,
+          "initialPeers": 100,
+          "totalPeers": 100
+        },
+        "tests": 1,
+        "rounds": 10
+      }
+    ]
+  }
+  

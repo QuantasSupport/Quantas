@@ -11,93 +11,85 @@
 # copy of the GNU General Public License along with QUANTAS. If not,
 # see <https://www.gnu.org/licenses/>.
 
-
-PROJECT_DIR := quantas
-
 ################
 #
-#  configure this for the specific algorithm and input file
-#
+#  Configure this for the specific input file.
+#  Make sure to include the path to the input file 
+#  from the location of this makefile.
 
-INPUTFILE := BitcoinPeer/BitcoinSpeedTest.json
-# INPUTFILE := ExamplePeer/ExampleInput.json
+# INPUTFILE := quantas/BitcoinPeer/BitcoinSpeedTest.json
 
-####### end algorithm configuration
+# INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 
-####### All algorithms
+INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
 
+################
 
-INPUTFILE := $(PROJECT_DIR)/$(INPUTFILE)
+EXE := quantas.exe
 
+# compiles all the cpps in Common and main.cpp
+COMMON_SRCS := $(wildcard quantas/Common/*.cpp)
+COMMON_OBJS := $(COMMON_SRCS:.cpp=.o)
+OBJS := $(COMMON_OBJS) quantas/main.o
+# compiles all cpps specified as necessary in the INPUTFILE
 ALGS := $(shell sed -n '/"algorithms"/,/]/p' $(INPUTFILE) \
          | sed -n 's/.*"\([^"]*\.cpp\)".*/quantas\/\1/p')
+OBJS += $(ALGS:.cpp=.o)
 
-# HEADS := $(shell sed -n '/"headers"/,/]/p' $(INPUTFILE) \
-#          | sed -n 's/.*"\([^"]*\.hpp\)".*/quantas\/\1/p')
-
-OBJS := $(ALGS:.cpp=.o)
-
-
+# necessary flags
 CPPFLAGS := -Iinclude -MMD -MP
-# CXXFLAGS := -pthread -include $(HEADS)
 CXXFLAGS := -pthread
 CXX := g++
-
-
 GCC_VERSION := $(shell $(CXX) -dumpversion)
 GCC_MIN_VERSION := 8
 
+# check the version of the GCC compiler being used
 check-version:
 	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "Default version of g++ must be higher than 8."; fi
 	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "To change the default version visit: https://linuxconfig.org/how-to-switch-between-multiple-gcc-and-g-compiler-versions-on-ubuntu-20-04-lts-focal-fossa"; fi
 	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then exit 1; fi
 
-EXE := quantas.exe
-OBJS += $(PROJECT_DIR)/main.o
-
-magic: 
-	echo $(INPUTFILE)
-	echo $(ALGS)
-
 # extra debug and release flags
 release: CXXFLAGS += -O3 -s -std=c++17
 debug: CXXFLAGS += -O0 -g -D_GLIBCXX_DEBUG -std=c++17
 
+# flags for clang
 clang: CXX := clang++
 clang: CXXFLAGS += -std=c++17
 
-.PHONY: all clean run release debug magic
-
-all: release
+.PHONY: clean run release debug
 
 release: check-version $(EXE)
 debug: check-version $(EXE)
 
-clang: all
-	./$(EXE) $(INPUTFILE)
+clang: release
+	@echo running with input: $(INPUTFILE)
+	@./$(EXE) $(INPUTFILE)
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	@echo compiling $<
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(EXE): $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $(EXE)
+	@$(CXX) $(CXXFLAGS) $^ -o $(EXE)
 
 # Define a helper function to check dmesg for errors
 define check_failure
-    echo "Make target '$@' failed! Checking dmesg..."; \
+    @echo "Make target '$@' failed! Checking dmesg..."; \
     dmesg | tail -20 | grep -i -E 'oom|killed|segfault|error' || echo "No relevant logs found."
 endef
 
-run: all
-	./$(EXE) $(INPUTFILE); exit_code=$$?; \
+run: release
+	@echo running with input: $(INPUTFILE)
+	@./$(EXE) $(INPUTFILE); exit_code=$$?; \
 	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
 
 run_debug: debug
-	gdb --ex "set print thread-events off" --ex run --ex backtrace --args ./$(EXE) $(INPUTFILE); exit_code=$$?; \
+	@gdb --ex "set print thread-events off" --ex run --ex backtrace --args ./$(EXE) $(INPUTFILE); exit_code=$$?; \
 	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
 
 # in the future this could be generalized to go through every file in "Tests"
-rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.cpp
+rand_test: quantas/Tests/randtest.cpp quantas/Common/Distribution.cpp
 	$(CXX) -pthread -std=c++17 $^ -o $@.exe
 	./$@.exe
 
@@ -122,31 +114,9 @@ test_%:
 	@$(RM) quantas/$(ALGFILE)/*.o
 	@echo $(ALGFILE) successful
 
+# enables recursive glob patterns for bash to clean out unecessary files
+clean: SHELL := /bin/bash -O globstar
 clean:
-	@$(RM) *.exe
-	@$(RM) *.out
-	@$(RM) *.o
-	@$(RM) -r *.dSYM
-	@$(RM) $(PROJECT_DIR)/*.gch
-	@$(RM) $(PROJECT_DIR)/*.tmp
-	@$(RM) $(PROJECT_DIR)/*.o
-	@$(RM) $(PROJECT_DIR)/*.d
-	@$(RM) $(PROJECT_DIR)/Common/*.gch
-	@$(RM) $(PROJECT_DIR)/Common/*.tmp
-	@$(RM) $(PROJECT_DIR)/Common/*.o
-	@$(RM) $(PROJECT_DIR)/Common/*.d
-	@$(RM) $(PROJECT_DIR)/*/*.gch
-	@$(RM) $(PROJECT_DIR)/*/*.tmp
-	@$(RM) $(PROJECT_DIR)/*/*.o
-	@$(RM) $(PROJECT_DIR)/*/*.d
-	@$(RM) quantas_test/*.gch
-	@$(RM) quantas_test/*.tmp
-	@$(RM) quantas_test/*.o
-	@$(RM) quantas_test/*.d
-
-# enables recursive glob patterns for bash
-cleanRec: SHELL := /bin/bash -O globstar
-cleanRec:
 	@$(RM) **/*.out
 	@$(RM) **/*.o
 	@$(RM) **/*.d
