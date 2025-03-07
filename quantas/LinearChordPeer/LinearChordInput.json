@@ -9,8 +9,7 @@
       },
       "topology": {
         "type": "ring",
-        "initialPeers": 20,
-        "totalPeers": 20
+        "initialPeers": 20
       },
       "tests": 10,
       "rounds": 100
@@ -24,8 +23,7 @@
       },
       "topology": {
         "type": "ring",
-        "initialPeers": 40,
-        "totalPeers": 40
+        "initialPeers": 40
       },
       "tests": 10,
       "rounds": 100
@@ -39,8 +37,7 @@
       },
       "topology": {
         "type": "ring",
-        "initialPeers": 100,
-        "totalPeers": 100
+        "initialPeers": 100
       },
       "tests": 10,
       "rounds": 100

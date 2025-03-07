@@ -112,7 +112,7 @@ inline void Network::initNetwork(json topology) {
     NetworkInterface::resetCounter();
 
     int initialPeers = topology.value("initialPeers", 0);
-    std::string peerType = topology.value("initialPeerType", "")
+    std::string peerType = topology.value("initialPeerType", "");
     // build peers
     for (int i = 0; i < initialPeers; i++) {
         auto *peer = PeerRegistry::makePeer(peerType, i);

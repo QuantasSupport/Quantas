@@ -9,8 +9,7 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 2,
-        "totalPeers": 2
+        "initialPeers": 2
       },
       "tests": 10,
       "rounds": 100
@@ -24,8 +23,7 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 2,
-        "totalPeers": 2
+        "initialPeers": 2
       },
       "tests": 10,
       "rounds": 100
@@ -39,8 +37,7 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 2,
-        "totalPeers": 2
+        "initialPeers": 2
       },
       "tests": 10,
       "rounds": 100

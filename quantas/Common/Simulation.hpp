@@ -61,10 +61,10 @@ namespace quantas {
 		if (config.contains("threadCount") && config["threadCount"] > 0) {
 			_threadCount = config["threadCount"];
 		}
-		if (_threadCount > config["topology"]["totalPeers"]) {
-			_threadCount = config["topology"]["totalPeers"];
+		if (_threadCount > config["topology"]["initialPeers"]) {
+			_threadCount = config["topology"]["initialPeers"];
 		}
-		int networkSize = static_cast<int>(config["topology"]["totalPeers"]);
+		int networkSize = static_cast<int>(config["topology"]["initialPeers"]);
 		
 		BS::thread_pool pool(_threadCount);
 		for (int i = 0; i < config["tests"]; i++) {

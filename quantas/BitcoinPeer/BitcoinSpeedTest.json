@@ -5,6 +5,7 @@
   "experiments": [
     {
       "logFile": "bitcoinspeedtest.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
