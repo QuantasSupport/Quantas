@@ -28,7 +28,7 @@ namespace quantas {
         /////////////////////////////////////////////////
     }
 
-    PBFTPeer::PBFTPeer(long id) : Peer(id) {}
+    PBFTPeer::PBFTPeer(interfaceId id) : Peer(id) {}
     
     void PBFTPeer::performComputation() {
         //  leader starts only

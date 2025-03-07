@@ -1,7 +1,9 @@
 {
+  "algorithms": [
+    "BitcoinPeer/BitcoinPeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "bitcoin",
       "logFile": "bitcoinspeedtest.txt",
       "distribution": {
         "type": "uniform",
@@ -10,7 +12,7 @@
       "topology": {
         "type": "complete",
         "initialPeers": 300,
-        "totalPeers": 300
+        "initialPeerType": "BitcoinPeer"
       },
       "tests": 10,
       "rounds": 1000

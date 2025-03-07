@@ -17,7 +17,7 @@ The Chang and Roberts leader election algorithm runs on a ring shaped networks w
 
 ## Step 1: Subclass ``Peer`` for the new algorithm
 
-The new algorithm has no local variables, and the content of every message is a single ID (represented as a ``long``). From the ``ExamplePeer.hpp`` template, we create the ``ChangRobertsPeer.hpp`` file as follows:
+The new algorithm has no local variables, and the content of every message is a single ID (represented as a ``interfaceId``). From the ``ExamplePeer.hpp`` template, we create the ``ChangRobertsPeer.hpp`` file as follows:
 
 	#ifndef ChangRobertsPeer_hpp
 	#define ChangRobertsPeer_hpp
@@ -31,12 +31,12 @@ The new algorithm has no local variables, and the content of every message is a 
 
 	    // message body type : ID of a process
 	    struct ChangRobertsMessage{
-	        long aPeerId;
+	        interfaceId aPeerId;
 	    };
 
 	    class ChangRobertsPeer : public Peer<ChangRobertsMessage>{
 	    public:
-	        ChangRobertsPeer                             (long);
+	        ChangRobertsPeer                             (interfaceId);
 	        ChangRobertsPeer                             (const ChangRobertsPeer &rhs);
 	        ~ChangRobertsPeer                            ();
 
@@ -59,7 +59,7 @@ Similarly, from the ``ExamplePeer.cpp``, we create the following ``ChangRobertsP
 		ChangRobertsPeer::ChangRobertsPeer(const ChangRobertsPeer& rhs) : Peer<ChangRobertsMessage>(rhs) {
 		}
 
-		ChangRobertsPeer::ChangRobertsPeer(long id) : Peer(id) {
+		ChangRobertsPeer::ChangRobertsPeer(interfaceId id) : Peer(id) {
 		}
 
 		void ChangRobertsPeer::performComputation() {
@@ -95,8 +95,8 @@ The regular part of the algorithm can be implemented using the ``inStreamEmpty()
 
 	while (!inStreamEmpty()) {
 		Packet<ChangRobertsMessage> newMsg = popInStream();
-		long rid = newMsg.getMessage().aPeerId;
-		long sid = newMsg.sourceId();
+		interfaceId rid = newMsg.getMessage().aPeerId;
+		interfaceId sid = newMsg.sourceId();
 		if( rid == id() ) {
 			cout << "Realizing " << id() << " is the leader" << endl;
 		}
@@ -121,8 +121,8 @@ The complete code for the ``performComputation()``method should look as follows:
 		}
 		while (!inStreamEmpty()) {
 			Packet<ChangRobertsMessage> newMsg = popInStream();
-			long rid = newMsg.getMessage().aPeerId;
-			long sid = newMsg.sourceId();
+			interfaceId rid = newMsg.getMessage().aPeerId;
+			interfaceId sid = newMsg.sourceId();
 			if( rid == id() ) {
 				cout << "Realizing " << id() << " is the leader" << endl;
 			}
@@ -227,7 +227,7 @@ To collect metrics that are related to all peers at every round, one can find th
 		...
 		private:
 			bool first_elected;
-			long messages_sent;
+			interfaceId messages_sent;
 	};
 
 This ``messages_sent`` is initialized to zero, and the ``first_elected`` is initialized to ``false``.
@@ -236,7 +236,7 @@ This ``messages_sent`` is initialized to zero, and the ``first_elected`` is init
 		messages_sent(0), first_elected(false) {
 	}
 
-	ChangRobertsPeer::ChangRobertsPeer(long id) : Peer(id), messages_sent(0), first_elected(false) {
+	ChangRobertsPeer::ChangRobertsPeer(interfaceId id) : Peer(id), messages_sent(0), first_elected(false) {
 	}
 
 Whenever we call ``unicast()`` or ``broadcastBut()``, we increment the ``messages_sent`` variable. When we first realize a leader is elected, we update the ``first_elected`` variable accordingly.
@@ -251,8 +251,8 @@ Whenever we call ``unicast()`` or ``broadcastBut()``, we increment the ``message
 		}
 		while (!inStreamEmpty()) {
 			Packet<ChangRobertsMessage> newMsg = popInStream();
-			long rid = newMsg.getMessage().aPeerId;
-			long sid = newMsg.sourceId();
+			interfaceId rid = newMsg.getMessage().aPeerId;
+			interfaceId sid = newMsg.sourceId();
 			if( rid == id() ) {
 				first_elected = true;
 				cout << "Realizing " << id() << " is the leader" << endl;
@@ -273,7 +273,7 @@ Then, at the end of each round, we check whether a leader has been elected in th
 	void ChangRobertsPeer::endOfRound(const vector<Peer<ChangRobertsMessage>*>& _peers) {
 		long all_messages_sent = 0;
 		bool elected = false;
-		long elected_id = -1;
+		interfaceId elected_id = NO_PEER_ID;
 		const vector<ChangRobertsPeer*> peers = reinterpret_cast<vector<ChangRobertsPeer*> const&>(_peers);
 		for(auto it = peers.begin(); it != peers.end(); ++it) {
 			all_messages_sent += (*it)->messages_sent;

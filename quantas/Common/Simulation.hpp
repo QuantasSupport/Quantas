@@ -28,22 +28,15 @@ using std::ofstream;
 using std::thread;
 
 namespace quantas {
-	class SimWrapper {
+
+	class Simulation {
+	private:
+		Network system;  // use your new non-templated Network
 	public:
-    	virtual void run(json) = 0;
+		inline void run(json config);
 	};
 
-	template<class type_msg, class peer_type>
-    class Simulation : public SimWrapper{
-    private:
-        Network<type_msg, peer_type> 		system;
-    public:
-        // Name of log file, will have Test number appended
-        void 				run			(json);
-    };
-
-	template<class type_msg, class peer_type>
-	void Simulation<type_msg, peer_type>::run(json config) {
+	inline void Simulation::run(json config) {
 		ofstream out;
 		if (config["logFile"] == "cout") {
 			LogWriter::instance()->setLog(cout); // Set the log file to the console
@@ -76,10 +69,11 @@ namespace quantas {
 		BS::thread_pool pool(_threadCount);
 		for (int i = 0; i < config["tests"]; i++) {
 			LogWriter::instance()->setTest(i);
-
+			RoundManager::instance()->setCurrentRound(0);
+			RoundManager::instance()->setLastRound(config["rounds"]);
 			// Configure the delay properties and initial topology of the network
 			system.setDistribution(config["distribution"]);
-			system.initNetwork(config["topology"], config["rounds"]);
+			system.initNetwork(config["topology"]);
 			if (config.contains("parameters")) {
 				system.initParameters(config["parameters"]);
 			}
@@ -87,10 +81,9 @@ namespace quantas {
 			//cout << "Test " << i + 1 << endl;
 			for (int j = 0; j < config["rounds"]; j++) {
 				//cout << "ROUND " << j << endl;
-				LogWriter::instance()->setRound(j); // Set the round number for logging
+				RoundManager::instance()->incrementRound();
 
 				// do the receive phase of the round
-
 				BS::multi_future<void> receive_loop = pool.parallelize_loop(networkSize, [this](int a, int b){system.receive(a, b);});
 				receive_loop.wait();
 
@@ -98,9 +91,6 @@ namespace quantas {
 				compute_loop.wait();
 
 				system.endOfRound(); // do any end of round computations
-
-				BS::multi_future<void> transmit_loop = pool.parallelize_loop(networkSize, [this](int a, int b){system.transmit(a, b);});
-				transmit_loop.wait();
 			}
 		}
 		

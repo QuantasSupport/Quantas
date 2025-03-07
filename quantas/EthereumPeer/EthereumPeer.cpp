@@ -24,7 +24,7 @@ namespace quantas {
 		
 	}
 
-	EthereumPeer::EthereumPeer(long id) : Peer(id) {
+	EthereumPeer::EthereumPeer(interfaceId id) : Peer(id) {
 		
 	}
 

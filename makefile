@@ -19,50 +19,28 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-INPUTFILE := ExampleInput.json
-
-# ALGFILE := TrailPeer
-
-ALGFILE := ExamplePeer
-
-# ALGFILE := BitcoinPeer
-
-# ALGFILE := EthereumPeer
-
-# ALGFILE := PBFTPeer
-
-# ALGFILE := RaftPeer
-
-# ALGFILE := SmartShardsPeer
-
-# ALGFILE := LinearChordPeer
-
-# ALGFILE := KademliaPeer
-
-# ALGFILE := AltBitPeer
-
-# ALGFILE := StableDataLinkPeer
-
-# ALGFILE := ChangRobertsPeer
-
-# ALGFILE := DynamicPeer
-
-# ALGFILE := KPTPeer
-
-# ALGFILE := KSMPeer
-
-# ALGFILE := CycleOfTreesPeer
+# INPUTFILE := BitcoinPeer/BitcoinInput.json
+INPUTFILE := ExamplePeer/ExampleInput.json
 
 ####### end algorithm configuration
 
 ####### All algorithms
 
 
-INPUTFILE := $(PROJECT_DIR)/$(ALGFILE)/$(INPUTFILE)
+INPUTFILE := $(PROJECT_DIR)/$(INPUTFILE)
+
+ALGS := $(shell sed -n '/"algorithms"/,/]/p' $(INPUTFILE) \
+         | sed -n 's/.*"\([^"]*\.cpp\)".*/quantas\/\1/p')
+
+# HEADS := $(shell sed -n '/"headers"/,/]/p' $(INPUTFILE) \
+#          | sed -n 's/.*"\([^"]*\.hpp\)".*/quantas\/\1/p')
+
+OBJS := $(ALGS:.cpp=.o)
 
 
 CPPFLAGS := -Iinclude -MMD -MP
-CXXFLAGS = -pthread -include $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).hpp
+# CXXFLAGS := -pthread -include $(HEADS)
+CXXFLAGS := -pthread
 CXX := g++
 
 
@@ -75,8 +53,11 @@ check-version:
 	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then exit 1; fi
 
 EXE := quantas.exe
-OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o $(PROJECT_DIR)/Common/Distribution.o
+OBJS += $(PROJECT_DIR)/main.o
 
+magic: 
+	echo $(INPUTFILE)
+	echo $(ALGS)
 
 # extra debug and release flags
 release: CXXFLAGS += -O3 -s -std=c++17
@@ -85,7 +66,7 @@ debug: CXXFLAGS += -O0 -g -D_GLIBCXX_DEBUG -std=c++17
 clang: CXX := clang++
 clang: CXXFLAGS += -std=c++17
 
-.PHONY: all clean run release debug
+.PHONY: all clean run release debug magic
 
 all: release
 
@@ -95,11 +76,11 @@ debug: check-version $(EXE)
 clang: all
 	./$(EXE) $(INPUTFILE)
 
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 $(EXE): $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $(EXE)
-
-$(PROJECT_DIR)/%.o: $(PROJECT_DIR)/%.c
-	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Define a helper function to check dmesg for errors
 define check_failure
@@ -120,7 +101,7 @@ rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.
 	$(CXX) -pthread -std=c++17 $^ -o $@.exe
 	./$@.exe
 
-TESTS = check-version rand_test test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_SmartShards test_LinearChord test_Kademlia test_AltBit test_StableDataLink test_ChangRoberts test_Dynamic test_KPT test_KSM
+TESTS = check-version rand_test test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_LinearChord test_Kademlia test_AltBit test_StableDataLink
 
 ############################### Compile and run all tests - uses a wild card.
 test: $(TESTS)
@@ -154,10 +135,10 @@ clean:
 	@$(RM) $(PROJECT_DIR)/Common/*.tmp
 	@$(RM) $(PROJECT_DIR)/Common/*.o
 	@$(RM) $(PROJECT_DIR)/Common/*.d
-	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.gch
-	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.tmp
-	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.o
-	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.d
+	@$(RM) $(PROJECT_DIR)/*/*.gch
+	@$(RM) $(PROJECT_DIR)/*/*.tmp
+	@$(RM) $(PROJECT_DIR)/*/*.o
+	@$(RM) $(PROJECT_DIR)/*/*.d
 	@$(RM) quantas_test/*.gch
 	@$(RM) quantas_test/*.tmp
 	@$(RM) quantas_test/*.o

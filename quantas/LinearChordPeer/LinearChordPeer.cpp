@@ -23,7 +23,7 @@ namespace quantas {
 		
 	}
 
-	LinearChordPeer::LinearChordPeer(long id) : Peer(id) {
+	LinearChordPeer::LinearChordPeer(interfaceId id) : Peer(id) {
 		
 	}
 
@@ -53,9 +53,9 @@ namespace quantas {
 
 			while (!inStreamEmpty()) {
 				Packet<LinearChordMessage> packet = popInStream();
-				long source = packet.sourceId();
+				interfaceId source = packet.sourceId();
 				LinearChordMessage message = packet.getMessage();
-				long reqId = message.reqId;
+				interfaceId reqId = message.reqId;
 				if (message.action == "R") {
 					if (id() == reqId) {
 						requestsSatisfied++;
@@ -244,7 +244,7 @@ namespace quantas {
 		}
 	}
 
-	void LinearChordPeer::sendMessage(long peer, LinearChordMessage message) {
+	void LinearChordPeer::sendMessage(interfaceId peer, LinearChordMessage message) {
 		Packet<LinearChordMessage> newMessage(getRound(), peer, id());
 		message.hops++;
 		newMessage.setMessage(message);
@@ -254,7 +254,7 @@ namespace quantas {
 	void LinearChordPeer::submitTrans(int tranID) {
 		LinearChordMessage message;
 		message.reqId = randMod(numberOfNodes);
-		long reqId = message.reqId;
+		interfaceId reqId = message.reqId;
 		message.action = "R";
 		message.roundSubmitted = getRound();
 		if (id() == reqId) {

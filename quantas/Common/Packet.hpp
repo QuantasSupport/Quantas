@@ -11,137 +11,99 @@ You should have received a copy of the GNU General Public License along with QUA
 // It is templated so that the user can define their own message (body, payload, etc.) they want to include in the packet. This allows
 // them to define what information is allowed in a single message between peers.
 //
-// A packet needs a source peer id (id of the network interface), target peer id (id of the network interface) and an id.
-// The Id of the packet is used for comparison of two packets. Structs can not be compared unless the user defines the equal to and not
-// equal operator. As such we do not expect or assume that the user does so. We define a packet ID to overcome this two packets with the
-// same id are regarded as equal.
+// A packet needs a source peer id (id of the network interface), target peer id (id of the network interface).
 
 
 #ifndef Packet_hpp
 #define Packet_hpp
 
-#include <stdio.h>
-#include <string>
-#include <ctime>
-#include <random>
-#include "LogWriter.hpp"
-#include "Distribution.hpp"
+#include <iostream>
+#include <memory>
+#include "RoundManager.hpp"
 
 namespace quantas{
     
-    using std::string;
-    
-    static const long NO_PEER_ID = -1;  // number used to indicate invalid peer id or un init peer id
+using std::string;
+using std::unique_ptr;
 
-    //
-    //Base Message Class
-    //
+typedef long      interfaceId;
+inline static const interfaceId NO_PEER_ID = -1;  // used to indicate invalid peer or un init peers
 
-    template<class message>
-    class Packet{
-    private:
-        // message must have ID
-        Packet(){};
-        
-    protected:
-        long                        _id; // message id 
-        long                        _targetId; // target node id
-        long                        _sourceId; // source node id
-        
-        message                     _body;
-        
-        int                         _delay; // delay of the message
-        int                         _round; // round message was sent
-        
-    public:
-        Packet                      (long id);
-        Packet                      (long id, long to, long from);
-        Packet                      (const Packet<message>&);
-        ~Packet                     ();
-        
-        // setters
-        void        setSource       (long s){_sourceId = s;};
-        void        setTarget       (long t){_targetId = t;};
-        void        setDelay        (int delayMax, int delayMin = 1);
-        void        setMessage      (const message c){_body = c;};
-        
-        // getters
-        long        id              ()const {return _id;};
-        long        targetId        ()const {return _targetId;};
-        long        sourceId        ()const {return _sourceId;};
-        bool        hasArrived      ()const {return LogWriter::instance()->getRound() >= _round + _delay;};
-        message     getMessage      ()const {return _body;};
-        int         getDelay        ()const {return _delay;};
-        int         getRound        ()const {return _round;};
-        
-        Packet&     operator=       (const Packet<message> &rhs);
-        bool        operator==      (const Packet<message> &rhs) const;
-        bool        operator!=      (const Packet<message> &rhs) const;
-        
-    };
+// Base Message Class
+class Message {
+public:
+    virtual ~Message() = default;
+    virtual Message* clone() const = 0;
+};
 
-    template<class message>
-    Packet<message>::Packet(long id){
-        _id = id;
-        _sourceId = NO_PEER_ID;
-        _targetId = NO_PEER_ID;
-        _body = message();
-        _delay = 0;
-        _round = LogWriter::instance()->getRound();
-    }
+// Packet Class
+class Packet {
+private:
+    interfaceId _targetId{NO_PEER_ID};       // Target node ID
+    interfaceId _sourceId{NO_PEER_ID};       // Source node ID
+    Message* _body{nullptr};   // Message payload
+    int _delay{0};                  // Transmission delay
+    int _round{-1};                  // Round message was sent
 
-    template<class message>
-    Packet<message>::Packet(long id, long to ,long from){
-        _id = id;
-        _sourceId = from;
-        _targetId = to;
-        _body = message();
-        _delay = 0;
-        _round = LogWriter::instance()->getRound();
-    }
+public:
+    inline Packet();
+    inline Packet(interfaceId to, interfaceId from, Message* body);
+    inline Packet(const Packet& rhs);   // Deep copy constructor
+    inline Packet& operator=(const Packet& rhs); // Deep copy assignment
+    ~Packet() = default;
 
-    template<class message>
-    Packet<message>::Packet(const Packet<message>& rhs){
-        _id = rhs._id;
-        _targetId = rhs._targetId;
-        _sourceId = rhs._sourceId;
-        _body = rhs._body;
-        _delay = rhs._delay;
-        _round = rhs._round;
-    }
+    // Setters
+    inline void setSource(interfaceId s) { _sourceId = s; }
+    inline void setTarget(interfaceId t) { _targetId = t; }
+    inline void setDelay(int delayMax, int delayMin = 1);
+    inline void setMessage(Message* msg) { _body = msg; }
 
-    template<class message>
-    Packet<message>::~Packet(){
-        // no memory allocated so nothing to do
-    }
+    // Getters
+    inline interfaceId targetId() const { return _targetId; }
+    inline interfaceId sourceId() const { return _sourceId; }
+    inline bool hasArrived() const { return RoundManager::instance()->currentRound() >= _round + _delay; }
+    inline Message* getMessage() const { return _body; }
+    inline int getDelay() const { return _delay; }
+    inline int getRound() const { return _round; }
+};
 
-    template <class message>
-    void Packet<message>::setDelay(int maxDelay, int minDelay){
-        // max is not included so delay 1 is next round delay 2 is one round
-        // waiting and then receive in the following round assuming other
-        // messages aren't in the channel
-        _delay = uniformInt(minDelay, maxDelay);
-    }
+// Constructor Implementations
+inline Packet::Packet() : _sourceId(NO_PEER_ID), _targetId(NO_PEER_ID), _delay(0) {
+    _round = RoundManager::instance()->currentRound();
+}
 
-    template<class message>
-    Packet<message>& Packet<message>::operator=(const Packet<message> &rhs){
-        _id = rhs._id;
-        _targetId = rhs._targetId;
-        _sourceId = rhs._sourceId;
-        _body = rhs._body;
-        _delay = rhs._delay;
-        _round = rhs._round;
-        return *this;
-    }
+inline Packet::Packet(interfaceId to, interfaceId from, Message* body)
+    : _targetId(to), _sourceId(from), _body(body), _delay(0) {
+    _round = RoundManager::instance()->currentRound();
+}
 
-    template<class message>
-    bool Packet<message>::operator== (const Packet<message> &rhs)const{
-        return _id == rhs._id;
-    }
-
-    template<class message>
-    bool Packet<message>::operator!= (const Packet<message> &rhs)const{
-        return !(_id == rhs._id);
+inline Packet::Packet(const Packet& rhs) 
+    : _targetId(rhs._targetId), _sourceId(rhs._sourceId), _delay(rhs._delay), _round(rhs._round) {
+    if (rhs._body) {
+        _body = rhs._body->clone();
     }
 }
-#endif /* Message_hpp */
+
+inline Packet& Packet::operator=(const Packet& rhs) {
+    if (this == &rhs) return *this;
+    _targetId = rhs._targetId;
+    _sourceId = rhs._sourceId;
+    _delay = rhs._delay;
+    _round = rhs._round;
+    if (rhs._body) {
+        _body = rhs._body->clone();
+    }
+    return *this;
+}
+
+inline void Packet::setDelay(int maxDelay, int minDelay) {
+    if (maxDelay < 1) maxDelay = 1;
+    if (minDelay < 1) minDelay = 1;
+    if (minDelay > maxDelay) minDelay = maxDelay;
+    // uniformInt is assumed to come from Distribution.hpp
+    _delay = uniformInt(minDelay, maxDelay);
+}
+    
+} // namespace quantas
+    
+#endif /* PACKET_HPP */    

@@ -22,7 +22,7 @@ namespace quantas {
 		
 	}
 
-	RaftPeer::RaftPeer(long id) : Peer(id) {
+	RaftPeer::RaftPeer(interfaceId id) : Peer(id) {
 		
 	}
 
@@ -139,7 +139,7 @@ namespace quantas {
 		timeOutRound = (randMod(timeOutRandom)) + timeOutSpacing + getRound();
 	}
 
-	void RaftPeer::sendMessage(long peer, RaftPeerMessage message) {
+	void RaftPeer::sendMessage(interfaceId peer, RaftPeerMessage message) {
 		Packet<RaftPeerMessage> newMessage(getRound(), peer, id());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);

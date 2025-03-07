@@ -22,7 +22,7 @@ namespace quantas {
 
 	}
 
-	AltBitPeer::AltBitPeer(long id) : Peer(id) {
+	AltBitPeer::AltBitPeer(interfaceId id) : Peer(id) {
 
 	}
 
@@ -51,7 +51,7 @@ namespace quantas {
 			}
 			while (!inStreamEmpty()) {
 				Packet<AltBitMessage> packet = popInStream();
-				long source = packet.sourceId();
+				interfaceId source = packet.sourceId();
 				AltBitMessage message = packet.getMessage();
 				if (randMod(messageLossDen) < messageLossNum) { // used for message loss
 					continue;
@@ -87,7 +87,7 @@ namespace quantas {
 		LogWriter::getTestLog()["utility"].push_back(satisfied / messages * 100);
 	}
 
-	void AltBitPeer::sendMessage(long peer, AltBitMessage message) {
+	void AltBitPeer::sendMessage(interfaceId peer, AltBitMessage message) {
 		Packet<AltBitMessage> newMessage(getRound(), peer, id());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);

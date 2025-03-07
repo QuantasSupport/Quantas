@@ -11,6 +11,12 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
+	static bool registerExamplePeer = [](){
+		registerPeerType("ExamplePeer", 
+			[](interfaceId pubId){ return new ExamplePeer(pubId); });
+		return true;
+	}();
+
 	//
 	// Example Channel definitions
 	//
@@ -18,15 +24,15 @@ namespace quantas {
 
 	}
 
-	ExamplePeer::ExamplePeer(const ExamplePeer& rhs) : Peer<ExampleMessage>(rhs) {
+	ExamplePeer::ExamplePeer(const ExamplePeer& rhs) : Peer(rhs) {
 		
 	}
 
-	ExamplePeer::ExamplePeer(long id) : Peer(id) {
+	ExamplePeer::ExamplePeer(interfaceId id) : Peer(id) {
 		
 	}
 
-	void ExamplePeer::initParameters(const vector<Peer<ExampleMessage>*>& _peers, json parameters) {
+	void ExamplePeer::initParameters(const vector<Peer*>& _peers, json parameters) {
 		const vector<ExamplePeer*> peers = reinterpret_cast<vector<ExamplePeer*> const&>(_peers);
 		
 		cout << "Initializing parameters of simulation" << endl;
@@ -46,38 +52,25 @@ namespace quantas {
 
 	void ExamplePeer::performComputation() {
 
-		cout << "Peer:" << id() << " performing computation" << endl;
+		cout << "Peer:" << publicId() << " performing computation" << endl;
 
 		// Read messages from other peers
 		while (!inStreamEmpty()) {
-			Packet<ExampleMessage> newMsg = popInStream();
-			cout << endl << std::to_string(id()) << " has receved a message from " << newMsg.getMessage().aPeerId << endl;
-			cout << newMsg.getMessage().message << endl;
+			ExampleMessage* newMsg = dynamic_cast<ExampleMessage*>(popInStream().getMessage());
+			cout << endl << std::to_string(publicId()) << " has receved a message from " << newMsg->aPeerId << endl;
+			cout << newMsg->message << endl;
 		}
 		cout << endl;
 
-		
-		// Send message to self
-		ExampleMessage msg;
-		msg.message = "Message: it's me " + std::to_string(id()) + "!";
-		msg.aPeerId = std::to_string(id());
-		Packet<ExampleMessage> newMsg(getRound(), id(), id());
-		newMsg.setMessage(msg);
-		pushToOutSteam(newMsg);
-
 		// Send hello to everyone else
-		msg.message = "Message: Hello From " + std::to_string(id()) + ". Sent on round: " + std::to_string(getRound());
-		msg.aPeerId = std::to_string(id());
+		ExampleMessage* msg = new ExampleMessage();
+		msg->message = "Message: Hello From " + std::to_string(publicId()) + ". Sent on round: " + std::to_string(RoundManager::instance()->currentRound());
+		msg->aPeerId = std::to_string(publicId());
 		broadcast(msg);
 	}
 
-	void ExamplePeer::endOfRound(const vector<Peer<ExampleMessage>*>& _peers) {
-		cout << "End of round " << getRound() << endl;
+	void ExamplePeer::endOfRound(const vector<Peer*>& _peers) {
+		const vector<ExamplePeer*> peers = reinterpret_cast<vector<ExamplePeer*> const&>(_peers);
+		cout << "End of round " << RoundManager::instance()->currentRound() << endl;
 	}
-
-	Simulation<quantas::ExampleMessage, quantas::ExamplePeer>* generateSim() {
-        
-        Simulation<quantas::ExampleMessage, quantas::ExamplePeer>* sim = new Simulation<quantas::ExampleMessage, quantas::ExamplePeer>;
-        return sim;
-    }
 }

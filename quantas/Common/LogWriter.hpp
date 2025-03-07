@@ -22,11 +22,6 @@ namespace quantas {
     using std::endl;
 
     class LogWriter {
-    protected:
-        ostream* _log = &cout;
-        int         _round = 0;
-        int         _test = 0;
-
     public:
         static LogWriter*  instance () {
             static LogWriter s;
@@ -40,18 +35,19 @@ namespace quantas {
         }
 
         json        data;
-        void                setLog          (ostream& out)  { _log = &out; }
-        ostream*            getLog          ()const         { return _log; }
-        void                setTest         (int test)      { _test = test; }
-        int                 getTest         ()const         { return _test; }
-        void                setRound        (int round)     { _round = round; }
-        int                 getRound        ()const         { return _round; }
-        static json&        getTestLog      ()              { return instance()->data["tests"][instance()->getTest()]; }
+        void setLog (ostream& out) { _log = &out; }
+        ostream* getLog () const { return _log; }
+        void setTest (int test) { _test = test; }
+        int getTest () const { return _test; }
+        static json& getTestLog () { return instance()->data["tests"][instance()->getTest()]; }
 
     private:
+        ostream* _log = &cout;
+        int         _test = 0;
         // copying and creation prohibited by clients
-        LogWriter(){}
-        LogWriter(const LogWriter&){}
+        LogWriter() = default;
+        LogWriter(const LogWriter&) = delete;
+        LogWriter& operator=(const LogWriter&) = delete;
     };
 
 }

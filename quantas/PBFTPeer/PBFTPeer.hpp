@@ -28,7 +28,7 @@ namespace quantas{
     class PBFTPeer : public Peer<PBFTPeerMessage>{
     public:
         // methods that must be defined when deriving from Peer
-        PBFTPeer                             (long);
+        PBFTPeer                             (interfaceId);
         PBFTPeer                             (const PBFTPeer &rhs);
         ~PBFTPeer                            ();
 

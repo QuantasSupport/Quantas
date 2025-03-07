@@ -47,7 +47,7 @@ namespace quantas{
     class EthereumPeer : public Peer<EthereumPeerMessage>{
     public:
         // methods that must be defined when deriving from Peer
-        EthereumPeer                             (long);
+        EthereumPeer                             (interfaceId);
         EthereumPeer                             (const EthereumPeer&rhs);
         ~EthereumPeer();
 

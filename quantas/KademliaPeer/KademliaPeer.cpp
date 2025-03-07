@@ -23,7 +23,7 @@ namespace quantas {
 		
 	}
 
-	KademliaPeer::KademliaPeer(long id) : Peer(id) {
+	KademliaPeer::KademliaPeer(interfaceId id) : Peer(id) {
 		
 	}
 
@@ -35,7 +35,7 @@ namespace quantas {
 				binaryId = getBinaryId(id());
 				vector<vector<KademliaFinger>> groupedNeighbors(binaryIdSize);
 				for (int i = 0; i < neighbors().size(); i++) {
-					long id = neighbors()[i];
+					interfaceId id = neighbors()[i];
 					string binId = getBinaryId(id);
 					int group = -1;
 					for (int j = 0; j < binId.size(); j++) {
@@ -59,7 +59,7 @@ namespace quantas {
 
 			while (!inStreamEmpty()) {
 				Packet<KademliaMessage> packet = popInStream();
-				long source = packet.sourceId();
+				interfaceId source = packet.sourceId();
 				KademliaMessage message = packet.getMessage();
 				if (message.action == "R") {
 					if (id() == message.reqId) {
@@ -88,7 +88,7 @@ namespace quantas {
 		
 	}
 
-	string KademliaPeer::getBinaryId(long id) {
+	string KademliaPeer::getBinaryId(interfaceId id) {
 		string binId;
 		for (int i = binaryIdSize - 1; i >= 0; i--) {
 			if (static_cast<int>(id) / static_cast<int>(std::pow(2, i)) > 0) {
@@ -102,7 +102,7 @@ namespace quantas {
 		return binId;
 	}
 
-	void KademliaPeer::sendMessage(long peer, KademliaMessage message) {
+	void KademliaPeer::sendMessage(interfaceId peer, KademliaMessage message) {
 		Packet<KademliaMessage> newMessage(getRound(), peer, id());
 		message.hops++;
 		newMessage.setMessage(message);
@@ -126,7 +126,7 @@ namespace quantas {
 		currentTransaction++;
 	}
 
-	long KademliaPeer::findRoute(string binId) {
+	interfaceId KademliaPeer::findRoute(string binId) {
 		int group = -1;
 		for (int j = 0; j < binId.size(); j++) {
 			if (binId[j] != binaryId[j]) {

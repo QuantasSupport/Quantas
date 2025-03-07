@@ -25,7 +25,7 @@ namespace quantas {
 	class AltBitPeer : public Peer<AltBitMessage> {
 	public:
 		// methods that must be defined when deriving from Peer
-		AltBitPeer(long);
+		AltBitPeer(interfaceId);
 		AltBitPeer(const AltBitPeer& rhs);
 		~AltBitPeer();
 
@@ -50,7 +50,7 @@ namespace quantas {
 		// status of node
 		bool alive = true;
 		// sends a direct message
-		void				 sendMessage(long peer, AltBitMessage message);
+		void				 sendMessage(interfaceId peer, AltBitMessage message);
 		// submitTrans creates a transaction
 		void                  submitTrans(int tranID);
 	};

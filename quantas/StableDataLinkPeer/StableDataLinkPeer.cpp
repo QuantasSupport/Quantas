@@ -22,7 +22,7 @@ namespace quantas {
 		
 	}
 
-	StableDataLinkPeer::StableDataLinkPeer(long id) : Peer(id) {
+	StableDataLinkPeer::StableDataLinkPeer(interfaceId id) : Peer(id) {
 		
 	}
 
@@ -51,7 +51,7 @@ namespace quantas {
 			}
 			while (!inStreamEmpty()) {
 				Packet<StableDataLinkMessage> packet = popInStream();
-				long source = packet.sourceId();
+				interfaceId source = packet.sourceId();
 				StableDataLinkMessage message = packet.getMessage();
 				if (randMod(messageLossDen) < messageLossNum) { // used for message loss
 					continue;
@@ -90,7 +90,7 @@ namespace quantas {
 		LogWriter::getTestLog()["utility"].push_back(satisfied / messages * 100);
 	}
 
-	void StableDataLinkPeer::sendMessage(long peer, StableDataLinkMessage message) {
+	void StableDataLinkPeer::sendMessage(interfaceId peer, StableDataLinkMessage message) {
 		Packet<StableDataLinkMessage> newMessage(getRound(), peer, id());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);

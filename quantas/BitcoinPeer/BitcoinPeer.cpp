@@ -12,6 +12,12 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
+	static bool registerBitcoin = [](){
+		registerPeerType("BitcoinPeer", 
+			[](interfaceId pubId){ return new BitcoinPeer(pubId); });
+		return true;
+	}();
+
 	int BitcoinPeer::currentTransaction = 1;
 	mutex BitcoinPeer::currentTransaction_mutex;
 
@@ -19,11 +25,11 @@ namespace quantas {
 
 	}
 
-	BitcoinPeer::BitcoinPeer(const BitcoinPeer& rhs) : Peer<BitcoinMessage>(rhs) {
+	BitcoinPeer::BitcoinPeer(const BitcoinPeer& rhs) : Peer(rhs) {
 		
 	}
 
-	BitcoinPeer::BitcoinPeer(long id) : Peer(id) {
+	BitcoinPeer::BitcoinPeer(interfaceId id) : Peer(id) {
 		
 	}
 
@@ -38,7 +44,7 @@ namespace quantas {
 			mineBlock();
 	}
 
-	void BitcoinPeer::endOfRound(const vector<Peer<BitcoinMessage>*>& _peers) {
+	void BitcoinPeer::endOfRound(const vector<Peer*>& _peers) {
 		const vector<BitcoinPeer*> peers = reinterpret_cast<vector<BitcoinPeer*> const&>(_peers);
 		int length = peers[0]->blockChain.size();
 		int index = 0;
@@ -53,12 +59,12 @@ namespace quantas {
 
 	void BitcoinPeer::checkInStrm() {
 		while (!inStreamEmpty()) {
-			Packet<BitcoinMessage> newMsg = popInStream();
-			if (newMsg.getMessage().mined) {
-				unlinkedBlocks.push_back(newMsg.getMessage().block);
+			BitcoinMessage* newMsg = dynamic_cast<BitcoinMessage*>(popInStream().getMessage());
+			if (newMsg->mined) {
+				unlinkedBlocks.push_back(newMsg->block);
 			}
 			else {
-				transactions.push_back(newMsg.getMessage().block);
+				transactions.push_back(newMsg->block);
 			}
 		}
 
@@ -96,10 +102,10 @@ namespace quantas {
 
 	void BitcoinPeer::submitTrans() {
 		const lock_guard<mutex> lock(currentTransaction_mutex);
-		BitcoinMessage message;
-		message.mined = false;
-		message.block.trans.id = currentTransaction++;
-		message.block.trans.roundSubmitted = getRound();
+		BitcoinMessage* message = new BitcoinMessage();
+		message->mined = false;
+		message->block.trans.id = currentTransaction++;
+		message->block.trans.roundSubmitted = RoundManager::instance()->currentRound();
 		broadcast(message);
 	}
 
@@ -110,16 +116,14 @@ namespace quantas {
 	void BitcoinPeer::mineBlock() {
 		BitcoinBlock newBlock = findNextTransaction();
 		if (newBlock.trans.id != -1) {
-			newBlock.minerId = id();
+			newBlock.minerId = publicId();
 			newBlock.length = blockChain.size();
 			newBlock.tipMiner = blockChain[blockChain.size() - 1][0].minerId;
 
 			blockChain.push_back(vector<BitcoinBlock>());
 			blockChain[blockChain.size() - 1].push_back(newBlock);
 
-			BitcoinMessage message;
-			message.block = newBlock;
-			message.mined = true;
+			BitcoinMessage* message = new BitcoinMessage(newBlock, true);
 			broadcast(message);
 		}
 	}
@@ -151,10 +155,4 @@ namespace quantas {
 		}
 		return nextTransaction;
 	}
-
-	Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer>* generateSim() {
-        
-        Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer>* sim = new Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer>;
-        return sim;
-    }
 }

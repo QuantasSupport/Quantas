@@ -11,6 +11,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #define ExamplePeer_hpp
 
 #include <iostream>
+#include <vector>
 #include "../Common/Peer.hpp"
 #include "../Common/Simulation.hpp"
 
@@ -18,35 +19,37 @@ namespace quantas{
 
     using std::string; 
     using std::ostream;
+    using std::vector;
 
     //
     // Example of a message body type
     //
-    struct ExampleMessage{
-        
+    class ExampleMessage : public Message {
+    public:
+        ExampleMessage() {}
+        ExampleMessage(string id, string m) : aPeerId(id), message(m) {};
+        ExampleMessage* clone() const override {return new ExampleMessage(aPeerId, message);}
+
         string aPeerId;
         string message;
-        
     };
 
     //
     // Example Peer used for network testing
     //
-    class ExamplePeer : public Peer<ExampleMessage>{
+    class ExamplePeer : public Peer{
     public:
         // methods that must be defined when deriving from Peer
-        ExamplePeer                             (long);
+        ExamplePeer                             (interfaceId);
         ExamplePeer                             (const ExamplePeer &rhs);
         ~ExamplePeer                            ();
 
         // initialize the configuration of the system
-        void                 initParameters(const vector<Peer<ExampleMessage>*>& _peers, json parameters);
+        void                 initParameters(const vector<Peer*>& _peers, json parameters);
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation ();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound         (const vector<Peer<ExampleMessage>*>& _peers);
+        void                 endOfRound         (const vector<Peer*>& _peers);
     };
-
-    Simulation<quantas::ExampleMessage, quantas::ExamplePeer>* generateSim();
 }
 #endif /* ExamplePeer_hpp */

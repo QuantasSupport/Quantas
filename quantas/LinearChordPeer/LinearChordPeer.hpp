@@ -17,20 +17,20 @@ namespace quantas {
 
 
 	struct LinearChordMessage {
-		long reqId;
+		interfaceId reqId;
 		std::string action; // options are R, N
 		int roundSubmitted;
 		int hops = 0; // number of times this message has been echoed
 	};
 
 	struct LinearChordFinger {
-		long Id;
+		interfaceId Id;
 		int roundUpdated = 0; // round the finger was last updated
 	};
 	class LinearChordPeer : public Peer<LinearChordMessage> {
 	public:
 		// methods that must be defined when deriving from Peer
-		LinearChordPeer(long);
+		LinearChordPeer(interfaceId);
 		LinearChordPeer(const LinearChordPeer& rhs);
 		~LinearChordPeer();
 
@@ -59,7 +59,7 @@ namespace quantas {
 		// sent every x rounds to indicate node is alive
 		void                 heartBeat();
 		// sends a direct message
-		void				 sendMessage(long peer, LinearChordMessage message);
+		void				 sendMessage(interfaceId peer, LinearChordMessage message);
 		// submitTrans creates a transaction
 		void                  submitTrans(int tranID);
 	};

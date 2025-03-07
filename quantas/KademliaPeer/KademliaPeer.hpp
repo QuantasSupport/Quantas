@@ -17,7 +17,7 @@ namespace quantas {
 
 
 	struct KademliaMessage {
-		long reqId;    // id the request is for
+		interfaceId reqId;    // id the request is for
 		string binId;  // binary id of reqId
 		string action; // options are R, N
 		int roundSubmitted;
@@ -25,14 +25,14 @@ namespace quantas {
 	};
 
 	struct KademliaFinger {
-		long Id;			  // id of the finger
+		interfaceId Id;			  // id of the finger
 		string binId;		  // binary id of a finger
 		int group;			  // the level the finger belongs to (binary id difference)
 	};
 	class KademliaPeer : public Peer<KademliaMessage> {
 	public:
 		// methods that must be defined when deriving from Peer
-		KademliaPeer(long);
+		KademliaPeer(interfaceId);
 		KademliaPeer(const KademliaPeer& rhs);
 		~KademliaPeer();
 
@@ -57,13 +57,13 @@ namespace quantas {
 		// the binaryId of a node
 		string binaryId = "-1";
 		// determines the binary Id of a node
-		string getBinaryId(long id);
+		string getBinaryId(interfaceId id);
 		// sends a direct message
-		void				 sendMessage(long peer, KademliaMessage message);
+		void				 sendMessage(interfaceId peer, KademliaMessage message);
 		// submitTrans creates a transaction
 		void                  submitTrans(int tranID);
 		// finds node to transmit message to
-		long				 findRoute(string binId);
+		interfaceId				 findRoute(string binId);
 	};
 
 	Simulation<quantas::KademliaMessage, quantas::KademliaPeer>* generateSim();

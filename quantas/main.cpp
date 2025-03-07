@@ -27,17 +27,13 @@
 #include "Common/Json.hpp"
 
 using nlohmann::json;
-namespace fs = std::filesystem;
 
 int main(int argc, const char* argv[]) {
    if (argc < 2) {
       std::cerr << "usage: " << argv[0] << " inputFileName "<< std::endl;
       return 1;
    }
-   // if (!fs::is_regular_file(argv[1])) {
-   //    std::cerr << "error: " << argv[1] << " is not a file." << std::endl;
-   //    return 1;
-   // }
+
    std::ifstream inFile(argv[1]);
 	
    if (inFile.fail()) {
@@ -49,9 +45,8 @@ int main(int argc, const char* argv[]) {
 
    for (int i = 0; i < config["experiments"].size(); ++i) {
       json input = config["experiments"][i];
-      quantas::SimWrapper* sim = quantas::generateSim();
-	   sim->run(input);
-      delete sim;
+      quantas::Simulation sim;
+	   sim.run(input);
    }
 
    return 0;

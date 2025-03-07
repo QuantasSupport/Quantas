@@ -28,7 +28,7 @@ namespace quantas{
     class RaftPeer : public Peer<RaftPeerMessage>{
     public:
         // methods that must be defined when deriving from Peer
-        RaftPeer                             (long);
+        RaftPeer                             (interfaceId);
         RaftPeer                             (const RaftPeer &rhs);
         ~RaftPeer                            ();
 
@@ -63,7 +63,7 @@ namespace quantas{
         // resets timer
         void                            resetTimer();
         // sends a direct message
-        void                            sendMessage(long peer, RaftPeerMessage message);
+        void                            sendMessage(interfaceId peer, RaftPeerMessage message);
 
 
         // checkInStrm loops through the in stream responding appropriatly to each recieved message

@@ -29,29 +29,33 @@ namespace quantas {
     };
 
     struct BitcoinBlock {
-        int 				minerId = -1; // node who mined the transaction
+        interfaceId			minerId = NO_PEER_ID; // node who mined the transaction
         BitcoinTrans		trans;            // transaction 
-        int                 tipMiner = -1; // the id of the node who mined the previous block
+        interfaceId         tipMiner = NO_PEER_ID; // the id of the node who mined the previous block
         int                 length = 1;  // the length of the blockchain
     };
 
-    struct BitcoinMessage {
+    class BitcoinMessage : public Message {
+    public:
+        BitcoinMessage() {}
+        BitcoinMessage(BitcoinBlock b, bool m) : block(b), mined(m) {};
+        BitcoinMessage* clone() const override {return new BitcoinMessage(block, mined);}
 
         BitcoinBlock		block; // the block being sent
         bool				mined = false; // decides if it's a mined block or submitted transaction
     };
 
-    class BitcoinPeer : public Peer<BitcoinMessage> {
+    class BitcoinPeer : public Peer {
     public:
         // methods that must be defined when deriving from Peer
-        BitcoinPeer(long);
+        BitcoinPeer(interfaceId);
         BitcoinPeer(const BitcoinPeer& rhs);
         ~BitcoinPeer();
 
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(const vector<Peer<BitcoinMessage>*>& _peers);
+        void                 endOfRound(const vector<Peer*>& _peers);
 
         // vector of vectors of blocks that have been mined
         vector<vector<BitcoinBlock>> blockChain{ { vector<BitcoinBlock> { BitcoinBlock() } } };
@@ -82,7 +86,5 @@ namespace quantas {
         // findNextTransaction finds the next unmined transaction on the longest chain of the blockChain
         BitcoinBlock          findNextTransaction();
     };
-
-    Simulation<quantas::BitcoinMessage, quantas::BitcoinPeer>* generateSim();
 };
 #endif /* BitcoinPeer_hpp */

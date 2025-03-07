@@ -1,7 +1,9 @@
 {
+  "algorithms": [
+    "ExamplePeer/ExamplePeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "example",
       "logFile": "example1.txt",
       "threadCount": 1,
       "parameters": {

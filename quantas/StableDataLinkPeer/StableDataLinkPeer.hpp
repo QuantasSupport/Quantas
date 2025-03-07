@@ -25,7 +25,7 @@ namespace quantas {
 	class StableDataLinkPeer : public Peer<StableDataLinkMessage> {
 	public:
 		// methods that must be defined when deriving from Peer
-		StableDataLinkPeer(long);
+		StableDataLinkPeer(interfaceId);
 		StableDataLinkPeer(const StableDataLinkPeer& rhs);
 		~StableDataLinkPeer();
 
@@ -52,7 +52,7 @@ namespace quantas {
 		// status of node
 		bool alive = true;
 		// sends a direct message
-		void				 sendMessage(long peer, StableDataLinkMessage message);
+		void				 sendMessage(interfaceId peer, StableDataLinkMessage message);
 		// submitTrans creates a transaction
 		void                  submitTrans(int tranID);
 	};

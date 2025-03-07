@@ -1,7 +1,9 @@
 {
+  "algorithms": [
+    "BitcoinPeer/BitcoinPeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "bitcoin",
       "logFile": "bitCoinDelay1.txt",
       "threadCount": 12,
       "distribution": {
