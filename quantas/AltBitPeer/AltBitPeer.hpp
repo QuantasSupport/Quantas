@@ -11,18 +11,22 @@ You should have received a copy of the GNU General Public License along with QUA
 #define AltBitPeer_hpp
 
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+#include <vector>
 
 namespace quantas {
+	using std::vector;
 
-
-	struct AltBitMessage {
+	class AltBitMessage : public Message {
+	public:
+		AltBitMessage() {}
+		AltBitMessage(string act, int msgNum, int rndSubmit) : action(act), messageNum(msgNum), roundSubmitted(rndSubmit) {};
+		AltBitMessage* clone() const override {return new AltBitMessage(action, messageNum, roundSubmitted);}
 		string action; // options are ack, data
 		int messageNum;
 		int roundSubmitted;
 	};
 
-	class AltBitPeer : public Peer<AltBitMessage> {
+	class AltBitPeer : public Peer {
 	public:
 		// methods that must be defined when deriving from Peer
 		AltBitPeer(interfaceId);
@@ -32,7 +36,7 @@ namespace quantas {
 		// perform one step of the Algorithm with the messages in inStream
 		void                 performComputation();
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-		void                 endOfRound(const vector<Peer<AltBitMessage>*>& _peers);
+		void                 endOfRound(const vector<Peer*>& _peers);
 
 		// the id of the next transaction to submit
 		static int                      currentTransaction;
@@ -43,18 +47,14 @@ namespace quantas {
 		// message number
 		int ns = 1;
 		// num / den = likelyhood of message getting lost
-		int messageLossNum = 0;
-		int messageLossDen = 1;
 		int timeOutRate = 4;
 		int previousMessageRound = 0;
 		// status of node
 		bool alive = true;
 		// sends a direct message
-		void				 sendMessage(interfaceId peer, AltBitMessage message);
+		void				 sendMessage(interfaceId peer, AltBitMessage* message);
 		// submitTrans creates a transaction
 		void                  submitTrans(int tranID);
 	};
-
-	Simulation<quantas::AltBitMessage, quantas::AltBitPeer>* generateSim();
 }
 #endif /* AltBitPeer_hpp */

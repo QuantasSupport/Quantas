@@ -1,7 +1,9 @@
 {
+  "algorithms": [
+    "ChangRobertsPeer/ChangRobertsPeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "changroberts",
       "logFile": "ChangRoberts1.txt",
       "distribution": {
         "type": "uniform",
@@ -12,7 +14,7 @@
         "type": "unidirectionalRing",
         "identifiers": "random",
         "initialPeers": 10,
-        "totalPeers": 10
+        "initialPeerType": "ChangRobertsPeer"
       },
       "tests": 10,
       "rounds": 15

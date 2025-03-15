@@ -21,6 +21,12 @@ namespace quantas {
     __________________________________________________________________________________________________________
     */
 
+	static bool registerKPT = [](){
+		registerPeerType("KPTPeer", 
+			[](interfaceId pubId){ return new KPTPeer(pubId); });
+		return true;
+	}();
+
 	const static int PT = 36;
 
 	KPTPeer::~KPTPeer() {}
@@ -51,7 +57,7 @@ namespace quantas {
 		}
 	}
 
-	void KPTPeer::endOfRound(const vector<Peer<KPTMessage>*>& _peers) {
+	void KPTPeer::endOfRound(const vector<Peer*>& _peers) {
 		const vector<KPTPeer*> peers = reinterpret_cast<vector<KPTPeer*> const&>(_peers);
 
 		auto minAcceptedBlocks = std::min_element(peers.begin(), peers.end(),
@@ -60,13 +66,13 @@ namespace quantas {
 			});
     
 		if (minAcceptedBlocks != peers.end()) {
-			cout << "Round: " << getRound() << "; Accepted Blocks: " << (*minAcceptedBlocks)->acceptedBlocks << endl;
+			cout << "Round: " << RoundManager::instance()->currentRound() << "; Accepted Blocks: " << (*minAcceptedBlocks)->acceptedBlocks << endl;
 		}
 	}
 
 	void KPTPeer::checkInStrm() {
 		while (!inStreamEmpty()) {
-			Packet<KPTMessage> newMsg  = popInStream();
+			Packet newMsg  = popInStream();
 			if (blockChain.size() < newMsg.getMessage().blockChain.size()) {
 				createBranch(blockChain);
 				blockChain = newMsg.getMessage().blockChain;
@@ -146,7 +152,7 @@ namespace quantas {
 		auto branch = branches.begin();
 		while (branch != branches.end()) {
 			if (blockChain.size() > branch->size()) {
-				if ((2*PT) <= (getRound() - (*branch)[branch->size() - 1].roundMined)) {
+				if ((2*PT) <= (RoundManager::instance()->currentRound() - (*branch)[branch->size() - 1].roundMined)) {
 					for (int i = 0; i < branch->size(); ++i) {
 						if (blockChain[i] != (*branch)[i]) {
 							updatePerBlockLabels((*branch)[i], "rejected");
@@ -167,7 +173,7 @@ namespace quantas {
 		}
 
 		for (int index = acceptedBlocks + 1; index < blockChain.size(); ++index) {
-			if ((blockChain[index].roundMined + (2 * PT)) <= getRound()) {
+			if ((blockChain[index].roundMined + (2 * PT)) <= RoundManager::instance()->currentRound()) {
 				bool noCompetingBranches    = true;
 				branch = branches.begin();
 				for ( ; branch != branches.end(); ++branch) {
@@ -237,10 +243,10 @@ namespace quantas {
 
 	void KPTPeer::mineBlock() {
 		KPTBlock block;
-		block.minerId    = id();
+		block.minerId    = publicId();
 		block.tipMiner   = blockChain[blockChain.size() - 1].minerId;
 		block.depth      = blockChain.size();
-		block.roundMined = getRound();
+		block.roundMined = RoundManager::instance()->currentRound();
 		blockChain.push_back(block);
 
 		sendBlockChain();
@@ -253,26 +259,6 @@ namespace quantas {
 	bool KPTBlock::operator== (const KPTBlock& block) const {
 		return (block.minerId == this->minerId && block.tipMiner == this->tipMiner && block.roundMined == this->roundMined && block.depth == this->depth);
 	}
-
-	ostream& KPTPeer::printTo(ostream& out) const {
-		Peer<KPTMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const KPTPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-
-	Simulation<quantas::KPTMessage, quantas::KPTPeer>* generateSim() {
-        
-        Simulation<quantas::KPTMessage, quantas::KPTPeer>* sim = new Simulation<quantas::KPTMessage, quantas::KPTPeer>;
-        return sim;
-    }
 
 }
 

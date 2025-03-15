@@ -106,7 +106,7 @@ inline void NetworkInterface::unicastTo(Message* msg, const interfaceId& nbr) {
         Packet p;
         p.setSource(publicId());
         p.setTarget(nbr);
-        p.setMessage(msg->clone());
+        p.setMessage(msg);
         it->second->pushPacket(p);
     }
 }
@@ -122,7 +122,9 @@ inline void NetworkInterface::unicast(Message* msg) {
 inline void NetworkInterface::multicast(Message* msg, const std::set<interfaceId>& targets) {
     for (auto nbr : targets) {
         unicastTo(msg, nbr);
+        msg = msg->clone();
     }
+    delete msg;
 }
 
 inline void NetworkInterface::broadcast(Message* msg) {
@@ -133,7 +135,9 @@ inline void NetworkInterface::broadcastBut(Message* msg, const interfaceId& exce
     for (auto nbr : _neighbors) {
         if (nbr == exceptId) continue;
         unicastTo(msg, nbr);
+        msg = msg->clone();
     }
+    delete msg;
 }
 
 // Randomly sends to a *random subset* of neighbors

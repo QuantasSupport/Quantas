@@ -16,6 +16,12 @@ QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 #include <iostream>
 
 namespace quantas {
+
+    static bool registerTrail = [](){
+		registerPeerType("TrailPeer", 
+			[](interfaceId pubId){ return new TrailPeer(pubId); });
+		return true;
+	}();
 // -- implementation of underlying consensus algorithm --
 
 void PBFTRequest::updateConsensus() {
@@ -67,12 +73,6 @@ void PBFTRequest::addToConsensus(TrailMessage message, int sourceID) {
 
 bool PBFTRequest::consensusSucceeded() const { return status == "committed"; }
 
-Simulation<quantas::TrailMessage, quantas::TrailPeer> *generateSim() {
-
-    Simulation<quantas::TrailMessage, quantas::TrailPeer> *sim =
-        new Simulation<quantas::TrailMessage, quantas::TrailPeer>;
-    return sim;
-}
 void CrossShardPBFTRequest::addToConsensus(TrailMessage message, int sourceID) {
     if (individualMessageCounts.count(
             std::make_pair(message.messageType, sourceID)
@@ -103,7 +103,7 @@ void CrossShardPBFTRequest::addToConsensus(TrailMessage message, int sourceID) {
 // LocalWallets for each neighborhood; neighborhoodsForPeers maps a peer's id to
 // the index of the neighborhood it's in; static members are reset
 void TrailPeer::initParameters(
-    const vector<Peer<TrailMessage> *> &_peers, json parameters
+    const vector<Peer*> &_peers, json parameters
 ) {
     // divide peers into neighborhoods: if the neighborhood size is 5, then
     // the first 5 peers are placed in a neighborhood, then the next 5
@@ -248,7 +248,7 @@ void TrailPeer::initParameters(
         // one Peer needs to be constructed *before* this function can run
         TrailPeer *e = dynamic_cast<TrailPeer *>(n);
         assert(e); // cast should have succeeded
-        e->neighborhoodID = neighborhoodsForPeers[e->id()];
+        e->neighborhoodID = neighborhoodsForPeers[e->publicId()];
         e->heldWallets = walletsForNeighborhoods[e->neighborhoodID];
         for (LocalWallet &w : e->heldWallets) {
             for (auto &c : w.coins) {
@@ -297,7 +297,7 @@ bool TrailPeer::validateTransaction(OngoingTransaction t) {
 void TrailPeer::performComputation() {
     // retrieve messages for requests that are in progress:
     while (!inStreamEmpty()) {
-        Packet<TrailMessage> p = popInStream();
+        Packet p = popInStream();
         TrailMessage message = p.getMessage();
         int sourceNeighborhood = neighborhoodsForPeers[p.sourceId()];
         int seqNum = message.sequenceNum;
@@ -356,14 +356,14 @@ void TrailPeer::performComputation() {
                         // shard, you must be starting the consensus process to
                         // determine what the pre-prepare message that everyone
                         // else gets should be.
-                        if (message.trans.sender.storedBy.memberIDs.count(id()
+                        if (message.trans.sender.storedBy.memberIDs.count(publicId()
                             ) == 0) {
                             ConsensusContacts newContacts =
                                 chooseContactsFor(message.trans, false);
                             CrossShardPBFTRequest request(
                                 message.trans, validatorNeighborhoods,
                                 message.sequenceNum, false,
-                                neighborhoodsForPeers[id()], maxNeighborhoodSize
+                                neighborhoodsForPeers[publicId()], maxNeighborhoodSize
                             );
                             request.addToConsensus(message, sourceNeighborhood);
                             if (errantMessages.count(message.sequenceNum) > 0) {
@@ -458,9 +458,9 @@ void TrailPeer::performComputation() {
                 localSender->remove(moving);
             }
             validations.push_back(
-                {{"round", getRound()},
+                {{"round", RoundManager::instance()->currentRound()},
                  {"seqNum", r.getSequenceNumber()},
-                 {"peer", id()}}
+                 {"peer", publicId()}}
             );
 
             contacts.erase(r.getSequenceNumber());
@@ -485,7 +485,7 @@ void TrailPeer::performComputation() {
             ConsensusContacts newContacts = chooseContactsFor(trans, false);
             CrossShardPBFTRequest request(
                 trans, validatorNeighborhoods, r.getSequenceNumber(), true,
-                neighborhoodsForPeers[id()], maxNeighborhoodSize
+                neighborhoodsForPeers[publicId()], maxNeighborhoodSize
             );
             contacts.insert({r.getSequenceNumber(), newContacts});
             superRequests.insert({request.getSequenceNumber(), request});
@@ -506,9 +506,9 @@ void TrailPeer::performComputation() {
         r.updateConsensus();
         if (r.consensusSucceeded()) {
             int seqNum = r.getSequenceNumber();
-            int peerID = id();
+            int peerID = publicId();
             OngoingTransaction trans = r.getTransaction();
-            if (trans.sender.storedBy.has(id())) {
+            if (trans.sender.storedBy.has(publicId())) {
                 // if we are in the sending committee:
                 auto localSender = std::find_if(
                     heldWallets.begin(), heldWallets.end(),
@@ -528,7 +528,7 @@ void TrailPeer::performComputation() {
                     m.trans = trans;
                     m.messageType = "reply";
                     m.sequenceNum = seqNum;
-                    m.senderID = id();
+                    m.senderID = publicId();
                     broadcastTo(m, trans.receiver.storedBy);
                     superMessagesThisRound += trans.receiver.storedBy.size();
                 } else {
@@ -536,9 +536,9 @@ void TrailPeer::performComputation() {
                 }
             }
             validations.push_back(
-                {{"round", getRound()},
+                {{"round", RoundManager::instance()->currentRound()},
                  {"seqNum", r.getSequenceNumber()},
-                 {"peer", id()}}
+                 {"peer", publicId()}}
             );
             contacts.erase(r.getSequenceNumber());
             s = superRequests.erase(s);
@@ -549,7 +549,7 @@ void TrailPeer::performComputation() {
                     contacts.at(r.getSequenceNumber()).participants;
                 for (auto &recipient : recipients) {
                     if (!(m.messageType == "pre-prepare" &&
-                          recipient.memberIDs.count(id()) > 0)) {
+                          recipient.memberIDs.count(publicId()) > 0)) {
                         // don't send a pre-prepare message to own shard;
                         // consensus was reached on it earlier
                         broadcastTo(m, recipient);
@@ -561,8 +561,8 @@ void TrailPeer::performComputation() {
         }
     }
 
-    if (heldWallets[0].storedBy.leader == id()) {
-        if (byzantineRound != -1 && getRound() == byzantineRound + 1 &&
+    if (heldWallets[0].storedBy.leader == publicId()) {
+        if (byzantineRound != -1 && RoundManager::instance()->currentRound() == byzantineRound + 1 &&
             !corrupt && attemptRollback) {
             initiateRollbacks();
         }
@@ -588,7 +588,7 @@ void TrailPeer::broadcastTo(TrailMessage m, Neighborhood n) {
     //     std::cout << "sending message " << m.messageID
     //               << " about sequence number 148:\n";
     //     std::cout << "Type: " << m.messageType << "\n";
-    //     std::cout << "Sender: " << id() << "\n";
+    //     std::cout << "Sender: " << publicId() << "\n";
     //     std::cout << "Receiver: neighborhood " << n.id << ", led by "
     //               << n.leader << "\n\n";
     // }
@@ -597,15 +597,15 @@ void TrailPeer::broadcastTo(TrailMessage m, Neighborhood n) {
     }
 }
 
-void TrailPeer::endOfRound(const vector<Peer<TrailMessage> *> &_peers) {
+void TrailPeer::endOfRound(const vector<Peer*> &_peers) {
     messages.push_back(
-        {{"round", getRound()},
+        {{"round", RoundManager::instance()->currentRound()},
          {"transactionType", "local"},
          {"batchSize", localMessagesThisRound}}
     );
     localMessagesThisRound = 0;
     messages.push_back(
-        {{"round", getRound()},
+        {{"round", RoundManager::instance()->currentRound()},
          {"transactionType", "non-local"},
          {"batchSize", superMessagesThisRound}}
     );
@@ -616,7 +616,7 @@ void TrailPeer::endOfRound(const vector<Peer<TrailMessage> *> &_peers) {
     //     if (peer->initRequests.size() + peer->localRequests.size() +
     //             peer->superRequests.size() >=
     //         10) {
-    //         std::cout << "peer " << peer->id()
+    //         std::cout << "peer " << peer->publicId()
     //                   << " is full of in-progress transactions" <<
     //                   std::endl;
     //     }
@@ -640,10 +640,10 @@ void TrailPeer::endOfRound(const vector<Peer<TrailMessage> *> &_peers) {
             );
             for (const auto &t : peer->superRequests) {
                 const int age =
-                    getRound() - t.second.getTransaction().roundSubmitted;
+                    RoundManager::instance()->currentRound() - t.second.getTransaction().roundSubmitted;
             }
         }
-    } else if (byzantineRound == getRound()) {
+    } else if (byzantineRound == RoundManager::instance()->currentRound()) {
         std::vector<int> shuffledNBHs(neighborhoods.size());
         std::iota(shuffledNBHs.begin(), shuffledNBHs.end(), 0);
         std::shuffle(
@@ -662,10 +662,10 @@ void TrailPeer::endOfRound(const vector<Peer<TrailMessage> *> &_peers) {
             }
             for (int i = 0; i < peers.size(); i++) {
                 if (peers[i]->neighborhoodID == corruptNeighborhood) {
-                    std::cout << "corrupting " << peers[i]->id() << std::endl;
+                    std::cout << "corrupting " << peers[i]->publicId() << std::endl;
                     peers[i]->corrupt = true;
                     if (walletsForNeighborhoods[corruptNeighborhood][0]
-                            .storedBy.leader == peers[i]->id()) {
+                            .storedBy.leader == peers[i]->publicId()) {
                         // using the leader of the byzantine neighborhoods
                         // as a reference for what coins they hold
                         for (const auto &w : peers[i]->heldWallets) {
@@ -680,7 +680,7 @@ void TrailPeer::endOfRound(const vector<Peer<TrailMessage> *> &_peers) {
             }
         }
     }
-    std::cout << "completed round " << (getRound() + 1) << "/"
+    std::cout << "completed round " << (RoundManager::instance()->currentRound() + 1) << "/"
               << (getLastRound() + 1) << "\n";
 }
 
@@ -727,7 +727,7 @@ void TrailPeer::initiateRollbacks() {
     for (const auto &w : heldWallets) {
         for (const auto &[cid, c] : w.pastCoins) {
             const auto lastTransaction = c.history.back();
-            if (lastTransaction.sender.storedBy.leader == id()) {
+            if (lastTransaction.sender.storedBy.leader == publicId()) {
                 const auto inWallet = lastTransaction.receiver;
                 if (corruptNeighborhoods.count(inWallet.storedBy.id) > 0) {
                     if (rollingBack.count(cid) > 0) {
@@ -738,19 +738,19 @@ void TrailPeer::initiateRollbacks() {
                     auto sender = inWallet;
                     auto receiver = lastTransaction.sender;
                     OngoingTransaction t = {
-                        inWallet, lastTransaction.sender, c, getRound(), -1};
+                        inWallet, lastTransaction.sender, c, RoundManager::instance()->currentRound(), -1};
                     int seqNum = ++previousSequenceNumber;
                     ConsensusContacts newContacts(
                         c, validatorNeighborhoods, true
                     );
                     PBFTRequest request(
                         t, validatorNeighborhoods, seqNum, true,
-                        neighborhoodsForPeers[id()]
+                        neighborhoodsForPeers[publicId()]
                     );
                     initRequests.insert({seqNum, request});
                     contacts.insert({seqNum, newContacts});
                     transactions.push_back(
-                        {{"round", getRound()},
+                        {{"round", RoundManager::instance()->currentRound()},
                          {"seqNum", seqNum},
                          {"validatorsNeeded",
                           newContacts.getValidatorNodeCount()},
@@ -842,7 +842,7 @@ void TrailPeer::initiateTransaction(bool withinNeighborhood) {
             walletsForNeighborhoods[receiverNeighborhood];
         receiver = potential[randMod(potential.size())];
     }
-    OngoingTransaction t = {sender, receiver, c, getRound(), -1};
+    OngoingTransaction t = {sender, receiver, c, RoundManager::instance()->currentRound(), -1};
     int seqNum = ++previousSequenceNumber;
 
     ConsensusContacts newContacts(c, 1);
@@ -854,7 +854,7 @@ void TrailPeer::initiateTransaction(bool withinNeighborhood) {
     }
 
     transactions.push_back(
-        {{"round", getRound()},
+        {{"round", RoundManager::instance()->currentRound()},
          {"seqNum", seqNum},
          {"validatorsNeeded",
           (withinNeighborhood

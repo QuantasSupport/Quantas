@@ -67,12 +67,12 @@ private:
 
 public:
     Channel() = default;
-    ~Channel() = default; // automatically freed when shared_ptr (inbound side) is destroyed
 
     // Create a channel with references to inbound side and outbound side
     Channel(interfaceId targetId, interfaceId targetInternalId,
             interfaceId sourceId, interfaceId sourceInternalId,
             const json &channelParams);
+    ~Channel();
 
     interfaceId targetId() {return _targetId;}
     interfaceId targetInternalId() {return _targetInternalId;}

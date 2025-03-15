@@ -11,6 +11,12 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
+	static bool registerCycleOfTrees = [](){
+		registerPeerType("CycleOfTreesPeer", 
+			[](interfaceId pubId){ return new CycleOfTreesPeer(pubId); });
+		return true;
+	}();
+
 	int CycleOfTreesPeer::noOfEdges                = 0;
 	int CycleOfTreesPeer::noOfCycleNodes           = 0;
 	int                   numberOfNodes            = 0;
@@ -36,7 +42,7 @@ namespace quantas {
 		sendMessage();
 	}
 
-	void CycleOfTreesPeer::initParameters(const vector<Peer<CycleOfTreesMessage>*>& _peers, json parameters) {
+	void CycleOfTreesPeer::initParameters(const vector<Peer*>& _peers, json parameters) {
 		const vector<CycleOfTreesPeer*> peers = reinterpret_cast<vector<CycleOfTreesPeer*> const&>(_peers);
 
 		// numberOfEdges = number of edges per round
@@ -71,7 +77,7 @@ namespace quantas {
 		pickEdges();
 	}
 
-	void CycleOfTreesPeer::endOfRound(const vector<Peer<CycleOfTreesMessage>*>& _peers) {
+	void CycleOfTreesPeer::endOfRound(const vector<Peer*>& _peers) {
 		const vector <CycleOfTreesPeer*> peers = reinterpret_cast<vector<CycleOfTreesPeer*> const&>(_peers);
 
 		pickEdges();
@@ -80,7 +86,7 @@ namespace quantas {
 			for(auto it = peers.begin(); it != peers.end(); ++it) {
 					if ((*it)->highestID != -1) {
 						cout << "Number of allowed edges is " << noOfEdges << " and knot size is " << noOfCycleNodes << endl;
-						cout << "\t Number of rounds till the cycle is first detected: " << (getRound() + 1) << endl;    // plus one since QUANTAS starts at round 0
+						cout << "\t Number of rounds till the cycle is first detected: " << (RoundManager::instance()->currentRound() + 1) << endl;    // plus one since QUANTAS starts at round 0
 						firstDetected = true;
 						break;
 					}
@@ -115,11 +121,11 @@ namespace quantas {
 	void CycleOfTreesPeer::checkInStrm() {    // check messages
 		if (highestID == -1) {
 			while (!inStreamEmpty()) {
-				Packet<CycleOfTreesMessage> newMsg = popInStream();
+				Packet newMsg = popInStream();
 
 				set<int> messageSet = newMsg.getMessage().nodesMessageHasReached;
 
-				if (messageSet.find(id()) != messageSet.end()) {    // if message contains the node's ID, then the cycle was found!
+				if (messageSet.find(publicId()) != messageSet.end()) {    // if message contains the node's ID, then the cycle was found!
 					setHighestID(*(messageSet.rbegin()));    // sets are ordered, so the last element is the highest ID
 				}
 
@@ -142,7 +148,7 @@ namespace quantas {
 		if (highestID == -1) {   // the cycle has not been detected yet
 			message.nodesMessageHasReached = nodesHeardFrom;
 			std::for_each(presentEdges.begin(), presentEdges.end(), [=](list<int> edge) {
-				if (edge.front() == id()) {
+				if (edge.front() == publicId()) {
 					unicastTo(message, edge.back());
 				}
 				});
@@ -151,7 +157,7 @@ namespace quantas {
 		else {    // the cycle has been detected
 			message.highestIdInKnot = highestID;
 			std::for_each(presentEdges.begin(), presentEdges.end(), [=](list<int> edge) {
-				if (edge.front() == id()) {
+				if (edge.front() == publicId()) {
 					unicastTo(message, edge.back());
 				}
 				});
@@ -185,10 +191,10 @@ namespace quantas {
 
 	void CycleOfTreesPeer::setHighestID(int ID) {
 		highestID = ID;
-		avgKnotOutputNumerator += (getRound() + 1);    // plus one since QUANTAS starts at round 0
+		avgKnotOutputNumerator += (RoundManager::instance()->currentRound() + 1);    // plus one since QUANTAS starts at round 0
 
 		if (avgKnotOutputDenominator == numberOfNodes - 1) {
-			cout << "\t Number of rounds till the cycle is last detected: " << (getRound() + 1) << endl;    // plus one since QUANTAS starts at round 0
+			cout << "\t Number of rounds till the cycle is last detected: " << (RoundManager::instance()->currentRound() + 1) << endl;    // plus one since QUANTAS starts at round 0
 		}
 
 		++avgKnotOutputDenominator;
@@ -196,25 +202,6 @@ namespace quantas {
 		if (avgKnotOutputDenominator == numberOfNodes) {
 			cout << "\t Average number of rounds for node to detect knot: " << avgKnotOutputNumerator / avgKnotOutputDenominator << endl;
 		}
-	}
-
-	ostream& CycleOfTreesPeer::printTo(ostream& out) const {
-		Peer<CycleOfTreesMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const CycleOfTreesPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-
-	Simulation<quantas::CycleOfTreesMessage, quantas::CycleOfTreesPeer>* generateSim() {
-		Simulation<quantas::CycleOfTreesMessage, quantas::CycleOfTreesPeer>* sim = new Simulation<quantas::CycleOfTreesMessage, quantas::CycleOfTreesPeer>;
-		return sim;
 	}
 
 }

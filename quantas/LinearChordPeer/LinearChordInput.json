@@ -1,7 +1,9 @@
 {
+  "algorithms": [
+    "LinearChordPeer/LinearChordPeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "LinearChord",
       "logFile": "LinearChordScale20.txt",
       "distribution": {
         "type": "uniform",
@@ -9,35 +11,8 @@
       },
       "topology": {
         "type": "ring",
-        "initialPeers": 20
-      },
-      "tests": 10,
-      "rounds": 100
-    },
-    {
-      "algorithm": "LinearChord",
-      "logFile": "LinearChordScale40.txt",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "ring",
-        "initialPeers": 40
-      },
-      "tests": 10,
-      "rounds": 100
-    },
-    {
-      "algorithm": "LinearChord",
-      "logFile": "LinearChordScale100.txt",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "ring",
-        "initialPeers": 100
+        "initialPeers": 20,
+        "initialPeerType": "LinearChordPeer"
       },
       "tests": 10,
       "rounds": 100

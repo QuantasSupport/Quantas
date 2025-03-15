@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <deque>
 #include <mutex>
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+
 
 namespace quantas{
 
@@ -54,7 +54,7 @@ namespace quantas{
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(const vector<Peer<EthereumPeerMessage>*>& _peers);
+        void                 endOfRound(const vector<Peer*>& _peers);
 
         // vector of vectors of blocks that have been mined
         vector<vector<EtherBlock>> blockChain{ { vector<EtherBlock> { EtherBlock() } } };
@@ -87,7 +87,5 @@ namespace quantas{
         // findTips finds the blocks which are currently leaf nodes
         void                  findTips(vector<int> &ids, vector<int> &lengths);
     };
-
-    Simulation<quantas::EthereumPeerMessage, quantas::EthereumPeer>* generateSim();
 }
 #endif /* EthereumPeer_hpp */

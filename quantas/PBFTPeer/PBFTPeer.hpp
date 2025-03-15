@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License along with QUA
 
 #include <deque>
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+
 
 namespace quantas{
 
@@ -35,7 +35,7 @@ namespace quantas{
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(const vector<Peer<PBFTPeerMessage>*>& _peers);
+        void                 endOfRound(const vector<Peer*>& _peers);
 
         // string indicating the current status of a node
         string                          status = "pre-prepare";
@@ -63,7 +63,5 @@ namespace quantas{
         // submitTrans creates a transaction and broadcasts it to everyone
         void                  submitTrans(int tranID);
     };
-
-    Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer>* generateSim();
 }
 #endif /* PBFTPeer_hpp */

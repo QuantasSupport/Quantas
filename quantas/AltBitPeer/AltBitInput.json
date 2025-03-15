@@ -1,15 +1,20 @@
 {
+  "algorithms": [
+    "AltBitPeer/AltBitPeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "AltBit",
       "logFile": "AltBitDelay1.txt",
+      "threadCount": 1,
       "distribution": {
         "type": "uniform",
-        "maxDelay": 1
+        "maxDelay": 1,
+        "dropProbability": 0.0
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 2
+        "initialPeers": 2,
+        "initialPeerType": "AltBitPeer"
       },
       "tests": 10,
       "rounds": 100

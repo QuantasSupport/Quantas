@@ -17,11 +17,11 @@
 #  Make sure to include the path to the input file 
 #  from the location of this makefile.
 
-# INPUTFILE := quantas/BitcoinPeer/BitcoinSpeedTest.json
-
 # INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 
-INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
+INPUTFILE := quantas/AltBitPeer/AltBitUtility.json
+
+# INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
 
 ################
 
@@ -83,6 +83,13 @@ run: release
 	@echo running with input: $(INPUTFILE)
 	@./$(EXE) $(INPUTFILE); exit_code=$$?; \
 	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
+
+run_memory: debug
+	@echo running: $(INPUTFILE) with valgrind
+	@valgrind --leak-check=full \
+         --show-leak-kinds=all \
+         --track-origins=yes \
+		 ./$(EXE) $(INPUTFILE)
 
 run_debug: debug
 	@gdb --ex "set print thread-events off" --ex run --ex backtrace --args ./$(EXE) $(INPUTFILE); exit_code=$$?; \

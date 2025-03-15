@@ -23,7 +23,7 @@ QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 #include <unordered_set>
 
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+
 
 // unsolved design problems:
 
@@ -242,7 +242,7 @@ class TrailPeer : public Peer<TrailMessage> {
     // perform one step of the algorithm with the messages in inStream
     void performComputation() override;
 
-    void endOfRound(const vector<Peer<TrailMessage> *> &_peers) override;
+    void endOfRound(const vector<Peer*> &_peers) override;
 
     void broadcastTo(TrailMessage, Neighborhood);
     void initiateTransaction(bool withinNeighborhood = true);
@@ -308,6 +308,5 @@ class TrailPeer : public Peer<TrailMessage> {
     inline static std::unordered_set<int> corruptNeighborhoods;
 };
 
-Simulation<quantas::TrailMessage, quantas::TrailPeer> *generateSim();
 } // namespace quantas
 #endif /* TrailPeer_hpp */

@@ -12,7 +12,6 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <set>
 #include <iostream>
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
 
 namespace quantas {
 
@@ -35,21 +34,16 @@ namespace quantas {
         ~CycleOfTreesPeer();
 
         // initialize the configuration of the system
-        void                 initParameters    (const vector<Peer<CycleOfTreesMessage>*>& _peers, json parameters);
+        void                 initParameters    (const vector<Peer*>& _peers, json parameters);
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound        (const vector<Peer<CycleOfTreesMessage>*>& _peers);
-
-        // additional methods that have default implementation from Peer but can be overwritten
-        void                 log        ()         const { printTo(*_log); };
-        ostream&             printTo    (ostream&) const;
-        friend ostream&      operator<< (ostream&, const CycleOfTreesPeer&);
+        void                 endOfRound        (const vector<Peer*>& _peers);
 
         // highest ID detected in the cycle (knot)
         int                  highestID      = -1;
         // nodes you have received messages from
-        set<int>             nodesHeardFrom = { id() };
+        set<int>             nodesHeardFrom = { publicId() };
 
         // total number of edges in the backbone topology
         static int           noOfEdges;
@@ -65,8 +59,6 @@ namespace quantas {
         // setHighestID sets the highest ID detected in the cycle to the parameter passed
         void                 setHighestID(int);
     };
-
-    Simulation<quantas::CycleOfTreesMessage, quantas::CycleOfTreesPeer>* generateSim();
 
 }
 

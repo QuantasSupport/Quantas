@@ -12,6 +12,12 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
+	static bool registerChangRoberts = [](){
+		registerPeerType("ChangRobertsPeer", 
+			[](interfaceId pubId){ return new ChangRobertsPeer(pubId); });
+		return true;
+	}();
+
 	ChangRobertsPeer::~ChangRobertsPeer() {
 
 	}
@@ -26,22 +32,22 @@ namespace quantas {
 
 	void ChangRobertsPeer::performComputation() {
 		first_elected = false;
-		if(getRound() == 0) {
+		if(RoundManager::instance()->currentRound() == 0) {
 			ChangRobertsMessage msg;
-			msg.aPeerId = id(); 
+			msg.aPeerId = publicId(); 
 			unicast(msg);
 			++messages_sent;
 		}
 		while (!inStreamEmpty()) {
-			Packet<ChangRobertsMessage> newMsg = popInStream();
+			Packet newMsg = popInStream();
 			long rid = newMsg.getMessage().aPeerId;
 			long sid = newMsg.sourceId();
-			if( rid == id() ) {
+			if( rid == publicId() ) {
 				first_elected = true;
-				cout << "Realizing " << id() << " is the leader" << endl;
+				// cout << "Realizing " << publicId() << " is the leader" << endl;
 			}
 			else {
-				if( rid > id() ) {
+				if( rid > publicId() ) {
 					ChangRobertsMessage msg;
 					msg.aPeerId = rid;
 					broadcastBut(msg,sid);
@@ -51,7 +57,7 @@ namespace quantas {
 		}
 	}
 
-	void ChangRobertsPeer::endOfRound(const vector<Peer<ChangRobertsMessage>*>& _peers) {
+	void ChangRobertsPeer::endOfRound(const vector<Peer*>& _peers) {
 		long all_messages_sent = 0;
 		bool elected = false;
 		long elected_id = -1;
@@ -60,33 +66,13 @@ namespace quantas {
 			all_messages_sent += (*it)->messages_sent;
 			if((*it)->first_elected) {
 				elected = true;
-				elected_id = (*it)->id();
+				elected_id = (*it)->publicId();
 			}
 		}
 		if(elected) {
 			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"] = all_messages_sent;
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = getRound();
+			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = RoundManager::instance()->currentRound();
 			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["elected_id"] = elected_id;
 		}
 	}
-
-	ostream& ChangRobertsPeer::printTo(ostream& out)const {
-		Peer<ChangRobertsMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const ChangRobertsPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-	
-	Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer>* generateSim() {
-        
-        Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer>* sim = new Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer>;
-        return sim;
-    }
 }

@@ -13,6 +13,12 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
+	static bool registerKademlia = [](){
+		registerPeerType("KademliaPeer", 
+			[](interfaceId pubId){ return new KademliaPeer(pubId); });
+		return true;
+	}();
+
 	int KademliaPeer::currentTransaction = 1;
 
 	KademliaPeer::~KademliaPeer() {
@@ -30,9 +36,9 @@ namespace quantas {
 	void KademliaPeer::performComputation() {
 		if (alive) {
 
-			if (getRound() == 0 && fingers.size() == 0) {
+			if (RoundManager::instance()->currentRound() == 0 && fingers.size() == 0) {
 				binaryIdSize = std::ceil(std::log2(neighbors().size()));
-				binaryId = getBinaryId(id());
+				binaryId = getBinaryId(publicId());
 				vector<vector<KademliaFinger>> groupedNeighbors(binaryIdSize);
 				for (int i = 0; i < neighbors().size(); i++) {
 					interfaceId id = neighbors()[i];
@@ -58,13 +64,13 @@ namespace quantas {
 			}
 
 			while (!inStreamEmpty()) {
-				Packet<KademliaMessage> packet = popInStream();
+				Packet packet = popInStream();
 				interfaceId source = packet.sourceId();
 				KademliaMessage message = packet.getMessage();
 				if (message.action == "R") {
-					if (id() == message.reqId) {
+					if (publicId() == message.reqId) {
 						requestsSatisfied++;
-						latency += getRound() - message.roundSubmitted;
+						latency += RoundManager::instance()->currentRound() - message.roundSubmitted;
 						totalHops += message.hops;
 					}
 					else {
@@ -75,7 +81,7 @@ namespace quantas {
 		}
 	}
 
-	void KademliaPeer::endOfRound(const vector<Peer<KademliaMessage>*>& _peers) {
+	void KademliaPeer::endOfRound(const vector<Peer*>& _peers) {
 		const vector<KademliaPeer*> peers = reinterpret_cast<vector<KademliaPeer*> const&>(_peers);
 		peers[randMod(neighbors().size()) + 1]->submitTrans(currentTransaction);
 		double satisfied = 0;
@@ -103,7 +109,7 @@ namespace quantas {
 	}
 
 	void KademliaPeer::sendMessage(interfaceId peer, KademliaMessage message) {
-		Packet<KademliaMessage> newMessage(getRound(), peer, id());
+		Packet newMessage(RoundManager::instance()->currentRound(), peer, publicId());
 		message.hops++;
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
@@ -115,8 +121,8 @@ namespace quantas {
 		string binId = getBinaryId(message.reqId);
 		message.binId = binId;
 		message.action = "R";
-		message.roundSubmitted = getRound();
-		if (id() == message.reqId) {
+		message.roundSubmitted = RoundManager::instance()->currentRound();
+		if (publicId() == message.reqId) {
 			requestsSatisfied++;
 			totalHops += message.hops;
 		}
@@ -142,10 +148,5 @@ namespace quantas {
 		// route was not found
 		return -1;
 	}
-
-	Simulation<quantas::KademliaMessage, quantas::KademliaPeer>* generateSim() {
-        
-        Simulation<quantas::KademliaMessage, quantas::KademliaPeer>* sim = new Simulation<quantas::KademliaMessage, quantas::KademliaPeer>;
-        return sim;
-    }
+	
 }

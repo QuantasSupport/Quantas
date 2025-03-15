@@ -1,0 +1,71 @@
+{
+  "algorithms": [
+    "AltBitPeer/AltBitPeer.cpp"
+  ],
+  "experiments": [
+    {
+      "logFile": "AltBitdropProb0.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1,
+        "dropProbability": 0.0
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "initialPeerType": "AltBitPeer"
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "logFile": "AltBitdropProb1.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1,
+        "dropProbability": 0.1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "initialPeerType": "AltBitPeer"
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "logFile": "AltBitdropProb25.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1,
+        "dropProbability": 0.25
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "initialPeerType": "AltBitPeer"
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "logFile": "AltBitdropProb5.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1,
+        "dropProbability": 0.5
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "initialPeerType": "AltBitPeer"
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}

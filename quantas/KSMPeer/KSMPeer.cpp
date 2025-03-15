@@ -11,6 +11,13 @@ You should have received a copy of the GNU General Public License along with QUA
 #include "KSMPeer.hpp"
 
 namespace quantas {
+
+	static bool registerKSM = [](){
+		registerPeerType("KSMPeer", 
+			[](interfaceId pubId){ return new KSMPeer(pubId); });
+		return true;
+	}();
+
 	KSMPeer::~KSMPeer() {}
 
 	KSMPeer::KSMPeer(const KSMPeer& rhs) : Peer<KSMMessage>(rhs) {}
@@ -27,7 +34,7 @@ namespace quantas {
 	}
 
 	void KSMPeer::performComputation() {
-		if (getRound() == 0) {
+		if (RoundManager::instance()->currentRound() == 0) {
 			for (int i = 0; i < getSourcePoolSize(); ++i) {
 				sourcePoolIds.push_back(i);
 			}
@@ -37,7 +44,7 @@ namespace quantas {
 		
 		updateBlockLabels();
 
-		if (std::find(sourcePoolIds.begin(), sourcePoolIds.end(), id()) != sourcePoolIds.end() && guardMineBlock()) {
+		if (std::find(sourcePoolIds.begin(), sourcePoolIds.end(), publicId()) != sourcePoolIds.end() && guardMineBlock()) {
 			mineBlock();
 		}
 
@@ -46,7 +53,7 @@ namespace quantas {
 		}
 	}
 
-	void KSMPeer::endOfRound(const vector<Peer<KSMMessage>*>& _peers) {
+	void KSMPeer::endOfRound(const vector<Peer*>& _peers) {
 		const vector<KSMPeer*> peers = reinterpret_cast<vector<KSMPeer*> const&>(_peers);
 
 		auto minAcceptedBlocks = std::min_element(peers.begin(), peers.end(),
@@ -55,26 +62,26 @@ namespace quantas {
 			});
 
 		if (minAcceptedBlocks != peers.end()) {
-			cout << "Round: " << getRound() << ";    Number of accepted blocks: " << (*minAcceptedBlocks)->acceptedBlocks << endl;
+			cout << "Round: " << RoundManager::instance()->currentRound() << ";    Number of accepted blocks: " << (*minAcceptedBlocks)->acceptedBlocks << endl;
 		}
 	}
 
 	void KSMPeer::checkInStrm() {
 		while (!inStreamEmpty()) {
-			Packet<KSMMessage> newMsg = popInStream();
+			Packet newMsg = popInStream();
 
 			if (blockChain.size() < newMsg.getMessage().blockChain.size()) {
 				createBranch(blockChain);
 				blockChain = newMsg.getMessage().blockChain;
 
-				if (std::find(sourcePoolIds.begin(), sourcePoolIds.end(), id()) != sourcePoolIds.end()) {
-					auto found = sourcePoolPositions.find(id());
+				if (std::find(sourcePoolIds.begin(), sourcePoolIds.end(), publicId()) != sourcePoolIds.end()) {
+					auto found = sourcePoolPositions.find(publicId());
 					if (found != sourcePoolPositions.end()) {
 						found->second = blockChain[blockChain.size() - 1];
 					}
 
 					else {
-						sourcePoolPositions.insert(std::pair<int, KSMBlock>(id(), blockChain[blockChain.size() - 1]));
+						sourcePoolPositions.insert(std::pair<int, KSMBlock>(publicId(), blockChain[blockChain.size() - 1]));
 					}
 				}
 			}
@@ -273,20 +280,20 @@ namespace quantas {
 
 	void KSMPeer::mineBlock() {
 		KSMBlock block;
-		block.minerId    = id();
+		block.minerId    = publicId();
 		block.tipMiner   = blockChain[blockChain.size() - 1].minerId;
 		block.depth      = blockChain.size();
-		block.roundMined = getRound();
+		block.roundMined = RoundManager::instance()->currentRound();
 		blockChain.push_back(block);
 
-		auto found = sourcePoolPositions.find(id());
+		auto found = sourcePoolPositions.find(publicId());
 
 		if (found != sourcePoolPositions.end()) {
 			found->second = blockChain[blockChain.size() - 1];
 		}
 
 		else {
-			sourcePoolPositions.insert(std::pair<int, KSMBlock>(id(), blockChain[blockChain.size() - 1]));
+			sourcePoolPositions.insert(std::pair<int, KSMBlock>(publicId(), blockChain[blockChain.size() - 1]));
 		}
 
 		sendBlockChain();
@@ -299,26 +306,6 @@ namespace quantas {
 	bool KSMBlock::operator== (const KSMBlock& block) const {
 		return (block.minerId == this->minerId && block.tipMiner == this->tipMiner && block.roundMined == this->roundMined && block.depth == this->depth);
 	}
-
-	ostream& KSMPeer::printTo(ostream& out) const {
-		Peer<KSMMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const KSMPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-
-	Simulation<quantas::KSMMessage, quantas::KSMPeer>* generateSim() {
-        
-        Simulation<quantas::KSMMessage, quantas::KSMPeer>* sim = new Simulation<quantas::KSMMessage, quantas::KSMPeer>;
-        return sim;
-    }
 
 }
 

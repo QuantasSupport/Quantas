@@ -1,7 +1,9 @@
 {
+  "algorithms": [
+    "EthereumPeer/EthereumPeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "Ethereum",
       "logFile": "EthereumDelay1.txt",
       "threadCount": 12,
       "distribution": {
@@ -10,7 +12,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 20
+        "initialPeers": 20,
+        "initialPeerType": "EthereumPeer"
       },
       "tests": 10,
       "rounds": 100

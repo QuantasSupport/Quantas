@@ -1,8 +1,10 @@
 {
+  "algorithms": [
+    "KSMPeer/KSMPeer.cpp"
+  ],
     "experiments": [
       {
-        "algorithm": "KSM",
-        "logFile": "cout",
+        "logFile": "KSMDelay1.txt",
         "threadCount": 1,
         "distribution": {
           "type": "uniform",
@@ -12,7 +14,7 @@
           "type": "dynamic",
           "sourcePoolSize": 75,
           "initialPeers": 100,
-          "totalPeers": 100
+          "initialPeerType": "KSMPeer"
         },
         "tests": 1,
         "rounds": 10

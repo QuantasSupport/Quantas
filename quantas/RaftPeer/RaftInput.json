@@ -1,7 +1,10 @@
 {
+  "algorithms": [
+    "RaftPeer/RaftPeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "Raft",
+      "algorithm": "RaftPeer",
       "logFile": "RaftDelay1.txt",
       "threadCount": 1,
       "distribution": {
@@ -10,37 +13,8 @@
       },
       "topology": {
         "type": "complete",
-        "initialPeers": 20
-      },
-      "tests": 10,
-      "rounds": 100
-    },
-    {
-      "algorithm": "Raft",
-      "logFile": "RaftDelay5.txt",
-      "threadCount": 1,
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 5
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 20
-      },
-      "tests": 10,
-      "rounds": 100
-    },
-    {
-      "algorithm": "Raft",
-      "logFile": "RaftDelay10.txt",
-      "threadCount": 1,
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 10
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 20
+        "initialPeers": 20,
+        "initialPeerType": "RaftPeer"
       },
       "tests": 10,
       "rounds": 100

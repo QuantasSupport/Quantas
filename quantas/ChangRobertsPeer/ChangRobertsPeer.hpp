@@ -11,7 +11,6 @@ You should have received a copy of the GNU General Public License along with QUA
 #define ChangRobertsPeer_hpp
 
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
 
 namespace quantas{
 
@@ -38,7 +37,7 @@ namespace quantas{
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation ();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound         (const vector<Peer<ChangRobertsMessage>*>& _peers);
+        void                 endOfRound         (const vector<Peer*>& _peers);
 
         // addintal method that have defulte implementation from Peer but can be overwritten
         void                 log()const { printTo(*_log); };
@@ -49,7 +48,5 @@ namespace quantas{
         bool first_elected;
         long messages_sent;
     };
-
-    Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer>* generateSim();
 }
 #endif /* ExamplePeer_hpp */

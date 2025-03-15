@@ -1,8 +1,10 @@
 {
+  "algorithms": [
+    "KPTPeer/KPTPeer.cpp"
+  ],
     "experiments": [
       {
-        "algorithm": "KPT",
-        "logFile": "cout",
+        "logFile": "KPTDelay1.txt",
         "threadCount": 1,
         "distribution": {
           "type": "uniform",
@@ -12,7 +14,7 @@
           "type": "dynamic",
           "sourcePoolSize": 75,
           "initialPeers": 100,
-          "totalPeers": 100
+          "initialPeerType": "KPTPeer"
         },
         "tests": 1,
         "rounds": 10

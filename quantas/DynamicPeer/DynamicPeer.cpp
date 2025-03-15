@@ -12,6 +12,12 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
+	static bool registerDynamic = [](){
+		registerPeerType("DynamicPeer", 
+			[](interfaceId pubId){ return new DynamicPeer(pubId); });
+		return true;
+	}();
+
 	int  DynamicPeer::acceptedBlocks  = 0;
 
 	DynamicPeer::~DynamicPeer() {}
@@ -36,7 +42,7 @@ namespace quantas {
                 }
 	}
 
-	void DynamicPeer::endOfRound(const vector<Peer<DynamicMessage>*>& _peers) {
+	void DynamicPeer::endOfRound(const vector<Peer*>& _peers) {
 		const vector<DynamicPeer*> peers = reinterpret_cast<vector<DynamicPeer*> const&>(_peers);
 		bool  flag  = true;
 		int   index = acceptedBlocks + 1;
@@ -65,7 +71,7 @@ namespace quantas {
 			}
 		}
 
-                cout << "Round: " << getRound() << "; Accepted Blocks: " << acceptedBlocks << endl;
+                cout << "Round: " << RoundManager::instance()->currentRound() << "; Accepted Blocks: " << acceptedBlocks << endl;
     
 		if (lastRound()) {
 			acceptedBlocks = 0;
@@ -74,7 +80,7 @@ namespace quantas {
 
 	void DynamicPeer::checkInStrm() {
 		while (!inStreamEmpty()) {
-			Packet<DynamicMessage> newMsg = popInStream();
+			Packet newMsg = popInStream();
       
 			if (newMsg.getMessage().blockChain.size() > blockChain.size()) {
 				blockChain = newMsg.getMessage().blockChain;
@@ -94,10 +100,10 @@ namespace quantas {
 
 	void DynamicPeer::mineBlock() {
 		DynamicBlock block;
-		block.minerId    = id();
+		block.minerId    = publicId();
 		block.tipMiner   = blockChain[blockChain.size() - 1].minerId;
 		block.depth      = blockChain.size() + 1;
-		block.roundMined = getRound();
+		block.roundMined = RoundManager::instance()->currentRound();
 
 		blockChain.push_back(block);
 		sendBlockChain();
@@ -106,24 +112,5 @@ namespace quantas {
 	bool DynamicBlock::operator!= (const DynamicBlock& block) const {
 		return (block.minerId != this->minerId || block.tipMiner != this->tipMiner || block.roundMined != this->roundMined || block.depth != this->depth);
 	}
-
-	ostream& DynamicPeer::printTo(ostream& out) const {
-		Peer<DynamicMessage>::printTo(out);
-
-		out << id() << endl;
-		out << "counter:" << getRound() << endl;
-
-		return out;
-	}
-
-	ostream& operator<< (ostream& out, const DynamicPeer& peer) {
-		peer.printTo(out);
-		return out;
-	}
-
-	Simulation<quantas::DynamicMessage, quantas::DynamicPeer>* generateSim() {
-        
-        Simulation<quantas::DynamicMessage, quantas::DynamicPeer>* sim = new Simulation<quantas::DynamicMessage, quantas::DynamicPeer>;
-        return sim;
-    }
+	
 }

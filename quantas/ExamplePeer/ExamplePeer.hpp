@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include <vector>
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+
 
 namespace quantas{
 

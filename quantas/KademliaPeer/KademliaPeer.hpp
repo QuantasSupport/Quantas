@@ -11,7 +11,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #define KademliaPeer_hpp
 
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+
 
 namespace quantas {
 
@@ -39,7 +39,7 @@ namespace quantas {
 		// perform one step of the Algorithm with the messages in inStream
 		void                 performComputation();
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-		void                 endOfRound(const vector<Peer<KademliaMessage>*>& _peers);
+		void                 endOfRound(const vector<Peer*>& _peers);
 		// the id of the next transaction to submit
 		static int currentTransaction;
 		// size of binary ids
@@ -65,7 +65,5 @@ namespace quantas {
 		// finds node to transmit message to
 		interfaceId				 findRoute(string binId);
 	};
-
-	Simulation<quantas::KademliaMessage, quantas::KademliaPeer>* generateSim();
 }
 #endif /* KademliaPeer_hpp */

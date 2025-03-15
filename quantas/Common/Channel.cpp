@@ -2,6 +2,7 @@
 
  
 namespace quantas {
+
 Channel::Channel(interfaceId targetId, interfaceId targetInternalId,
                         interfaceId sourceId, interfaceId sourceInternalId,
                         const nlohmann::json &channelParams)
@@ -13,11 +14,18 @@ Channel::Channel(interfaceId targetId, interfaceId targetInternalId,
     setParameters(channelParams);
 }
 
+Channel::~Channel() {
+    while (!_packetQueue.empty()) {
+        _packetQueue.front().deleteMessage();
+        _packetQueue.pop_front();
+    }
+};
+
 void Channel::setParameters(const nlohmann::json &params) {
     _dropProbability = params.value("dropProbability", 0.0);
     _reorderProbability = params.value("reorderProbability", 0.0);
     _duplicateProbability = params.value("duplicateProbability", 0.0);
-    _maxMsgsRec = params.value("dropProbability", INT_MAX);
+    _maxMsgsRec = params.value("maxMsgsRec", 1);
     _throughputLeft = _maxMsgsRec*(RoundManager::instance()->lastRound()+1-RoundManager::instance()->currentRound());
     _size = params.value("size", INT_MAX);
     _avgDelay = params.value("avgDelay", 1);
@@ -51,12 +59,17 @@ int Channel::computeRandomDelay() const {
 void Channel::pushPacket(Packet pkt) {
     // possible drop
     if (trueWithProbability(_dropProbability)) {
-        // drop => do nothing
+        pkt.deleteMessage();
+        // drop => delete the message and do nothing
         return;
     }
 
+    bool duplicate = false;
+
     do {
+        duplicate = false;
         if (!canSend()) {
+            pkt.deleteMessage();
             // No throughput left
             return;
         }
@@ -69,8 +82,11 @@ void Channel::pushPacket(Packet pkt) {
 
         // push into queue
         _packetQueue.push_back(pkt);
-    
-    } while (trueWithProbability(_duplicateProbability)); // possible duplication
+
+        duplicate = trueWithProbability(_duplicateProbability);
+        if (duplicate) pkt.setMessage(pkt.getMessage()->clone());
+        
+    } while (duplicate); // possible duplication
 }
 
 void Channel::shuffleChannel() {

@@ -12,6 +12,12 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
+	static bool registerStableDataLink = [](){
+		registerPeerType("StableDataLinkPeer", 
+			[](interfaceId pubId){ return new StableDataLinkPeer(pubId); });
+		return true;
+	}();
+
 	int StableDataLinkPeer::currentTransaction = 1;
 
 	StableDataLinkPeer::~StableDataLinkPeer() {
@@ -28,29 +34,29 @@ namespace quantas {
 
 	void StableDataLinkPeer::performComputation() {
 		if (alive) {
-			if (getRound() == 0 && id() == 0) {
+			if (RoundManager::instance()->currentRound()er::instance()->currentRound() == 0 && publicId() == 0) {
 				submitTrans(currentTransaction);
 			}
-			if (previousMessageRound + timeOutRate < getRound()) {// resend lost message
-				if (id() == 0) {
+			if (previousMessageRound + timeOutRate < RoundManager::instance()->currentRound()) {// resend lost message
+				if (publicId() == 0) {
 					StableDataLinkMessage message;
 					message.action = "data";
-					message.roundSubmitted = getRound(); // if message lost roundSubmitted isn't accurate
+					message.roundSubmitted = RoundManager::instance()->currentRound(); // if message lost roundSubmitted isn't accurate
 					message.messageNum = currentTransaction - 1;
-					previousMessageRound = getRound();
+					previousMessageRound = RoundManager::instance()->currentRound();
 					sendMessage(1, message);
 				}
 				else {
 					StableDataLinkMessage message;
 					message.action = "ack";
-					message.roundSubmitted = getRound(); // if message lost roundSubmitted isn't accurate
+					message.roundSubmitted = RoundManager::instance()->currentRound(); // if message lost roundSubmitted isn't accurate
 					message.messageNum = currentTransaction - 1;
-					previousMessageRound = getRound();
+					previousMessageRound = RoundManager::instance()->currentRound();
 					sendMessage(0, message);
 				}
 			}
 			while (!inStreamEmpty()) {
-				Packet<StableDataLinkMessage> packet = popInStream();
+				Packet packet = popInStream();
 				interfaceId source = packet.sourceId();
 				StableDataLinkMessage message = packet.getMessage();
 				if (randMod(messageLossDen) < messageLossNum) { // used for message loss
@@ -60,26 +66,26 @@ namespace quantas {
 					ack++;
 					if (ack < 3 * c + 2) {
 						message.action = "data";
-						previousMessageRound = getRound();
+						previousMessageRound = RoundManager::instance()->currentRound();
 						sendMessage(1, message);
 					}
 					else {
 						requestsSatisfied++;
-						previousMessageRound = getRound();
+						previousMessageRound = RoundManager::instance()->currentRound();
 						submitTrans(currentTransaction);
 						ack = 0;
 					}
 				}
 				else if (message.action == "data") {
 					message.action = "ack";
-					previousMessageRound = getRound();
+					previousMessageRound = RoundManager::instance()->currentRound();
 					sendMessage(0, message);
 				}
 			}
 		}
 	}
 
-	void StableDataLinkPeer::endOfRound(const vector<Peer<StableDataLinkMessage>*>& _peers) {
+	void StableDataLinkPeer::endOfRound(const vector<Peer*>& _peers) {
 		const vector<StableDataLinkPeer*> peers = reinterpret_cast<vector<StableDataLinkPeer*> const&>(_peers);
 		int satisfied = 0;
 		double messages = 0;
@@ -91,7 +97,7 @@ namespace quantas {
 	}
 
 	void StableDataLinkPeer::sendMessage(interfaceId peer, StableDataLinkMessage message) {
-		Packet<StableDataLinkMessage> newMessage(getRound(), peer, id());
+		Packet newMessage(RoundManager::instance()->currentRound(), peer, publicId());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
 		messagesSent++;
@@ -100,15 +106,9 @@ namespace quantas {
 	void StableDataLinkPeer::submitTrans(int tranID) {
 		StableDataLinkMessage message;
 		message.action = "data";
-		message.roundSubmitted = getRound();
+		message.roundSubmitted = RoundManager::instance()->currentRound();
 		message.messageNum = tranID;
 		sendMessage(1, message);
 		currentTransaction++;
 	}
-
-	Simulation<quantas::StableDataLinkMessage, quantas::StableDataLinkPeer>* generateSim() {
-        
-        Simulation<quantas::StableDataLinkMessage, quantas::StableDataLinkPeer>* sim = new Simulation<quantas::StableDataLinkMessage, quantas::StableDataLinkPeer>;
-        return sim;
-    }
 }

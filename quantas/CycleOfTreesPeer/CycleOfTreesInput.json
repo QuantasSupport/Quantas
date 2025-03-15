@@ -1,7 +1,9 @@
 {
+  "algorithms": [
+    "CycleOfTreesPeer/CycleOfTreesPeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "CycleOfTrees",
       "logFile": "cout",
       "threadCount": 1,
       "parameters": {
@@ -15,7 +17,7 @@
       "topology": {
         "type": "complete",
         "initialPeers": 100,
-        "totalPeers": 100
+        "initialPeerType": "CycleOfTreesPeer"
       },
       "tests": 10,
       "rounds": 6000

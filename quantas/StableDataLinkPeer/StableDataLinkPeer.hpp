@@ -11,7 +11,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #define StableDataLinkPeer_hpp
 
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+
 
 namespace quantas {
 
@@ -32,7 +32,7 @@ namespace quantas {
 		// perform one step of the Algorithm with the messages in inStream
 		void                 performComputation();
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-		void                 endOfRound(const vector<Peer<StableDataLinkMessage>*>& _peers);
+		void                 endOfRound(const vector<Peer*>& _peers);
 
 		// the id of the next transaction to submit
 		static int                      currentTransaction;
@@ -56,7 +56,5 @@ namespace quantas {
 		// submitTrans creates a transaction
 		void                  submitTrans(int tranID);
 	};
-
-	Simulation<quantas::StableDataLinkMessage, quantas::StableDataLinkPeer>* generateSim();
 }
 #endif /* StableDataLinkPeer_hpp */

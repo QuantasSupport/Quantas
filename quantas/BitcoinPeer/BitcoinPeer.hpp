@@ -13,7 +13,6 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <deque>
 #include <mutex>
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
 
 namespace quantas {
 

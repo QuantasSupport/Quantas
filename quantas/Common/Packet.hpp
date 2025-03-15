@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include <memory>
 #include "RoundManager.hpp"
+#include "LogWriter.hpp"
 
 namespace quantas{
     
@@ -57,6 +58,7 @@ public:
     inline void setTarget(interfaceId t) { _targetId = t; }
     inline void setDelay(int delayMax, int delayMin = 1);
     inline void setMessage(Message* msg) { _body = msg; }
+    inline void deleteMessage() {delete _body;}
 
     // Getters
     inline interfaceId targetId() const { return _targetId; }
@@ -64,7 +66,7 @@ public:
     inline bool hasArrived() const { return RoundManager::instance()->currentRound() >= _round + _delay; }
     inline Message* getMessage() const { return _body; }
     inline int getDelay() const { return _delay; }
-    inline int getRound() const { return _round; }
+    inline int getRoundSent() const { return _round; }
 };
 
 // Constructor Implementations
@@ -78,10 +80,7 @@ inline Packet::Packet(interfaceId to, interfaceId from, Message* body)
 }
 
 inline Packet::Packet(const Packet& rhs) 
-    : _targetId(rhs._targetId), _sourceId(rhs._sourceId), _delay(rhs._delay), _round(rhs._round) {
-    if (rhs._body) {
-        _body = rhs._body->clone();
-    }
+    : _targetId(rhs._targetId), _sourceId(rhs._sourceId), _body(rhs._body), _delay(rhs._delay), _round(rhs._round) {
 }
 
 inline Packet& Packet::operator=(const Packet& rhs) {
@@ -90,9 +89,7 @@ inline Packet& Packet::operator=(const Packet& rhs) {
     _sourceId = rhs._sourceId;
     _delay = rhs._delay;
     _round = rhs._round;
-    if (rhs._body) {
-        _body = rhs._body->clone();
-    }
+    _body = rhs._body;
     return *this;
 }
 

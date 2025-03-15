@@ -1,4 +1,7 @@
 {
+  "algorithms": [
+    "DynamicPeer/DynamicPeer.cpp"
+  ],
     "experiments": [
       {
         "algorithm": "dynamic",
@@ -12,7 +15,7 @@
           "type": "dynamic",
           "sourcePoolSize": 150,
           "initialPeers": 200,
-          "totalPeers": 200
+          "initialPeerType": "DynamicPeer"
         },
         "tests": 1,
         "rounds": 10

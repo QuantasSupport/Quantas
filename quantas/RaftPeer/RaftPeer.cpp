@@ -12,6 +12,12 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
+	static bool registerRaft = [](){
+		registerPeerType("RaftPeer", 
+			[](interfaceId pubId){ return new RaftPeer(pubId); });
+		return true;
+	}();
+
 	int RaftPeer::currentTransaction = 1;
 
 	RaftPeer::~RaftPeer() {
@@ -30,15 +36,15 @@ namespace quantas {
 		if (true)
 			checkInStrm();
 
-		if (getRound() == 0) {
+		if (RoundManager::instance()->currentRound() == 0) {
 			submitTrans(currentTransaction);
 		}
 
-		if (timeOutRound <= getRound()) {
+		if (timeOutRound <= RoundManager::instance()->currentRound()) {
 			RaftPeerMessage newMsg;
 			newMsg.messageType = "elect";
-			newMsg.Id = id();
-			candidate = id();
+			newMsg.Id = publicId();
+			candidate = publicId();
 			leaderId = -1;
 			newMsg.termNum = ++term;
 			votes.clear();
@@ -47,7 +53,7 @@ namespace quantas {
 		}
 	}
 
-	void RaftPeer::endOfRound(const vector<Peer<RaftPeerMessage>*>& _peers) {
+	void RaftPeer::endOfRound(const vector<Peer*>& _peers) {
 		const vector<RaftPeer*> peers = reinterpret_cast<vector<RaftPeer*> const&>(_peers);
 		double satisfied = 0;
 		double lat = 0;
@@ -71,7 +77,7 @@ namespace quantas {
 					RaftPeerMessage newMsg;
 					newMsg.messageType = "respondRequest";
 					newMsg.trans = Msg.trans;
-					newMsg.Id = id();
+					newMsg.Id = publicId();
 					newMsg.roundSubmitted = Msg.roundSubmitted;
 					sendMessage(Msg.Id, newMsg);
 				}
@@ -80,19 +86,19 @@ namespace quantas {
 				replys[Msg.trans].push_back(Msg.Id);
 				if (replys[Msg.trans].size() == neighbors().size() / 2) {
 					requestsSatisfied++;
-					latency += getRound() - Msg.roundSubmitted;
+					latency += RoundManager::instance()->currentRound()er::instance()->currentRound() - Msg.roundSubmitted;
 					submitTrans(currentTransaction);
 				}
 			}
 			else if (Msg.messageType == "vote") {
-				if (leaderId != id()) {
-					if (Msg.trans == id()) {
+				if (leaderId != publicId()) {
+					if (Msg.trans == publicId()) {
 						votes.push_back(Msg.Id);
 
 						// Get enough votes and win the election
 						if (votes.size() > neighbors().size() / 2) {
 							resetTimer();
-							leaderId = id();
+							leaderId = publicId();
 							candidate = -1;
 							votes.clear();
 							submitTrans(currentTransaction);
@@ -111,7 +117,7 @@ namespace quantas {
 
 					RaftPeerMessage newMsg;
 					newMsg.messageType = "vote";
-					newMsg.Id = id();
+					newMsg.Id = publicId();
 					newMsg.termNum = Msg.termNum;
 					newMsg.roundSubmitted = Msg.roundSubmitted;
 					newMsg.trans = Msg.Id; // also used to indicate who the vote is for
@@ -122,13 +128,13 @@ namespace quantas {
 	}
 
 	void RaftPeer::submitTrans(int tranID) {
-		if (leaderId == id()) {
+		if (leaderId == publicId()) {
 			RaftPeerMessage message;
 			message.messageType = "request";
 			message.trans = tranID;
-			message.Id = id();
+			message.Id = publicId();
 			message.termNum = term;
-			message.roundSubmitted = getRound();
+			message.roundSubmitted = RoundManager::instance()->currentRound();
 			broadcast(message);
 			resetTimer();
 			currentTransaction++;
@@ -136,18 +142,13 @@ namespace quantas {
 	}
 
 	void RaftPeer::resetTimer() {
-		timeOutRound = (randMod(timeOutRandom)) + timeOutSpacing + getRound();
+		timeOutRound = (randMod(timeOutRandom)) + timeOutSpacing + RoundManager::instance()->currentRound()er::instance()->currentRound();
 	}
 
 	void RaftPeer::sendMessage(interfaceId peer, RaftPeerMessage message) {
-		Packet<RaftPeerMessage> newMessage(getRound(), peer, id());
+		Packet newMessage(RoundManager::instance()->currentRound()er::instance()->currentRound(), peer, publicId());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
 	}
 
-	Simulation<quantas::RaftPeerMessage, quantas::RaftPeer>* generateSim() {
-        
-        Simulation<quantas::RaftPeerMessage, quantas::RaftPeer>* sim = new Simulation<quantas::RaftPeerMessage, quantas::RaftPeer>;
-        return sim;
-    }
 }

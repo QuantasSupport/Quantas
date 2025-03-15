@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include <bits/stdc++.h>
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+
 
 namespace quantas {
 
@@ -52,11 +52,11 @@ namespace quantas {
         ~SmartShardsPeer                            ();
 
         // initialize the configuration of the system
-        void                 initParameters(const vector<Peer<SmartShardsMessage>*>& _peers, json parameters);
+        void                 initParameters(const vector<Peer*>& _peers, json parameters);
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(const vector<Peer<SmartShardsMessage>*>& _peers);
+        void                 endOfRound(const vector<Peer*>& _peers);
 
         // addintal method that have defulte implementation from Peer but can be overwritten
         void                 log()const { printTo(*_log); };
@@ -122,8 +122,5 @@ namespace quantas {
         void                  updateMember(int shard, SmartShardsMember member);
 
     };
-
-
-    Simulation<quantas::SmartShardsMessage, quantas::SmartShardsPeer>* generateSim();
 }
 #endif /* SmartShardsPeer_hpp */

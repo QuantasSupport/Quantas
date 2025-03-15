@@ -13,6 +13,12 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
+	static bool registerEthereum = [](){
+		registerPeerType("EthereumPeer", 
+			[](interfaceId pubId){ return new EthereumPeer(pubId); });
+		return true;
+	}();
+
 	int EthereumPeer::currentTransaction = 1;
 	mutex EthereumPeer::currentTransaction_mutex;
 
@@ -39,7 +45,7 @@ namespace quantas {
 			mineBlock();
 	}
 
-	void EthereumPeer::endOfRound(const vector<Peer<EthereumPeerMessage>*>& _peers) {
+	void EthereumPeer::endOfRound(const vector<Peer*>& _peers) {
 		const vector<EthereumPeer*> peers = reinterpret_cast<vector<EthereumPeer*> const&>(_peers);
 		int length = INT_MAX;
 		int index;
@@ -63,7 +69,7 @@ namespace quantas {
 
 	void EthereumPeer::checkInStrm() {
 		while (!inStreamEmpty()) {
-			Packet<EthereumPeerMessage> newMsg = popInStream();
+			Packet newMsg = popInStream();
 			if (newMsg.getMessage().mined) {
 				unlinkedBlocks.push_back(newMsg.getMessage().block);
 			}
@@ -119,7 +125,7 @@ namespace quantas {
 		EthereumPeerMessage message;
 		message.mined = false;
 		message.block.trans.id = currentTransaction++;
-		message.block.trans.roundSubmitted = getRound();
+		message.block.trans.roundSubmitted = RoundManager::instance()->currentRound();
 		broadcast(message);
 	}
 
@@ -130,7 +136,7 @@ namespace quantas {
 	void EthereumPeer::mineBlock() {
 		EtherBlock newBlock = findNextTransaction();
 		if (newBlock.trans.id != -1) {
-			newBlock.minerId = id();
+			newBlock.minerId = publicId();
 			newBlock.length = blockChain.size();
 			vector<int> ids;
 			vector<int> lengths;
@@ -196,9 +202,4 @@ namespace quantas {
 
 	}
 
-	Simulation<quantas::EthereumPeerMessage, quantas::EthereumPeer>* generateSim() {
-        
-        Simulation<quantas::EthereumPeerMessage, quantas::EthereumPeer>* sim = new Simulation<quantas::EthereumPeerMessage, quantas::EthereumPeer>;
-        return sim;
-    }
 }

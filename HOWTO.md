@@ -41,7 +41,7 @@ The new algorithm has no local variables, and the content of every message is a 
 	        ~ChangRobertsPeer                            ();
 
 	        void                 performComputation ();
-	        void                 endOfRound         (const vector<Peer<ChangRobertsMessage>*>& _peers);
+	        void                 endOfRound         (const vector<Peer*>& _peers);
 	    };
 	}
 	#endif
@@ -65,8 +65,8 @@ Similarly, from the ``ExamplePeer.cpp``, we create the following ``ChangRobertsP
 		void ChangRobertsPeer::performComputation() {
 		}
 
-		void ChangRobertsPeer::endOfRound(const vector<Peer<ChangRobertsMessage>*>& _peers) {
-			cout << "End of round " << getRound() << endl;
+		void ChangRobertsPeer::endOfRound(const vector<Peer*>& _peers) {
+			cout << "End of round " << RoundManager::instance()->currentRound() << endl;
 		}
 	}
 
@@ -78,9 +78,9 @@ To implement the algorithm, we need to redefine the behavior of the ``performCom
 
 The initial part of the algorithm can be implemented testing if the current round is equal to `0`. Send a message to any node is done using the ``unicast()`` method. The following code:
 
-	if(getRound() == 0) {
+	if(RoundManager::instance()->currentRound() == 0) {
 		ChangRobertsMessage msg;
-		msg.aPeerId = id();
+		msg.aPeerId = publicId();
 		unicast(msg);
 	}
 
@@ -94,14 +94,14 @@ thus implemented this part of the algorithm:
 The regular part of the algorithm can be implemented using the ``inStreamEmpty()`` method to check if the incoming channel contains messages, the ``popInStream()`` to grab the first message in the incoming channel, and the ``sourceId()`` method of the received message to obtain the sender ID of the received packet. Forwarding to the other neighbor is done using the ``broadcastBut()`` that send the message to all neighbors but one (specified in parameter). The following code:
 
 	while (!inStreamEmpty()) {
-		Packet<ChangRobertsMessage> newMsg = popInStream();
+		Packet newMsg = popInStream();
 		interfaceId rid = newMsg.getMessage().aPeerId;
 		interfaceId sid = newMsg.sourceId();
-		if( rid == id() ) {
-			cout << "Realizing " << id() << " is the leader" << endl;
+		if( rid == publicId() ) {
+			cout << "Realizing " << publicId() << " is the leader" << endl;
 		}
 		else {
-			if( rid > id() ) {
+			if( rid > publicId() ) {
 				ChangRobertsMessage msg;
 				msg.aPeerId = rid;
 				broadcastBut(msg,sid);
@@ -114,20 +114,20 @@ The regular part of the algorithm can be implemented using the ``inStreamEmpty()
 The complete code for the ``performComputation()``method should look as follows:
 
 	void ChangRobertsPeer::performComputation() {
-		if(getRound() == 0) {
+		if(RoundManager::instance()->currentRound() == 0) {
 			ChangRobertsMessage msg;
-			msg.aPeerId = id();
+			msg.aPeerId = publicId();
 			unicast(msg)
 		}
 		while (!inStreamEmpty()) {
-			Packet<ChangRobertsMessage> newMsg = popInStream();
+			Packet newMsg = popInStream();
 			interfaceId rid = newMsg.getMessage().aPeerId;
 			interfaceId sid = newMsg.sourceId();
-			if( rid == id() ) {
-				cout << "Realizing " << id() << " is the leader" << endl;
+			if( rid == publicId() ) {
+				cout << "Realizing " << publicId() << " is the leader" << endl;
 			}
 			else {
-				if( rid > id() ) {
+				if( rid > publicId() ) {
 					ChangRobertsMessage msg;
 					msg.aPeerId = rid;
 					broadcastBut(msg,sid);
@@ -136,23 +136,7 @@ The complete code for the ``performComputation()``method should look as follows:
 		}
 	}
 
-## Step 3: Add the algorithm to the QUANTAS library
-
-QUANTAS is not yet aware that the new algorithm is available. One must add it to the ``main.cpp`` file as follows:
-
-- at the end of the includes, add:
-
-		#ifdef CHANGROBERTS_PEER
-		#include "ChangRobertsPeer.hpp"
-		#endif
-
-- at the end of the elifs, add:
-
-		#elif CHANGROBERTS_PEER
-		Simulation<quantas::ChangRobertsMessage, quantas::ChangRobertsPeer> sim;
-		#endif
-
-## Step 4: Set up and run an experiment
+## Step 3: Set up and run an experiment
 
 QUANTAS experiments are planned through a simple JSON file. For this experiment, we want to run the ``changroberts`` algorithm 10 times, lasting each 15 rounds. The network topology will be a ring of 10 nodes. With these parameters, the ``ChangRobertsInput.json`` file should look as follows:
 
@@ -175,9 +159,6 @@ We shall update the `makefile` to include the new algorithm by adding:
 
 	INPUTFILE := $(PROJECT_DIR)/ChangRobertsInput.json
 
-	ALG := CHANGROBERTS_PEER
-	ALGFILE := ChangRobertsPeer
-
 For debugging, on a Unix system, we may compile the program as follows:
 
 	make debug
@@ -190,34 +171,13 @@ If there are no errors, we can run the experiment:
 	make release
 	make run
 
-This particular execution should output:
-
-	Realizing 9 is the leader
-	Realizing 9 is the leader
-	Realizing 9 is the leader
-	Realizing 9 is the leader
-	Realizing 9 is the leader
-	Realizing 9 is the leader
-	Realizing 9 is the leader
-	Realizing 9 is the leader
-	Realizing 9 is the leader
-	Realizing 9 is the leader
-
-So, 10 tests were done and the peer with ID = 9 was elected in all of them, as expected.
-
-The file ``ChangRoberts.txt`` was created in the current directory, and contains (actual numbers may vary depending the running machine) only basic statistics:
-
-	{
-		"RunTime": 0.010874242,
-	}
-
-## Step 5: Instrumenting the simulation
+## Step 4: Instrumenting the simulation
 
 When simulating to obtain quantitative results, it is often necessary to instrument the code (that is, to output specific variable values at some point in the simulation). Here, we wish to know how long it takes to elect a leader, and how many messages in total are exchanged in each round. Instrumentation in Quantas is done using the ``LogWriter`` class that acts as a JSON dictionary.
 
 For example, to retain how many rounds were necessary to elect a leader in each test, one can simply write:
 
-	LogWriter::getTestLog()["election_time"] = getRound();
+	LogWriter::getTestLog()["election_time"] = RoundManager::instance()->currentRound();
 
 after realizing that a leader was elected (when the received ID is the same as our own).
 
@@ -243,22 +203,22 @@ Whenever we call ``unicast()`` or ``broadcastBut()``, we increment the ``message
 
 	void ChangRobertsPeer::performComputation() {
 		first_elected = false;
-		if(getRound() == 0) {
+		if(RoundManager::instance()->currentRound() == 0) {
 			ChangRobertsMessage msg;
-			msg.aPeerId = id();
+			msg.aPeerId = publicId();
 			unicast(msg);
 			++messages_sent;
 		}
 		while (!inStreamEmpty()) {
-			Packet<ChangRobertsMessage> newMsg = popInStream();
+			Packet newMsg = popInStream();
 			interfaceId rid = newMsg.getMessage().aPeerId;
 			interfaceId sid = newMsg.sourceId();
-			if( rid == id() ) {
+			if( rid == publicId() ) {
 				first_elected = true;
-				cout << "Realizing " << id() << " is the leader" << endl;
+				cout << "Realizing " << publicId() << " is the leader" << endl;
 			}
 			else {
-				if( rid > id() ) {
+				if( rid > publicId() ) {
 					ChangRobertsMessage msg;
 					msg.aPeerId = rid;
 					broadcastBut(msg,sid);
@@ -270,7 +230,7 @@ Whenever we call ``unicast()`` or ``broadcastBut()``, we increment the ``message
 
 Then, at the end of each round, we check whether a leader has been elected in this round. If so, we simply accumulate all messages and log them, along with the current round number and the elected identifier:
 
-	void ChangRobertsPeer::endOfRound(const vector<Peer<ChangRobertsMessage>*>& _peers) {
+	void ChangRobertsPeer::endOfRound(const vector<Peer*>& _peers) {
 		long all_messages_sent = 0;
 		bool elected = false;
 		interfaceId elected_id = NO_PEER_ID;
@@ -279,12 +239,12 @@ Then, at the end of each round, we check whether a leader has been elected in th
 			all_messages_sent += (*it)->messages_sent;
 			if((*it)->first_elected) {
 				elected = true;
-				elected_id = (*it)->id();
+				elected_id = (*it)->publicId();
 			}
 		}
 		if(elected) {
 			LogWriter::getTestLog()["nb_messages"] = all_messages_sent;
-			LogWriter::getTestLog()["election_time"] = getRound();
+			LogWriter::getTestLog()["election_time"] = RoundManager::instance()->currentRound();
 			LogWriter::getTestLog()["elected_id"] = elected_id;
 		}
 	}
@@ -294,7 +254,7 @@ Now that the algorithm is instrumented, we run the simulation again (on a Unix-l
 	make prod
 	make run
 
-The file ``ChangRoberts.txt`` now contains more detailed statistics:
+The file ``ChangRoberts.txt``:
 
 	{
 	"RunTime": 0.018834804,
