@@ -32,7 +32,7 @@ namespace quantas {
 
 	void ChangRobertsPeer::performComputation() {
 		first_elected = false;
-		if(RoundManager::instance()->currentRound() == 0) {
+		if(RoundManager::currentRound() == 0) {
 			ChangRobertsMessage msg;
 			msg.aPeerId = publicId(); 
 			unicast(msg);
@@ -70,9 +70,9 @@ namespace quantas {
 			}
 		}
 		if(elected) {
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["nb_messages"] = all_messages_sent;
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["election_time"] = RoundManager::instance()->currentRound();
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["elected_id"] = elected_id;
+			LogWriter::pushValue("nb_messages", all_messages_sent);
+			LogWriter::pushValue("election_time", RoundManager::currentRound());
+			LogWriter::pushValue("elected_id", elected_id);
 		}
 	}
 }

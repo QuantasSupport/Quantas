@@ -63,20 +63,20 @@ public:
     // Getters
     inline interfaceId targetId() const { return _targetId; }
     inline interfaceId sourceId() const { return _sourceId; }
-    inline bool hasArrived() const { return RoundManager::instance()->currentRound() >= _round + _delay; }
+    inline bool hasArrived() const { return RoundManager::currentRound() >= _round + _delay; }
     inline Message* getMessage() const { return _body; }
     inline int getDelay() const { return _delay; }
     inline int getRoundSent() const { return _round; }
 };
 
 // Constructor Implementations
-inline Packet::Packet() : _sourceId(NO_PEER_ID), _targetId(NO_PEER_ID), _delay(0) {
-    _round = RoundManager::instance()->currentRound();
+inline Packet::Packet() {
+    _round = RoundManager::currentRound();
 }
 
 inline Packet::Packet(interfaceId to, interfaceId from, Message* body)
     : _targetId(to), _sourceId(from), _body(body), _delay(0) {
-    _round = RoundManager::instance()->currentRound();
+    _round = RoundManager::currentRound();
 }
 
 inline Packet::Packet(const Packet& rhs) 

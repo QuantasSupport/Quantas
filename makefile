@@ -11,19 +11,22 @@
 # copy of the GNU General Public License along with QUANTAS. If not,
 # see <https://www.gnu.org/licenses/>.
 
-################
-#
+############################### Input ###############################
+
 #  Configure this for the specific input file.
 #  Make sure to include the path to the input file 
-#  from the location of this makefile.
 
 # INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 
-INPUTFILE := quantas/AltBitPeer/AltBitUtility.json
+INPUTFILE := quantas/PBFTPeer/_PBFTInput.json
+
+# INPUTFILE := quantas/AltBitPeer/AltBitUtility.json
 
 # INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
 
-################
+# INPUTFILE := quantas/PBFTPeer/PBFTInput.json
+
+############################### Variables and Flags ###############################
 
 EXE := quantas.exe
 
@@ -31,59 +34,43 @@ EXE := quantas.exe
 COMMON_SRCS := $(wildcard quantas/Common/*.cpp)
 COMMON_OBJS := $(COMMON_SRCS:.cpp=.o)
 OBJS := $(COMMON_OBJS) quantas/main.o
+
 # compiles all cpps specified as necessary in the INPUTFILE
 ALGS := $(shell sed -n '/"algorithms"/,/]/p' $(INPUTFILE) \
          | sed -n 's/.*"\([^"]*\.cpp\)".*/quantas\/\1/p')
 OBJS += $(ALGS:.cpp=.o)
 
 # necessary flags
-CPPFLAGS := -Iinclude -MMD -MP
-CXXFLAGS := -pthread
 CXX := g++
-GCC_VERSION := $(shell $(CXX) -dumpversion)
+CXXFLAGS := -pthread -std=c++17
+GCC_VERSION := $(shell $(CXX) $(CXXFLAGS) -dumpversion)
 GCC_MIN_VERSION := 8
 
-# check the version of the GCC compiler being used
-check-version:
-	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "Default version of g++ must be higher than 8."; fi
-	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "To change the default version visit: https://linuxconfig.org/how-to-switch-between-multiple-gcc-and-g-compiler-versions-on-ubuntu-20-04-lts-focal-fossa"; fi
-	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then exit 1; fi
+############################### Build Types ###############################
 
-# extra debug and release flags
-release: CXXFLAGS += -O3 -s -std=c++17
-debug: CXXFLAGS += -O0 -g -D_GLIBCXX_DEBUG -std=c++17
-
-# flags for clang
-clang: CXX := clang++
-clang: CXXFLAGS += -std=c++17
-
-.PHONY: clean run release debug
-
+# release for faster runtime, debug for debugging
+release: CXXFLAGS += -O3 -s
 release: check-version $(EXE)
+debug: CXXFLAGS += -O0 -g -D_GLIBCXX_DEBUG
 debug: check-version $(EXE)
 
+############################### Running Commands ###############################
+
+# When running on windows use make clang
+clang: CXX := clang++
 clang: release
 	@echo running with input: $(INPUTFILE)
 	@./$(EXE) $(INPUTFILE)
 
-%.o: %.cpp
-	@echo compiling $<
-	@$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(EXE): $(OBJS)
-	@$(CXX) $(CXXFLAGS) $^ -o $(EXE)
-
-# Define a helper function to check dmesg for errors
-define check_failure
-    @echo "Make target '$@' failed! Checking dmesg..."; \
-    dmesg | tail -20 | grep -i -E 'oom|killed|segfault|error' || echo "No relevant logs found."
-endef
-
+# When running on Linux use make run
 run: release
 	@echo running with input: $(INPUTFILE)
 	@./$(EXE) $(INPUTFILE); exit_code=$$?; \
 	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
 
+############################### Debugging ###############################
+
+# runs the program with full Valgrind to trace memory leaks
 run_memory: debug
 	@echo running: $(INPUTFILE) with valgrind
 	@valgrind --leak-check=full \
@@ -91,35 +78,63 @@ run_memory: debug
          --track-origins=yes \
 		 ./$(EXE) $(INPUTFILE)
 
+# runs the program with Valgrind to see if there are any memory leaks
+run_simple_memory: debug
+	@echo ""
+	@echo running: $(INPUTFILE) with valgrind
+	@valgrind --leak-check=full ./$(EXE) $(INPUTFILE) 2>&1 \
+		| grep -E "HEAP SUMMARY|in use|LEAK SUMMARY|definitely lost: |indirectly lost: |possibly lost: |still reachable: |ERROR SUMMARY"
+	@echo ""
+
+# runs the program with GDB for more advanced error viewing
 run_debug: debug
 	@gdb --ex "set print thread-events off" --ex run --ex backtrace --args ./$(EXE) $(INPUTFILE); exit_code=$$?; \
 	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
 
-# in the future this could be generalized to go through every file in "Tests"
-rand_test: quantas/Tests/randtest.cpp quantas/Common/Distribution.cpp
-	$(CXX) -pthread -std=c++17 $^ -o $@.exe
-	./$@.exe
+############################### Tests ###############################
 
-TESTS = check-version rand_test test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_LinearChord test_Kademlia test_AltBit test_StableDataLink
-
-############################### Compile and run all tests - uses a wild card.
-test: $(TESTS)
+# Test thread based random number generation
+rand_test: quantas/Tests/randtest.cpp
+	@echo "Testing thread based random number generation..."
 	@make --no-print-directory clean
-	@echo all tests successful
+	@$(CXX) $(CXXFLAGS) $^ -o $@.exe
+	@./$@.exe
+	@echo ""
+	
+# in the future this could be generalized to go through every file in a Tests
+# folder such that the input files need not be listed here
+TEST_INPUTS := quantas/ExamplePeer/ExampleInput.json quantas/AltBitPeer/AltBitUtility.json quantas/PBFTPeer/PBFTInput.json quantas/BitcoinPeer/BitcoinInput.json
 
-test_%: ALGFILE = $*Peer
-test_%: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG -std=c++17
-test_%:
+test: check-version rand_test
 	@make --no-print-directory clean
-	@echo Testing $(ALGFILE)
-	@$(CXX) $(CXXFLAGS) -c -o quantas/main.o quantas/main.cpp
-	@$(CXX) $(CXXFLAGS) -c -o quantas/$(ALGFILE)/$(ALGFILE).o quantas/$(ALGFILE)/$(ALGFILE).cpp
-	@$(CXX) $(CXXFLAGS) -c -o quantas/Common/Distribution.o quantas/Common/Distribution.cpp
-	@$(CXX) $(CXXFLAGS)  quantas/main.o quantas/$(ALGFILE)/$(ALGFILE).o quantas/Common/Distribution.o -o $(EXE)
-	@./$(EXE) quantas/$(ALGFILE)/$*Input.json; exit_code=$$?; \
-	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
-	@$(RM) quantas/$(ALGFILE)/*.o
-	@echo $(ALGFILE) successful
+	@echo "Running memory tests on all test inputs..."
+	@echo ""
+	@for file in $(TEST_INPUTS); do \
+		$(MAKE) --no-print-directory run_simple_memory INPUTFILE="$$file"; \
+	done
+
+############################### Helpers ###############################
+
+# Define a helper function to check dmesg for errors
+define check_failure
+    @echo "Make target '$@' failed! Checking dmesg..."; \
+    dmesg | tail -20 | grep -i -E 'oom|killed|segfault|error' || echo "No relevant logs found."
+endef
+
+%.o: %.cpp
+	@echo compiling $<
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# check the version of the GCC compiler being used is above a threshold
+check-version:
+	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "Default version of g++ must be higher than 8."; fi
+	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "To change the default version visit: https://linuxconfig.org/how-to-switch-between-multiple-gcc-and-g-compiler-versions-on-ubuntu-20-04-lts-focal-fossa"; fi
+	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then exit 1; fi
+
+$(EXE): $(OBJS)
+	@$(CXX) $(CXXFLAGS) $^ -o $(EXE)
+
+############################### Cleanup ###############################
 
 # enables recursive glob patterns for bash to clean out unecessary files
 clean: SHELL := /bin/bash -O globstar
@@ -132,4 +147,13 @@ clean:
 	@$(RM) **/*.tmp
 	@$(RM) **/*.exe
 
+clean_txt: SHELL := /bin/bash -O globstar
+clean_txt:
+	@$(RM) **/*.txt
+
 -include $(OBJS:.o=.d)
+
+############################### PHONY ###############################
+
+# All make commands found in this file
+.PHONY: clean run release debug $(EXE) %.o clang run_memory run_simple_memory run_debug check-version rand_test test clean_txt

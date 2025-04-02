@@ -33,21 +33,42 @@ using nlohmann::json;
 // Forward declaration, so we can pass Peer* in method signatures below
 class Peer;
 
-struct PeerRegistry {
-    inline static std::unordered_map<std::string, std::function<Peer*(interfaceId)>> registry;
+class PeerRegistry {
+public:
+    static PeerRegistry* instance(){
+        static PeerRegistry s;
+        return &s;
+     }
 
-    inline static Peer* makePeer(const std::string &type, interfaceId pubId) {
-        auto it = PeerRegistry::registry.find(type);
-        if (it == PeerRegistry::registry.end()) {
+    static Peer* makePeer(const std::string &type, interfaceId pubId) {
+        PeerRegistry* inst = instance();
+        auto it = inst->registry.find(type);
+        if (it == inst->registry.end()) {
             throw std::runtime_error("Unknown peer type: " + type);
         }
         return it->second(pubId);
     }
-};
 
-inline void registerPeerType(const std::string &name, std::function<Peer*(interfaceId)> factory) {
-    PeerRegistry::registry[name] = factory;
-}
+    static bool registerPeerType(const std::string &name, std::function<Peer*(interfaceId)> factory) {
+        PeerRegistry* inst = instance();
+        bool result = inst->registry.insert(std::make_pair(name, factory)).second;
+        if (!result) {
+            std::cout << "Peer of type:" << name <<" already registered." << std::endl;
+        }
+        return result;
+    }
+
+    ~PeerRegistry(){
+
+    }
+private:
+    // copying and creation prohibited 
+    PeerRegistry() {}
+    PeerRegistry(const PeerRegistry&) = delete;
+    PeerRegistry& operator=(const PeerRegistry&) = delete;
+
+    std::unordered_map<std::string, std::function<Peer*(interfaceId)>> registry;
+};
 
 // The base Peer class
 class Peer : public NetworkInterface {
@@ -68,7 +89,7 @@ public:
     virtual void performComputation() = 0;
 
     // Called after performComputation in each round (subclass can override to collect metrics, etc.)
-    virtual void endOfRound(const std::vector<Peer*>& peers) {}
+    virtual void endOfRound(std::vector<Peer*>& peers) {}
 
 private:
 

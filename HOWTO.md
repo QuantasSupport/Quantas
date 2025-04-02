@@ -66,7 +66,7 @@ Similarly, from the ``ExamplePeer.cpp``, we create the following ``ChangRobertsP
 		}
 
 		void ChangRobertsPeer::endOfRound(const vector<Peer*>& _peers) {
-			cout << "End of round " << RoundManager::instance()->currentRound() << endl;
+			cout << "End of round " << RoundManager::currentRound() << endl;
 		}
 	}
 
@@ -76,9 +76,9 @@ To implement the algorithm, we need to redefine the behavior of the ``performCom
 
 ### Initially
 
-The initial part of the algorithm can be implemented testing if the current round is equal to `0`. Send a message to any node is done using the ``unicast()`` method. The following code:
+The initial part of the algorithm can be implemented testing if the current round is equal to `1`. Send a message to any node is done using the ``unicast()`` method. The following code:
 
-	if(RoundManager::instance()->currentRound() == 0) {
+	if(RoundManager::currentRound() == 1) {
 		ChangRobertsMessage msg;
 		msg.aPeerId = publicId();
 		unicast(msg);
@@ -114,7 +114,7 @@ The regular part of the algorithm can be implemented using the ``inStreamEmpty()
 The complete code for the ``performComputation()``method should look as follows:
 
 	void ChangRobertsPeer::performComputation() {
-		if(RoundManager::instance()->currentRound() == 0) {
+		if(RoundManager::currentRound() == 1) {
 			ChangRobertsMessage msg;
 			msg.aPeerId = publicId();
 			unicast(msg)
@@ -177,7 +177,7 @@ When simulating to obtain quantitative results, it is often necessary to instrum
 
 For example, to retain how many rounds were necessary to elect a leader in each test, one can simply write:
 
-	LogWriter::getTestLog()["election_time"] = RoundManager::instance()->currentRound();
+	LogWriter::pushValue("election_time", RoundManager::currentRound());
 
 after realizing that a leader was elected (when the received ID is the same as our own).
 
@@ -203,7 +203,7 @@ Whenever we call ``unicast()`` or ``broadcastBut()``, we increment the ``message
 
 	void ChangRobertsPeer::performComputation() {
 		first_elected = false;
-		if(RoundManager::instance()->currentRound() == 0) {
+		if(RoundManager::currentRound() == 1) {
 			ChangRobertsMessage msg;
 			msg.aPeerId = publicId();
 			unicast(msg);
@@ -243,9 +243,9 @@ Then, at the end of each round, we check whether a leader has been elected in th
 			}
 		}
 		if(elected) {
-			LogWriter::getTestLog()["nb_messages"] = all_messages_sent;
-			LogWriter::getTestLog()["election_time"] = RoundManager::instance()->currentRound();
-			LogWriter::getTestLog()["elected_id"] = elected_id;
+			LogWriter::pushValue("nb_messages", all_messages_sent);
+			LogWriter::pushValue("election_time", RoundManager::currentRound());
+			LogWriter::pushValue("elected_id", elected_id);
 		}
 	}
 

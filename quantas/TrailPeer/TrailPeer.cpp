@@ -151,9 +151,11 @@ void TrailPeer::initParameters(
         attemptRollback = false;
     }
 
-    LogWriter::getTestLog()["roundInfo"]["roundCount"] = getLastRound() + 1;
-    LogWriter::getTestLog()["roundInfo"]["byzantineRound"] = byzantineRound;
-    LogWriter::getTestLog()["peerInfo"]["peerCount"] = _peers.size();
+    json roundInfo;
+    roundInfo["roundCount"] = RoundManager::lastRound();
+    roundInfo["byzantineRound"] = byzantineRound;
+    roundInfo["peerCount"] = _peers.size();
+    LogWriter::pushValue("roundInfo", roundInfo);
 
     neighborhoodCount =
         ceil(static_cast<float>(_peers.size()) / maxNeighborhoodSize);
@@ -181,6 +183,7 @@ void TrailPeer::initParameters(
         neighborhoods.push_back(newNeighborhood);
     }
 
+    LogWriter::pushValue("utility", satisfied / messages * 100);
     LogWriter::getTestLog()["walletInfo"]["walletCount"] = allWallets.size();
 
     const int coinsPerWallet = 5;
@@ -458,7 +461,7 @@ void TrailPeer::performComputation() {
                 localSender->remove(moving);
             }
             validations.push_back(
-                {{"round", RoundManager::instance()->currentRound()},
+                {{"round", RoundManager::currentRound()},
                  {"seqNum", r.getSequenceNumber()},
                  {"peer", publicId()}}
             );
@@ -536,7 +539,7 @@ void TrailPeer::performComputation() {
                 }
             }
             validations.push_back(
-                {{"round", RoundManager::instance()->currentRound()},
+                {{"round", RoundManager::currentRound()},
                  {"seqNum", r.getSequenceNumber()},
                  {"peer", publicId()}}
             );
@@ -562,7 +565,7 @@ void TrailPeer::performComputation() {
     }
 
     if (heldWallets[0].storedBy.leader == publicId()) {
-        if (byzantineRound != -1 && RoundManager::instance()->currentRound() == byzantineRound + 1 &&
+        if (byzantineRound != -1 && RoundManager::currentRound() == byzantineRound + 1 &&
             !corrupt && attemptRollback) {
             initiateRollbacks();
         }
@@ -599,13 +602,13 @@ void TrailPeer::broadcastTo(TrailMessage m, Neighborhood n) {
 
 void TrailPeer::endOfRound(const vector<Peer*> &_peers) {
     messages.push_back(
-        {{"round", RoundManager::instance()->currentRound()},
+        {{"round", RoundManager::currentRound()},
          {"transactionType", "local"},
          {"batchSize", localMessagesThisRound}}
     );
     localMessagesThisRound = 0;
     messages.push_back(
-        {{"round", RoundManager::instance()->currentRound()},
+        {{"round", RoundManager::currentRound()},
          {"transactionType", "non-local"},
          {"batchSize", superMessagesThisRound}}
     );
@@ -621,7 +624,7 @@ void TrailPeer::endOfRound(const vector<Peer*> &_peers) {
     //                   std::endl;
     //     }
     // }
-    if (lastRound()) {
+    if (RoundManager::currentRound() == RoundManager::lastRound()) {
         LogWriter::getTestLog()["transactions"] = json::array();
         LogWriter::getTestLog()["validations"] = json::array();
         LogWriter::getTestLog()["messages"] = json::array();
@@ -640,10 +643,10 @@ void TrailPeer::endOfRound(const vector<Peer*> &_peers) {
             );
             for (const auto &t : peer->superRequests) {
                 const int age =
-                    RoundManager::instance()->currentRound() - t.second.getTransaction().roundSubmitted;
+                    RoundManager::currentRound() - t.second.getTransaction().roundSubmitted;
             }
         }
-    } else if (byzantineRound == RoundManager::instance()->currentRound()) {
+    } else if (byzantineRound == RoundManager::currentRound()) {
         std::vector<int> shuffledNBHs(neighborhoods.size());
         std::iota(shuffledNBHs.begin(), shuffledNBHs.end(), 0);
         std::shuffle(
@@ -656,9 +659,7 @@ void TrailPeer::endOfRound(const vector<Peer*> &_peers) {
             corruptNeighborhoods.insert(corruptNeighborhood);
             for (int i = 0;
                  i < walletsForNeighborhoods[corruptNeighborhood].size(); i++) {
-                LogWriter::getTestLog()["corruptWallets"].push_back(
-                    walletsForNeighborhoods[corruptNeighborhood][i].address
-                );
+                    LogWriter::pushValue("corruptWallets", walletsForNeighborhoods[corruptNeighborhood][i].address);
             }
             for (int i = 0; i < peers.size(); i++) {
                 if (peers[i]->neighborhoodID == corruptNeighborhood) {
@@ -680,8 +681,8 @@ void TrailPeer::endOfRound(const vector<Peer*> &_peers) {
             }
         }
     }
-    std::cout << "completed round " << (RoundManager::instance()->currentRound() + 1) << "/"
-              << (getLastRound() + 1) << "\n";
+    std::cout << "completed round " << (RoundManager::currentRound()) << "/"
+              << (RoundManager::lastRound()) << "\n";
 }
 
 bool TrailPeer::transactionInProgressFor(Coin c) {
@@ -738,7 +739,7 @@ void TrailPeer::initiateRollbacks() {
                     auto sender = inWallet;
                     auto receiver = lastTransaction.sender;
                     OngoingTransaction t = {
-                        inWallet, lastTransaction.sender, c, RoundManager::instance()->currentRound(), -1};
+                        inWallet, lastTransaction.sender, c, RoundManager::currentRound(), -1};
                     int seqNum = ++previousSequenceNumber;
                     ConsensusContacts newContacts(
                         c, validatorNeighborhoods, true
@@ -750,7 +751,7 @@ void TrailPeer::initiateRollbacks() {
                     initRequests.insert({seqNum, request});
                     contacts.insert({seqNum, newContacts});
                     transactions.push_back(
-                        {{"round", RoundManager::instance()->currentRound()},
+                        {{"round", RoundManager::currentRound()},
                          {"seqNum", seqNum},
                          {"validatorsNeeded",
                           newContacts.getValidatorNodeCount()},
@@ -842,7 +843,7 @@ void TrailPeer::initiateTransaction(bool withinNeighborhood) {
             walletsForNeighborhoods[receiverNeighborhood];
         receiver = potential[randMod(potential.size())];
     }
-    OngoingTransaction t = {sender, receiver, c, RoundManager::instance()->currentRound(), -1};
+    OngoingTransaction t = {sender, receiver, c, RoundManager::currentRound(), -1};
     int seqNum = ++previousSequenceNumber;
 
     ConsensusContacts newContacts(c, 1);
@@ -854,7 +855,7 @@ void TrailPeer::initiateTransaction(bool withinNeighborhood) {
     }
 
     transactions.push_back(
-        {{"round", RoundManager::instance()->currentRound()},
+        {{"round", RoundManager::currentRound()},
          {"seqNum", seqNum},
          {"validatorsNeeded",
           (withinNeighborhood

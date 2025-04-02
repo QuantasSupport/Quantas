@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with QUA
 namespace quantas {
 
 	static bool registerBitcoin = [](){
-		registerPeerType("BitcoinPeer", 
+		PeerRegistry::registerPeerType("BitcoinPeer", 
 			[](interfaceId pubId){ return new BitcoinPeer(pubId); });
 		return true;
 	}();
@@ -54,7 +54,8 @@ namespace quantas {
 				index = i;
 			}
 		}
-		LogWriter::getTestLog()["throughput"].push_back(length - 1);
+		
+		LogWriter::pushValue("throughput", length - 1);
 	}
 
 	void BitcoinPeer::checkInStrm() {
@@ -66,6 +67,7 @@ namespace quantas {
 			else {
 				transactions.push_back(newMsg->block);
 			}
+			delete newMsg;
 		}
 
 		linkBlocks();
@@ -105,7 +107,7 @@ namespace quantas {
 		BitcoinMessage* message = new BitcoinMessage();
 		message->mined = false;
 		message->block.trans.id = currentTransaction++;
-		message->block.trans.roundSubmitted = RoundManager::instance()->currentRound();
+		message->block.trans.roundSubmitted = RoundManager::currentRound();
 		broadcast(message);
 	}
 

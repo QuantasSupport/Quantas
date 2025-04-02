@@ -71,9 +71,9 @@ namespace quantas {
 			}
 		}
 
-                cout << "Round: " << RoundManager::instance()->currentRound() << "; Accepted Blocks: " << acceptedBlocks << endl;
+                cout << "Round: " << RoundManager::currentRound() << "; Accepted Blocks: " << acceptedBlocks << endl;
     
-		if (lastRound()) {
+		if (RoundManager::lastRound() == RoundManager::currentRound()) {
 			acceptedBlocks = 0;
 		}
 	}
@@ -103,7 +103,7 @@ namespace quantas {
 		block.minerId    = publicId();
 		block.tipMiner   = blockChain[blockChain.size() - 1].minerId;
 		block.depth      = blockChain.size() + 1;
-		block.roundMined = RoundManager::instance()->currentRound();
+		block.roundMined = RoundManager::currentRound();
 
 		blockChain.push_back(block);
 		sendBlockChain();

@@ -15,7 +15,8 @@ namespace quantas {
 class NetworkInterface {
 private:
     static inline interfaceId s_internalCounter = NO_PEER_ID;
-
+    
+public:
     // "Public" ID + unique internal ID
     interfaceId _publicId{NO_PEER_ID};
     interfaceId _internalId{NO_PEER_ID};
@@ -34,7 +35,7 @@ private:
     // Our local arrived messages
     std::deque<Packet> _inStream;
 
-protected:
+
     // Send messages to to others using these
     inline void unicastTo (Message* msg, const interfaceId& dest);
     inline void unicast (Message* msg);
@@ -48,10 +49,11 @@ protected:
     inline bool inStreamEmpty() const { return _inStream.empty(); }
 
 public:
+    static inline void resetCounter() {s_internalCounter = NO_PEER_ID;}
+
     inline NetworkInterface();
     inline NetworkInterface(interfaceId pubId);
     inline ~NetworkInterface() = default;
-    static inline void resetCounter() {s_internalCounter = NO_PEER_ID;}
 
     inline interfaceId publicId()   const { return _publicId; }
     inline interfaceId internalId() const { return _internalId; }
@@ -106,9 +108,10 @@ inline void NetworkInterface::unicastTo(Message* msg, const interfaceId& nbr) {
         Packet p;
         p.setSource(publicId());
         p.setTarget(nbr);
-        p.setMessage(msg);
+        p.setMessage(msg->clone());
         it->second->pushPacket(p);
     }
+    delete msg;
 }
 
 // Unicast to the *first* neighbor (if any exist)
@@ -121,8 +124,7 @@ inline void NetworkInterface::unicast(Message* msg) {
 
 inline void NetworkInterface::multicast(Message* msg, const std::set<interfaceId>& targets) {
     for (auto nbr : targets) {
-        unicastTo(msg, nbr);
-        msg = msg->clone();
+        unicastTo(msg->clone(), nbr);
     }
     delete msg;
 }

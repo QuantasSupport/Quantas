@@ -36,7 +36,7 @@ namespace quantas {
 	void KademliaPeer::performComputation() {
 		if (alive) {
 
-			if (RoundManager::instance()->currentRound() == 0 && fingers.size() == 0) {
+			if (RoundManager::currentRound() == 1 && fingers.size() == 0) {
 				binaryIdSize = std::ceil(std::log2(neighbors().size()));
 				binaryId = getBinaryId(publicId());
 				vector<vector<KademliaFinger>> groupedNeighbors(binaryIdSize);
@@ -70,7 +70,7 @@ namespace quantas {
 				if (message.action == "R") {
 					if (publicId() == message.reqId) {
 						requestsSatisfied++;
-						latency += RoundManager::instance()->currentRound() - message.roundSubmitted;
+						latency += RoundManager::currentRound() - message.roundSubmitted;
 						totalHops += message.hops;
 					}
 					else {
@@ -90,7 +90,7 @@ namespace quantas {
 			satisfied += peers[i]->requestsSatisfied;
 			hops += peers[i]->totalHops;
 		}
-		LogWriter::getTestLog()["averageHops"].push_back(hops / satisfied);
+		LogWriter::pushValue("averageHops", hops / satisfied);
 		
 	}
 
@@ -109,7 +109,7 @@ namespace quantas {
 	}
 
 	void KademliaPeer::sendMessage(interfaceId peer, KademliaMessage message) {
-		Packet newMessage(RoundManager::instance()->currentRound(), peer, publicId());
+		Packet newMessage(RoundManager::currentRound(), peer, publicId());
 		message.hops++;
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
@@ -121,7 +121,7 @@ namespace quantas {
 		string binId = getBinaryId(message.reqId);
 		message.binId = binId;
 		message.action = "R";
-		message.roundSubmitted = RoundManager::instance()->currentRound();
+		message.roundSubmitted = RoundManager::currentRound();
 		if (publicId() == message.reqId) {
 			requestsSatisfied++;
 			totalHops += message.hops;

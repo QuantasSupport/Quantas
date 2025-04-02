@@ -34,24 +34,24 @@ namespace quantas {
 
 	void StableDataLinkPeer::performComputation() {
 		if (alive) {
-			if (RoundManager::instance()->currentRound()er::instance()->currentRound() == 0 && publicId() == 0) {
+			if (RoundManager::currentRound() == 1 && publicId() == 0) {
 				submitTrans(currentTransaction);
 			}
-			if (previousMessageRound + timeOutRate < RoundManager::instance()->currentRound()) {// resend lost message
+			if (previousMessageRound + timeOutRate < RoundManager::currentRound()) {// resend lost message
 				if (publicId() == 0) {
 					StableDataLinkMessage message;
 					message.action = "data";
-					message.roundSubmitted = RoundManager::instance()->currentRound(); // if message lost roundSubmitted isn't accurate
+					message.roundSubmitted = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
 					message.messageNum = currentTransaction - 1;
-					previousMessageRound = RoundManager::instance()->currentRound();
+					previousMessageRound = RoundManager::currentRound();
 					sendMessage(1, message);
 				}
 				else {
 					StableDataLinkMessage message;
 					message.action = "ack";
-					message.roundSubmitted = RoundManager::instance()->currentRound(); // if message lost roundSubmitted isn't accurate
+					message.roundSubmitted = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
 					message.messageNum = currentTransaction - 1;
-					previousMessageRound = RoundManager::instance()->currentRound();
+					previousMessageRound = RoundManager::currentRound();
 					sendMessage(0, message);
 				}
 			}
@@ -66,19 +66,19 @@ namespace quantas {
 					ack++;
 					if (ack < 3 * c + 2) {
 						message.action = "data";
-						previousMessageRound = RoundManager::instance()->currentRound();
+						previousMessageRound = RoundManager::currentRound();
 						sendMessage(1, message);
 					}
 					else {
 						requestsSatisfied++;
-						previousMessageRound = RoundManager::instance()->currentRound();
+						previousMessageRound = RoundManager::currentRound();
 						submitTrans(currentTransaction);
 						ack = 0;
 					}
 				}
 				else if (message.action == "data") {
 					message.action = "ack";
-					previousMessageRound = RoundManager::instance()->currentRound();
+					previousMessageRound = RoundManager::currentRound();
 					sendMessage(0, message);
 				}
 			}
@@ -93,11 +93,11 @@ namespace quantas {
 			satisfied += peers[i]->requestsSatisfied;
 			messages += peers[i]->messagesSent;
 		}
-		LogWriter::getTestLog()["utility"].push_back(satisfied / messages * 100);
+		LogWriter::pushValue("utility", satisfied / messages * 100);
 	}
 
 	void StableDataLinkPeer::sendMessage(interfaceId peer, StableDataLinkMessage message) {
-		Packet newMessage(RoundManager::instance()->currentRound(), peer, publicId());
+		Packet newMessage(RoundManager::currentRound(), peer, publicId());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
 		messagesSent++;
@@ -106,7 +106,7 @@ namespace quantas {
 	void StableDataLinkPeer::submitTrans(int tranID) {
 		StableDataLinkMessage message;
 		message.action = "data";
-		message.roundSubmitted = RoundManager::instance()->currentRound();
+		message.roundSubmitted = RoundManager::currentRound();
 		message.messageNum = tranID;
 		sendMessage(1, message);
 		currentTransaction++;

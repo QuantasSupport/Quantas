@@ -36,11 +36,11 @@ namespace quantas {
 		if (true)
 			checkInStrm();
 
-		if (RoundManager::instance()->currentRound() == 0) {
+		if (RoundManager::currentRound() == 1) {
 			submitTrans(currentTransaction);
 		}
 
-		if (timeOutRound <= RoundManager::instance()->currentRound()) {
+		if (timeOutRound <= RoundManager::currentRound()) {
 			RaftPeerMessage newMsg;
 			newMsg.messageType = "elect";
 			newMsg.Id = publicId();
@@ -61,7 +61,8 @@ namespace quantas {
 			satisfied += peers[i]->requestsSatisfied;
 			lat += peers[i]->latency;
 		}
-		LogWriter::getTestLog()["latency"].push_back(lat / satisfied);
+		
+		LogWriter::pushValue("latency", lat / satisfied);
 	}
 
 	void RaftPeer::checkInStrm() {
@@ -86,7 +87,7 @@ namespace quantas {
 				replys[Msg.trans].push_back(Msg.Id);
 				if (replys[Msg.trans].size() == neighbors().size() / 2) {
 					requestsSatisfied++;
-					latency += RoundManager::instance()->currentRound()er::instance()->currentRound() - Msg.roundSubmitted;
+					latency += RoundManager::currentRound() - Msg.roundSubmitted;
 					submitTrans(currentTransaction);
 				}
 			}
@@ -134,7 +135,7 @@ namespace quantas {
 			message.trans = tranID;
 			message.Id = publicId();
 			message.termNum = term;
-			message.roundSubmitted = RoundManager::instance()->currentRound();
+			message.roundSubmitted = RoundManager::currentRound();
 			broadcast(message);
 			resetTimer();
 			currentTransaction++;
@@ -142,11 +143,11 @@ namespace quantas {
 	}
 
 	void RaftPeer::resetTimer() {
-		timeOutRound = (randMod(timeOutRandom)) + timeOutSpacing + RoundManager::instance()->currentRound()er::instance()->currentRound();
+		timeOutRound = (randMod(timeOutRandom)) + timeOutSpacing + RoundManager::currentRound();
 	}
 
 	void RaftPeer::sendMessage(interfaceId peer, RaftPeerMessage message) {
-		Packet newMessage(RoundManager::instance()->currentRound()er::instance()->currentRound(), peer, publicId());
+		Packet newMessage(RoundManager::currentRound(), peer, publicId());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
 	}

@@ -38,7 +38,7 @@ namespace quantas {
     
     void PBFTPeer::performComputation() {
         //  leader starts only
-        if (publicId() == getLeader() && RoundManager::instance()->currentRound() == 0) {
+        if (publicId() == getLeader() && RoundManager::currentRound() == 1) {
             submitTrans(currentTransaction);
         }
         if (true) // why are these here?
@@ -51,18 +51,9 @@ namespace quantas {
     void PBFTPeer::endOfRound(const vector<Peer*> &_peers) {
         const vector<PBFTPeer *> peers =
             reinterpret_cast<vector<PBFTPeer *> const &>(_peers);
-        /////////////////////////////////////////////
-        int totalPeers = peers.size();
-        int newLeader = (getLeader() + 1) % totalPeers;
-        for (auto peer : peers) {
-            peer->updateLeader(newLeader);
-        }
-        ////////////////////////////////////////////
 
         double length = peers[0]->confirmedTrans.size();
-        LogWriter::instance()
-            ->data["tests"][LogWriter::instance()->getTest()]["latency"]
-            .push_back(latency / length);
+        LogWriter::pushValue("latency",latency / length);
     }
 
     void PBFTPeer::checkInStrm() {
@@ -161,7 +152,7 @@ namespace quantas {
                 status = "pre-prepare";
                 confirmedTrans.push_back(receivedMessages[sequenceNum][0]);
                 latency +=
-                    RoundManager::instance()->currentRound() - receivedMessages[sequenceNum][0].roundSubmitted;
+                    RoundManager::currentRound() - receivedMessages[sequenceNum][0].roundSubmitted;
                 sequenceNum++;
                 if (publicId() == 0) {
                     submitTrans(currentTransaction);
@@ -176,7 +167,7 @@ namespace quantas {
         message.messageType = "trans";
         message.trans = tranID;
         message.Id = publicId();
-        message.roundSubmitted = RoundManager::instance()->currentRound();
+        message.roundSubmitted = RoundManager::currentRound();
         broadcast(message);
         transactions.push_back(message);
         currentTransaction++;
@@ -186,7 +177,7 @@ namespace quantas {
         Peer<PBFTPeerMessage>::printTo(out);
 
         out << publicId() << endl;
-        out << "counter:" << RoundManager::instance()->currentRound() << endl;
+        out << "counter:" << RoundManager::currentRound() << endl;
 
         return out;
     }
@@ -205,7 +196,7 @@ namespace quantas {
         vcMsg.view = newView;
         vcMsg.Id = publicId();
         vcMsg.sequenceNum = sequenceNum;
-        vcMsg.roundSubmitted = RoundManager::instance()->currentRound();
+        vcMsg.roundSubmitted = RoundManager::currentRound();
         broadcast(vcMsg);
         viewChangeMsgs.push_back(vcMsg);
         view = newView;
@@ -235,7 +226,7 @@ namespace quantas {
                 nvMsg.view = view;
                 nvMsg.Id = publicId();
                 nvMsg.sequenceNum = sequenceNum;
-                nvMsg.roundSubmitted = RoundManager::instance()->currentRound();
+                nvMsg.roundSubmitted = RoundManager::currentRound();
                 broadcast(nvMsg);
                 std::cout << "Peer " << publicId()
                           << " broadcasting new-view for view " << view

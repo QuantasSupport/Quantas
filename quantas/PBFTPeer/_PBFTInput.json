@@ -1,53 +1,53 @@
 {
-    "experiments": [
-      {
-        "algorithm": "PBFT",
-        "logFile": "PBFTDelay1.txt",
-        "threadCount": 1,
-        "leader": 0,
-        "distribution": {
-          "type": "uniform",
-          "maxDelay": 1
-        },
-        "topology": {
-          "type": "complete",
-          "initialPeers": 20
-        },
-        "tests": 10,
-        "rounds": 100
+  "algorithms": [
+    "PBFTPeer/_PBFTPeer.cpp"
+  ],
+  "experiments": [
+    {
+      "logFile": "PBFTDelay1.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
       },
-      {
-        "algorithm": "PBFT",
-        "logFile": "PBFTDelay5.txt",
-        "threadCount": 1,
-        "leader": 0,
-        "distribution": {
-          "type": "uniform",
-          "maxDelay": 5
-        },
-        "topology": {
-          "type": "complete",
-          "initialPeers": 20
-        },
-        "tests": 10,
-        "rounds": 100
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "initialPeerType": "PBFTPeer"
       },
-      {
-        "algorithm": "PBFT",
-        "logFile": "PBFTDelay10.txt",
-        "threadCount": 1,
-        "leader": 0,
-        "distribution": {
-          "type": "uniform",
-          "maxDelay": 10
-        },
-        "topology": {
-          "type": "complete",
-          "initialPeers": 20
-        },
-        "tests": 10,
-        "rounds": 100
-      }
-    ]
-  }
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "logFile": "PBFTDelay5.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 5
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "initialPeerType": "PBFTPeer"
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "logFile": "PBFTDelay10.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 10
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "initialPeerType": "PBFTPeer"
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}
   

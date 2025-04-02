@@ -12,6 +12,7 @@ You should have received a copy of the GNU General Public License along with QUA
 
 #include <string>
 #include <iostream>
+#include <mutex>
 #include "../Common/Json.hpp"
 
 namespace quantas {
@@ -39,11 +40,22 @@ namespace quantas {
         ostream* getLog () const { return _log; }
         void setTest (int test) { _test = test; }
         int getTest () const { return _test; }
-        static json& getTestLog () { return instance()->data["tests"][instance()->getTest()]; }
+        // static json& getTestLog () { return instance()->data["tests"][instance()->getTest()]; }
+
+    template <typename T>
+    static void pushValue(const std::string& key, const T& val) {
+        LogWriter* inst = instance();
+        std::lock_guard<std::mutex> lock(inst->_mutex);
+        // Insert into data["tests"][inst->_test][key] array
+        inst->data["tests"][inst->_test][key].push_back(val);
+    }
 
     private:
         ostream* _log = &cout;
         int         _test = 0;
+        // Mutex for thread safety
+        mutable std::mutex _mutex;
+
         // copying and creation prohibited by clients
         LogWriter() = default;
         LogWriter(const LogWriter&) = delete;

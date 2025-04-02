@@ -228,7 +228,7 @@ namespace quantas {
 			}
 		}
 
-		if (lastRound()) {
+		if (RoundManager::lastRound() == RoundManager::currentRound()) {
 			// doubles for division
 			double length = 0;
 			double totalMessages = 0;
@@ -250,15 +250,16 @@ namespace quantas {
 					nodesLeftSuccessfully++;
 				}
 			}
-			//LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["NumberOfMessages"].push_back(totalMessages);
-			LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["Throughput"].push_back(length);
+			LogWriter::pushValue("NumberOfMessages", totalMessages);
+			LogWriter::pushValue("Throughput", length);
+			
 			if (nodesJoined != 0) {
-				LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["joinWaiting"].push_back(joinTime / nodesJoined);
+				LogWriter::pushValue("joinWaiting", joinTime / nodesJoined);
 			}
 			if (nodesLeftSuccessfully != 0) {
-				LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["leaveWaiting"].push_back(leaveTime / nodesLeftSuccessfully);
+				LogWriter::pushValue("leaveWaiting", leaveTime / nodesLeftSuccessfully);
 			}
-			//LogWriter::instance()->data["tests"][LogWriter::instance()->getTest()]["Latency"].push_back(totalLatency / length);
+			LogWriter::pushValue("Latency", totalLatency / length);
 		}
 	}
 
@@ -630,7 +631,7 @@ namespace quantas {
 						}
 					}
 					confirmedTrans.push_back(CommitMessage);
-					latency += RoundManager::instance()->currentRound() - CommitMessage.roundSubmitted;
+					latency += RoundManager::currentRound() - CommitMessage.roundSubmitted;
 					for (int i = 0; i < CommitMessage.churningNodes.size(); i++) {
 						if (CommitMessage.churningNodes[i].first == "join" || CommitMessage.churningNodes[i].first == "join2") {
 							CommitMessage.messageType = "joinApproved";
@@ -651,7 +652,7 @@ namespace quantas {
 		message.messageType = "trans";
 		message.trans = currentTransaction;
 		message.Id = publicId();
-		message.roundSubmitted = RoundManager::instance()->currentRound();
+		message.roundSubmitted = RoundManager::currentRound();
 		message.sequenceNum = sequenceNum;
 		message.shard = shard;
 		sendMessageShard(shard, message);
@@ -668,7 +669,7 @@ namespace quantas {
 	}
 
 	void SmartShardsPeer::sendMessage(int node, SmartShardsMessage message) {
-		Packet newMessage(RoundManager::instance()->currentRound()er::instance()->currentRound(), node, publicId());
+		Packet newMessage(RoundManager::currentRound(), node, publicId());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
 		messagesSent++;

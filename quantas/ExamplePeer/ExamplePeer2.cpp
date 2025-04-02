@@ -7,34 +7,33 @@ QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "ExamplePeer.hpp"
 #include "ExamplePeer2.hpp"
 
 namespace quantas {
 
-	static bool registerExamplePeer = [](){
-		PeerRegistry::registerPeerType("ExamplePeer", 
-			[](interfaceId pubId){ return new ExamplePeer(pubId); });
+	static bool registerExamplePeer2 = [](){
+		PeerRegistry::registerPeerType("ExamplePeer2", 
+			[](interfaceId pubId){ return new ExamplePeer2(pubId); });
 		return true;
 	}();
 
 	//
 	// Example Channel definitions
 	//
-	ExamplePeer::~ExamplePeer() {
+	ExamplePeer2::~ExamplePeer2() {
 
 	}
 
-	ExamplePeer::ExamplePeer(const ExamplePeer& rhs) : Peer(rhs) {
+	ExamplePeer2::ExamplePeer2(const ExamplePeer2& rhs) : Peer(rhs) {
 		
 	}
 
-	ExamplePeer::ExamplePeer(interfaceId id) : Peer(id) {
+	ExamplePeer2::ExamplePeer2(interfaceId id) : Peer(id) {
 		
 	}
 
-	void ExamplePeer::initParameters(const vector<Peer*>& _peers, json parameters) {
-		const vector<ExamplePeer*> peers = reinterpret_cast<vector<ExamplePeer*> const&>(_peers);
+	void ExamplePeer2::initParameters(const vector<Peer*>& _peers, json parameters) {
+		const vector<ExamplePeer2*> peers = reinterpret_cast<vector<ExamplePeer2*> const&>(_peers);
 		
 		// Initializing parameters of simulation
 		if (parameters.contains("parameter1")) {
@@ -45,13 +44,12 @@ namespace quantas {
 			LogWriter::pushValue("parameter2", parameters["parameter2"]);
 		}
 
-		if (parameters.contains("changePeerType")) {
-			LogWriter::pushValue("changePeerType", parameters["changePeerType"]);
-			bool changePeerType = true;
+		if (parameters.contains("parameter3")) {
+			LogWriter::pushValue("parameter3", parameters["parameter3"]);
 		}
 	}
 
-	void ExamplePeer::performComputation() {
+	void ExamplePeer2::performComputation() {
 		LogWriter::pushValue("performs computation", publicId());
 
 		// Read messages from other peers
@@ -66,27 +64,21 @@ namespace quantas {
 			delete newMsg;
 		}
 
-		// Send hello to everyone
-		ExampleMessage* msg = new ExampleMessage();
-		msg->message = "Message: Hello From " + std::to_string(publicId()) + ". Sent on round: " + std::to_string(RoundManager::currentRound());
-		msg->aPeerId = std::to_string(publicId());
-		broadcast(msg);
-		msgsSent += neighbors().size();
+		// Send hello to everyone 5 times
+        for (int i = 0; i < 5; ++i) {
+            ExampleMessage* msg = new ExampleMessage();
+            msg->message = "Message: Hello From " + std::to_string(publicId()) + ". Sent on round: " + std::to_string(RoundManager::currentRound());
+            msg->aPeerId = std::to_string(publicId());
+			broadcast(msg);
+            msgsSent += neighbors().size();
+        }
 	}
 
-	void ExamplePeer::endOfRound(vector<Peer*>& _peers) {
-		vector<ExamplePeer*> peers = reinterpret_cast<vector<ExamplePeer*>&>(_peers);
+	void ExamplePeer2::endOfRound(const vector<Peer*>& _peers) {
+		const vector<ExamplePeer2*> peers = reinterpret_cast<vector<ExamplePeer2*> const&>(_peers);
 		int sum = accumulate(peers.begin(), peers.end(), 0, [](int sum, auto p) {
 			return sum + p->msgsSent;
 		});
 		LogWriter::pushValue("sentMessages", sum);
-
-		if (RoundManager::currentRound() == 2) {
-			auto oldPeer = dynamic_cast<ExamplePeer*>(_peers[1]);
-			if (oldPeer) {
-				_peers[1] = new ExamplePeer2(oldPeer);
-				delete oldPeer;
-			}
-		}
 	}
 }

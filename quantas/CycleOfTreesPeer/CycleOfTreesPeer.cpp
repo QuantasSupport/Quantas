@@ -86,14 +86,14 @@ namespace quantas {
 			for(auto it = peers.begin(); it != peers.end(); ++it) {
 					if ((*it)->highestID != -1) {
 						cout << "Number of allowed edges is " << noOfEdges << " and knot size is " << noOfCycleNodes << endl;
-						cout << "\t Number of rounds till the cycle is first detected: " << (RoundManager::instance()->currentRound() + 1) << endl;    // plus one since QUANTAS starts at round 0
+						cout << "\t Number of rounds till the cycle is first detected: " << (RoundManager::currentRound()) << endl;    // plus one since QUANTAS starts at round 0
 						firstDetected = true;
 						break;
 					}
 			}
 		}
 
-		if (lastRound()) {
+		if (RoundManager::lastRound() == RoundManager::currentRound()) {
 			if (!firstDetected) {
 				cout << "No node detected the knot; try a longer computation length." << endl;
 			}
@@ -191,10 +191,10 @@ namespace quantas {
 
 	void CycleOfTreesPeer::setHighestID(int ID) {
 		highestID = ID;
-		avgKnotOutputNumerator += (RoundManager::instance()->currentRound() + 1);    // plus one since QUANTAS starts at round 0
+		avgKnotOutputNumerator += (RoundManager::currentRound());
 
 		if (avgKnotOutputDenominator == numberOfNodes - 1) {
-			cout << "\t Number of rounds till the cycle is last detected: " << (RoundManager::instance()->currentRound() + 1) << endl;    // plus one since QUANTAS starts at round 0
+			cout << "\t Number of rounds till the cycle is last detected: " << (RoundManager::currentRound()) << endl;
 		}
 
 		++avgKnotOutputDenominator;

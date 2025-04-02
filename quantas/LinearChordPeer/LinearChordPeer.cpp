@@ -36,24 +36,24 @@ namespace quantas {
 	void LinearChordPeer::performComputation() {
 		if (alive) {
 			
-			if (RoundManager::instance()->currentRound() == 0 && successor.size() == 0 && predecessor.size() == 0) {
+			if (RoundManager::currentRound() == 1 && successor.size() == 0 && predecessor.size() == 0) {
 				for (int i = 0; i < neighbors().size(); i++) {
 					if (neighbors()[i] < publicId()) {
 						LinearChordFinger newNode;
 						newNode.Id = neighbors()[i];
-						newNode.roundUpdated = RoundManager::instance()->currentRound();
+						newNode.roundUpdated = RoundManager::currentRound();
 						predecessor.insert(predecessor.begin(), newNode);
 					}
 					else if (neighbors()[i] > publicId()) {
 						LinearChordFinger newNode;
 						newNode.Id = neighbors()[i];
-						newNode.roundUpdated = RoundManager::instance()->currentRound();
+						newNode.roundUpdated = RoundManager::currentRound();
 						successor.insert(successor.begin(), newNode);
 					}
 				}
 			}
 
-			if (RoundManager::instance()->currentRound() % 5 == 0) {
+			if (RoundManager::currentRound() % 5 == 0) {
 				heartBeat();
 			}
 
@@ -65,14 +65,14 @@ namespace quantas {
 				if (message.action == "R") {
 					if (publicId() == reqId) {
 						requestsSatisfied++;
-						latency += RoundManager::instance()->currentRound() - message.roundSubmitted;
+						latency += RoundManager::currentRound() - message.roundSubmitted;
 						totalHops += message.hops;
 					}
 					else if (reqId > publicId()) {
 						if (successor.size() > 0) {
 							if (publicId() < reqId && (reqId < successor[0].Id || successor[0].Id < publicId())) {
 								requestsSatisfied++;
-								latency += RoundManager::instance()->currentRound()er::instance()->currentRound() - message.roundSubmitted;
+								latency += RoundManager::currentRound() - message.roundSubmitted;
 								totalHops += message.hops;
 							}
 							else {
@@ -94,14 +94,14 @@ namespace quantas {
 						if (successor.size() == 0) {
 							LinearChordFinger newNode;
 							newNode.Id = reqId;
-							newNode.roundUpdated = RoundManager::instance()->currentRound()er::instance()->currentRound();
+							newNode.roundUpdated = RoundManager::currentRound();
 							successor.insert(successor.begin(), newNode);
 							added = true;
 						}
 						else if (successor.size() == 1 && reqId != successor[0].Id) {
 							LinearChordFinger newNode;
 							newNode.Id = reqId;
-							newNode.roundUpdated = RoundManager::instance()->currentRound()er::instance()->currentRound();
+							newNode.roundUpdated = RoundManager::currentRound();
 							if (reqId < successor[0].Id) {
 								successor.insert(successor.begin(), newNode);
 							}
@@ -115,14 +115,14 @@ namespace quantas {
 								if (reqId < successor[i].Id) {
 									LinearChordFinger newNode;
 									newNode.Id = reqId;
-									newNode.roundUpdated = RoundManager::instance()->currentRound()er::instance()->currentRound();
+									newNode.roundUpdated = RoundManager::currentRound();
 									successor.insert(successor.begin() + i, newNode);
 									added = true;
 									position = i;
 									break;
 								}
 								else if (reqId == successor[i].Id) {
-									successor[i].roundUpdated = RoundManager::instance()->currentRound();
+									successor[i].roundUpdated = RoundManager::currentRound();
 									break;
 								}
 							}
@@ -136,13 +136,13 @@ namespace quantas {
 						if (predecessor.size() == 0) {
 							LinearChordFinger newNode;
 							newNode.Id = reqId;
-							newNode.roundUpdated = RoundManager::instance()->currentRound();
+							newNode.roundUpdated = RoundManager::currentRound();
 							predecessor.insert(predecessor.begin(), newNode);
 						}
 						if (predecessor.size() == 1 && reqId != predecessor[0].Id) {
 							LinearChordFinger newNode;
 							newNode.Id = reqId;
-							newNode.roundUpdated = RoundManager::instance()->currentRound();
+							newNode.roundUpdated = RoundManager::currentRound();
 							if (reqId > predecessor[0].Id) {
 								predecessor.insert(predecessor.begin(), newNode);
 							}
@@ -156,14 +156,14 @@ namespace quantas {
 								if (reqId > predecessor[i].Id) {
 									LinearChordFinger newNode;
 									newNode.Id = reqId;
-									newNode.roundUpdated = RoundManager::instance()->currentRound();
+									newNode.roundUpdated = RoundManager::currentRound();
 									predecessor.insert(predecessor.begin() + i, newNode);
 									added = true;
 									position = i;
 									break;
 								}
 								else if (reqId == predecessor[i].Id) {
-									predecessor[i].roundUpdated = RoundManager::instance()->currentRound();
+									predecessor[i].roundUpdated = RoundManager::currentRound();
 									break;
 								}
 							}
@@ -221,7 +221,8 @@ namespace quantas {
 			satisfied += peers[i]->requestsSatisfied;
 			hops += peers[i]->totalHops;
 		}
-		LogWriter::getTestLog()["averageHops"].push_back(hops / satisfied);
+		
+		LogWriter::pushValue("averageHops", hops / satisfied);
 	}
 
 	void LinearChordPeer::heartBeat() {
@@ -230,7 +231,7 @@ namespace quantas {
 			message.action = "N";
 			message.reqId = publicId();
 			for (int i = 0; i < successor.size(); i++) {
-				if (successor[i].roundUpdated + 20 > RoundManager::instance()->currentRound()) {
+				if (successor[i].roundUpdated + 20 > RoundManager::currentRound()) {
 					sendMessage(successor[i].Id, message);
 				}
 				else {
@@ -239,7 +240,7 @@ namespace quantas {
 				}
 			}
 			for (int i = 0; i < predecessor.size(); i++) {
-				if (predecessor[i].roundUpdated + 20 > RoundManager::instance()->currentRound()) {
+				if (predecessor[i].roundUpdated + 20 > RoundManager::currentRound()) {
 					sendMessage(predecessor[i].Id, message);
 				}
 				else {
@@ -251,7 +252,7 @@ namespace quantas {
 	}
 
 	void LinearChordPeer::sendMessage(interfaceId peer, LinearChordMessage message) {
-		Packet newMessage(RoundManager::instance()->currentRound(), peer, publicId());
+		Packet newMessage(RoundManager::currentRound(), peer, publicId());
 		message.hops++;
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
@@ -262,7 +263,7 @@ namespace quantas {
 		message.reqId = randMod(numberOfNodes);
 		interfaceId reqId = message.reqId;
 		message.action = "R";
-		message.roundSubmitted = RoundManager::instance()->currentRound();
+		message.roundSubmitted = RoundManager::currentRound();
 		if (publicId() == reqId) {
 			requestsSatisfied++;
 			totalHops += message.hops;

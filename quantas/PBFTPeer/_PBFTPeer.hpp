@@ -29,7 +29,7 @@ namespace quantas{
         //////////////////////////////////////////////////////
     };
 
-    class PBFTPeer : public Peer<PBFTPeerMessage>{
+    class PBFTPeer : public Peer {
     public:
         // methods that must be defined when deriving from Peer
         PBFTPeer                             (interfaceId);
@@ -91,11 +91,9 @@ namespace quantas{
 
         int view = 0;
 
-        private:
         std::atomic<int> currentLeader{0};
         std::vector<PBFTPeerMessage> viewChangeMsgs;
-        int viewChangeTimer = 0; //timeout for vc
-        /////////////////////////////////////////////////////////////////////////
+        int viewChangeTimer = 0; // timeout for vc
     };
 
     

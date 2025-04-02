@@ -7,12 +7,13 @@ QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef ExamplePeer_hpp
-#define ExamplePeer_hpp
+#ifndef ExamplePeer2_hpp
+#define ExamplePeer2_hpp
 
 #include <iostream>
 #include <vector>
 #include "../Common/Peer.hpp"
+#include "ExamplePeer.hpp"
 
 
 namespace quantas{
@@ -22,38 +23,34 @@ namespace quantas{
     using std::vector;
 
     //
-    // Example of a message body type
-    //
-    class ExampleMessage : public Message {
-    public:
-        ExampleMessage() {}
-        ExampleMessage(string id, string m) : aPeerId(id), message(m) {};
-        ExampleMessage* clone() const override {return new ExampleMessage(aPeerId, message);}
-
-        string aPeerId;
-        string message;
-    };
-
-    //
     // Example Peer used for network testing
     //
-    class ExamplePeer : public Peer{
+    class ExamplePeer2 : public Peer{
     public:
         // methods that must be defined when deriving from Peer
-        ExamplePeer                             (interfaceId);
-        ExamplePeer                             (const ExamplePeer &rhs);
-        ExamplePeer                             (Peer* rhs);
-        ~ExamplePeer                            ();
+        ExamplePeer2                             (interfaceId);
+        ExamplePeer2                             (const ExamplePeer2 &rhs);
+        ~ExamplePeer2                            ();
+        ExamplePeer2(ExamplePeer* rhs) {
+            ExamplePeer* oldPeer = reinterpret_cast<ExamplePeer*> (rhs);
+    
+            _publicId = std::move(rhs->_publicId);
+            _internalId = std::move(rhs->_internalId);
+            _neighbors = std::move(rhs->_neighbors);
+            _inBoundChannels = std::move(rhs->_inBoundChannels);
+            _outBoundChannels = std::move(rhs->_outBoundChannels);
+            _inStream = std::move(rhs->_inStream);
+            msgsSent = std::move(rhs->msgsSent);
+        }
 
         // initialize the configuration of the system
         void                 initParameters(const vector<Peer*>& _peers, json parameters);
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation ();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound         (vector<Peer*>& _peers);
-        
+        void                 endOfRound         (const vector<Peer*>& _peers);
+
         int msgsSent = 0;
-        bool changePeerType = false;
     };
 }
-#endif /* ExamplePeer_hpp */
+#endif /* ExamplePeer2_hpp */

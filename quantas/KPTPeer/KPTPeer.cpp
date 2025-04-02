@@ -66,7 +66,7 @@ namespace quantas {
 			});
     
 		if (minAcceptedBlocks != peers.end()) {
-			cout << "Round: " << RoundManager::instance()->currentRound() << "; Accepted Blocks: " << (*minAcceptedBlocks)->acceptedBlocks << endl;
+			cout << "Round: " << RoundManager::currentRound() << "; Accepted Blocks: " << (*minAcceptedBlocks)->acceptedBlocks << endl;
 		}
 	}
 
@@ -152,7 +152,7 @@ namespace quantas {
 		auto branch = branches.begin();
 		while (branch != branches.end()) {
 			if (blockChain.size() > branch->size()) {
-				if ((2*PT) <= (RoundManager::instance()->currentRound() - (*branch)[branch->size() - 1].roundMined)) {
+				if ((2*PT) <= (RoundManager::currentRound() - (*branch)[branch->size() - 1].roundMined)) {
 					for (int i = 0; i < branch->size(); ++i) {
 						if (blockChain[i] != (*branch)[i]) {
 							updatePerBlockLabels((*branch)[i], "rejected");
@@ -173,7 +173,7 @@ namespace quantas {
 		}
 
 		for (int index = acceptedBlocks + 1; index < blockChain.size(); ++index) {
-			if ((blockChain[index].roundMined + (2 * PT)) <= RoundManager::instance()->currentRound()) {
+			if ((blockChain[index].roundMined + (2 * PT)) <= RoundManager::currentRound()) {
 				bool noCompetingBranches    = true;
 				branch = branches.begin();
 				for ( ; branch != branches.end(); ++branch) {
@@ -246,7 +246,7 @@ namespace quantas {
 		block.minerId    = publicId();
 		block.tipMiner   = blockChain[blockChain.size() - 1].minerId;
 		block.depth      = blockChain.size();
-		block.roundMined = RoundManager::instance()->currentRound();
+		block.roundMined = RoundManager::currentRound();
 		blockChain.push_back(block);
 
 		sendBlockChain();

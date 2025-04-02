@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with QUA
 namespace quantas {
 
 	static bool registerPBFT = [](){
-		registerPeerType("PBFTPeer", 
+		PeerRegistry::registerPeerType("PBFTPeer", 
 			[](interfaceId pubId){ return new PBFTPeer(pubId); });
 		return true;
 	}();
@@ -21,10 +21,20 @@ namespace quantas {
 	int PBFTPeer::currentTransaction = 1;
 
 	PBFTPeer::~PBFTPeer() {
-
+		for_each(receivedMessages.begin(), receivedMessages.end(), [] (auto v) {
+			for_each(v.begin(), v.end(), [](PBFTPeerMessage* msg) {
+				delete msg;
+			});
+		});
+		for_each(transactions.begin(), transactions.end(), [](PBFTPeerMessage* msg) {
+			delete msg;
+		});
+		for_each(confirmedTrans.begin(), confirmedTrans.end(), [](PBFTPeerMessage* msg) {
+			delete msg;
+		});
 	}
 
-	PBFTPeer::PBFTPeer(const PBFTPeer& rhs) : Peer<PBFTPeerMessage>(rhs) {
+	PBFTPeer::PBFTPeer(const PBFTPeer& rhs) : Peer(rhs) {
 		
 	}
 
@@ -33,72 +43,59 @@ namespace quantas {
 	}
 
 	void PBFTPeer::performComputation() {
-		if (publicId() == 0 && RoundManager::instance()->currentRound() == 0) {
-			submitTrans(currentTransaction);
+		if (publicId() == getLeader() && RoundManager::currentRound() == 1) {
+			submitTrans();
 		}
 		if (true)
 			checkInStrm();
 
 		if (true)
 			checkContents();
-
 	}
 
 	void PBFTPeer::endOfRound(const vector<Peer*>& _peers) {
 		const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
+
+		/////////////////////////////////////////////
+        // int totalPeers = peers.size();
+        // int newLeader = (getLeader() + 1) % totalPeers;
+        // for (auto peer : peers) {
+        //     peer->updateLeader(newLeader);
+        // }
+        ////////////////////////////////////////////
+
 		double length = peers[0]->confirmedTrans.size();
-		LogWriter::getTestLog()["latency"].push_back(latency / length);
+		LogWriter::pushValue("latency", latency / length);
 	}
 
 	void PBFTPeer::checkInStrm() {
 		while (!inStreamEmpty()) {
-			Packet newMsg = popInStream();
+			Packet packet = popInStream();
+			PBFTPeerMessage* newMsg = dynamic_cast<PBFTPeerMessage*>(packet.getMessage());
 			
-			if (newMsg.getMessage().messageType == "trans") {
-				transactions.push_back(newMsg.getMessage());
+			if (newMsg->messageType == "trans") {
+				transactions.push_back(newMsg);
+				// cout << "recieved transaction" << endl;
 			}
 			else {
-				while (receivedMessages.size() < newMsg.getMessage().sequenceNum + 1) {
-					receivedMessages.push_back(vector<PBFTPeerMessage>());
+				while (receivedMessages.size() < newMsg->sequenceNum + 1) {
+					receivedMessages.push_back(vector<PBFTPeerMessage*>());
 				}
-				receivedMessages[newMsg.getMessage().sequenceNum].push_back(newMsg.getMessage());
+				receivedMessages[newMsg->sequenceNum].push_back(newMsg);
 			}
 		}
 	}
 	void PBFTPeer::checkContents() {
-		if (publicId() == 0 && status == "pre-prepare") {
-			for (int i = 0; i < transactions.size(); i++) {
-				bool skip = false;
-				for (int j = 0; j < confirmedTrans.size(); j++) {
-					if (transactions[i].trans == confirmedTrans[j].trans) {
-						skip = true;
-						break;
-					}
-				}
-				if (!skip) {
-					status = "prepare";
-					PBFTPeerMessage message = transactions[i];
-					message.messageType = "pre-prepare";
-					message.Id = publicId();
-					message.sequenceNum = sequenceNum;
-					broadcast(message);
-					if (receivedMessages.size() < sequenceNum + 1) {
-						receivedMessages.push_back(vector<PBFTPeerMessage>());
-					}
-					receivedMessages[sequenceNum].push_back(message);
-					break;
-				}
-			}
-		} else if (status == "pre-prepare" && receivedMessages.size() >= sequenceNum + 1) {
+		if (status == "pre-prepare" && receivedMessages.size() >= sequenceNum + 1) {
 			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				PBFTPeerMessage message = receivedMessages[sequenceNum][i];
-				if (message.messageType == "pre-prepare") {
+				PBFTPeerMessage* message = receivedMessages[sequenceNum][i];
+				if (message->messageType == "pre-prepare") {
 					status = "prepare";
-					PBFTPeerMessage newMsg = message;
-					newMsg.messageType = "prepare";
-					newMsg.Id = publicId();
+					PBFTPeerMessage* newMsg = message->clone();
+					newMsg->messageType = "prepare";
+					newMsg->Id = publicId();
+					receivedMessages[sequenceNum].push_back(newMsg->clone());
 					broadcast(newMsg);
-					receivedMessages[sequenceNum].push_back(newMsg);
 				}
 			}
 		}
@@ -106,33 +103,33 @@ namespace quantas {
 		if (status == "prepare") {
 			int count = 0;
 			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				PBFTPeerMessage message = receivedMessages[sequenceNum][i];
-				if (message.messageType == "prepare") {
+				PBFTPeerMessage* message = receivedMessages[sequenceNum][i];
+				if (message->messageType == "prepare") {
 					count++;
 				}
 			}
 			if (count > (neighbors().size() * 2 / 3)) {
 				status = "commit";
-				PBFTPeerMessage newMsg = receivedMessages[sequenceNum][0];
-				newMsg.messageType = "commit";
-				newMsg.Id = publicId();
+				PBFTPeerMessage* newMsg = receivedMessages[sequenceNum][0]->clone();
+				newMsg->messageType = "commit";
+				newMsg->Id = publicId();
+				receivedMessages[sequenceNum].push_back(newMsg->clone());
 				broadcast(newMsg);
-				receivedMessages[sequenceNum].push_back(newMsg);
 			}
 		}
 
 		if (status == "commit") {
 			int count = 0;
 			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				PBFTPeerMessage message = receivedMessages[sequenceNum][i];
-				if (message.messageType == "commit") {
+				PBFTPeerMessage* message = receivedMessages[sequenceNum][i];
+				if (message->messageType == "commit") {
 					count++;
 				}
 			}
 			if (count > (neighbors().size() * 2 / 3)) {
 				status = "pre-prepare";
-				confirmedTrans.push_back(receivedMessages[sequenceNum][0]);
-				latency += RoundManager::instance()->currentRound() - receivedMessages[sequenceNum][0].roundSubmitted;
+				confirmedTrans.push_back(receivedMessages[sequenceNum][0]->clone());
+				latency += RoundManager::currentRound() - receivedMessages[sequenceNum][0]->roundSubmitted;
 				sequenceNum++;
 				if (publicId() == 0) {
 					submitTrans(currentTransaction);
@@ -143,14 +140,14 @@ namespace quantas {
 
 	}
 
-	void PBFTPeer::submitTrans(int tranID) {
-		PBFTPeerMessage message;
-		message.messageType = "trans";
-		message.trans = tranID;
-		message.Id = publicId();
-		message.roundSubmitted = RoundManager::instance()->currentRound();
+	void PBFTPeer::submitTrans() {
+		PBFTPeerMessage* message = new PBFTPeerMessage();
+		message->messageType = "trans";
+		message->trans = currentTransaction;
+		message->Id = publicId();
+		message->roundSubmitted = RoundManager::currentRound();
+		transactions.push_back(message->clone());
 		broadcast(message);
-		transactions.push_back(message);
 		currentTransaction++;
 	}
 

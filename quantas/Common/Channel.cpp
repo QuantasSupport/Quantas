@@ -22,32 +22,19 @@ Channel::~Channel() {
 };
 
 void Channel::setParameters(const nlohmann::json &params) {
-    _dropProbability = params.value("dropProbability", 0.0);
-    _reorderProbability = params.value("reorderProbability", 0.0);
-    _duplicateProbability = params.value("duplicateProbability", 0.0);
-    _maxMsgsRec = params.value("maxMsgsRec", 1);
-    _throughputLeft = _maxMsgsRec*(RoundManager::instance()->lastRound()+1-RoundManager::instance()->currentRound());
-    _size = params.value("size", INT_MAX);
-    _avgDelay = params.value("avgDelay", 1);
-    _minDelay = params.value("minDelay", 1);
-    _maxDelay = params.value("maxDelay", 1);
-    std::string t = params.value("type", "UNIFORM");
-    if (t == "UNIFORM")  _delayStyle = DelayStyle::DS_UNIFORM;
-    else if (t == "POISSON") _delayStyle = DelayStyle::DS_POISSON;
-    else if (t == "ONE") _delayStyle = DelayStyle::DS_ONE;
+    _properties = ChannelPropertiesFactory::instance().create(params);
+    _throughputLeft = _properties->getMaxMsgsRec()*(RoundManager::lastRound()-RoundManager::currentRound());
 }
 
 int Channel::computeRandomDelay() const {
     int delay = 1;
-    switch(_delayStyle) {
+    switch (_properties->getDelayStyle()) {
     case DelayStyle::DS_UNIFORM:
-        delay = uniformInt(_minDelay, _maxDelay);
+        delay = uniformInt(_properties->getMinDelay(), _properties->getMaxDelay());
         break;
     case DelayStyle::DS_POISSON:
-        delay = poissonInt(_avgDelay);
-        // clamp
-        if (delay > _maxDelay) delay = _maxDelay;
-        if (delay < _minDelay) delay = _minDelay;
+        delay = poissonInt(_properties->getAvgDelay());
+        delay = std::clamp(delay, _properties->getMinDelay(), _properties->getMaxDelay());
         break;
     case DelayStyle::DS_ONE:
         delay = 1;
@@ -58,9 +45,8 @@ int Channel::computeRandomDelay() const {
 
 void Channel::pushPacket(Packet pkt) {
     // possible drop
-    if (trueWithProbability(_dropProbability)) {
+    if (trueWithProbability(_properties->getDropProbability())) {
         pkt.deleteMessage();
-        // drop => delete the message and do nothing
         return;
     }
 
@@ -70,28 +56,23 @@ void Channel::pushPacket(Packet pkt) {
         duplicate = false;
         if (!canSend()) {
             pkt.deleteMessage();
-            // No throughput left
             return;
         }
 
         consumeThroughput();
-
-        // set random delay
         int d = computeRandomDelay();
         pkt.setDelay(d, d);
-
-        // push into queue
         _packetQueue.push_back(pkt);
 
-        duplicate = trueWithProbability(_duplicateProbability);
+        duplicate = trueWithProbability(_properties->getDuplicateProbability());
         if (duplicate) pkt.setMessage(pkt.getMessage()->clone());
-        
-    } while (duplicate); // possible duplication
+
+    } while (duplicate);
 }
 
 void Channel::shuffleChannel() {
     // reorder
-    if (_packetQueue.size() > 1 && trueWithProbability(_reorderProbability)) {
+    if (_packetQueue.size() > 1 && trueWithProbability(_properties->getReorderProbability())) {
         std::shuffle(_packetQueue.begin(), _packetQueue.end(), threadLocalEngine());
     }
 }

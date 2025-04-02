@@ -37,8 +37,16 @@ public:
         return &s;
     }
 
-    int currentRound() const { return _currentRound; }
-    int lastRound()    const { return _lastRound; }
+    static int currentRound() { 
+        RoundManager* inst = instance();
+        return inst->_currentRound; 
+    }
+
+    static int lastRound() { 
+        RoundManager* inst = instance();
+        return inst->_lastRound;
+    }
+
     void setLastRound(int lastRound) { _lastRound = lastRound;}
     void setCurrentRound(int currentRound) {_currentRound = currentRound;}
     void incrementRound() {++_currentRound;}

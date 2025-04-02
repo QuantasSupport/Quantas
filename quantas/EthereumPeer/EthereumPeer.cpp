@@ -64,7 +64,8 @@ namespace quantas {
 				index = i;
 			}
 		}
-		LogWriter::getTestLog()["throughput"].push_back(length);
+		
+		LogWriter::pushValue("throughput", length);
 	}
 
 	void EthereumPeer::checkInStrm() {
@@ -125,7 +126,7 @@ namespace quantas {
 		EthereumPeerMessage message;
 		message.mined = false;
 		message.block.trans.id = currentTransaction++;
-		message.block.trans.roundSubmitted = RoundManager::instance()->currentRound();
+		message.block.trans.roundSubmitted = RoundManager::currentRound();
 		broadcast(message);
 	}
 

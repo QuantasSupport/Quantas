@@ -34,7 +34,7 @@ namespace quantas {
 	}
 
 	void KSMPeer::performComputation() {
-		if (RoundManager::instance()->currentRound() == 0) {
+		if (RoundManager::currentRound() == 1) {
 			for (int i = 0; i < getSourcePoolSize(); ++i) {
 				sourcePoolIds.push_back(i);
 			}
@@ -62,7 +62,7 @@ namespace quantas {
 			});
 
 		if (minAcceptedBlocks != peers.end()) {
-			cout << "Round: " << RoundManager::instance()->currentRound() << ";    Number of accepted blocks: " << (*minAcceptedBlocks)->acceptedBlocks << endl;
+			cout << "Round: " << RoundManager::currentRound() << ";    Number of accepted blocks: " << (*minAcceptedBlocks)->acceptedBlocks << endl;
 		}
 	}
 
@@ -283,7 +283,7 @@ namespace quantas {
 		block.minerId    = publicId();
 		block.tipMiner   = blockChain[blockChain.size() - 1].minerId;
 		block.depth      = blockChain.size();
-		block.roundMined = RoundManager::instance()->currentRound();
+		block.roundMined = RoundManager::currentRound();
 		blockChain.push_back(block);
 
 		auto found = sourcePoolPositions.find(publicId());
