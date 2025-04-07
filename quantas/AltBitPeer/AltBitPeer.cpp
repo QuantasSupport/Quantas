@@ -79,7 +79,7 @@ namespace quantas {
 			}
 		}
 	}
-	void AltBitPeer::endOfRound(const vector<Peer*>& _peers) {
+	void AltBitPeer::endOfRound(vector<Peer*>& _peers) {
 		if (RoundManager::lastRound() == RoundManager::currentRound()) {
 			const vector<AltBitPeer*> peers = reinterpret_cast<vector<AltBitPeer*> const&>(_peers);
 			int satisfied = 0;

@@ -140,7 +140,7 @@ namespace quantas {
 		}
 	}
 
-	void SmartShardsPeer::endOfRound(const vector<Peer*>& _peers) {
+	void SmartShardsPeer::endOfRound(vector<Peer*>& _peers) {
 		const vector<SmartShardsPeer*> peers = reinterpret_cast<vector<SmartShardsPeer*> const&>(_peers);
 
 		//for (int j = 0; j < nextJoiningNode; j++) {

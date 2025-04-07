@@ -81,7 +81,7 @@ namespace quantas {
 		}
 	}
 
-	void KademliaPeer::endOfRound(const vector<Peer*>& _peers) {
+	void KademliaPeer::endOfRound(vector<Peer*>& _peers) {
 		const vector<KademliaPeer*> peers = reinterpret_cast<vector<KademliaPeer*> const&>(_peers);
 		peers[randMod(neighbors().size()) + 1]->submitTrans(currentTransaction);
 		double satisfied = 0;

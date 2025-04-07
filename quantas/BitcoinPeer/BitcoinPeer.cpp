@@ -44,7 +44,7 @@ namespace quantas {
 			mineBlock();
 	}
 
-	void BitcoinPeer::endOfRound(const vector<Peer*>& _peers) {
+	void BitcoinPeer::endOfRound(vector<Peer*>& _peers) {
 		const vector<BitcoinPeer*> peers = reinterpret_cast<vector<BitcoinPeer*> const&>(_peers);
 		int length = peers[0]->blockChain.size();
 		int index = 0;

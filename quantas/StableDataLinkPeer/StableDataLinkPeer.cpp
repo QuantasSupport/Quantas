@@ -85,7 +85,7 @@ namespace quantas {
 		}
 	}
 
-	void StableDataLinkPeer::endOfRound(const vector<Peer*>& _peers) {
+	void StableDataLinkPeer::endOfRound(vector<Peer*>& _peers) {
 		const vector<StableDataLinkPeer*> peers = reinterpret_cast<vector<StableDataLinkPeer*> const&>(_peers);
 		int satisfied = 0;
 		double messages = 0;

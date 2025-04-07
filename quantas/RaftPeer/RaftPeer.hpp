@@ -35,7 +35,7 @@ namespace quantas{
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(const vector<Peer*>& _peers);
+        void                 endOfRound(vector<Peer*>& _peers);
 
         // id of the node voted as the next leader
         int                             candidate = -1;

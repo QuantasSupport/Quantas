@@ -26,12 +26,20 @@ namespace quantas{
     class PBFTPeerMessage : public Message {
     public:
         PBFTPeerMessage() {}
-		PBFTPeerMessage(int id, int tran, int sqnNum, string msgType, int rndSubmit) : Id(id), trans(tran), sequenceNum(sqnNum), messageType(msgType), roundSubmitted(rndSubmit) {};
+        PBFTPeerMessage(const PBFTPeerMessage& rhs) {
+            Id = rhs.Id;
+            trans = rhs.trans;
+            sequenceNum = rhs.sequenceNum;
+            messageType = rhs.messageType;
+            roundSubmitted = rhs.roundSubmitted;
+        }
+        PBFTPeerMessage* clone() const override {return new PBFTPeerMessage(*this);}
         int 				Id = -1; // node who sent the message
-        Transaction			trans;   // the transaction
+        int     			trans;   // the transaction
         int                 sequenceNum = -1;
         string              messageType = ""; // phaseTransaction
-        PBFTPeerMessage* clone() const override {return new PBFTPeerMessage(Id, trans, sequenceNum, messageType, roundSubmitted);}
+        int                 roundSubmitted = -1;
+        
     };
 
     class PBFTPeer : public Peer{
@@ -44,7 +52,7 @@ namespace quantas{
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(const vector<Peer*>& _peers);
+        void                 endOfRound(vector<Peer*>& _peers);
 
         // string indicating the current status of a node
         string                          status = "pre-prepare";
@@ -55,7 +63,7 @@ namespace quantas{
         // timer for suggesting a view change
         int                             viewChangeTimer = 0;
         int                             viewChangeTimeOut = INT_MAX;
-        interfaceId                     currentLeader = NO_PEER_ID;
+        interfaceId                     currentLeader = 0;
         
         // vector of vectors of messages that have been received
         vector<vector<PBFTPeerMessage*>> receivedMessages;
@@ -71,7 +79,7 @@ namespace quantas{
         // rate at which to submit transactions ie 1 in x chance for all n nodes
         int                             submitRate = 20;
         // the id of the next transaction to submit
-        int                             currentTransaction;
+        static int                             currentTransaction;
 
 
         // checkInStrm loops through the in stream adding messsages to receivedMessages or transactions

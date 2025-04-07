@@ -1,0 +1,22 @@
+{
+  "algorithms": [
+    "PBFTPeer/PBFTPeerV2.cpp"
+  ],
+  "experiments": [
+    {
+      "logFile": "PBFTDelay1.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "initialPeerType": "PBFTPeer"
+      },
+      "tests": 10,
+      "rounds": 100
+    }
+  ]
+}

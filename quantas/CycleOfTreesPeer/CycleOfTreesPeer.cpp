@@ -77,7 +77,7 @@ namespace quantas {
 		pickEdges();
 	}
 
-	void CycleOfTreesPeer::endOfRound(const vector<Peer*>& _peers) {
+	void CycleOfTreesPeer::endOfRound(vector<Peer*>& _peers) {
 		const vector <CycleOfTreesPeer*> peers = reinterpret_cast<vector<CycleOfTreesPeer*> const&>(_peers);
 
 		pickEdges();

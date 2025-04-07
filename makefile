@@ -18,13 +18,13 @@
 
 # INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 
-INPUTFILE := quantas/PBFTPeer/_PBFTInput.json
+# INPUTFILE := quantas/PBFTPeer/_PBFTInput.json
 
 # INPUTFILE := quantas/AltBitPeer/AltBitUtility.json
 
 # INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
 
-# INPUTFILE := quantas/PBFTPeer/PBFTInput.json
+INPUTFILE := quantas/PBFTPeer/PBFTInput.json
 
 ############################### Variables and Flags ###############################
 

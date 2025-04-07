@@ -98,40 +98,69 @@ private:
 };
 
 //---------------------------------
-// Transaction
+// ClientRequest
 //---------------------------------
-class Transaction {
+class ClientRequest {
 public:
-    Transaction() : _num(-1), _submitter(NO_PEER_ID), _committeeId(-1)
-    {_roundSubmitted = RoundManager::currentRound();}
-
-    Transaction(int n, interfaceId id, int com) : _num(n), _submitter(id), _committeeId(com)
+    ClientRequest() : _num(-1), _submitter(NO_PEER_ID), _committeeId(-1)
     {
         _roundSubmitted = RoundManager::currentRound();
     }
 
-    // Identity of transaction: (submitter, number)
-    bool operator==(const Transaction& rhs) const {
-        return _submitter == rhs._submitter && _num == rhs._num;
+    ClientRequest(int n, interfaceId id, int com) : _num(n), _submitter(id), _committeeId(com)
+    {
+        _roundSubmitted = RoundManager::currentRound();
     }
 
-    // Example ordering based on transaction number
-    bool operator<(const Transaction& rhs) const {
-        return _num < rhs._num;
+    ClientRequest(const ClientRequest& rhs) {
+        _submitter = rhs._submitter;
+        _num = rhs._num;
+        _committeeId = rhs._committeeId;
+    };
+
+    virtual ClientRequest* clone() const { return new ClientRequest(*this);}
+
+    // Identity of ClientRequest: (submitter, number)
+    virtual bool operator==(const ClientRequest& rhs) const {
+        return _submitter == rhs._submitter && _num == rhs._num && _committeeId == rhs._committeeId;
     }
 
-    // Public members for brevity; in practice you may want getter/setters
+
+    virtual bool operator<(const ClientRequest& rhs) const {
+        // test is writing it out is faster
+        // (_committeeId == rhs.committeeId && submitter == rhs.submitter && _num < rhs._num)
+        if (_committeeId == rhs.committeeId) {
+            if (submitter == rhs.submitter) {
+                return _num < rhs._num;
+            } else {
+                return submitter < rhs.submitter;
+            }
+        } else {
+            return committeeId < rhs.committeeId;
+        }
+    }
+
+    // private:
+    // Public members switch to getter/setters
     int _num;
     interfaceId _submitter;
     int _committeeId;
-    int _roundSubmitted;
+    int _roundSubmitted = 0;
 };
 
-class Request {
+class Proposal {
 public:
-    Transaction _trans;
-    int _sequenceNum = -1;
-    bool _value = false;
+    Proposal() {}
+    Proposal(const Proposal& rhs) {
+        _req = rhs._req->clone();
+        _seqNum = rhs._seqNum;
+        _value = rhs._value;
+    };
+    virtual Proposal* clone() const { return new Proposal(*this);}
+    // switch to getters and setters
+    ClientRequest* _req;
+    int _seqNum = -1;
+    bool _value = true;
 }
 
 // Forward declaration
@@ -140,10 +169,14 @@ class Phase;
 class ConsensusMessage : public Message {
 public:
     ConsensusMessage() {}
-    ConsensusMessage(Request req, Phase*& phase, interfaceId from) : _req(req), _phase(phase), _from(from) {};
-    ConsensusMessage* clone() const override {return new ConsensusMessage(_req, _phase, _from);}
+    ConsensusMessage(const ConsensusMessage& rhs) {
+        _proposal = rhs._proposal->clone();
+        _phase = rhs._phase;
+        _from = rhs._from;
+    };
+    ConsensusMessage* clone() const override {return new ConsensusMessage(*this);}
 
-    Request _req;
+    Proposal* _proposal;
     Phase* _phase;
     interfaceId _from;
 }
@@ -153,24 +186,40 @@ class Consensus {
 public:
     Consensus();
     void changePhase(Phase*& phase){_phase=phase;};
-
+    ~Consensus() {
+        for_each(receivedMessages.begin(), receivedMessages.end(), [] (auto v) {
+			for_each(v.begin(), v.end(), [](auto msg) {
+				delete msg.second;
+			});
+		});
+		for_each(transactions.begin(), transactions.end(), [](auto msg) {
+			delete msg;
+		});
+		for_each(confirmedTrans.begin(), confirmedTrans.end(), [](auto msg) {
+			delete msg;
+		});
+    }
 public:
-    // vector of vectors of messages that have been received
-    vector<vector<ConsensusMessages*>>  _receivedMessages;
-    // vector of recieved transactions
-    vector<ConsensusMessages*>          _transactions;
-    // vector of confirmed transactions
-    vector<ConsensusMessages*>		    _confirmedTrans;
-    // latency of confirmed transactions
-    int                                 _latency = 0;
-    // rate at which to submit transactions ie 1 in x chance for all n nodes
-    int                                 _submitRate = 20;
-    // the id of the next transaction to submit
-    int                                 _currentTransaction;
+    // map of a multimap of messages that have been received 
+    // keyed by the sequence number and 
+    // phase to which they belong for quicker lookups
+    map<int, multi_map<Phase*, ConsensusMessages*>>    _receivedMessages;
+    // vector of recieved ClientRequests
+    // consider changing container later
+    vector<ClientRequest*>                   _ClientRequests;
+    // vector of confirmed ClientRequests
+    // consider changing container later
+    vector<ClientRequest*>		            _confirmedTrans;
+    // running sum of latencies of confirmed ClientRequests
+    int                                     _latency = 0;
+    // rate at which to submit ClientRequests i.e. 1 in x chance for all n nodes
+    int                                     _submitRate = 20;
+    // the id of the next ClientRequest to submit for this submitter
+    int                                     _currentClientRequestId;
     // current phase
-    Phase*                              _phase;
-    // committee involved in this consensus
-    Committee                           _committee;
+    Phase*                                  _phase;
+    // committee involved in this consensus group
+    Committee                               _committee;
 }
 
 class Phase {
@@ -181,18 +230,18 @@ public:
      }
 }
 
-class ExamplePhase: public Phase {
-public:
-    static Phase* instance() {
-        static Phase* onlyInstance = new ExamplePhase;
-        return onlyInstance;
-    }
-    string report() override {return "ExamplePhase";}
-private:
-    ExamplePhase() = default;
-    ExamplePhase(const ExamplePhase&) = delete;
-    ExamplePhase& operator=(const ExamplePhase&) = delete;
-};
+// class ExamplePhase: public Phase {
+// public:
+//     static Phase* instance() {
+//         static Phase* onlyInstance = new ExamplePhase;
+//         return onlyInstance;
+//     }
+//     string report() override {return "ExamplePhase";}
+// private:
+//     ExamplePhase() = default;
+//     ExamplePhase(const ExamplePhase&) = delete;
+//     ExamplePhase& operator=(const ExamplePhase&) = delete;
+// };
 
 
 

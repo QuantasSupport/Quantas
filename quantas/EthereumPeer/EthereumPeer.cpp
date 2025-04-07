@@ -45,7 +45,7 @@ namespace quantas {
 			mineBlock();
 	}
 
-	void EthereumPeer::endOfRound(const vector<Peer*>& _peers) {
+	void EthereumPeer::endOfRound(vector<Peer*>& _peers) {
 		const vector<EthereumPeer*> peers = reinterpret_cast<vector<EthereumPeer*> const&>(_peers);
 		int length = INT_MAX;
 		int index;

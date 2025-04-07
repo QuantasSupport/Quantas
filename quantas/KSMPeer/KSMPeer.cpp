@@ -53,7 +53,7 @@ namespace quantas {
 		}
 	}
 
-	void KSMPeer::endOfRound(const vector<Peer*>& _peers) {
+	void KSMPeer::endOfRound(vector<Peer*>& _peers) {
 		const vector<KSMPeer*> peers = reinterpret_cast<vector<KSMPeer*> const&>(_peers);
 
 		auto minAcceptedBlocks = std::min_element(peers.begin(), peers.end(),

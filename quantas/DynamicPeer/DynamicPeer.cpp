@@ -42,7 +42,7 @@ namespace quantas {
                 }
 	}
 
-	void DynamicPeer::endOfRound(const vector<Peer*>& _peers) {
+	void DynamicPeer::endOfRound(vector<Peer*>& _peers) {
 		const vector<DynamicPeer*> peers = reinterpret_cast<vector<DynamicPeer*> const&>(_peers);
 		bool  flag  = true;
 		int   index = acceptedBlocks + 1;

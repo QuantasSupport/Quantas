@@ -600,7 +600,7 @@ void TrailPeer::broadcastTo(TrailMessage m, Neighborhood n) {
     }
 }
 
-void TrailPeer::endOfRound(const vector<Peer*> &_peers) {
+void TrailPeer::endOfRound(vector<Peer*> &_peers) {
     messages.push_back(
         {{"round", RoundManager::currentRound()},
          {"transactionType", "local"},

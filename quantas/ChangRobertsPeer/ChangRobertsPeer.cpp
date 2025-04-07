@@ -57,7 +57,7 @@ namespace quantas {
 		}
 	}
 
-	void ChangRobertsPeer::endOfRound(const vector<Peer*>& _peers) {
+	void ChangRobertsPeer::endOfRound(vector<Peer*>& _peers) {
 		long all_messages_sent = 0;
 		bool elected = false;
 		long elected_id = -1;

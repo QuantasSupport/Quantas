@@ -53,7 +53,7 @@ namespace quantas {
 		}
 	}
 
-	void RaftPeer::endOfRound(const vector<Peer*>& _peers) {
+	void RaftPeer::endOfRound(vector<Peer*>& _peers) {
 		const vector<RaftPeer*> peers = reinterpret_cast<vector<RaftPeer*> const&>(_peers);
 		double satisfied = 0;
 		double lat = 0;

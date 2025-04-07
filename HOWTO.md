@@ -65,7 +65,7 @@ Similarly, from the ``ExamplePeer.cpp``, we create the following ``ChangRobertsP
 		void ChangRobertsPeer::performComputation() {
 		}
 
-		void ChangRobertsPeer::endOfRound(const vector<Peer*>& _peers) {
+		void ChangRobertsPeer::endOfRound(vector<Peer*>& _peers) {
 			cout << "End of round " << RoundManager::currentRound() << endl;
 		}
 	}
@@ -230,7 +230,7 @@ Whenever we call ``unicast()`` or ``broadcastBut()``, we increment the ``message
 
 Then, at the end of each round, we check whether a leader has been elected in this round. If so, we simply accumulate all messages and log them, along with the current round number and the elected identifier:
 
-	void ChangRobertsPeer::endOfRound(const vector<Peer*>& _peers) {
+	void ChangRobertsPeer::endOfRound(vector<Peer*>& _peers) {
 		long all_messages_sent = 0;
 		bool elected = false;
 		interfaceId elected_id = NO_PEER_ID;

@@ -21,17 +21,7 @@ namespace quantas {
 	int PBFTPeer::currentTransaction = 1;
 
 	PBFTPeer::~PBFTPeer() {
-		for_each(receivedMessages.begin(), receivedMessages.end(), [] (auto v) {
-			for_each(v.begin(), v.end(), [](PBFTPeerMessage* msg) {
-				delete msg;
-			});
-		});
-		for_each(transactions.begin(), transactions.end(), [](PBFTPeerMessage* msg) {
-			delete msg;
-		});
-		for_each(confirmedTrans.begin(), confirmedTrans.end(), [](PBFTPeerMessage* msg) {
-			delete msg;
-		});
+        
 	}
 
 	PBFTPeer::PBFTPeer(const PBFTPeer& rhs) : Peer(rhs) {

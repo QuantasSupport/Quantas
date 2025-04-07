@@ -74,7 +74,7 @@ namespace quantas {
         }
 	}
 
-	void ExamplePeer2::endOfRound(const vector<Peer*>& _peers) {
+	void ExamplePeer2::endOfRound(vector<Peer*>& _peers) {
 		const vector<ExamplePeer2*> peers = reinterpret_cast<vector<ExamplePeer2*> const&>(_peers);
 		int sum = accumulate(peers.begin(), peers.end(), 0, [](int sum, auto p) {
 			return sum + p->msgsSent;

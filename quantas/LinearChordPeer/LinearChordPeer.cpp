@@ -211,7 +211,7 @@ namespace quantas {
 		}
 	}
 
-	void LinearChordPeer::endOfRound(const vector<Peer*>& _peers) {
+	void LinearChordPeer::endOfRound(vector<Peer*>& _peers) {
 		const vector<LinearChordPeer*> peers = reinterpret_cast<vector<LinearChordPeer*> const&>(_peers);
 		numberOfNodes = peers.size();
 		peers[randMod(numberOfNodes)]->submitTrans(currentTransaction);

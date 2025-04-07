@@ -48,7 +48,7 @@ namespace quantas {
             checkContents();
     }
 
-    void PBFTPeer::endOfRound(const vector<Peer*> &_peers) {
+    void PBFTPeer::endOfRound(vector<Peer*> &_peers) {
         const vector<PBFTPeer *> peers =
             reinterpret_cast<vector<PBFTPeer *> const &>(_peers);
 
