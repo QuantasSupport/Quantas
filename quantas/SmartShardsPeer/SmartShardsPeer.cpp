@@ -79,7 +79,7 @@ namespace quantas {
 		}
 	}
 
-	void SmartShardsPeer::initParameters(const vector<Peer*>& _peers, json parameters) {
+	void SmartShardsPeer::initParameters(vector<Peer*>& _peers, json parameters) {
 		const vector<SmartShardsPeer*> peers = reinterpret_cast<vector<SmartShardsPeer*> const&>(_peers);
 		// number of shards = s
 		// number of shards a node is in L = 2 currently fixed at 2

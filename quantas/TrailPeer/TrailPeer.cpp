@@ -103,7 +103,7 @@ void CrossShardPBFTRequest::addToConsensus(TrailMessage message, int sourceID) {
 // LocalWallets for each neighborhood; neighborhoodsForPeers maps a peer's id to
 // the index of the neighborhood it's in; static members are reset
 void TrailPeer::initParameters(
-    const vector<Peer*> &_peers, json parameters
+    vector<Peer*> &_peers, json parameters
 ) {
     // divide peers into neighborhoods: if the neighborhood size is 5, then
     // the first 5 peers are placed in a neighborhood, then the next 5

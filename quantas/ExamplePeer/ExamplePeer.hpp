@@ -46,7 +46,7 @@ namespace quantas{
         ~ExamplePeer                            ();
 
         // initialize the configuration of the system
-        void                 initParameters(const vector<Peer*>& _peers, json parameters);
+        void                 initParameters(vector<Peer*>& _peers, json parameters);
         // perform one step of the Algorithm with the messages in inStream
         void                 performComputation ();
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)

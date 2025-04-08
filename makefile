@@ -16,7 +16,7 @@
 #  Configure this for the specific input file.
 #  Make sure to include the path to the input file 
 
-# INPUTFILE := quantas/ExamplePeer/ExampleInput.json
+INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 
 # INPUTFILE := quantas/PBFTPeer/_PBFTInput.json
 
@@ -24,7 +24,7 @@
 
 # INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
 
-INPUTFILE := quantas/PBFTPeer/PBFTInput.json
+# INPUTFILE := quantas/PBFTPeer/PBFTInput.json
 
 ############################### Variables and Flags ###############################
 

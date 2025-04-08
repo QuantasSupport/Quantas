@@ -42,7 +42,7 @@ namespace quantas {
 		sendMessage();
 	}
 
-	void CycleOfTreesPeer::initParameters(const vector<Peer*>& _peers, json parameters) {
+	void CycleOfTreesPeer::initParameters(vector<Peer*>& _peers, json parameters) {
 		const vector<CycleOfTreesPeer*> peers = reinterpret_cast<vector<CycleOfTreesPeer*> const&>(_peers);
 
 		// numberOfEdges = number of edges per round

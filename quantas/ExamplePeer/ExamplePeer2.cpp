@@ -32,7 +32,7 @@ namespace quantas {
 		
 	}
 
-	void ExamplePeer2::initParameters(const vector<Peer*>& _peers, json parameters) {
+	void ExamplePeer2::initParameters(vector<Peer*>& _peers, json parameters) {
 		const vector<ExamplePeer2*> peers = reinterpret_cast<vector<ExamplePeer2*> const&>(_peers);
 		
 		// Initializing parameters of simulation

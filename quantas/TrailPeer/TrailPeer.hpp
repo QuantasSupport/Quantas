@@ -242,7 +242,7 @@ class TrailPeer : public Peer<TrailMessage> {
     // perform one step of the algorithm with the messages in inStream
     void performComputation() override;
 
-    void endOfRound(const vector<Peer*> &_peers) override;
+    void endOfRound(vector<Peer*> &_peers) override;
 
     void broadcastTo(TrailMessage, Neighborhood);
     void initiateTransaction(bool withinNeighborhood = true);

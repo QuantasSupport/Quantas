@@ -37,21 +37,8 @@ namespace quantas {
 	};
 
 	inline void Simulation::run(json config) {
-		ofstream out;
-		if (config["logFile"] == "cout") {
-			LogWriter::instance()->setLog(cout); // Set the log file to the console
-		}
-		else {
-			string file = config["logFile"];
-			out.open(file);
-			if (out.fail()) {
-				cout << "Error: could not open file " << file << ". Writing to console" << endl;
-				LogWriter::instance()->setLog(cout); // If the file doesn't open set the log file to the console
-			}
-			else {
-				LogWriter::instance()->setLog(out); // Otherwise set the log file to the user given file
-			}
-		}
+		std::string logFile = config.value("logFile", "cout");
+		LogWriter::setLogFile(logFile); // Set the log file to the console
 
 		std::chrono::time_point<std::chrono::high_resolution_clock> startTime, endTime; // chrono time points
    		std::chrono::duration<double> duration; // chrono time interval
@@ -94,10 +81,9 @@ namespace quantas {
 		
 		endTime = std::chrono::high_resolution_clock::now();
    		duration = endTime - startTime;
-		LogWriter::instance()->data["RunTime"] = duration.count();
+		LogWriter::setValue("RunTime", double(duration.count()));
 
-		LogWriter::instance()->print();
-		out.close();
+		LogWriter::print();
 	}
 
 	

@@ -41,7 +41,7 @@ The new algorithm has no local variables, and the content of every message is a 
 	        ~ChangRobertsPeer                            ();
 
 	        void                 performComputation ();
-	        void                 endOfRound         (const vector<Peer*>& _peers);
+	        void                 endOfRound         (vector<Peer*>& _peers);
 	    };
 	}
 	#endif
