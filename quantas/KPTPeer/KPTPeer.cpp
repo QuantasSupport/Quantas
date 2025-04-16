@@ -23,7 +23,7 @@ namespace quantas {
 
 	static bool registerKPT = [](){
 		registerPeerType("KPTPeer", 
-			[](interfaceId pubId){ return new KPTPeer(pubId); });
+			[](interfaceId pubId){ return new KPTPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -33,7 +33,7 @@ namespace quantas {
 
 	KPTPeer::KPTPeer(const KPTPeer& rhs) : Peer<KPTMessage>(rhs) {}
 
-	KPTPeer::KPTPeer(long id) : Peer(id) {
+	KPTPeer::KPTPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		KPTBlock genesis;
 		genesis.depth = 0;
 		blockChain.push_back(genesis);

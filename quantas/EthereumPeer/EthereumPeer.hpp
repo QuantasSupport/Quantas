@@ -47,14 +47,14 @@ namespace quantas{
     class EthereumPeer : public Peer<EthereumPeerMessage>{
     public:
         // methods that must be defined when deriving from Peer
-        EthereumPeer                             (interfaceId);
+        EthereumPeer                             (NetworkInterface*);
         EthereumPeer                             (const EthereumPeer&rhs);
         ~EthereumPeer();
 
         // perform one step of the Algorithm with the messages in inStream
-        void                 performComputation();
+        void                 performComputation() override;
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(vector<Peer*>& _peers);
+        void                 endOfRound(vector<Peer*>& _peers) override;
 
         // vector of vectors of blocks that have been mined
         vector<vector<EtherBlock>> blockChain{ { vector<EtherBlock> { EtherBlock() } } };

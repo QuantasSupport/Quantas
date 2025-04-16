@@ -21,10 +21,10 @@
 #include <random>
 #include <filesystem>
 
-#include "Common/Network.hpp"
-#include "Common/NetworkInterface.hpp"
-#include "Common/Simulation.hpp"
-#include "Common/Json.hpp"
+#include "Network.hpp"
+#include "Simulation.hpp"
+#include "../NetworkInterface.hpp"
+#include "../Json.hpp"
 
 using nlohmann::json;
 

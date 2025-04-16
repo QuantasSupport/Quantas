@@ -21,7 +21,7 @@ namespace quantas{
     // message body type : ID of a process
     //
     struct ChangRobertsMessage{        
-        long aPeerId;
+        interfaceId aPeerId;
     };
 
     //
@@ -30,7 +30,7 @@ namespace quantas{
     class ChangRobertsPeer : public Peer<ChangRobertsMessage>{
     public:
         // methods that must be defined when deriving from Peer
-        ChangRobertsPeer                             (long);
+        ChangRobertsPeer                             (NetworkInterface*);
         ChangRobertsPeer                             (const ChangRobertsPeer &rhs);
         ~ChangRobertsPeer                            ();
 

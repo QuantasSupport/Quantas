@@ -19,15 +19,21 @@ along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 #ifndef RoundManager_hpp
 #define RoundManager_hpp
 
+#include <chrono>
+
 namespace quantas {
 
 class RoundManager {
 private:
-    int _currentRound{0};
-    int _lastRound{0};
+    size_t _currentRound{0};
+    size_t _lastRound{0};
+    bool _synchronous{true};
+    std::chrono::steady_clock::time_point _start_time;
 
     // Private constructor and copy operations to enforce singleton usage:
-    RoundManager() = default;
+    RoundManager() {
+        _start_time = std::chrono::steady_clock::now();
+    };
     RoundManager(const RoundManager&) = delete;
     RoundManager& operator=(const RoundManager&) = delete;
 
@@ -37,20 +43,42 @@ public:
         return &s;
     }
 
-    static int currentRound() { 
+    static size_t currentRound() { 
         RoundManager* inst = instance();
-        return inst->_currentRound; 
+        if (inst->_synchronous) {
+            return inst->_currentRound;
+        } else {
+            auto now = std::chrono::steady_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - inst->_start_time);
+            return static_cast<size_t>(duration.count());
+        }
     }
 
-    static int lastRound() { 
+    static size_t lastRound() { 
         RoundManager* inst = instance();
         return inst->_lastRound;
     }
 
-    void setLastRound(int lastRound) { _lastRound = lastRound;}
-    void setCurrentRound(int currentRound) {_currentRound = currentRound;}
-    void incrementRound() {++_currentRound;}
-    void increaseRound(int val) {_currentRound += val;}
+    static void setLastRound(size_t lastRound) { 
+        RoundManager* inst = instance();
+        inst->_lastRound = lastRound;
+    }
+    static void setCurrentRound(size_t currentRound) {
+        RoundManager* inst = instance();
+        inst->_currentRound = currentRound;
+    }
+    static void incrementRound() {
+        RoundManager* inst = instance();
+        ++(inst->_currentRound);
+    }
+    static void increaseRound(size_t val) {
+        RoundManager* inst = instance();
+        inst->_currentRound += val;
+    }
+    static void asynchronous() {
+        RoundManager* inst = instance();
+        inst->_synchronous = false;
+    }
 };
 
 } // end namespace quantas

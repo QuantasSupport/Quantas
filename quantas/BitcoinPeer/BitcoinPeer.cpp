@@ -14,7 +14,7 @@ namespace quantas {
 
 	static bool registerBitcoin = [](){
 		PeerRegistry::registerPeerType("BitcoinPeer", 
-			[](interfaceId pubId){ return new BitcoinPeer(pubId); });
+			[](interfaceId pubId){ return new BitcoinPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -29,7 +29,7 @@ namespace quantas {
 		
 	}
 
-	BitcoinPeer::BitcoinPeer(interfaceId id) : Peer(id) {
+	BitcoinPeer::BitcoinPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		
 	}
 

@@ -40,7 +40,7 @@ namespace quantas{
     class ExamplePeer : public Peer{
     public:
         // methods that must be defined when deriving from Peer
-        ExamplePeer                             (interfaceId);
+        ExamplePeer                             (NetworkInterface*);
         ExamplePeer                             (const ExamplePeer &rhs);
         ExamplePeer                             (Peer* rhs);
         ~ExamplePeer                            ();

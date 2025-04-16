@@ -14,7 +14,7 @@ namespace quantas {
 
 	static bool registerExamplePeer = [](){
 		PeerRegistry::registerPeerType("ExamplePeer", 
-			[](interfaceId pubId){ return new ExamplePeer(pubId); });
+			[](interfaceId pubId){ return new ExamplePeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -29,7 +29,7 @@ namespace quantas {
 		
 	}
 
-	ExamplePeer::ExamplePeer(interfaceId id) : Peer(id) {
+	ExamplePeer::ExamplePeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		
 	}
 

@@ -13,7 +13,7 @@ namespace quantas {
 
 	static bool registerCycleOfTrees = [](){
 		registerPeerType("CycleOfTreesPeer", 
-			[](interfaceId pubId){ return new CycleOfTreesPeer(pubId); });
+			[](interfaceId pubId){ return new CycleOfTreesPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -33,7 +33,7 @@ namespace quantas {
 
 	}
 
-	CycleOfTreesPeer::CycleOfTreesPeer(long id) : Peer(id) {
+	CycleOfTreesPeer::CycleOfTreesPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 
 	}
 

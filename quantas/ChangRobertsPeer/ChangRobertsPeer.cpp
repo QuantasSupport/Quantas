@@ -14,7 +14,7 @@ namespace quantas {
 
 	static bool registerChangRoberts = [](){
 		registerPeerType("ChangRobertsPeer", 
-			[](interfaceId pubId){ return new ChangRobertsPeer(pubId); });
+			[](interfaceId pubId){ return new ChangRobertsPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -26,7 +26,7 @@ namespace quantas {
 		
 	}
 
-	ChangRobertsPeer::ChangRobertsPeer(long id) : Peer(id), messages_sent(0), first_elected(false) {
+	ChangRobertsPeer::ChangRobertsPeer(NetworkInterface* networkInterface) : Peer(networkInterface), messages_sent(0), first_elected(false) {
 		
 	}
 
@@ -60,7 +60,7 @@ namespace quantas {
 	void ChangRobertsPeer::endOfRound(vector<Peer*>& _peers) {
 		long all_messages_sent = 0;
 		bool elected = false;
-		long elected_id = -1;
+		interfaceId elected_id = -1;
 		const vector<ChangRobertsPeer*> peers = reinterpret_cast<vector<ChangRobertsPeer*> const&>(_peers);
 		for(auto it = peers.begin(); it != peers.end(); ++it) {
 			all_messages_sent += (*it)->messages_sent;

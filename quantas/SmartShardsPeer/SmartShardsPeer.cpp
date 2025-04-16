@@ -13,7 +13,7 @@ namespace quantas {
 
 	static bool registerSmartShards = [](){
 		registerPeerType("SmartShardsPeer", 
-			[](interfaceId pubId){ return new SmartShardsPeer(pubId); });
+			[](interfaceId pubId){ return new SmartShardsPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -40,7 +40,7 @@ namespace quantas {
 
 	}
 
-	SmartShardsPeer::SmartShardsPeer(long id) : Peer(id) {
+	SmartShardsPeer::SmartShardsPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 
 	}
 

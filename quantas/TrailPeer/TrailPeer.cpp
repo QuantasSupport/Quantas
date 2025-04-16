@@ -19,7 +19,7 @@ namespace quantas {
 
     static bool registerTrail = [](){
 		registerPeerType("TrailPeer", 
-			[](interfaceId pubId){ return new TrailPeer(pubId); });
+			[](interfaceId pubId){ return new TrailPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 // -- implementation of underlying consensus algorithm --
@@ -117,7 +117,7 @@ void TrailPeer::initParameters(
     previousSequenceNumber = -1;
     issuedCoins = 0;
     walletsForNeighborhoods = std::vector<std::vector<LocalWallet>>();
-    neighborhoodsForPeers = std::unordered_map<long, int>();
+    neighborhoodsForPeers = std::unordered_map<interfaceId, int>();
     neighborhoods = std::vector<Neighborhood>();
 
     validatorNeighborhoods = parameters["validatorNeighborhoods"];
@@ -170,7 +170,7 @@ void TrailPeer::initParameters(
             static_cast<int>(_peers.size()) - i * maxNeighborhoodSize
         );
         for (int n = 0; n < actualNeighborhoodSize; ++n) {
-            const long peerID = i * maxNeighborhoodSize + n;
+            const interfaceId peerID = i * maxNeighborhoodSize + n;
             newNeighborhood.memberIDs.insert(peerID);
             neighborhoodsForPeers[peerID] = i;
         }
@@ -265,19 +265,19 @@ void TrailPeer::initParameters(
     }
 
     // make sure there is no pointer re-use
-    std::unordered_set<long> ptrs;
+    std::unordered_set<interfaceId> ptrs;
     for (auto &n : _peers) {
         TrailPeer *e = dynamic_cast<TrailPeer *>(n);
         assert(e); // cast should have succeeded
         for (auto coinPair : e->coinDB) {
-            assert(ptrs.count((long)coinPair.second) == 0);
-            ptrs.insert((long)coinPair.second);
+            assert(ptrs.count((interfaceId)coinPair.second) == 0);
+            ptrs.insert((interfaceId)coinPair.second);
         }
     }
     std::cout << "finished initParameters" << std::endl;
 }
 
-TrailPeer::TrailPeer(long id) : Peer<TrailMessage>(id) {}
+TrailPeer::TrailPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {}
 
 bool TrailPeer::validateTransaction(OngoingTransaction t) {
     // for now, just checking to see if the coin was last known to be in the
@@ -595,7 +595,7 @@ void TrailPeer::broadcastTo(TrailMessage m, Neighborhood n) {
     //     std::cout << "Receiver: neighborhood " << n.id << ", led by "
     //               << n.leader << "\n\n";
     // }
-    for (const long &i : n.memberIDs) {
+    for (const interfaceId &i : n.memberIDs) {
         unicastTo(m, i);
     }
 }

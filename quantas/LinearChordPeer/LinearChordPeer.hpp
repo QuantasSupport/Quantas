@@ -30,14 +30,14 @@ namespace quantas {
 	class LinearChordPeer : public Peer<LinearChordMessage> {
 	public:
 		// methods that must be defined when deriving from Peer
-		LinearChordPeer(interfaceId);
+		LinearChordPeer(NetworkInterface*);
 		LinearChordPeer(const LinearChordPeer& rhs);
 		~LinearChordPeer();
 
 		// perform one step of the Algorithm with the messages in inStream
-		void                 performComputation();
+		void                 performComputation() override;
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-		void                 endOfRound(vector<Peer*>& _peers);
+		void                 endOfRound(vector<Peer*>& _peers) override;
 
 		// the id of the next transaction to submit
 		static int                      currentTransaction;

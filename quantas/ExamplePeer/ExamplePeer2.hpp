@@ -28,18 +28,13 @@ namespace quantas{
     class ExamplePeer2 : public Peer{
     public:
         // methods that must be defined when deriving from Peer
-        ExamplePeer2                             (interfaceId);
+        ExamplePeer2                             (NetworkInterface*);
         ExamplePeer2                             (const ExamplePeer2 &rhs);
         ~ExamplePeer2                            ();
         ExamplePeer2(ExamplePeer* rhs) {
             ExamplePeer* oldPeer = reinterpret_cast<ExamplePeer*> (rhs);
     
-            _publicId = std::move(rhs->_publicId);
-            _internalId = std::move(rhs->_internalId);
-            _neighbors = std::move(rhs->_neighbors);
-            _inBoundChannels = std::move(rhs->_inBoundChannels);
-            _outBoundChannels = std::move(rhs->_outBoundChannels);
-            _inStream = std::move(rhs->_inStream);
+            _networkInterface = rhs->getNetworkInterface();
             msgsSent = std::move(rhs->msgsSent);
         }
 

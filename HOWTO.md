@@ -36,7 +36,7 @@ The new algorithm has no local variables, and the content of every message is a 
 
 	    class ChangRobertsPeer : public Peer<ChangRobertsMessage>{
 	    public:
-	        ChangRobertsPeer                             (interfaceId);
+	        ChangRobertsPeer                             (NetworkInterface*);
 	        ChangRobertsPeer                             (const ChangRobertsPeer &rhs);
 	        ~ChangRobertsPeer                            ();
 
@@ -59,7 +59,7 @@ Similarly, from the ``ExamplePeer.cpp``, we create the following ``ChangRobertsP
 		ChangRobertsPeer::ChangRobertsPeer(const ChangRobertsPeer& rhs) : Peer<ChangRobertsMessage>(rhs) {
 		}
 
-		ChangRobertsPeer::ChangRobertsPeer(interfaceId id) : Peer(id) {
+		ChangRobertsPeer::ChangRobertsPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		}
 
 		void ChangRobertsPeer::performComputation() {
@@ -196,7 +196,7 @@ This ``messages_sent`` is initialized to zero, and the ``first_elected`` is init
 		messages_sent(0), first_elected(false) {
 	}
 
-	ChangRobertsPeer::ChangRobertsPeer(interfaceId id) : Peer(id), messages_sent(0), first_elected(false) {
+	ChangRobertsPeer::ChangRobertsPeer(NetworkInterface* networkInterface) : Peer(networkInterface), messages_sent(0), first_elected(false) {
 	}
 
 Whenever we call ``unicast()`` or ``broadcastBut()``, we increment the ``messages_sent`` variable. When we first realize a leader is elected, we update the ``first_elected`` variable accordingly.

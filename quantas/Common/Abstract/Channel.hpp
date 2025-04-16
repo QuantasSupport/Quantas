@@ -17,9 +17,9 @@
 #include <stdexcept>
 #include <climits>
 #include <unordered_set>
-#include "Json.hpp"
-#include "RandomUtil.hpp"
-#include "Packet.hpp"
+#include "../Json.hpp"
+#include "../RandomUtil.hpp"
+#include "../Packet.hpp"
 
 namespace quantas {
 

@@ -5,8 +5,13 @@ namespace quantas {
 Network::Network(): _peers() {}
 
 Network::~Network() {
+    clearExisting();
+}
+
+void Network::clearExisting() {
     // delete all owned peers
     for (auto *p : _peers) {
+        p->clearInterface();
         delete p;
     }
     _peers.clear();
@@ -17,12 +22,9 @@ Network::~Network() {
 // ids are the same and unique across peers
 void Network::initNetwork(json topology) {
     // Clear existing
-    for (auto *p : _peers) {
-        delete p;
-    }
-    _peers.clear();
+    clearExisting();
 
-    NetworkInterface::resetCounter();
+    NetworkInterfaceAbstract::resetCounter();
 
     int initialPeers = topology.value("initialPeers", 0);
     std::string peerType = topology.value("initialPeerType", "");
@@ -70,7 +72,7 @@ void Network::initNetwork(json topology) {
 void Network::createInitialChannels() {
 // For each peer in the network create their channels from their neighbors
 for (auto* peer : _peers) {
-    auto neighbors    = peer->neighbors();
+    auto neighbors = peer->neighbors();
     for (auto nbr : neighbors) {
             auto channelPtr = std::make_shared<Channel>(
                 /* target IDs: */ 
@@ -81,8 +83,12 @@ for (auto* peer : _peers) {
                 peer->internalId(),
                 _distribution
             );
-            _peers[nbr]->addInboundChannel(peer->publicId(), channelPtr);
-            peer->addOutboundChannel(_peers[nbr]->publicId(), channelPtr);
+            if (auto networkInterface = dynamic_cast<NetworkInterfaceAbstract*>(_peers[nbr]->getNetworkInterface())) {
+                networkInterface->addInboundChannel(peer->publicId(), channelPtr);
+            }
+            if (auto networkInterface = dynamic_cast<NetworkInterfaceAbstract*>(peer->getNetworkInterface())) {
+                networkInterface->addOutboundChannel(_peers[nbr]->publicId(), channelPtr);
+            }
         }
     }
 }
@@ -202,7 +208,9 @@ void Network::receive(int begin, int end) {
 void Network::performComputation(int begin, int end) {
     // call each peer's performComputation
     for (int i = begin; i < end && i < (int)_peers.size(); i++) {
-        _peers[i]->performComputation();
+        if (!_peers[i]->isCrashed()) {
+            _peers[i]->performComputation();
+        }
     }
 }
 }

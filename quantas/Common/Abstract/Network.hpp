@@ -27,9 +27,9 @@ along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 #include <algorithm>
 #include <memory>
 #include <deque>
-#include <climits>   // for INT_MAX
-#include "Peer.hpp"  // Your custom Peer class (inherits NetworkInterface)
-#include "Json.hpp"
+#include <climits>
+#include "../Peer.hpp"
+#include "../Json.hpp"
 
 namespace quantas {
 
@@ -42,6 +42,8 @@ private:
     json _distribution;
     Network& operator=(const Network &rhs) = delete;
     Network(const Network &rhs) = delete;
+
+    void clearExisting();
 
 public:
     Network();

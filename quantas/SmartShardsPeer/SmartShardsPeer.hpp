@@ -27,36 +27,36 @@ namespace quantas {
     using std::lock_guard;
 
     struct SmartShardsMember {
-        long Id = -1;
+        interfaceId Id = -1;
         bool leader = false;
         set<int> shards;
     };
 
     struct SmartShardsMessage {
 
-        long 				Id = -1; // node who sent the message
+        interfaceId			Id = -1; // node who sent the message
         int					trans = -1; // the transaction id
         int                 sequenceNum = -1;
         int                 shard = -1; // shard the transaction is for
         string              messageType = ""; // type of the message being sent; many options
         int                 roundSubmitted;
-        vector<std::pair<string, long>> churningNodes; // type of churn and id of nodes churning
+        vector<std::pair<string, interfaceId>> churningNodes; // type of churn and id of nodes churning
         vector<SmartShardsMember>       members; // the ids and other shards of the nodes in the shard (used when a node joins the shard)
     };
 
     class SmartShardsPeer : public Peer<SmartShardsMessage>{
     public:
         // methods that must be defined when deriving from Peer
-        SmartShardsPeer                             (long);
+        SmartShardsPeer                             (NetworkInterface*);
         SmartShardsPeer                             (const SmartShardsPeer &rhs);
         ~SmartShardsPeer                            ();
 
         // initialize the configuration of the system
         void                 initParameters(vector<Peer*>& _peers, json parameters);
         // perform one step of the Algorithm with the messages in inStream
-        void                 performComputation();
+        void                 performComputation() override;
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(vector<Peer*>& _peers);
+        void                 endOfRound(vector<Peer*>& _peers) override;
 
         // addintal method that have defulte implementation from Peer but can be overwritten
         void                 log()const { printTo(*_log); };
@@ -70,7 +70,7 @@ namespace quantas {
         // ids and shards of the members of the shards this node is in
         map<int, vector<SmartShardsMember>>          members;
         // ids of the nodes requesting to leave/join
-        map<int, vector<std::pair<string, long>>>          churnRequests;
+        map<int, vector<std::pair<string, interfaceId>>> churnRequests;
         // tracks if node is trying to leave or join
         bool                            leaving = false;
         bool                            joining = false;

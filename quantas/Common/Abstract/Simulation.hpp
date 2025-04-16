@@ -20,9 +20,9 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <fstream>
 
 #include "Network.hpp"
-#include "LogWriter.hpp"
-#include "BS_thread_pool.hpp"
-
+#include "../LogWriter.hpp"
+#include "../BS_thread_pool.hpp"
+#include "../memoryUtil.hpp"
 
 using std::ofstream;
 using std::thread;
@@ -31,10 +31,14 @@ namespace quantas {
 
 	class Simulation {
 	private:
-		Network system;  // use your new non-templated Network
+		Network system;
+
+		static size_t _peakMemoryKB;
 	public:
 		inline void run(json config);
 	};
+
+	size_t Simulation::_peakMemoryKB = 0;
 
 	inline void Simulation::run(json config) {
 		std::string logFile = config.value("logFile", "cout");
@@ -82,6 +86,14 @@ namespace quantas {
 		endTime = std::chrono::high_resolution_clock::now();
    		duration = endTime - startTime;
 		LogWriter::setValue("RunTime", double(duration.count()));
+
+		size_t peakMemoryKB = getPeakMemoryKB();
+		if (_peakMemoryKB < peakMemoryKB) {
+			_peakMemoryKB = peakMemoryKB;
+			LogWriter::setValue("Peak Memory KB", peakMemoryKB);
+		} else {
+			LogWriter::setValue("Previous Peak Memory KB", peakMemoryKB);
+		}
 
 		LogWriter::print();
 	}

@@ -14,7 +14,7 @@ namespace quantas {
 
 	static bool registerPBFT = [](){
 		PeerRegistry::registerPeerType("PBFTPeer", 
-			[](interfaceId pubId){ return new PBFTPeer(pubId); });
+			[](interfaceId pubId){ return new PBFTPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -28,7 +28,7 @@ namespace quantas {
 		
 	}
 
-	PBFTPeer::PBFTPeer(interfaceId id) : Peer(id) {
+	PBFTPeer::PBFTPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 
 	}
 

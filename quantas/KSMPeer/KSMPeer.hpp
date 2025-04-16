@@ -44,7 +44,7 @@ namespace quantas {
     class KSMPeer : public Peer<KSMMessage> {
     public:
         // methods that must be defined when deriving from Peer
-                             KSMPeer (long);
+                             KSMPeer (NetworkInterface*);
                              KSMPeer (const KSMPeer& rhs);
                              ~KSMPeer();
 

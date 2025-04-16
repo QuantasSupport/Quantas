@@ -16,7 +16,7 @@
 #  Configure this for the specific input file.
 #  Make sure to include the path to the input file 
 
-INPUTFILE := quantas/ExamplePeer/ExampleInput.json
+# INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 
 # INPUTFILE := quantas/PBFTPeer/_PBFTInput.json
 
@@ -24,7 +24,7 @@ INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 
 # INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
 
-# INPUTFILE := quantas/PBFTPeer/PBFTInput.json
+INPUTFILE := quantas/PBFTPeer/PBFTInput.json
 
 ############################### Variables and Flags ###############################
 
@@ -33,12 +33,14 @@ EXE := quantas.exe
 # compiles all the cpps in Common and main.cpp
 COMMON_SRCS := $(wildcard quantas/Common/*.cpp)
 COMMON_OBJS := $(COMMON_SRCS:.cpp=.o)
-OBJS := $(COMMON_OBJS) quantas/main.o
+
+ABSTRACT_OBJS := $(COMMON_OBJS) quantas/Common/Abstract/abstractSimulation.o quantas/Common/Abstract/Channel.o quantas/Common/Abstract/Network.o
+CONCRETE_OBJS := $(COMMON_OBJS) quantas/Common/Concrete/concreteSimulation.o quantas/Common/Concrete/ipUtil.o
 
 # compiles all cpps specified as necessary in the INPUTFILE
 ALGS := $(shell sed -n '/"algorithms"/,/]/p' $(INPUTFILE) \
          | sed -n 's/.*"\([^"]*\.cpp\)".*/quantas\/\1/p')
-OBJS += $(ALGS:.cpp=.o)
+ALG_OBJS += $(ALGS:.cpp=.o)
 
 # necessary flags
 CXX := g++
@@ -131,7 +133,7 @@ check-version:
 	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "To change the default version visit: https://linuxconfig.org/how-to-switch-between-multiple-gcc-and-g-compiler-versions-on-ubuntu-20-04-lts-focal-fossa"; fi
 	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then exit 1; fi
 
-$(EXE): $(OBJS)
+$(EXE): $(ALG_OBJS) $(ABSTRACT_OBJS)
 	@$(CXX) $(CXXFLAGS) $^ -o $(EXE)
 
 ############################### Cleanup ###############################
@@ -151,7 +153,7 @@ clean_txt: SHELL := /bin/bash -O globstar
 clean_txt:
 	@$(RM) **/*.txt
 
--include $(OBJS:.o=.d)
+# -include $(OBJS:.o=.d)
 
 ############################### PHONY ###############################
 

@@ -14,7 +14,7 @@ namespace quantas {
 
 	static bool registerKSM = [](){
 		registerPeerType("KSMPeer", 
-			[](interfaceId pubId){ return new KSMPeer(pubId); });
+			[](interfaceId pubId){ return new KSMPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -22,7 +22,7 @@ namespace quantas {
 
 	KSMPeer::KSMPeer(const KSMPeer& rhs) : Peer<KSMMessage>(rhs) {}
 
-	KSMPeer::KSMPeer(long id) : Peer(id) {
+	KSMPeer::KSMPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		KSMBlock genesis;
 		genesis.depth = 0;
 		blockChain.push_back(genesis);

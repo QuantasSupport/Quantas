@@ -32,14 +32,14 @@ namespace quantas{
     class PBFTPeer : public Peer {
     public:
         // methods that must be defined when deriving from Peer
-        PBFTPeer                             (interfaceId);
+        PBFTPeer                             (NetworkInterface*);
         PBFTPeer                             (const PBFTPeer &rhs);
         ~PBFTPeer                            ();
 
         // perform one step of the Algorithm with the messages in inStream
-        void                 performComputation();
+        void                 performComputation() override;
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(vector<Peer*>& _peers);
+        void                 endOfRound(vector<Peer*>& _peers) override;
 
         // addintal method that have defulte implementation from Peer but can be overwritten
         void                 log()const { printTo(*_log); };

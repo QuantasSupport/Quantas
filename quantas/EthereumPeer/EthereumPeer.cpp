@@ -15,7 +15,7 @@ namespace quantas {
 
 	static bool registerEthereum = [](){
 		registerPeerType("EthereumPeer", 
-			[](interfaceId pubId){ return new EthereumPeer(pubId); });
+			[](interfaceId pubId){ return new EthereumPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -30,7 +30,7 @@ namespace quantas {
 		
 	}
 
-	EthereumPeer::EthereumPeer(interfaceId id) : Peer(id) {
+	EthereumPeer::EthereumPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		
 	}
 

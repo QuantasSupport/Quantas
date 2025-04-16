@@ -49,7 +49,7 @@ public:
     }
 
 private:
-    interfaceId _id;
+    interfaceId _id = NO_PEER_ID;
 };
 
 //---------------------------------
@@ -58,9 +58,10 @@ private:
 class Committee {
 public:
     Committee() : _committeeId(-1) {}
-    explicit Committee(int committeeId) : _committeeId(committeeId) {}
+    Committee(int committeeId) : _committeeId(committeeId) {}
 
     int getId() const { return _committeeId; }
+    void setId(int committeeId) {_committeeId = committeeId;}
 
     // Return a const reference to avoid copying the entire set
     const std::set<Member>& getMembers() const { return _members; }
@@ -93,7 +94,7 @@ public:
     }
 
 private:
-    int _committeeId;
+    int _committeeId = -1;
     std::set<Member> _members;
 };
 
@@ -118,13 +119,11 @@ public:
         _committeeId = rhs._committeeId;
     };
 
-    virtual ClientRequest* clone() const { return new ClientRequest(*this);}
 
     // Identity of ClientRequest: (submitter, number)
     virtual bool operator==(const ClientRequest& rhs) const {
         return _submitter == rhs._submitter && _num == rhs._num && _committeeId == rhs._committeeId;
     }
-
 
     virtual bool operator<(const ClientRequest& rhs) const {
         // test is writing it out is faster
@@ -140,11 +139,20 @@ public:
         }
     }
 
-    // private:
-    // Public members switch to getter/setters
-    int _num;
-    interfaceId _submitter;
-    int _committeeId;
+    int getNum() const { return _num; }
+    interfaceId getSubmitter() const { return _submitter; }
+    int getCommitteeId() const { return _committeeId; }
+    int getRoundSubmitted() const { return _roundSubmitted; }
+
+    void setNum(int num) { _num = num; }
+    void setSubmitter(interfaceId submitter) { _submitter = submitter; }
+    void setCommitteeId(int committeeId) { _committeeId = committeeId; }
+    void setRoundSubmitted(int round) { _roundSubmitted = round; }
+
+private:
+    int _num = -1;
+    interfaceId _submitter = NO_PEER_ID;
+    int _committeeId = -1;
     int _roundSubmitted = 0;
 };
 
@@ -152,40 +160,65 @@ class Proposal {
 public:
     Proposal() {}
     Proposal(const Proposal& rhs) {
-        _req = rhs._req->clone();
+        _req = rhs._req;
         _seqNum = rhs._seqNum;
         _value = rhs._value;
     };
-    virtual Proposal* clone() const { return new Proposal(*this);}
-    // switch to getters and setters
+
+    int getCommitteeId() const { return _req->getCommitteeId(); }
+
+    ClientRequest* getRequest() const { return _req; }
+    void setRequest(ClientRequest* req) { _req = req; }
+
+    int getSeqNum() const { return _seqNum; }
+    void setSeqNum(int seqNum) { _seqNum = seqNum; }
+
+    bool getValue() const { return _value; }
+    void setValue(bool value) { _value = value; }
+private:
     ClientRequest* _req;
     int _seqNum = -1;
     bool _value = true;
-}
+};
 
 // Forward declaration
-class Phase;
+class MessageType;
 
-class ConsensusMessage : public Message {
+class ConsensusMessage {
 public:
     ConsensusMessage() {}
     ConsensusMessage(const ConsensusMessage& rhs) {
-        _proposal = rhs._proposal->clone();
+        _proposal = rhs._proposal;
         _phase = rhs._phase;
         _from = rhs._from;
     };
-    ConsensusMessage* clone() const override {return new ConsensusMessage(*this);}
 
+    int getCommitteeId() const { return _proposal->getCommitteeId(); }
+
+    Proposal* getProposal() const { return _proposal; }
+    void setProposal(Proposal* proposal) { _proposal = proposal; }
+
+    MessageType* getMessageType() const { return _messageType; }
+    void setMessageType(MessageType* messageType) { _messageType = messageType; }
+
+    interfaceId getFrom() const { return _from; }
+    void setFrom(interfaceId from) { _from = from; }
+private:
     Proposal* _proposal;
-    Phase* _phase;
+    MessageType* _messageType;
     interfaceId _from;
 }
+
+class Phase;
 
 // Context
 class Consensus {
 public:
     Consensus();
+
     void changePhase(Phase*& phase){_phase=phase;};
+    void runPhase() {_phase->run_phase(this)};
+
     ~Consensus() {
         for_each(receivedMessages.begin(), receivedMessages.end(), [] (auto v) {
 			for_each(v.begin(), v.end(), [](auto msg) {
@@ -199,14 +232,15 @@ public:
 			delete msg;
 		});
     }
+
 public:
     // map of a multimap of messages that have been received 
     // keyed by the sequence number and 
     // phase to which they belong for quicker lookups
-    map<int, multi_map<Phase*, ConsensusMessages*>>    _receivedMessages;
+    map<int, multi_map<MessageType*, ConsensusMessages*>>    _receivedMessages;
     // vector of recieved ClientRequests
     // consider changing container later
-    vector<ClientRequest*>                   _ClientRequests;
+    vector<ClientRequest*>                  _unhandledRequests;
     // vector of confirmed ClientRequests
     // consider changing container later
     vector<ClientRequest*>		            _confirmedTrans;
@@ -215,34 +249,39 @@ public:
     // rate at which to submit ClientRequests i.e. 1 in x chance for all n nodes
     int                                     _submitRate = 20;
     // the id of the next ClientRequest to submit for this submitter
-    int                                     _currentClientRequestId;
+    int                                     _currentClientRequestId = 0;
     // current phase
-    Phase*                                  _phase;
+    Phase*                                  _phase = nullptr;
     // committee involved in this consensus group
-    Committee                               _committee;
+    Committee*                              _committee;
 }
 
 class Phase {
 public:
-    virtual string report() =0;
+    virtual string run_phase(Consensus*& c) =0;
+
     void changePhase(Consensus*& c, Phase*& s) const {
         c->changePhase(s);
-     }
+    }
 }
 
-// class ExamplePhase: public Phase {
-// public:
-//     static Phase* instance() {
-//         static Phase* onlyInstance = new ExamplePhase;
-//         return onlyInstance;
-//     }
-//     string report() override {return "ExamplePhase";}
-// private:
-//     ExamplePhase() = default;
-//     ExamplePhase(const ExamplePhase&) = delete;
-//     ExamplePhase& operator=(const ExamplePhase&) = delete;
-// };
-
+/*
+class ExamplePhase: public Phase {
+public:
+    static Phase* instance() {
+        static Phase* onlyInstance = new ExamplePhase;
+        return onlyInstance;
+    }
+    string report() override {return "ExamplePhase";}
+    string run_phase(Consensus*& c) override {
+        changephase(c, ExamplePhase2::instance());
+    }
+private:
+    ExamplePhase() = default;
+    ExamplePhase(const ExamplePhase&) = delete;
+    ExamplePhase& operator=(const ExamplePhase&) = delete;
+};
+*/
 
 
 }

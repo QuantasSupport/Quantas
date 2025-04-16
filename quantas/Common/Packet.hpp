@@ -20,51 +20,46 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <iostream>
 #include <memory>
 #include "RoundManager.hpp"
-#include "LogWriter.hpp"
+#include "RandomUtil.hpp"
+#include "Json.hpp"
 
 namespace quantas{
     
 using std::string;
 using std::unique_ptr;
+using nlohmann::json;
 
-typedef long      interfaceId;
+typedef long interfaceId;
+
 inline static const interfaceId NO_PEER_ID = -1;  // used to indicate invalid peer or un init peers
-
-// Base Message Class
-class Message {
-public:
-    virtual ~Message() = default;
-    virtual Message* clone() const = 0;
-};
 
 // Packet Class
 class Packet {
 private:
-    interfaceId _targetId{NO_PEER_ID};       // Target node ID
-    interfaceId _sourceId{NO_PEER_ID};       // Source node ID
-    Message* _body{nullptr};   // Message payload
-    int _delay{0};                  // Transmission delay
-    int _round{-1};                  // Round message was sent
+    interfaceId _targetId{NO_PEER_ID};  // Target node ID
+    interfaceId _sourceId{NO_PEER_ID};  // Source node ID
+    json _body;                         // Message payload
+    int _delay{0};                      // Transmission delay
+    int _round{-1};                     // Round message was sent
 
 public:
     inline Packet();
-    inline Packet(interfaceId to, interfaceId from, Message* body);
-    inline Packet(const Packet& rhs);   // Deep copy constructor
-    inline Packet& operator=(const Packet& rhs); // Deep copy assignment
+    inline Packet(interfaceId to, interfaceId from, json body);
+    inline Packet(const Packet& rhs);
+    inline Packet& operator=(const Packet& rhs);
     ~Packet() = default;
 
     // Setters
     inline void setSource(interfaceId s) { _sourceId = s; }
     inline void setTarget(interfaceId t) { _targetId = t; }
     inline void setDelay(int delayMax, int delayMin = 1);
-    inline void setMessage(Message* msg) { _body = msg; }
-    inline void deleteMessage() {delete _body;}
+    inline void setMessage(json msg) { _body = msg; }
 
     // Getters
     inline interfaceId targetId() const { return _targetId; }
     inline interfaceId sourceId() const { return _sourceId; }
     inline bool hasArrived() const { return RoundManager::currentRound() >= _round + _delay; }
-    inline Message* getMessage() const { return _body; }
+    inline json getMessage() const { return _body; }
     inline int getDelay() const { return _delay; }
     inline int getRoundSent() const { return _round; }
 };
@@ -74,7 +69,7 @@ inline Packet::Packet() {
     _round = RoundManager::currentRound();
 }
 
-inline Packet::Packet(interfaceId to, interfaceId from, Message* body)
+inline Packet::Packet(interfaceId to, interfaceId from, json body)
     : _targetId(to), _sourceId(from), _body(body), _delay(0) {
     _round = RoundManager::currentRound();
 }
@@ -97,7 +92,6 @@ inline void Packet::setDelay(int maxDelay, int minDelay) {
     if (maxDelay < 1) maxDelay = 1;
     if (minDelay < 1) minDelay = 1;
     if (minDelay > maxDelay) minDelay = maxDelay;
-    // uniformInt is assumed to come from Distribution.hpp
     _delay = uniformInt(minDelay, maxDelay);
 }
     

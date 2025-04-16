@@ -14,7 +14,7 @@ namespace quantas {
 
 	static bool registerLinearChord = [](){
 		registerPeerType("LinearChordPeer", 
-			[](interfaceId pubId){ return new LinearChordPeer(pubId); });
+			[](interfaceId pubId){ return new LinearChordPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -29,7 +29,7 @@ namespace quantas {
 		
 	}
 
-	LinearChordPeer::LinearChordPeer(interfaceId id) : Peer(id) {
+	LinearChordPeer::LinearChordPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		
 	}
 

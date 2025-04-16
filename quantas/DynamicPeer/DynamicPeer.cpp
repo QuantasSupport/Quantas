@@ -14,7 +14,7 @@ namespace quantas {
 
 	static bool registerDynamic = [](){
 		registerPeerType("DynamicPeer", 
-			[](interfaceId pubId){ return new DynamicPeer(pubId); });
+			[](interfaceId pubId){ return new DynamicPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -24,7 +24,7 @@ namespace quantas {
 
 	DynamicPeer::DynamicPeer(const DynamicPeer& rhs) : Peer<DynamicMessage>(rhs) {}
 
-	DynamicPeer::DynamicPeer(long id) : Peer(id) {
+	DynamicPeer::DynamicPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		DynamicBlock genesis;
 		genesis.depth = 1;
 		blockChain.push_back(genesis);

@@ -35,13 +35,13 @@ namespace quantas {
 
 struct Neighborhood {
     int id;
-    std::unordered_set<long> memberIDs;
+    std::unordered_set<interfaceId> memberIDs;
     int leader; // id of the leader of this neighborhood
     bool operator==(const Neighborhood &rhs) {
         return memberIDs == rhs.memberIDs && leader == rhs.leader;
     }
     int size() { return memberIDs.size(); }
-    bool has(long peerID) { return memberIDs.count(peerID) > 0; }
+    bool has(interfaceId peerID) { return memberIDs.count(peerID) > 0; }
 };
 
 struct WalletLocation {
@@ -148,14 +148,14 @@ struct ConsensusContacts {
         }
     }
     // Precondition: peerID is an id in one of the neighborhoods
-    Neighborhood getOwn(long peerID) {
+    Neighborhood getOwn(interfaceId peerID) {
         auto own = std::find_if(
             participants.begin(), participants.end(),
             [peerID](Neighborhood &n) { return n.memberIDs.count(peerID) > 0; }
         );
         return *own;
     }
-    std::vector<Neighborhood> getOthers(long peerID) {
+    std::vector<Neighborhood> getOthers(interfaceId peerID) {
         std::vector<Neighborhood> others;
         std::copy_if(
             participants.begin(), participants.end(),
@@ -235,7 +235,7 @@ class TrailPeer : public Peer<TrailMessage> {
   public:
     // methods that must be defined when deriving from Peer
 
-    TrailPeer(long id);
+    TrailPeer(NetworkInterface*);
 
     void initParameters(const vector<Peer *> &_peers, json parameters) override;
 
@@ -301,7 +301,7 @@ class TrailPeer : public Peer<TrailMessage> {
 
     // global neighborhood data; populated as a side effect of initParameters
     inline static std::vector<std::vector<LocalWallet>> walletsForNeighborhoods;
-    inline static std::unordered_map<long, int> neighborhoodsForPeers;
+    inline static std::unordered_map<interfaceId, int> neighborhoodsForPeers;
     inline static std::vector<Neighborhood> neighborhoods;
 
     // populated in endOfRound if byzantine parameters are set

@@ -14,11 +14,15 @@ namespace quantas {
 
 	static bool registerAltBit = [](){
 		PeerRegistry::registerPeerType("AltBitPeer", 
-			[](interfaceId pubId){ return new AltBitPeer(pubId); });
+			[](interfaceId pubId){ return new AltBitPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
-	int AltBitPeer::currentTransaction = 1;
+	static bool registerAltBitConcrete = [](){
+		PeerRegistry::registerPeerType("AltBitPeerConcrete", 
+			[](interfaceId pubId){ return new AltBitPeer(new NetworkInterfaceConcrete()); });
+		return true;
+	}();
 
 	AltBitPeer::~AltBitPeer() {
 
@@ -28,39 +32,45 @@ namespace quantas {
 
 	}
 
-	AltBitPeer::AltBitPeer(interfaceId id) : Peer(id) {
-
+	AltBitPeer::AltBitPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
+		if (auto networkInterface = dynamic_cast<NetworkInterfaceConcrete*>(getNetworkInterface())) {
+			// Concrete simulation
+			timeOutRate = 4;
+		} else {
+			// Abstract simulation
+			timeOutRate = 4000;
+		}
 	}
 
 	void AltBitPeer::performComputation() {
 		if (alive) {
-			if (RoundManager::currentRound() == 1 && publicId() == 0) {
+			if (messagesSent == 0 && publicId() == 0) {
 				submitTrans(currentTransaction);
-			}
-			if (previousMessageRound + timeOutRate < RoundManager::currentRound()) {// resend lost message
+			} else if (previousMessageRound + timeOutRate < RoundManager::currentRound()) {// resend lost message
 				if (publicId() == 0) {
-					AltBitMessage* message = new AltBitMessage();
-					message->action = "data";
-					message->roundSubmitted = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
-					message->messageNum = ns;
+					json message;
+					message["action"] = "data";
+					message["roundSubmitted"] = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
+					message["messageNum"] = ns;
 					previousMessageRound = RoundManager::currentRound();
 					sendMessage(1, message);
 				}
 				else {
-					AltBitMessage* message = new AltBitMessage();
-					message->action = "ack";
-					message->roundSubmitted = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
-					message->messageNum = ns;
+					json message;
+					message["action"] = "ack";
+					message["roundSubmitted"] = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
+					message["messageNum"] = ns;
 					previousMessageRound = RoundManager::currentRound();
 					sendMessage(0, message);
 				}
 			}
 			while (!inStreamEmpty()) {
+				// std::cout << publicId() << " received a message" << std::endl;
 				Packet packet = popInStream();
 				interfaceId source = packet.sourceId();
-				AltBitMessage* oldMessage = dynamic_cast<AltBitMessage*>(packet.getMessage());
-				if (oldMessage->action == "ack") {
-					if (oldMessage->messageNum == ns) {
+				json oldMessage = packet.getMessage();
+				if (oldMessage["action"] == "ack") {
+					if (oldMessage["messageNum"] == ns) {
 						previousMessageRound = RoundManager::currentRound();
 						requestsSatisfied++;
 						ns++;
@@ -68,19 +78,19 @@ namespace quantas {
 					}
 
 				}
-				else if (oldMessage->action == "data") {
-					AltBitMessage* newMessage = oldMessage->clone();
+				else if (oldMessage["action"] == "data") {
+					json newMessage = oldMessage;
 					previousMessageRound = RoundManager::currentRound();
-					ns = oldMessage->messageNum;
-					newMessage->action = "ack";
+					ns = oldMessage["messageNum"];
+					newMessage["action"] = "ack";
 					sendMessage(0, newMessage);
 				}
-				delete oldMessage; // delete recieved messages
 			}
 		}
 	}
+
 	void AltBitPeer::endOfRound(vector<Peer*>& _peers) {
-		if (RoundManager::lastRound() == RoundManager::currentRound()) {
+		if (RoundManager::lastRound() <= RoundManager::currentRound()) {
 			const vector<AltBitPeer*> peers = reinterpret_cast<vector<AltBitPeer*> const&>(_peers);
 			int satisfied = 0;
 			double messages = 0;
@@ -89,20 +99,21 @@ namespace quantas {
 				messages += peers[i]->messagesSent;
 			}
 
-			LogWriter::pushValue("utility", satisfied / messages * 100);
+			LogWriter::pushValue("satisfied", satisfied);
+			LogWriter::pushValue("messages", messages);
 		}
 	}
 
-	void AltBitPeer::sendMessage(interfaceId peer, AltBitMessage* message) {
+	void AltBitPeer::sendMessage(interfaceId peer, json message) {
 		unicastTo(message,peer);
 		messagesSent++;
 	}
 
 	void AltBitPeer::submitTrans(int tranID) {
-		AltBitMessage* message = new AltBitMessage();
-		message->action = "data";
-		message->roundSubmitted = RoundManager::currentRound();
-		message->messageNum = ns;
+		json message;
+		message["action"] = "data";
+		message["roundSubmitted"] = RoundManager::currentRound();
+		message["messageNum"] = ns;
 		sendMessage(1, message);
 		currentTransaction++;
 	}

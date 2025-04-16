@@ -35,7 +35,7 @@ namespace quantas {
     class DynamicPeer : public Peer<DynamicMessage> {
     public:
         // methods that must be defined when deriving from Peer
-                             DynamicPeer        (long);
+                             DynamicPeer        (NetworkInterface*);
                              DynamicPeer        (const DynamicPeer& rhs);
                              ~DynamicPeer       ();
 

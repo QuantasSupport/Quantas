@@ -42,7 +42,7 @@ namespace quantas {
     class KPTPeer : public Peer<KPTMessage> {
     public:
         // methods that must be defined when deriving from Peer
-                             KPTPeer            (long);
+                             KPTPeer            (NetworkInterface*);
                              KPTPeer            (const KPTPeer& rhs);
                              ~KPTPeer           ();
 

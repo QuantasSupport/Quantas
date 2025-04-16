@@ -23,36 +23,36 @@ namespace quantas{
 
     // }
 
-    class PBFTPeerMessage : public Message {
-    public:
-        PBFTPeerMessage() {}
-        PBFTPeerMessage(const PBFTPeerMessage& rhs) {
-            Id = rhs.Id;
-            trans = rhs.trans;
-            sequenceNum = rhs.sequenceNum;
-            messageType = rhs.messageType;
-            roundSubmitted = rhs.roundSubmitted;
-        }
-        PBFTPeerMessage* clone() const override {return new PBFTPeerMessage(*this);}
-        int 				Id = -1; // node who sent the message
-        int     			trans;   // the transaction
-        int                 sequenceNum = -1;
-        string              messageType = ""; // phaseTransaction
-        int                 roundSubmitted = -1;
+    // class PBFTPeerMessage : public Message {
+    // public:
+    //     PBFTPeerMessage() {}
+    //     PBFTPeerMessage(const PBFTPeerMessage& rhs) {
+    //         Id = rhs.Id;
+    //         trans = rhs.trans;
+    //         sequenceNum = rhs.sequenceNum;
+    //         messageType = rhs.messageType;
+    //         roundSubmitted = rhs.roundSubmitted;
+    //     }
+    //     PBFTPeerMessage* clone() const override {return new PBFTPeerMessage(*this);}
+    //     int 				Id = -1; // node who sent the message
+    //     int     			trans;   // the transaction
+    //     int                 sequenceNum = -1;
+    //     string              messageType = ""; // phaseTransaction
+    //     int                 roundSubmitted = -1;
         
-    };
+    // };
 
     class PBFTPeer : public Peer{
     public:
         // methods that must be defined when deriving from Peer
-        PBFTPeer                             (interfaceId);
+        PBFTPeer                             (NetworkInterface*);
         PBFTPeer                             (const PBFTPeer &rhs);
         ~PBFTPeer                            ();
 
         // perform one step of the Algorithm with the messages in inStream
-        void                 performComputation();
+        void                 performComputation() override;
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(vector<Peer*>& _peers);
+        void                 endOfRound(vector<Peer*>& _peers) override;
 
         // string indicating the current status of a node
         string                          status = "pre-prepare";
@@ -66,13 +66,13 @@ namespace quantas{
         interfaceId                     currentLeader = 0;
         
         // vector of vectors of messages that have been received
-        vector<vector<PBFTPeerMessage*>> receivedMessages;
+        vector<vector<json>> receivedMessages;
         // vector of recieved transactions
-        vector<PBFTPeerMessage*>		    transactions;
+        vector<json>		    transactions;
         // vector of confirmed transactions
-        vector<PBFTPeerMessage*>		    confirmedTrans;
+        vector<json>		    confirmedTrans;
         // vector of view change messages
-        std::vector<PBFTPeerMessage*> viewChangeMsgs;
+        std::vector<json> viewChangeMsgs;
 
         // latency of confirmed transactions
         int                             latency = 0;
@@ -100,9 +100,9 @@ namespace quantas{
         // view change functions
         void initiateViewChange();
 
-        void processViewChangeMessage(const PBFTPeerMessage* &msg);
+        void processViewChangeMessage(json msg);
 
-        void processNewViewMessage(const PBFTPeerMessage* &msg);        
+        void processNewViewMessage(json msg);        
     };
 }
 #endif /* PBFTPeer_hpp */

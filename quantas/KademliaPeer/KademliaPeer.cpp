@@ -15,7 +15,7 @@ namespace quantas {
 
 	static bool registerKademlia = [](){
 		registerPeerType("KademliaPeer", 
-			[](interfaceId pubId){ return new KademliaPeer(pubId); });
+			[](interfaceId pubId){ return new KademliaPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -29,7 +29,7 @@ namespace quantas {
 		
 	}
 
-	KademliaPeer::KademliaPeer(interfaceId id) : Peer(id) {
+	KademliaPeer::KademliaPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		
 	}
 

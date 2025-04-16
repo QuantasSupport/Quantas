@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <mutex>
-#include "../Common/Json.hpp"
+#include "Json.hpp"
 
 namespace quantas {
 

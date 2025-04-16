@@ -14,7 +14,7 @@ namespace quantas {
 
 	static bool registerStableDataLink = [](){
 		registerPeerType("StableDataLinkPeer", 
-			[](interfaceId pubId){ return new StableDataLinkPeer(pubId); });
+			[](interfaceId pubId){ return new StableDataLinkPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -28,7 +28,7 @@ namespace quantas {
 		
 	}
 
-	StableDataLinkPeer::StableDataLinkPeer(interfaceId id) : Peer(id) {
+	StableDataLinkPeer::StableDataLinkPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		
 	}
 

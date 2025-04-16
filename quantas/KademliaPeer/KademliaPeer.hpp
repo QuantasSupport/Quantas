@@ -32,14 +32,14 @@ namespace quantas {
 	class KademliaPeer : public Peer<KademliaMessage> {
 	public:
 		// methods that must be defined when deriving from Peer
-		KademliaPeer(interfaceId);
+		KademliaPeer(NetworkInterface*);
 		KademliaPeer(const KademliaPeer& rhs);
 		~KademliaPeer();
 
 		// perform one step of the Algorithm with the messages in inStream
-		void                 performComputation();
+		void                 performComputation() override;
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-		void                 endOfRound(vector<Peer*>& _peers);
+		void                 endOfRound(vector<Peer*>& _peers) override;
 		// the id of the next transaction to submit
 		static int currentTransaction;
 		// size of binary ids

@@ -29,14 +29,14 @@ namespace quantas {
     class CycleOfTreesPeer : public Peer<CycleOfTreesMessage> {
     public:
         // methods that must be defined when deriving from Peer
-        CycleOfTreesPeer (long);
+        CycleOfTreesPeer (NetworkInterface*);
         CycleOfTreesPeer (const CycleOfTreesPeer& rhs);
         ~CycleOfTreesPeer();
 
         // initialize the configuration of the system
         void                 initParameters    (vector<Peer*>& _peers, json parameters);
         // perform one step of the Algorithm with the messages in inStream
-        void                 performComputation();
+        void                 performComputation() override;
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound        (vector<Peer*>& _peers);
 

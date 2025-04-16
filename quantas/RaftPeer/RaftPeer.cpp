@@ -14,7 +14,7 @@ namespace quantas {
 
 	static bool registerRaft = [](){
 		registerPeerType("RaftPeer", 
-			[](interfaceId pubId){ return new RaftPeer(pubId); });
+			[](interfaceId pubId){ return new RaftPeer(new NetworkInterfaceAbstract(pubId)); });
 		return true;
 	}();
 
@@ -28,7 +28,7 @@ namespace quantas {
 		
 	}
 
-	RaftPeer::RaftPeer(interfaceId id) : Peer(id) {
+	RaftPeer::RaftPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 		
 	}
 

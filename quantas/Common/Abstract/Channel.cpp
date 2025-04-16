@@ -16,7 +16,6 @@ Channel::Channel(interfaceId targetId, interfaceId targetInternalId,
 
 Channel::~Channel() {
     while (!_packetQueue.empty()) {
-        _packetQueue.front().deleteMessage();
         _packetQueue.pop_front();
     }
 };
@@ -46,7 +45,6 @@ int Channel::computeRandomDelay() const {
 void Channel::pushPacket(Packet pkt) {
     // possible drop
     if (trueWithProbability(_properties->getDropProbability())) {
-        pkt.deleteMessage();
         return;
     }
 
@@ -55,7 +53,6 @@ void Channel::pushPacket(Packet pkt) {
     do {
         duplicate = false;
         if (!canSend()) {
-            pkt.deleteMessage();
             return;
         }
 
@@ -65,7 +62,7 @@ void Channel::pushPacket(Packet pkt) {
         _packetQueue.push_back(pkt);
 
         duplicate = trueWithProbability(_properties->getDuplicateProbability());
-        if (duplicate) pkt.setMessage(pkt.getMessage()->clone());
+        if (duplicate) pkt.setMessage(pkt.getMessage());
 
     } while (duplicate);
 }
