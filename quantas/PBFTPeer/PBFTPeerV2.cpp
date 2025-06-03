@@ -8,162 +8,204 @@ You should have received a copy of the GNU General Public License along with QUA
 */
 
 #include <iostream>
-#include "PBFTPeer.hpp"
+#include "PBFTPeerV2.hpp"
 
 namespace quantas {
 
-	static bool registerPBFT = [](){
-		PeerRegistry::registerPeerType("PBFTPeer", 
-			[](interfaceId pubId){ return new PBFTPeer(new NetworkInterfaceAbstract(pubId)); });
-		return true;
-	}();
+class EquivocateFault : public Fault {
+public:
+    virtual ~EquivocateFault() = default;
 
-	int PBFTPeer::currentTransaction = 1;
-
-	PBFTPeer::~PBFTPeer() {
-        
+    bool overridesSendType(const std::string& sendType) const override { 
+		if (sendType == "broadcast")
+			return true;
+		else 
+			return false;
 	}
 
-	PBFTPeer::PBFTPeer(const PBFTPeer& rhs) : Peer(rhs) {
-		
+    virtual bool onSend(Peer* peer, json& msg, const std::string& sendType, const std::set<interfaceId>& targets = std::set<interfaceId>()) {
+		if (sendType == "broadcast") {
+			if (msg.contains("value")) {
+				auto neighbors = peer->neighbors();
+				std::vector<interfaceId> temp(neighbors.begin(), neighbors.end());  // Copy set to vector
+				std::shuffle(temp.begin(), temp.end(), threadLocalEngine());  // Shuffle vector
+				std::set<interfaceId> subset1(temp.begin(), temp.begin() + temp.size() / 2);  // Take the first 'count' elements
+				std::set<interfaceId> subset2(temp.begin() + temp.size() / 2, temp.end());
+				json msg_copy = msg;
+				peer->multicast(msg, subset1);
+				msg_copy["value"] = !msg_copy["value"];
+				peer->multicast(msg_copy, subset2);
+				return true; 
+			} else 
+				return false;
+		} else 
+			return false;
 	}
+};
 
-	PBFTPeer::PBFTPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
+static bool registerPBFT = [](){
+	PeerRegistry::registerPeerType("PBFTPeerV2", 
+		[](interfaceId pubId){ return new PBFTPeerV2(new NetworkInterfaceAbstract(pubId)); });
+	return true;
+}();
 
+int PBFTPeerV2::currentTransaction = 1;
+
+PBFTPeerV2::~PBFTPeerV2() {
+
+}
+
+PBFTPeerV2::PBFTPeerV2(const PBFTPeerV2& rhs) : ByzantinePeer(rhs) {
+	
+}
+
+PBFTPeerV2::PBFTPeerV2(NetworkInterface* networkInterface) : ByzantinePeer(networkInterface) {
+
+}
+
+void PBFTPeerV2::initParameters(const std::vector<Peer*>& _peers, json parameters) {
+	const vector<PBFTPeerV2*> peers = reinterpret_cast<vector<PBFTPeerV2*> const&>(_peers);
+
+	for (auto peer : peers) {
+	    peer->faultManager.addFault(new EquivocateFault());
 	}
+}
 
-	void PBFTPeer::performComputation() {
-		if (publicId() == getLeader() && RoundManager::currentRound() == 1) {
-			submitTrans();
+void PBFTPeerV2::performComputation() {
+	if (publicId() == getLeader() && RoundManager::currentRound() == 1) {
+		submitTrans();
+	}
+	if (true)
+		checkInStrm();
+
+	if (true)
+		checkContents();
+}
+
+void PBFTPeerV2::endOfRound(vector<Peer*>& _peers) {
+	const vector<PBFTPeerV2*> peers = reinterpret_cast<vector<PBFTPeerV2*> const&>(_peers);
+
+	/////////////////////////////////////////////
+	// int totalPeers = peers.size();
+	// int newLeader = (getLeader() + 1) % totalPeers;
+	// for (auto peer : peers) {
+	//     peer->updateLeader(newLeader);
+	// }
+	////////////////////////////////////////////
+	
+	double length = peers[0]->confirmedTrans.size();
+	LogWriter::pushValue("latency", latency / length);
+	LogWriter::pushValue("throughput", length);
+}
+
+void PBFTPeerV2::checkInStrm() {
+	while (!inStreamEmpty()) {
+		Packet packet = popInStream();
+		json newMsg = packet.getMessage();
+		if (newMsg["value"] == false) {
+			// std::cout << "equivocated\n";
 		}
-		if (true)
-			checkInStrm();
-
-		if (true)
-			checkContents();
-	}
-
-	void PBFTPeer::endOfRound(vector<Peer*>& _peers) {
-		const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
-
-		/////////////////////////////////////////////
-        // int totalPeers = peers.size();
-        // int newLeader = (getLeader() + 1) % totalPeers;
-        // for (auto peer : peers) {
-        //     peer->updateLeader(newLeader);
-        // }
-        ////////////////////////////////////////////
-		
-		double length = peers[0]->confirmedTrans.size();
-		LogWriter::pushValue("latency", latency / length);
-		LogWriter::pushValue("throughput", length);
-	}
-
-	void PBFTPeer::checkInStrm() {
-		while (!inStreamEmpty()) {
-			Packet packet = popInStream();
-			PBFTPeerMessage* newMsg = dynamic_cast<PBFTPeerMessage*>(packet.getMessage());
-			
-			if (newMsg->messageType == "trans") {
-				transactions.push_back(newMsg);
-				// cout << "recieved transaction" << endl;
+		if (newMsg["messageType"] == "trans") {
+			transactions.push_back(newMsg);
+			// cout << "recieved transaction" << endl;
+		}
+		else {
+			while (receivedMessages.size() < int(newMsg["sequenceNum"]) + 1) {
+				receivedMessages.push_back(vector<json>());
 			}
-			else {
-				while (receivedMessages.size() < newMsg->sequenceNum + 1) {
-					receivedMessages.push_back(vector<PBFTPeerMessage*>());
-				}
-				receivedMessages[newMsg->sequenceNum].push_back(newMsg);
-			}
+			receivedMessages[newMsg["sequenceNum"]].push_back(newMsg);
 		}
 	}
-	void PBFTPeer::checkContents() {
-		
-		if (publicId() == getLeader() && status == "pre-prepare") {
-            for (int i = 0; i < transactions.size(); i++) {
-                bool skip = false;
-                for (int j = 0; j < confirmedTrans.size(); j++) {
-                    if (transactions[i]->trans == confirmedTrans[j]->trans) {
-                        skip = true;
-                        break;
-                    }
-                }
-                if (!skip) {
-                    status = "prepare";
-                    PBFTPeerMessage* message = transactions[i]->clone();
-                    message->messageType = "pre-prepare";
-                    message->Id = publicId();
-                    message->sequenceNum = sequenceNum;
-                    broadcast(message->clone());
-					if (receivedMessages.size() < sequenceNum + 1) {
-                        receivedMessages.push_back(vector<PBFTPeerMessage*>());
-                    }
-                    receivedMessages[sequenceNum].push_back(message);
-                    break;
-                }
-            }
-        } else if (status == "pre-prepare" && receivedMessages.size() >= sequenceNum + 1) {
-			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				PBFTPeerMessage* message = receivedMessages[sequenceNum][i];
-				if (message->messageType == "pre-prepare") {
-					status = "prepare";
-					PBFTPeerMessage* newMsg = message->clone();
-					newMsg->messageType = "prepare";
-					newMsg->Id = publicId();
-					receivedMessages[sequenceNum].push_back(newMsg->clone());
-					broadcast(newMsg);
+}
+void PBFTPeerV2::checkContents() {
+	
+	if (publicId() == getLeader() && status == "pre-prepare") {
+		for (int i = 0; i < transactions.size(); i++) {
+			bool skip = false;
+			for (int j = 0; j < confirmedTrans.size(); j++) {
+				if (transactions[i]["trans"] == confirmedTrans[j]["trans"]) {
+					skip = true;
+					break;
 				}
+			}
+			if (!skip) {
+				status = "prepare";
+				json message = transactions[i];
+				message["messageType"] = "pre-prepare";
+				message["Id"] = publicId();
+				message["sequenceNum"] = sequenceNum;
+				broadcast(message);
+				if (receivedMessages.size() < sequenceNum + 1) {
+					receivedMessages.push_back(vector<json>());
+				}
+				receivedMessages[sequenceNum].push_back(message);
+				break;
 			}
 		}
-
-		if (status == "prepare") {
-			int count = 0;
-			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				PBFTPeerMessage* message = receivedMessages[sequenceNum][i];
-				if (message->messageType == "prepare") {
-					count++;
-				}
-			}
-			if (count > (neighbors().size() * 2 / 3)) {
-				status = "commit";
-				PBFTPeerMessage* newMsg = receivedMessages[sequenceNum][0]->clone();
-				newMsg->messageType = "commit";
-				newMsg->Id = publicId();
-				receivedMessages[sequenceNum].push_back(newMsg->clone());
+	} else if (status == "pre-prepare" && receivedMessages.size() >= sequenceNum + 1) {
+		for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
+			json message = receivedMessages[sequenceNum][i];
+			if (message["messageType"] == "pre-prepare") {
+				status = "prepare";
+				json newMsg = message;
+				newMsg["messageType"] = "prepare";
+				newMsg["Id"] = publicId();
+				receivedMessages[sequenceNum].push_back(newMsg);
 				broadcast(newMsg);
 			}
 		}
+	}
 
-		if (status == "commit") {
-			int count = 0;
-			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				PBFTPeerMessage* message = receivedMessages[sequenceNum][i];
-				if (message->messageType == "commit") {
-					count++;
-				}
-			}
-			if (count > (neighbors().size() * 2 / 3)) {
-				status = "pre-prepare";
-				confirmedTrans.push_back(receivedMessages[sequenceNum][0]->clone());
-				latency += RoundManager::currentRound() - receivedMessages[sequenceNum][0]->roundSubmitted;
-				sequenceNum++;
-				if (publicId() == getLeader()) {
-					submitTrans();
-				}
-				checkContents();
+	if (status == "prepare") {
+		int count = 0;
+		for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
+			json message = receivedMessages[sequenceNum][i];
+			if (message["messageType"] == "prepare") {
+				count++;
 			}
 		}
-
+		if (count > (neighbors().size() * 2 / 3)) {
+			status = "commit";
+			json newMsg = receivedMessages[sequenceNum][0];
+			newMsg["messageType"] = "commit";
+			newMsg["Id"] = publicId();
+			receivedMessages[sequenceNum].push_back(newMsg);
+			broadcast(newMsg);
+		}
 	}
 
-	void PBFTPeer::submitTrans() {
-		PBFTPeerMessage* message = new PBFTPeerMessage();
-		message->messageType = "trans";
-		message->trans = currentTransaction;
-		message->Id = publicId();
-		message->roundSubmitted = RoundManager::currentRound();
-		transactions.push_back(message->clone());
-		broadcast(message);
-		currentTransaction++;
+	if (status == "commit") {
+		int count = 0;
+		for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
+			json message = receivedMessages[sequenceNum][i];
+			if (message["messageType"] == "commit") {
+				count++;
+			}
+		}
+		if (count > (neighbors().size() * 2 / 3)) {
+			status = "pre-prepare";
+			confirmedTrans.push_back(receivedMessages[sequenceNum][0]);
+			latency += RoundManager::currentRound() - int(receivedMessages[sequenceNum][0]["roundSubmitted"]);
+			sequenceNum++;
+			if (publicId() == getLeader()) {
+				submitTrans();
+			}
+			checkContents();
+		}
 	}
+
+}
+
+void PBFTPeerV2::submitTrans() {
+	json message;
+	message["messageType"] = "trans";
+	message["trans"] = currentTransaction;
+	message["Id"] = publicId();
+	message["roundSubmitted"] = RoundManager::currentRound();
+	message["value"] = true;
+	transactions.push_back(message);
+	broadcast(message);
+	currentTransaction++;
+}
 
 }

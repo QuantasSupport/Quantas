@@ -205,12 +205,13 @@ void Network::receive(int begin, int end) {
     }
 }
 
-void Network::performComputation(int begin, int end) {
-    // call each peer's performComputation
-    for (int i = begin; i < end && i < (int)_peers.size(); i++) {
-        if (!_peers[i]->isCrashed()) {
-            _peers[i]->performComputation();
-        }
+void Network::tryPerformComputation(int begin, int end) {
+    std::cout << begin << end << std::endl;
+    end = end < (int)_peers.size() ? end : (int)_peers.size();
+    // call each tryPerformComputation on each peer in the range
+    for (int i = begin; i < end; ++i) {
+        std::cout << i << std::endl;
+        _peers[i]->tryPerformComputation();
     }
 }
 }

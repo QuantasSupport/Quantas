@@ -24,7 +24,9 @@
 
 # INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
 
-INPUTFILE := quantas/PBFTPeer/PBFTInput.json
+# INPUTFILE := quantas/PBFTPeer/PBFTInput.json
+
+INPUTFILE := quantas/PBFTPeer/PBFTInputV2.json
 
 ############################### Variables and Flags ###############################
 

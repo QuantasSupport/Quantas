@@ -1,6 +1,6 @@
 {
   "algorithms": [
-    "PBFTPeer/PBFTPeerV2.cpp"
+    "PBFTPeer/PBFTPeerV3.cpp"
   ],
   "experiments": [
     {
@@ -13,10 +13,10 @@
       "topology": {
         "type": "complete",
         "initialPeers": 20,
-        "initialPeerType": "PBFTPeer"
+        "initialPeerType": "PBFTPeerV3"
       },
-      "tests": 10,
-      "rounds": 100
+      "tests": 1,
+      "rounds": 10
     }
   ]
 }

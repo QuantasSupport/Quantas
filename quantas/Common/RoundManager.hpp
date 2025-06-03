@@ -69,7 +69,7 @@ public:
     }
     static void incrementRound() {
         RoundManager* inst = instance();
-        ++(inst->_currentRound);
+        inst->_currentRound += 1;
     }
     static void increaseRound(size_t val) {
         RoundManager* inst = instance();

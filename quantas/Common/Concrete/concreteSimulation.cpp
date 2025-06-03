@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
         while(!networkInterface->getShutdownCondition()) {
             if (!peer->isCrashed()) {
                 peer->receive();
-                peer->performComputation();
+                peer->tryPerformComputation();
             }
             
             if (int(RoundManager::lastRound()) - int(RoundManager::currentRound()) < counter) {

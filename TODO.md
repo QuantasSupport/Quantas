@@ -9,3 +9,5 @@
 5. change LinearChordPeer to fully implement Chord
 
 6. check the memory management of messages, packets, channels, etc.
+
+7. move to init parameters and end of round running for each peer individually and then compute the results after for graphing instead of while running to make more compatible with distrubted simulation

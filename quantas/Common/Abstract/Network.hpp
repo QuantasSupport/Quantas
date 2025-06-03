@@ -72,9 +72,9 @@ public:
     }
 
     // -------------- Simulation loop --------------
-    // call each peer's receive, performComputation.
+    // call each peer's receive, tryPerformComputation.
     void receive(int begin, int end);    
-    void performComputation(int begin, int end);
+    void tryPerformComputation(int begin, int end);
 
     void endOfRound() {_peers[0]->endOfRound(_peers); }
 

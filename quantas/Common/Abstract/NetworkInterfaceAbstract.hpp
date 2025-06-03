@@ -77,6 +77,7 @@ void NetworkInterfaceAbstract::unicastTo(json msg, const interfaceId& nbr) {
         p.setTarget(nbr);
         p.setMessage(msg);
         it->second->pushPacket(p);
+        // std::cout << "Msg: " << msg << " to " << nbr << std::endl;
     }
 }
 

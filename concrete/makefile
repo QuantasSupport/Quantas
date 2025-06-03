@@ -1,15 +1,12 @@
 
-# hostname -I
-
-
 EXE := test.exe
 
 CXX := g++
 CXXFLAGS := -pthread -std=c++17
 
-CONFIGFILE := config.json
+CONFIGFILE := config0.json
 
-OBJS := socketExample.o ipUtil.o
+OBJS := ../quantas/Common/Concrete/concreteSimulation.o ../quantas/Common/Concrete/ipUtil.o ../quantas/AltBitPeer/AltBitPeer.o ../quantas/Common/Abstract/Channel.o
 
 $(EXE): $(OBJS)
 	@$(CXX) $(CXXFLAGS) $^ -o $(EXE)
@@ -26,11 +23,8 @@ release: $(EXE)
 
 run: kill release
 	# @echo running with input: $(CONFIGFILE)
+	@./$(EXE) config0.json 5000 &
 	@./$(EXE) config0.json &
-	@./$(EXE) config1.json 5001 &
-	@./$(EXE) config1.json 5002 &
-	@./$(EXE) config1.json 5003 &
-	@./$(EXE) config1.json 5004 &
 
 kill:
 	@USER=$$(whoami); \

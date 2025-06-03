@@ -65,18 +65,21 @@ namespace quantas {
 			system.initNetwork(config["topology"]);
 			if (config.contains("parameters")) {
 				system.initParameters(config["parameters"]);
+			} else {
+				json empty;
+				system.initParameters(empty);
 			}
 			
-			//cout << "Test " << i + 1 << endl;
+			//std::cout << "Test " << i + 1 << std::endl;
 			for (int j = 0; j < config["rounds"]; j++) {
-				//cout << "ROUND " << j + 1 << endl;
-				RoundManager::instance()->incrementRound();
+				std::cout << "ROUND " << j + 1 << std::endl;
+				RoundManager::incrementRound();
 
 				// do the receive phase of the round
 				BS::multi_future<void> receive_loop = pool.parallelize_loop(networkSize, [this](int a, int b){system.receive(a, b);});
 				receive_loop.wait();
 
-				BS::multi_future<void> compute_loop = pool.parallelize_loop(networkSize, [this](int a, int b){system.performComputation(a, b);});
+				BS::multi_future<void> compute_loop = pool.parallelize_loop(networkSize, [this](int a, int b){system.tryPerformComputation(a, b);});
 				compute_loop.wait();
 
 				system.endOfRound(); // do any end of round computations

@@ -94,6 +94,14 @@ inline Peer() {}
     virtual void initParameters(const std::vector<Peer*>& peers,
                                 json parameters) {}
 
+    // try to run performComputation though it may not
+    virtual void tryPerformComputation() {
+        std::cout << "Peer.hpp: " << internalId() << std::endl;
+        if (!isCrashed()) {
+            performComputation();
+        }
+    };
+
     // Main algorithmic step that each Peer runs each round
     virtual void performComputation() = 0;
 
