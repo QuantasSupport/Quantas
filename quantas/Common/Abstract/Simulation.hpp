@@ -72,7 +72,7 @@ namespace quantas {
 			
 			//std::cout << "Test " << i + 1 << std::endl;
 			for (int j = 0; j < config["rounds"]; j++) {
-				std::cout << "ROUND " << j + 1 << std::endl;
+				// std::cout << "ROUND " << j + 1 << std::endl;
 				RoundManager::incrementRound();
 
 				// do the receive phase of the round

@@ -39,7 +39,6 @@ inline ByzantinePeer() {}
     inline virtual ~ByzantinePeer() {};
 
     virtual void tryPerformComputation() override {
-        std::cout << "ByzantinePeer.hpp: " << internalId() << std::endl;
         if (!isCrashed()) {
             bool skipRegular = faultManager.applyPerformComputation(this);
             if (!skipRegular)

@@ -16,7 +16,7 @@
         "initialPeerType": "PBFTPeerV3"
       },
       "tests": 1,
-      "rounds": 10
+      "rounds": 200
     }
   ]
 }

@@ -93,7 +93,6 @@ public:
         bool overridden = false;
         for (auto* f : computationFaults)
             overridden |= f->onPerformComputation(peer);
-        std::cout << overridden << std::endl;
         return overridden;
     }
 

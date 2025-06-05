@@ -29,12 +29,12 @@ public:
 
     // perform one step of the Algorithm with the messages in inStream
     void                 performComputation() override {
-        std::cout << "Peer: " << publicId() << std::endl;
+        // std::cout << "Peer: " << publicId() << std::endl;
         while (!inStreamEmpty()) {
             Packet packet = popInStream();
             json msg = packet.getMessage();
             
-            std::cout << msg << std::endl;
+            // std::cout << "ConsensusPeer received: " << msg << std::endl;
             if (!msg.contains("type")) {
                 std::cout << "Message requires a type" << std::endl;
                 continue;
@@ -48,7 +48,7 @@ public:
                 auto it = consensuses.find(targetId);
                 if (it != consensuses.end()) {
                     Consensus* target = it->second;
-                    target->_unhandledRequests.push_back(msg);
+                    target->_unhandledRequests.insert({RoundManager::currentRound(), msg});
                 }
             } else if (msg["type"] == "Consensus") {
                 int targetId = msg["consensusId"];
@@ -72,11 +72,10 @@ public:
             } else {
                 std::cout << "Other?" << std::endl;
             }
-            std::cout << std::endl;
+            // std::cout << std::endl;
         }
 
         for (auto consensus : consensuses) {
-            std::cout << "Run consensus phase" << std::endl;
             consensus.second->runPhase(this);
         }
     };

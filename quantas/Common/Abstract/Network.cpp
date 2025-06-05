@@ -199,18 +199,17 @@ void Network::userList(json topology) {
 }
 
 void Network::receive(int begin, int end) {
-    // call each peer's receive
-    for (int i = begin; i < end && i < (int)_peers.size(); i++) {
+    end = end < (int)_peers.size() ? end : (int)_peers.size();
+    // call receive on each peer in the range
+    for (int i = begin; i < end; ++i) {
         _peers[i]->receive();
     }
 }
 
 void Network::tryPerformComputation(int begin, int end) {
-    std::cout << begin << end << std::endl;
     end = end < (int)_peers.size() ? end : (int)_peers.size();
-    // call each tryPerformComputation on each peer in the range
+    // call tryPerformComputation on each peer in the range
     for (int i = begin; i < end; ++i) {
-        std::cout << i << std::endl;
         _peers[i]->tryPerformComputation();
     }
 }

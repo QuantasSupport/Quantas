@@ -31,20 +31,19 @@ public:
 	}
 
     virtual bool onSend(Peer* peer, json& msg, const std::string& sendType, const std::set<interfaceId>& targets = std::set<interfaceId>()) {
-		std::cout << "onSend " << msg << std::endl;
         if (sendType == "multicast") {
 			if (msg.contains("MessageType") && msg["MessageType"] == "pre-prepare" && msg.contains("proposal") && msg["proposal"].contains("value")) {
-				auto cast_peer = reinterpret_cast<PBFTPeerV3*>(peer);
-                // if (peer->getLeader() == peer->getId()) {
+				auto cast_peer = dynamic_cast<PBFTPeerV3*>(peer);
+                // if (peer->leader == peer->getId()) {
                 auto neighbors = targets;
                 std::vector<interfaceId> temp(neighbors.begin(), neighbors.end());  // Copy set to vector
                 std::shuffle(temp.begin(), temp.end(), threadLocalEngine());  // Shuffle vector
-                std::set<interfaceId> subset1(temp.begin(), temp.begin() + temp.size() / 6);  // Take the first 'count' elements
-                std::set<interfaceId> subset2(temp.begin() + temp.size() / 6, temp.end());
+                std::set<interfaceId> subset1(temp.begin(), temp.begin() + temp.size() / 2);  // Take the first 'count' elements
+                std::set<interfaceId> subset2(temp.begin() + temp.size() / 2, temp.end());
                 json msg_copy = msg;
-                cast_peer->getNetworkInterface()->multicast(msg, subset1);
+                cast_peer->getNetworkInterface()->multicast(msg, subset2);
                 msg_copy["proposal"]["value"] = !msg_copy["proposal"]["value"];
-                cast_peer->getNetworkInterface()->multicast(msg_copy, subset2);
+                cast_peer->getNetworkInterface()->multicast(msg_copy, subset1);
                 return true; 
                 // } else {
                 //     json msg_copy = msg;
@@ -61,11 +60,74 @@ public:
 class PBFTConsensus : public Consensus {
 public:
     PBFTConsensus(Committee* committee);
+    
 
-	interfaceId getLeader() override {return _leader;};
+    std::pair<int, json> getCount(string phase) {
+        int seqNum = _confirmedTrans.size();
+        if (_receivedMessages.find(seqNum) == _receivedMessages.end()) {
+            return {0, json()};
+        }
+        auto range = _receivedMessages[seqNum].equal_range(phase);
+        std::set<interfaceId> uniquePeers;
+        json exampleMsg;
+        for (auto it = range.first; it != range.second; ++it) {
+            if (it->second.contains("proposal") && 
+            it->second["proposal"].contains("view") &&
+            it->second["proposal"]["view"] == view &&
+            it->second.contains("from_id")) {
 
-	interfaceId _leader = NO_PEER_ID;
+                if (it->second["proposal"].contains("value")) {
+
+                    if (it->second["proposal"]["value"] == value) {
+                        interfaceId newId = it->second["from_id"];
+                        uniquePeers.insert(newId);
+                        if (exampleMsg.empty()) exampleMsg = it->second;
+                    }
+                } else {
+                    // for view changes
+                    interfaceId newId = it->second["from_id"];
+                    uniquePeers.insert(newId);
+                }
+            }
+        }
+        return {uniquePeers.size(), exampleMsg};
+    }
+
+    void submitRequest(Peer* peer) {
+        json msg = {
+            {"type", "Request"},
+            {"requestId", _currentClientRequestId++},
+            {"submitterId", peer->publicId()},
+            {"consensusId", getId()},
+            {"roundSubmitted", RoundManager::currentRound()}
+        };
+        
+        peer->multicast(msg, getMembers());
+        _unhandledRequests.insert({RoundManager::currentRound(),msg});
+    }
+
+    void requestViewChange(Peer* peer);
+
+	interfaceId leader = NO_PEER_ID;
+    int view = 0;
+    bool value = true;
+    int viewChangeTimer = 10;
+    int viewChangeDelay = 10;
+
 };
+
+// Consider adding the check commits, check prepares, etc. to a base phase class
+// since it is needed in multiple
+
+// class PBFTPhase : public Phase {
+// public:
+//     static Phase* instance() {
+//         static PBFTPrePreparePhase instance;
+//         return &instance;
+//     }
+
+//     void runPhase(Consensus* con, Peer* peer) override;
+// };
 
 class PBFTPrePreparePhase : public Phase {
 public:
@@ -74,7 +136,7 @@ public:
         return &instance;
     }
 
-    void runPhase(Consensus* consensus, Peer* peer) override;
+    void runPhase(Consensus* con, Peer* peer) override;
 };
 
 class PBFTPreparePhase : public Phase {
@@ -84,7 +146,7 @@ public:
         return &instance;
     }
 
-    void runPhase(Consensus* consensus, Peer* peer) override;
+    void runPhase(Consensus* con, Peer* peer) override;
 };
 
 class PBFTCommitPhase : public Phase {
@@ -94,33 +156,62 @@ public:
         return &instance;
     }
 
-    void runPhase(Consensus* consensus, Peer* peer) override;
+    void runPhase(Consensus* con, Peer* peer) override;
 };
+
+class PBFTViewChangePhase : public Phase {
+    public:
+        static Phase* instance() {
+            static PBFTViewChangePhase instance;
+            return &instance;
+        }
+    
+        void runPhase(Consensus* con, Peer* peer) override;
+    };
 
 PBFTConsensus::PBFTConsensus(Committee* committee) {
     _committee = committee;
     _phase = PBFTPrePreparePhase::instance();  // Start here
 }
 
-void PBFTPrePreparePhase::runPhase(Consensus* consensus, Peer* peer) {
-    std::cout << "Peer " << peer->publicId() << " in prePrepare" << std::endl;
+void PBFTConsensus::requestViewChange(Peer* peer) {
+    // This guy may fall behind in commits
+    // need to fix this 
+
+    // std::cout << "requesting a view change" << std::endl;
+    json msg = {
+        {"type", "Consensus"},
+        {"consensusId", getId()},
+        {"MessageType", "viewChange"},
+        {"seqNum", _confirmedTrans.size()},
+        {"proposal", {
+            {"view", ++view}
+        }},
+        {"from_id", peer->publicId()}
+    };
+    auto neighbors = getMembers();
+    std::vector<interfaceId> temp(neighbors.begin(), neighbors.end());
+    leader = temp[view % temp.size()];
+    peer->multicast(msg, getMembers());
+    _receivedMessages[msg["seqNum"]].insert({ "viewChange", msg });
+    _phase->changePhase(this, PBFTViewChangePhase::instance());
+}
+
+void PBFTPrePreparePhase::runPhase(Consensus* con, Peer* peer) {
+    PBFTConsensus* consensus = dynamic_cast<PBFTConsensus*>(con);
+    if (!consensus) return;
+    if (consensus->viewChangeTimer < RoundManager::currentRound()) {
+        consensus->requestViewChange(peer);
+        return;
+    }
+    
     // Leader creates pre-prepare
-    if (peer->publicId() == consensus->getLeader()) {
+    if (peer->publicId() == consensus->leader) {
         if (consensus->_unhandledRequests.empty()) {
-            json msg = {
-                {"type", "Request"},
-                {"requestId", consensus->_currentClientRequestId++},
-                {"submitterId", peer->publicId()},
-                {"consensusId", consensus->getId()},
-                {"roundSubmitted", RoundManager::currentRound()}
-            };
-            
-            peer->multicast(msg, consensus->getMembers());
-            consensus->_unhandledRequests.push_back(msg);
+            consensus->submitRequest(peer);
         }
 
-        auto tx = consensus->_unhandledRequests.back();
-        consensus->_unhandledRequests.pop_back();
+        auto tx = consensus->_unhandledRequests.begin()->second;
 
         json msg = {
             {"type", "Consensus"},
@@ -129,70 +220,191 @@ void PBFTPrePreparePhase::runPhase(Consensus* consensus, Peer* peer) {
             {"seqNum", consensus->_confirmedTrans.size()},
             {"proposal", {
                 {"Request", tx},
+                {"view", consensus->view},
                 {"value", true}
             }},
-            {"from_id", peer->publicId()},
-            {"roundSubmitted", RoundManager::currentRound()}
+            {"from_id", peer->publicId()}
         };
-        std::cout << "peer->multicast(msg, consensus->getMembers());" << std::endl;
+        
         peer->multicast(msg, consensus->getMembers());
-        std::cout << "consensus->" << std::endl;
         consensus->_receivedMessages[msg["seqNum"]].insert({ "pre-prepare", msg });
 
-        std::cout << "moving to Prepare" << std::endl;
         changePhase(consensus, PBFTPreparePhase::instance());
-        // consensus->runPhase(peer);
     } else {
         int seqNum = consensus->_confirmedTrans.size();
-        auto& mm = consensus->_receivedMessages[seqNum];
-        int count = static_cast<int>(mm.count("pre-prepare"));
-        if (count > 0) {
-            json prepareMsg = mm.find("pre-prepare")->second;
-            json newMsg = prepareMsg;
+        if (consensus->_receivedMessages.find(seqNum) == consensus->_receivedMessages.end()) {
+            return;
+        }
+        auto range = consensus->_receivedMessages[seqNum].equal_range("pre-prepare");
+        json prePrepareMsg;
+        for (auto it = range.first; it != range.second; ++it) {
+            if (it->second.contains("proposal") && 
+            it->second["proposal"].contains("view") &&
+            it->second["proposal"]["view"] == consensus->view &&
+            it->second.contains("from_id") &&
+            it->second["from_id"] == consensus->leader) {
+                prePrepareMsg = it->second;
+                break;
+            }
+        }
+        if (!prePrepareMsg.empty()) {
+            
+            json newMsg = prePrepareMsg;
             newMsg["MessageType"] = "prepare";
             newMsg["from_id"] = peer->publicId();
+            consensus->value = newMsg["proposal"]["value"];
 
             peer->multicast(newMsg, consensus->getMembers());
-            mm.insert({ "prepare", newMsg });
+            consensus->_receivedMessages[seqNum].insert({ "prepare", newMsg });
 
-            std::cout << "moving to prepare" << std::endl;
             changePhase(consensus, PBFTPreparePhase::instance());
+            consensus->runPhase(peer);
+        } else {
+            // check prepare phase
+            auto result = consensus->getCount("prepare");
+            int neighborCount = consensus->getMembers().size();
+            if (result.first <= (2 * neighborCount / 3)) {
+                consensus->value = !consensus->value;
+                result = consensus->getCount("prepare");
+            }
+            
+            if (result.first > (2 * neighborCount / 3)) {
+                json newMsg = result.second;
+                newMsg["MessageType"] = "prepare";
+                newMsg["from_id"] = peer->publicId();
+
+                peer->multicast(newMsg, consensus->getMembers());
+                consensus->_receivedMessages[seqNum].insert({ "prepare", newMsg });
+
+                newMsg["MessageType"] = "commit";
+
+                peer->multicast(newMsg, consensus->getMembers());
+                consensus->_receivedMessages[seqNum].insert({ "commit", newMsg });
+                
+                changePhase(consensus, PBFTCommitPhase::instance());
+                consensus->runPhase(peer);
+            } else {
+                // Check commits
+                auto result = consensus->getCount("commit");
+                if (result.first <= (2 * neighborCount / 3)) {
+                    consensus->value = !consensus->value;
+                    result = consensus->getCount("commit");
+                }
+                if (result.first > (2 * neighborCount / 3)) {
+                    json confirmed = result.second;
+                    confirmed["MessageType"] = "commit";
+                    confirmed["from_id"] = peer->publicId();
+
+                    peer->multicast(confirmed, consensus->getMembers());
+                    
+                    // Add to confirmed
+                    consensus->_confirmedTrans.push_back(confirmed["proposal"]["Request"]);
+                    consensus->_latency += RoundManager::currentRound() - confirmed["proposal"]["Request"]["roundSubmitted"].get<int>();
+                    consensus->viewChangeTimer = RoundManager::currentRound() + consensus->viewChangeDelay;
+                    // clear some memory
+                    if (confirmed["proposal"]["value"] == false) {
+                        consensus->_confirmedZero = true;
+                        json notes;
+                        notes["round"] = RoundManager::currentRound();
+                        notes["committee"] = consensus->getId();
+                        notes["peer"] = peer->publicId();
+                        LogWriter::pushValue("safetyViolation", notes);
+                    }
+
+                    // remove the request as it has now been handled
+                    for (auto it = consensus->_unhandledRequests.begin(); it != consensus->_unhandledRequests.end(); ++it) {
+                        if (it->second == confirmed["proposal"]["Request"]) {
+                            consensus->_unhandledRequests.erase(it);
+                            break;
+                        }
+                    }
+
+                    // Reset to pre prepare
+                    changePhase(consensus, PBFTPrePreparePhase::instance());
+                    consensus->runPhase(peer);
+                }
+            }
+        }
+    }
+}
+
+void PBFTPreparePhase::runPhase(Consensus* con, Peer* peer) {
+    PBFTConsensus* consensus = dynamic_cast<PBFTConsensus*>(con);
+    if (!consensus) return;
+    if (consensus->viewChangeTimer < RoundManager::currentRound()) {
+        consensus->requestViewChange(peer);
+        return;
+    }
+    
+    auto result = consensus->getCount("prepare");
+    int neighborCount = consensus->getMembers().size();
+    if (result.first > (2 * neighborCount / 3)) {
+        json commitMsg = result.second;
+        commitMsg["MessageType"] = "commit";
+        commitMsg["from_id"] = peer->publicId();
+
+        peer->multicast(commitMsg, consensus->getMembers());
+        int seqNum = consensus->_confirmedTrans.size();
+        consensus->_receivedMessages[seqNum].insert({ "commit", commitMsg });
+
+        changePhase(consensus, PBFTCommitPhase::instance());
+        consensus->runPhase(peer);
+    } else {
+        // Check commits
+        auto result = consensus->getCount("commit");
+        if (result.first > (2 * neighborCount / 3)) {
+            json confirmed = result.second;
+            confirmed["MessageType"] = "commit";
+            confirmed["from_id"] = peer->publicId();
+
+            peer->multicast(confirmed, consensus->getMembers());
+            
+            // Add to confirmed
+            consensus->_confirmedTrans.push_back(confirmed["proposal"]["Request"]);
+            consensus->_latency += RoundManager::currentRound() - confirmed["proposal"]["Request"]["roundSubmitted"].get<int>();
+            consensus->viewChangeTimer = RoundManager::currentRound() + consensus->viewChangeDelay;
+            // clear some memory
+            if (confirmed["proposal"]["value"] == false) {
+                consensus->_confirmedZero = true;
+                json notes;
+                notes["round"] = RoundManager::currentRound();
+                notes["committee"] = consensus->getId();
+                notes["peer"] = peer->publicId();
+                LogWriter::pushValue("safetyViolation", notes);
+            }
+
+            // remove the request as it has now been handled
+            for (auto it = consensus->_unhandledRequests.begin(); it != consensus->_unhandledRequests.end(); ++it) {
+                if (it->second == confirmed["proposal"]["Request"]) {
+                    consensus->_unhandledRequests.erase(it);
+                    break;
+                }
+            }
+
+            // Reset to pre prepare
+            changePhase(consensus, PBFTPrePreparePhase::instance());
             consensus->runPhase(peer);
         }
     }
 }
 
-void PBFTPreparePhase::runPhase(Consensus* consensus, Peer* peer) {
-    int seqNum = consensus->_confirmedTrans.size();
-    auto& mm = consensus->_receivedMessages[seqNum];
-    int prepareCount = static_cast<int>(mm.count("prepare"));
-    int neighborCount = static_cast<int>(consensus->getMembers().size());
-    if (prepareCount > (2 * neighborCount / 3)) {
-        json prepareMsg = mm.find("prepare")->second;
-        json commitMsg = prepareMsg;
-        commitMsg["MessageType"] = "commit";
-        commitMsg["from_id"] = peer->publicId();
-
-        peer->multicast(commitMsg, consensus->getMembers());
-        mm.insert({ "commit", commitMsg });
-        std::cout << "moving to commit" << std::endl;
-        changePhase(consensus, PBFTCommitPhase::instance());
-        consensus->runPhase(peer);
+void PBFTCommitPhase::runPhase(Consensus* con, Peer* peer) {
+    PBFTConsensus* consensus = dynamic_cast<PBFTConsensus*>(con);
+    if (!consensus) return;
+    if (consensus->viewChangeTimer < RoundManager::currentRound()) {
+        consensus->requestViewChange(peer);
+        return;
     }
-}
-
-void PBFTCommitPhase::runPhase(Consensus* consensus, Peer* peer) {
-    int seqNum = consensus->_confirmedTrans.size();
-    auto& mm = consensus->_receivedMessages[seqNum];
-
-    int commitCount = static_cast<int>(mm.count("commit"));
-    int neighborCount = static_cast<int>(peer->neighbors().size());
-
-    if (commitCount > (2 * neighborCount / 3)) {
+    
+    auto result = consensus->getCount("commit");
+    int neighborCount = consensus->getMembers().size();
+    if (result.first > (2 * neighborCount / 3)) {
         // Add to confirmed
-        json confirmed = mm.find("commit")->second;
+        json confirmed = result.second;
         consensus->_confirmedTrans.push_back(confirmed["proposal"]["Request"]);
-        consensus->_latency += RoundManager::currentRound() - confirmed["roundSubmitted"].get<int>();
+        consensus->_latency += RoundManager::currentRound() - confirmed["proposal"]["Request"]["roundSubmitted"].get<int>();
+        consensus->viewChangeTimer = RoundManager::currentRound() + consensus->viewChangeDelay;
+        // clear some memory
         if (confirmed["proposal"]["value"] == false) {
             consensus->_confirmedZero = true;
             json notes;
@@ -201,13 +413,35 @@ void PBFTCommitPhase::runPhase(Consensus* consensus, Peer* peer) {
             notes["peer"] = peer->publicId();
             LogWriter::pushValue("safetyViolation", notes);
         }
-        std::cout << "moving to prePrepare" << std::endl;
+
+        // remove the request as it has now been handled
+        for (auto it = consensus->_unhandledRequests.begin(); it != consensus->_unhandledRequests.end(); ++it) {
+            if (it->second == confirmed["proposal"]["Request"]) {
+                consensus->_unhandledRequests.erase(it);
+                break;
+            }
+        }
+
         // Reset to pre prepare
         changePhase(consensus, PBFTPrePreparePhase::instance());
         consensus->runPhase(peer);
     }
 }
 
+void PBFTViewChangePhase::runPhase(Consensus* con, Peer* peer) {
+    PBFTConsensus* consensus = dynamic_cast<PBFTConsensus*>(con);
+    if (!consensus) return;
+
+    auto result = consensus->getCount("viewChange");
+    int neighborCount = consensus->getMembers().size();
+    if (result.first > (2 * neighborCount / 3)) {
+        consensus->viewChangeTimer = RoundManager::currentRound() + consensus->viewChangeDelay;
+        // Reset to pre prepare
+        changePhase(consensus, PBFTPrePreparePhase::instance());
+        consensus->runPhase(peer);
+        
+    }
+}
 
 PBFTPeerV3::~PBFTPeerV3() {
 
@@ -226,6 +460,7 @@ void PBFTPeerV3::initParameters(const std::vector<Peer*>& _peers, json parameter
 
 	int committeeId = 0;
     interfaceId leaderId = peers[0]->publicId();
+    peers[0]->faultManager.addFault(new EquivocateFault());
     // Assign a PBFTConsensus instance using this committee to each peer
     for (auto peer : peers) {
 		// Create and configure a committee
@@ -234,19 +469,18 @@ void PBFTPeerV3::initParameters(const std::vector<Peer*>& _peers, json parameter
 			committeePtr->addMember(peer->publicId());
 		}
         PBFTConsensus* pbft = new PBFTConsensus(committeePtr);
-		pbft->_leader = leaderId;
+		pbft->leader = leaderId;
         peer->consensuses[committeeId] = pbft;
-	    peer->faultManager.addFault(new EquivocateFault());
+	    
 	}
 }
 
 void PBFTPeerV3::endOfRound(vector<Peer*>& _peers) {
 	const vector<PBFTPeerV3*> peers = reinterpret_cast<vector<PBFTPeerV3*> const&>(_peers);
-	
     double length = 0;
     double latency = 0;
     bool confirmedZero = false;
-    for (auto consensus : peers[0]->consensuses) {
+    for (auto& consensus : peers[0]->consensuses) {
         length += consensus.second->_confirmedTrans.size();
         latency += consensus.second->_latency;
     }

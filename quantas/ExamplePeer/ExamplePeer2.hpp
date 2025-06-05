@@ -32,7 +32,7 @@ namespace quantas{
         ExamplePeer2                             (const ExamplePeer2 &rhs);
         ~ExamplePeer2                            ();
         ExamplePeer2(ExamplePeer* rhs) {
-            ExamplePeer* oldPeer = reinterpret_cast<ExamplePeer*> (rhs);
+            ExamplePeer* oldPeer = dynamic_cast<ExamplePeer*> (rhs);
     
             _networkInterface = rhs->getNetworkInterface();
             msgsSent = std::move(rhs->msgsSent);

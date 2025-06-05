@@ -113,17 +113,15 @@ public:
     Consensus() {};
 
     void changePhase(Phase*& phase) {
-        std::cout << "Phase changed" << std::endl;
         _phase=phase;
     };
     void runPhase(Peer* peer) {_phase->runPhase(this, peer);};
-    virtual interfaceId getLeader() {return NO_PEER_ID;};
 
     int getId() const {return _committee->getId();};
     // Return a const reference to avoid copying the entire set
     const std::set<interfaceId>& getMembers() const { return _committee->getMembers(); }
 
-    ~Consensus() {
+    virtual ~Consensus() {
 
     }
 
@@ -132,9 +130,9 @@ public:
     // keyed by the sequence number and 
     // phase to which they belong for quicker lookups
     map<int, multimap<string, json>>    _receivedMessages;
-    // vector of recieved ClientRequests
-    // consider changing container later maybe a list
-    vector<json>                  _unhandledRequests;
+    // multimap of received ClientRequests
+    // key is the round the request was received
+    multimap<int, json>                  _unhandledRequests;
     // vector of confirmed ClientRequests
     // consider changing container later
     vector<json>		            _confirmedTrans;
