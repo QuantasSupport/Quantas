@@ -8,19 +8,19 @@ You should have received a copy of the GNU General Public License along with QUA
 */
 
 #include <iostream>
-#include "PBFTPeer.hpp"
+#include "PaxosPeer.hpp"
 
 namespace quantas {
 
-	PBFTPeer::~PBFTPeer() {
+	PaxosPeer::~PaxosPeer() {
 
 	}
 
-	PBFTPeer::PBFTPeer(const PBFTPeer& rhs) : Peer<PBFTPeerMessage>(rhs) {
+	PaxosPeer::PaxosPeer(const PaxosPeer& rhs) : Peer<PaxosPeerMessage>(rhs) {
 		
 	}
 
-	PBFTPeer::PBFTPeer(long id) : Peer(id) {
+	PaxosPeer::PaxosPeer(long id) : Peer(id) {
 
 	}
 

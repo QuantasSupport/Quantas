@@ -36,16 +36,19 @@ namespace quantas{
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound(const vector<Peer<PaxosPeerMessage>*>& _peers);
 
-        // string indicating the current status of a node
-        string                          status = "";
-        // current squence number
-        int                             sequenceNum = 0;
+        // number last ballot that peer tried to initiate (-1 if the peer hasn't attempted to initiate a ballot)
+        int lastTried = -1;
+        // vote of ballot with highest sequence number that peer has cast a vote for. (-1 if peer has never voted)
+        int prevVote = -1;
+        // largest ballot number for which peer has granted promise for. (-1 if peer hasn't sent a lastVote message to anyone)
+        int nextBal = -1;
+
         // vector of vectors of messages that have been received
-        vector<vector<PBFTPeerMessage>> receivedMessages;
+        vector<vector<PaxosPeerMessage>> receivedMessages;
         // vector of recieved transactions
-        vector<PBFTPeerMessage>		    transactions;
-        // vector of confirmed transactions
-        vector<PBFTPeerMessage>		    confirmedTrans;
+        vector<PaxosPeerMessage>		    transactions;
+        // vector of confirmed transactions OR ledger in reference to Part Time-Parliament
+        vector<PaxosPeerMessage>		    confirmedTrans;
         // latency of confirmed transactions
         int                             latency = 0;
         // rate at which to submit transactions ie 1 in x chance for all n nodes
