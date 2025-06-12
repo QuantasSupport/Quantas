@@ -19,7 +19,7 @@ namespace quantas{
 
         int 				Id = -1; // node who sent the message
         //int					trans = -1; // the transaction id
-        int                 sequenceNum = -1;
+        int                 ballotNum = -1;
         string              messageType = "";
         string              message = ""; // decree
     };

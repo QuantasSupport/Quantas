@@ -24,6 +24,29 @@ namespace quantas {
 
 	}
 
+	PaxosPeer::checkInStrm() {
+		while(!inStreamEmpty()) {
+			PaxosPeerMessage newMsg = popInStream().getMessage();
+
+			if (newMsg.messageType = "NextBallot") {
+				if (newMsg.ballotNum > )
+				nextBal = newMsg.ballotNum;
+			}
+			else if (newMsg.messageType = "LastMessage") {
+
+			}
+			else if (newMsg.messageType = "BeginBallot") {
+
+			}
+			else if (newMsg.messageType = "Voted") {
+
+			}
+			else if (newMsg.messageType = "Success") {
+
+			}
+		}
+	}
+
 	void PBFTPeer::performComputation() {
 		if (id() == 0 && getRound() == 0) {
 			submitTrans(currentTransaction);
