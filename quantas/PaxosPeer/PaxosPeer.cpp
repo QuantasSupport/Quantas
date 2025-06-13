@@ -33,13 +33,17 @@ namespace quantas {
 				nextBal = newMsg.ballotNum;
 			}
 			else if (newMsg.messageType = "LastMessage") {
-
+				
 			}
 			else if (newMsg.messageType = "BeginBallot") {
+				if (paperData.status == TRYING) {
 
+				}
 			}
 			else if (newMsg.messageType = "Voted") {
+				if (paperData.status == POLLING) {
 
+				}
 			}
 			else if (newMsg.messageType = "Success") {
 

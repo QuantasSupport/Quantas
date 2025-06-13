@@ -10,6 +10,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #ifndef PaxosPeer_hpp
 #define PaxosPeer_hpp
 
+#include <set>
 #include "../Common/Peer.hpp"
 #include "../Common/Simulation.hpp"
 
@@ -21,8 +22,48 @@ namespace quantas{
         //int					trans = -1; // the transaction id
         int                 ballotNum = -1;
         string              messageType = "";
-        string              message = ""; // decree
+        int                 decree = -1; // decree
     };
+
+    // peer data considered crash safe
+    struct Ledger {
+        // number last ballot that peer tried to initiate (-1 if the peer hasn't attempted to initiate a ballot)
+        int lastTried = -1;
+
+        // number of ballot for which peer last voted for (-1 if peer has never voted)
+        int prevBal = -1;
+
+        // decree of ballot for which peer last voted for (-1 if peer has never voted) 
+        int ledgerDecree = -1;
+
+        // largest ballot number for which peer has granted promise for. (-1 if peer hasn't sent a lastVote message to anyone)
+        int nextBal = -1;
+    }
+
+    
+    // peer data not considered crash safe
+    struct Paper {
+        enum Status {
+            IDLE,
+            TRYING,
+            POLLING
+        }
+
+        Status status = IDLE;
+        
+        // set of votes received in lastVote messages 
+        set<int> prevVotes;
+
+        // set of peers forming the quorum of current ballot (set of peers that will decide whether to vote on ballot)
+        set<int> quorum;
+
+        // set of quorum peers that have sent peer Voted message for current ballot
+        set<int> voters;
+
+        // if peer is polling then decree of current ballot (otherwise -1)
+        int paperDecree = -1;
+
+    }
 
     class PaxosPeer : public Peer<PaxosPeerMessage>{
     public:
@@ -36,12 +77,11 @@ namespace quantas{
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound(const vector<Peer<PaxosPeerMessage>*>& _peers);
 
-        // number last ballot that peer tried to initiate (-1 if the peer hasn't attempted to initiate a ballot)
-        int lastTried = -1;
-        // vote of ballot with highest sequence number that peer has cast a vote for. (-1 if peer has never voted)
-        int prevVote = -1;
-        // largest ballot number for which peer has granted promise for. (-1 if peer hasn't sent a lastVote message to anyone)
-        int nextBal = -1;
+        // stores all data that is expected to remain if peer crashes
+        Ledger ledgerData;
+
+        // stores all data that may be corrupted if peer crashes
+        Paper paperData;
 
         // vector of vectors of messages that have been received
         vector<vector<PaxosPeerMessage>> receivedMessages;
@@ -64,4 +104,4 @@ namespace quantas{
 
     Simulation<quantas::PaxosPeerMessage, quantas::PaxosPeer>* generateSim();
 }
-#endif /* PBFTPeer_hpp */
+#endif /* PaxosPeer_hpp */
