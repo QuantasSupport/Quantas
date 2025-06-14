@@ -20,6 +20,7 @@ namespace quantas{
 
         int 				Id = -1; // node who sent the message
         //int					trans = -1; // the transaction id
+        int                 lastVoted = -1; // used for lastMessage message. -1 if irrelavent
         int                 ballotNum = -1;
         string              messageType = "";
         int                 decree = -1; // decree
@@ -77,11 +78,23 @@ namespace quantas{
         // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
         void                 endOfRound(const vector<Peer<PaxosPeerMessage>*>& _peers);
 
+        // returns a NextBallot PaxosPeer message with unique sequence number
+        PaxosPeerMessage nextBallot();
+        // returns a LastVote PaxosPeer message
+        PaxosPeerMessage lastMessage();
+        // returns a BeginBallot PaxosPeer message
+        PaxosPeerMessage beginBallot();
+        // returns a Voted PaxosPeer message
+        PaxosPeerMessage voted();
+
         // stores all data that is expected to remain if peer crashes
         Ledger ledgerData;
 
         // stores all data that may be corrupted if peer crashes
         Paper paperData;
+
+        // used for creating ballot/sequence numbers
+        int ballotIndex = 0;
 
         // vector of vectors of messages that have been received
         vector<vector<PaxosPeerMessage>> receivedMessages;
@@ -100,6 +113,8 @@ namespace quantas{
         void                  checkContents();
         // submitTrans creates a transaction and broadcasts it to everyone
         void                  submitTrans(int tranID);
+        // direct messages between peers
+        void sendMessage(long, PaxosPeerMessage);
     };
 
     Simulation<quantas::PaxosPeerMessage, quantas::PaxosPeer>* generateSim();

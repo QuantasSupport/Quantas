@@ -29,8 +29,11 @@ namespace quantas {
 			PaxosPeerMessage newMsg = popInStream().getMessage();
 
 			if (newMsg.messageType = "NextBallot") {
-				if (newMsg.ballotNum > )
-				nextBal = newMsg.ballotNum;
+				if (newMsg.ballotNum > ledgerData.nextBal) {
+					ledgerData.nextBal = newMsg.ballotNum;
+					PaxosPeerMessage reply = lastMessage();
+					sendMessage(newMsg.ID, )
+				}
 			}
 			else if (newMsg.messageType = "LastMessage") {
 				
@@ -49,6 +52,80 @@ namespace quantas {
 
 			}
 		}
+	}
+
+	PaxosPeerMessage PaxosPeer::nextBallot() {
+		// each peer needs own disjoint set of ballot numbers
+		// ensures no collisions for up to 1000 peers between ballot numbers
+		while (id() + ballotIndex * 1000 < nextBal || id() + ballotIndex * 1000 < lastTried) {
+			++ballotIndex;
+		}
+		ballotNum = id() + ballotIndex * 1000;
+		lastTried = ballotNum;
+		PaxosPeerMessage message;
+		message.messageType = "NextBallot";
+		message.ballotNum = ballotNum;
+		message.Id = id();
+		
+		//might end up broadcasting the return value
+		//broadcast(message);
+
+		paperData.status = TRYING;
+		paperData.prevVotes.clear();
+		paperData.quorum.clear();
+		paperData.voters.clear();
+
+		/* need better solution for selecting quorum*/
+		for (int i = 0; i < neighbors().size(); i++) {
+			paperData.quorum.insert(neighbors()[i]);
+		}
+
+		return message;
+	}
+
+	PaxosPeerMessage PaxosPeer::lastMessage() {
+		PaxosPeerMessage message;
+		message.messageType = "LastMessage";
+		message.ballotNum = nextBal;
+		message.Id = id();
+		return message;
+	}
+
+	PaxosPeerMessage PaxosPeer::beginBallot() {
+		PaxosPeerMessage message;
+		message.messageType = "BeginBallot";
+		message.ballotNum = lastTried;
+		message.decree = paperData.paperDecree;
+		message.Id = id();
+
+		paperData.status = POLLING;
+		paperData.voters.clear();
+
+		// might broadcast the return
+		// broadcast(message);
+		return message;
+	}
+
+	PaxosPeerMessage PaxosPeer::voted() {
+		PaxosPeerMessage message;
+		message.messageType = "Voted";
+		message.ballotNum = ledgerData.nextBal;
+		message.decree = paperData.paperDecree;
+		message.Id = id();
+
+		ledgerData.prevBal = ledgerData.nextBal;
+		
+		// might broadcast the return value
+		//broadcast(message);
+		return message;
+	}
+
+	void PaxosPeer::performComputation() {
+
+	}
+
+	void PaxosPeer::sendMessage() {
+
 	}
 
 	void PBFTPeer::performComputation() {
