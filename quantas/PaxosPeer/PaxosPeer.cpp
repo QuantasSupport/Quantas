@@ -32,11 +32,13 @@ namespace quantas {
 				if (newMsg.ballotNum > ledgerData.nextBal) {
 					ledgerData.nextBal = newMsg.ballotNum;
 					PaxosPeerMessage reply = lastMessage();
-					sendMessage(newMsg.ID, )
+					sendMessage(newMsg.ID, reply);
 				}
 			}
 			else if (newMsg.messageType = "LastMessage") {
-				
+				if (paperData.status == TRYING) {
+					paperData.prevVotes.insert(newMsg.ID);
+				}
 			}
 			else if (newMsg.messageType = "BeginBallot") {
 				if (paperData.status == TRYING) {
@@ -45,7 +47,7 @@ namespace quantas {
 			}
 			else if (newMsg.messageType = "Voted") {
 				if (paperData.status == POLLING) {
-
+					paperData.votes.insert(newMsg.ID);
 				}
 			}
 			else if (newMsg.messageType = "Success") {
@@ -121,7 +123,7 @@ namespace quantas {
 	}
 
 	void PaxosPeer::performComputation() {
-
+		
 	}
 
 	void PaxosPeer::sendMessage() {
