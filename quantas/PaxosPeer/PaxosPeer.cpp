@@ -41,8 +41,8 @@ namespace quantas {
 				}
 			}
 			else if (newMsg.messageType = "BeginBallot") {
-				if (paperData.status == TRYING) {
-
+				if (newMsg.ballotNum == ledgerData.nextBa && ) {
+					
 				}
 			}
 			else if (newMsg.messageType = "Voted") {
@@ -59,7 +59,7 @@ namespace quantas {
 	PaxosPeerMessage PaxosPeer::nextBallot() {
 		// each peer needs own disjoint set of ballot numbers
 		// ensures no collisions for up to 1000 peers between ballot numbers
-		while (id() + ballotIndex * 1000 < nextBal || id() + ballotIndex * 1000 < lastTried) {
+		while (id() + ballotIndex * 1000 < nextBal && id() + ballotIndex * 1000 < lastTried) {
 			++ballotIndex;
 		}
 		ballotNum = id() + ballotIndex * 1000;
@@ -77,7 +77,7 @@ namespace quantas {
 		paperData.quorum.clear();
 		paperData.voters.clear();
 
-		/* need better solution for selecting quorum*/
+		/* need better solution for selecting quorum */
 		for (int i = 0; i < neighbors().size(); i++) {
 			paperData.quorum.insert(neighbors()[i]);
 		}

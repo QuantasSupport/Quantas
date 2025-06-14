@@ -20,13 +20,13 @@ namespace quantas{
 
         int 				Id = -1; // node who sent the message
         //int					trans = -1; // the transaction id
-        int                 lastVoted = -1; // used for lastMessage message. -1 if irrelavent
-        int                 ballotNum = -1;
+        int                 lastVoted = -1; // used for lastVote message. -1 if irrelavent
+        int                 ballotNum = -1; // refers to a sequence number
         string              messageType = "";
         int                 decree = -1; // decree
     };
 
-    // peer data considered crash safe
+    // peer data considered crash safe (stored in stable memory)
     struct Ledger {
         // number last ballot that peer tried to initiate (-1 if the peer hasn't attempted to initiate a ballot)
         int lastTried = -1;
@@ -39,10 +39,13 @@ namespace quantas{
 
         // largest ballot number for which peer has granted promise for. (-1 if peer hasn't sent a lastVote message to anyone)
         int nextBal = -1;
+
+        // vector of successful ballots
+        vector<PaxosPeerMessage> successfulBallots;
     }
 
     
-    // peer data not considered crash safe
+    // peer data not considered crash safe (not stored in stable memory)
     struct Paper {
         enum Status {
             IDLE,
@@ -107,9 +110,9 @@ namespace quantas{
         // rate at which to submit transactions ie 1 in x chance for all n nodes
         int                             submitRate = 20;
 
-        // checkInStrm loops through the in stream adding messsages to receivedMessages or transactions
+        // AAA
         void                  checkInStrm();
-        // checkContents loops through the receivedMessages attempting to advance the status of consensus
+        // AAA
         void                  checkContents();
         // submitTrans creates a transaction and broadcasts it to everyone
         void                  submitTrans(int tranID);
