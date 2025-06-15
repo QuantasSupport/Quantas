@@ -32,12 +32,12 @@ namespace quantas {
 				if (newMsg.ballotNum > ledgerData.nextBal) {
 					ledgerData.nextBal = newMsg.ballotNum;
 					PaxosPeerMessage reply = lastMessage();
-					sendMessage(newMsg.ID, reply);
+					sendMessage(newMsg.Id, reply);
 				}
 			}
 			else if (newMsg.messageType = "LastMessage") {
 				if (paperData.status == TRYING) {
-					paperData.prevVotes.insert(newMsg.ID);
+					paperData.prevVotes.insert(newMsg.Id);
 				}
 			}
 			else if (newMsg.messageType = "BeginBallot") {
@@ -47,12 +47,12 @@ namespace quantas {
 					// probably need mroe in depth checks for voting
 					// to make sure the decree is correct
 					PaxosPeerMessage reply = voted();
-					sendMessage(newMsg.ID, reply);
+					sendMessage(newMsg.Id, reply);
 				}
 			}
 			else if (newMsg.messageType = "Voted") {
 				if (paperData.status == POLLING) {
-					paperData.votes.insert(newMsg.ID);
+					paperData.votes.insert(newMsg.Id);
 				}
 			}
 			else if (newMsg.messageType = "Success") {
@@ -61,6 +61,7 @@ namespace quantas {
 		}
 	}
 
+	// initializes and returns a nextBallot message
 	PaxosPeerMessage PaxosPeer::nextBallot() {
 		// each peer needs own disjoint set of ballot numbers
 		// ensures no collisions for up to 1000 peers between ballot numbers
@@ -74,9 +75,6 @@ namespace quantas {
 		message.ballotNum = ballotNum;
 		message.Id = id();
 		
-		//might end up broadcasting the return value
-		//broadcast(message);
-
 		paperData.status = TRYING;
 		paperData.prevVotes.clear();
 		paperData.quorum.clear();
@@ -90,6 +88,7 @@ namespace quantas {
 		return message;
 	}
 
+	// initializes and returns a lastMessage message
 	PaxosPeerMessage PaxosPeer::lastMessage() {
 		PaxosPeerMessage message;
 		message.messageType = "LastMessage";
@@ -99,6 +98,7 @@ namespace quantas {
 		return message;
 	}
 
+	// initializes and returns a beginBallot message
 	PaxosPeerMessage PaxosPeer::beginBallot() {
 		PaxosPeerMessage message;
 		message.messageType = "BeginBallot";
@@ -109,8 +109,6 @@ namespace quantas {
 		paperData.status = POLLING;
 		paperData.voters.clear();
 
-		// might broadcast the return
-		// broadcast(message);
 		return message;
 	}
 
@@ -123,19 +121,23 @@ namespace quantas {
 
 		ledgerData.prevBal = ledgerData.nextBal;
 		
-		// might broadcast the return value
-		//broadcast(message);
 		return message;
-	}
-
-	void PaxosPeer::performComputation() {
-		
 	}
 
 	void PaxosPeer::sendMessage(long peer, PaxosPeerMessage message) {
 		Packet<PaxosPeerMessage> newMessage(getRound(), peer, id());
 		newMessage.setMessage(message);
 		pushToOutSteam(newMessage);
+	}
+
+	void PaxosPeer::submitBallot() {
+		if (paperData.status == IDLE) {
+			
+			// need to figure out how long nodes wait
+			// until the next node is passed
+
+		}
+		else if ()
 	}
 
 	void PaxosPeer::performComputation() {
@@ -146,11 +148,11 @@ namespace quantas {
 			checkInStrm();
 
 		if (true)
-			checkContents();
+			submitBallot();
 
 	}
 
-	void PBFTPeer::endOfRound(const vector<Peer<PBFTPeerMessage>*>& _peers) {
+	void PaxosPeer::endOfRound(const vector<Peer<PaxosPeerMessage>*>& _peers) {
 		const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
 		double length = peers[0]->confirmedTrans.size();
 		LogWriter::getTestLog()["latency"].push_back(latency / length);

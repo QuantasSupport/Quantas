@@ -67,6 +67,8 @@ namespace quantas{
         // if peer is polling then decree of current ballot (otherwise -1)
         int paperDecree = -1;
 
+        int Timer = 0;
+
     }
 
     class PaxosPeer : public Peer<PaxosPeerMessage>{
@@ -112,10 +114,11 @@ namespace quantas{
 
         // AAA
         void                  checkInStrm();
+        // Used for submitting a new ballot to vote on
+        void                  submitBallot();
+        
         // AAA
-        void                  checkContents();
-        // submitTrans creates a transaction and broadcasts it to everyone
-        void                  submitTrans(int tranID);
+        //void                  checkContents();
         // direct messages between peers
         void sendMessage(long, PaxosPeerMessage);
     };
