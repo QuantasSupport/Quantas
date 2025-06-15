@@ -41,8 +41,13 @@ namespace quantas {
 				}
 			}
 			else if (newMsg.messageType = "BeginBallot") {
-				if (newMsg.ballotNum == ledgerData.nextBa && ) {
-					
+				if (newMsg.ballotNum == ledgerData.nextBal && newMsg.ballotNum > ledgerData.prevBal) {
+					ledgerData.prevBal = newMsg.ballotNum;
+
+					// probably need mroe in depth checks for voting
+					// to make sure the decree is correct
+					PaxosPeerMessage reply = voted();
+					sendMessage(newMsg.ID, reply);
 				}
 			}
 			else if (newMsg.messageType = "Voted") {
@@ -51,7 +56,7 @@ namespace quantas {
 				}
 			}
 			else if (newMsg.messageType = "Success") {
-
+				ledgerData.successfulBallot = newMsg;
 			}
 		}
 	}
@@ -88,7 +93,8 @@ namespace quantas {
 	PaxosPeerMessage PaxosPeer::lastMessage() {
 		PaxosPeerMessage message;
 		message.messageType = "LastMessage";
-		message.ballotNum = nextBal;
+		message.lastVoted = ledgerData.prevBal;
+		message.ballotNum = ledgerData.nextBal;
 		message.Id = id();
 		return message;
 	}
@@ -126,11 +132,13 @@ namespace quantas {
 		
 	}
 
-	void PaxosPeer::sendMessage() {
-
+	void PaxosPeer::sendMessage(long peer, PaxosPeerMessage message) {
+		Packet<PaxosPeerMessage> newMessage(getRound(), peer, id());
+		newMessage.setMessage(message);
+		pushToOutSteam(newMessage);
 	}
 
-	void PBFTPeer::performComputation() {
+	void PaxosPeer::performComputation() {
 		if (id() == 0 && getRound() == 0) {
 			submitTrans(currentTransaction);
 		}
@@ -148,113 +156,12 @@ namespace quantas {
 		LogWriter::getTestLog()["latency"].push_back(latency / length);
 	}
 
-	void PBFTPeer::checkInStrm() {
-		while (!inStreamEmpty()) {
-			Packet<PBFTPeerMessage> newMsg = popInStream();
-			
-			if (newMsg.getMessage().messageType == "trans") {
-				transactions.push_back(newMsg.getMessage());
-			}
-			else {
-				while (receivedMessages.size() < newMsg.getMessage().sequenceNum + 1) {
-					receivedMessages.push_back(vector<PBFTPeerMessage>());
-				}
-				receivedMessages[newMsg.getMessage().sequenceNum].push_back(newMsg.getMessage());
-			}
-		}
-	}
-	void PBFTPeer::checkContents() {
-		if (id() == 0 && status == "pre-prepare") {
-			for (int i = 0; i < transactions.size(); i++) {
-				bool skip = false;
-				for (int j = 0; j < confirmedTrans.size(); j++) {
-					if (transactions[i].trans == confirmedTrans[j].trans) {
-						skip = true;
-						break;
-					}
-				}
-				if (!skip) {
-					status = "prepare";
-					PBFTPeerMessage message = transactions[i];
-					message.messageType = "pre-prepare";
-					message.Id = id();
-					message.sequenceNum = sequenceNum;
-					broadcast(message);
-					if (receivedMessages.size() < sequenceNum + 1) {
-						receivedMessages.push_back(vector<PBFTPeerMessage>());
-					}
-					receivedMessages[sequenceNum].push_back(message);
-					break;
-				}
-			}
-		} else if (status == "pre-prepare" && receivedMessages.size() >= sequenceNum + 1) {
-			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				PBFTPeerMessage message = receivedMessages[sequenceNum][i];
-				if (message.messageType == "pre-prepare") {
-					status = "prepare";
-					PBFTPeerMessage newMsg = message;
-					newMsg.messageType = "prepare";
-					newMsg.Id = id();
-					broadcast(newMsg);
-					receivedMessages[sequenceNum].push_back(newMsg);
-				}
-			}
-		}
-
-		if (status == "prepare") {
-			int count = 0;
-			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				PBFTPeerMessage message = receivedMessages[sequenceNum][i];
-				if (message.messageType == "prepare") {
-					count++;
-				}
-			}
-			if (count > (neighbors().size() * 2 / 3)) {
-				status = "commit";
-				PBFTPeerMessage newMsg = receivedMessages[sequenceNum][0];
-				newMsg.messageType = "commit";
-				newMsg.Id = id();
-				broadcast(newMsg);
-				receivedMessages[sequenceNum].push_back(newMsg);
-			}
-		}
-
-		if (status == "commit") {
-			int count = 0;
-			for (int i = 0; i < receivedMessages[sequenceNum].size(); i++) {
-				PBFTPeerMessage message = receivedMessages[sequenceNum][i];
-				if (message.messageType == "commit") {
-					count++;
-				}
-			}
-			if (count > (neighbors().size() * 2 / 3)) {
-				status = "pre-prepare";
-				confirmedTrans.push_back(receivedMessages[sequenceNum][0]);
-				latency += getRound() - receivedMessages[sequenceNum][0].roundSubmitted;
-				sequenceNum++;
-				if (id() == 0) {
-					submitTrans(currentTransaction);
-				}
-				checkContents();
-			}
-		}
-
-	}
-
-	void PBFTPeer::submitTrans(int tranID) {
-		PBFTPeerMessage message;
-		message.messageType = "trans";
-		message.trans = tranID;
-		message.Id = id();
-		message.roundSubmitted = getRound();
-		broadcast(message);
-		transactions.push_back(message);
-		currentTransaction++;
-	}
-
+	
+	/*
 	Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer>* generateSim() {
         
         Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer>* sim = new Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer>;
         return sim;
     }
+	*/
 }
