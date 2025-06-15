@@ -67,6 +67,7 @@ namespace quantas{
         // if peer is polling then decree of current ballot (otherwise -1)
         int paperDecree = -1;
 
+        // STILL FIGURING THIS OUT
         int Timer = 0;
 
     }

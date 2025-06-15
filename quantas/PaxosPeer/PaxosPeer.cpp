@@ -28,19 +28,27 @@ namespace quantas {
 		while(!inStreamEmpty()) {
 			PaxosPeerMessage newMsg = popInStream().getMessage();
 
-			if (newMsg.messageType = "NextBallot") {
-				if (newMsg.ballotNum > ledgerData.nextBal) {
+			if (newMsg.messageType == "NextBallot") {
+				if (newMsg.ballotNum > ledgerData.nextBal && newMsg.ballotNum > lastTried) {
+					if (paperData.status != IDLE) {
+						paperData.status = IDLE;
+						paperData.quorum.clear();
+						paperData.prevVotes.clear();
+						paperData.voters.clear();
+						paperData.paperDecree = -1;
+					}
+
 					ledgerData.nextBal = newMsg.ballotNum;
 					PaxosPeerMessage reply = lastMessage();
 					sendMessage(newMsg.Id, reply);
 				}
 			}
-			else if (newMsg.messageType = "LastMessage") {
+			else if (newMsg.messageType == "LastMessage") {
 				if (paperData.status == TRYING) {
 					paperData.prevVotes.insert(newMsg.Id);
 				}
 			}
-			else if (newMsg.messageType = "BeginBallot") {
+			else if (newMsg.messageType == "BeginBallot") {
 				if (newMsg.ballotNum == ledgerData.nextBal && newMsg.ballotNum > ledgerData.prevBal) {
 					ledgerData.prevBal = newMsg.ballotNum;
 
@@ -50,12 +58,12 @@ namespace quantas {
 					sendMessage(newMsg.Id, reply);
 				}
 			}
-			else if (newMsg.messageType = "Voted") {
+			else if (newMsg.messageType == "Voted") {
 				if (paperData.status == POLLING) {
 					paperData.votes.insert(newMsg.Id);
 				}
 			}
-			else if (newMsg.messageType = "Success") {
+			else if (newMsg.messageType == "Success") {
 				ledgerData.successfulBallot = newMsg;
 			}
 		}
@@ -134,7 +142,8 @@ namespace quantas {
 		if (paperData.status == IDLE) {
 			
 			// need to figure out how long nodes wait
-			// until the next node is passed
+			// until the next ballot is sent so that ballots
+			// have a chance of success and arent immediately overriden
 
 		}
 		else if ()
