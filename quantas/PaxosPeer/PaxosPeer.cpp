@@ -59,12 +59,15 @@ namespace quantas {
 				}
 			}
 			else if (newMsg.messageType == "Voted") {
+				// submitBallot function deals with checking if all members of the quorum have voted
 				if (paperData.status == POLLING) {
 					paperData.votes.insert(newMsg.Id);
+					if (paperData.voters == paperData.quorum)
+						ledgerData.outcome = newMsg.decree;
 				}
 			}
 			else if (newMsg.messageType == "Success") {
-				ledgerData.successfulBallot = newMsg;
+				ledgerData.outcome = newMsg.decree;
 			}
 		}
 	}
@@ -146,7 +149,15 @@ namespace quantas {
 			// have a chance of success and arent immediately overriden
 
 		}
-		else if ()
+		// this might end up placed in the checkInStrm function
+		else if (paperData.status == POLLING && paperData.quorum == paperData.voters)
+			PaxosPeerMessage successMessage;
+			successMessage.ballotNum = ledgerData.lastTried;
+			successMessage.decree = ledgerData.outcome;
+			successMessage.Id = id();
+			successMessage.messageType = "Success";
+			broadcast(successMessage);
+		}
 	}
 
 	void PaxosPeer::performComputation() {

@@ -37,11 +37,11 @@ namespace quantas{
         // decree of ballot for which peer last voted for (-1 if peer has never voted) 
         int ledgerDecree = -1;
 
-        // largest ballot number forS which peer has granted promise for. (-1 if peer hasn't sent a lastVote message to anyone)
+        // largest ballot number for which peer has granted promise for. (-1 if peer hasn't sent a lastVote message to anyone)
         int nextBal = -1;
 
-        // successful ballot
-        PaxosPeerMessage successfulBallot;
+        // successful ballot decree
+        int outcome = -1;
     }
 
     
