@@ -38,6 +38,7 @@ namespace quantas {
 						paperData.paperDecree = -1;
 					}
 
+					paperData.timer = 0;
 					ledgerData.nextBal = newMsg.ballotNum;
 					PaxosPeerMessage reply = lastMessage();
 					sendMessage(newMsg.Id, reply);
@@ -51,6 +52,7 @@ namespace quantas {
 			else if (newMsg.messageType == "BeginBallot") {
 				if (newMsg.ballotNum == ledgerData.nextBal && newMsg.ballotNum > ledgerData.prevBal) {
 					ledgerData.prevBal = newMsg.ballotNum;
+					paperData.timer = 0;
 
 					// probably need mroe in depth checks for voting
 					// to make sure the decree is correct
@@ -76,6 +78,7 @@ namespace quantas {
 	PaxosPeerMessage PaxosPeer::nextBallot() {
 		// each peer needs own disjoint set of ballot numbers
 		// ensures no collisions for up to 1000 peers between ballot numbers
+		/* note: change this such that it uses neighbours.size() + 1 as increments */
 		while (id() + ballotIndex * 1000 < nextBal && id() + ballotIndex * 1000 < lastTried) {
 			++ballotIndex;
 		}
@@ -143,11 +146,23 @@ namespace quantas {
 
 	void PaxosPeer::submitBallot() {
 		if (paperData.status == IDLE) {
-			
-			// need to figure out how long nodes wait
-			// until the next ballot is sent so that ballots
-			// have a chance of success and arent immediately overriden
-
+			// currently this wait time is arbitrarily decided
+			if (paperData.timer > 3) {
+				//randomness is used to decide quorum
+				PaxosPeerMessage ballotMessage = nextBallot();
+				int majority = neighbours().size / 2 + 1;
+				auto neighboursCopy = neighbours(); 
+				int i = 0;
+				while (i < majority) {
+					long randPeer = randMod(neighboursCopy.size());
+					neighboursCopy.erase(neighboursCopy.begin() + randPeer);
+					sendMessage(randPeer, ballotMessage);
+					paperData.quorum.insert(randPeer);
+					++i;
+				}
+			}
+			else
+				++paperData.timer;
 		}
 		// this might end up placed in the checkInStrm function
 		else if (paperData.status == POLLING && paperData.quorum == paperData.voters)

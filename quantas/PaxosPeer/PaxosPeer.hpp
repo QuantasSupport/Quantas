@@ -59,10 +59,10 @@ namespace quantas{
         set<int> prevVotes;
 
         // set of peers forming the quorum of current ballot (set of peers that will decide whether to vote on ballot)
-        set<int> quorum;
+        set<long> quorum;
 
         // set of quorum peers that have sent peer Voted message for current ballot
-        set<int> voters;
+        set<long> voters;
 
         // if peer is polling then decree of current ballot (otherwise -1)
         int paperDecree = -1;
