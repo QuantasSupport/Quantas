@@ -19,11 +19,11 @@ PROJECT_DIR := quantas
 #  configure this for the specific algorithm and input file
 #
 
-INPUTFILE := ExampleInput.json
+INPUTFILE := PaxosInput.json
 
 # ALGFILE := TrailPeer
 
-ALGFILE := ExamplePeer
+# ALGFILE := ExamplePeer
 
 # ALGFILE := BitcoinPeer
 
@@ -32,6 +32,8 @@ ALGFILE := ExamplePeer
 # ALGFILE := PBFTPeer
 
 # ALGFILE := RaftPeer
+
+ALGFILE := PaxosPeer
 
 # ALGFILE := SmartShardsPeer
 
