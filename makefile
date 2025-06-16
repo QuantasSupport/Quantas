@@ -107,7 +107,7 @@ rand_test: quantas/Tests/randtest.cpp
 	
 # in the future this could be generalized to go through every file in a Tests
 # folder such that the input files need not be listed here
-TEST_INPUTS := quantas/ExamplePeer/ExampleInput.json quantas/AltBitPeer/AltBitUtility.json quantas/PBFTPeer/PBFTInput.json quantas/BitcoinPeer/BitcoinInput.json
+TEST_INPUTS := quantas/ExamplePeer/ExampleInput.json quantas/AltBitPeer/AltBitUtility.json quantas/PBFTPeer/PBFTInputV2.json quantas/BitcoinPeer/BitcoinInput.json
 
 test: check-version rand_test
 	@make --no-print-directory clean

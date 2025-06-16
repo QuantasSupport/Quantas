@@ -96,7 +96,6 @@ inline Peer() {}
 
     // try to run performComputation though it may not
     virtual void tryPerformComputation() {
-        std::cout << "Peer.hpp: " << internalId() << std::endl;
         if (!isCrashed()) {
             performComputation();
         }
