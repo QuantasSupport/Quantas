@@ -24,12 +24,12 @@ namespace quantas {
 
 	}
 
-	PaxosPeer::checkInStrm() {
+	void PaxosPeer::checkInStrm() {
 		while(!inStreamEmpty()) {
 			PaxosPeerMessage newMsg = popInStream().getMessage();
 
 			if (newMsg.messageType == "NextBallot") {
-				if (newMsg.ballotNum > ledgerData.nextBal && newMsg.ballotNum > lastTried) {
+				if (newMsg.ballotNum > ledgerData.nextBal && newMsg.ballotNum > ledgerData.lastTried) {
 					if (paperData.status != IDLE) {
 						paperData.status = IDLE;
 						paperData.quorum.clear();
@@ -76,14 +76,13 @@ namespace quantas {
 	PaxosPeerMessage PaxosPeer::nextBallot() {
 		// each peer needs own disjoint set of ballot numbers
 		// ensures no collisions for up to 1000 peers between ballot numbers
-		while (id() + ballotIndex * 1000 < nextBal && id() + ballotIndex * 1000 < lastTried) {
+		while (id() + ballotIndex * 1000 < ledgerData.nextBal && id() + ballotIndex * 1000 < ledgerData.lastTried) {
 			++ballotIndex;
 		}
-		ballotNum = id() + ballotIndex * 1000;
-		lastTried = ballotNum;
+		ledgerData.lastTried = id() + ballotIndex * 1000;
 		PaxosPeerMessage message;
 		message.messageType = "NextBallot";
-		message.ballotNum = ballotNum;
+		message.ballotNum = ledgerData.lastTried;
 		message.Id = id();
 		
 		paperData.status = TRYING;
@@ -150,7 +149,7 @@ namespace quantas {
 
 		}
 		// this might end up placed in the checkInStrm function
-		else if (paperData.status == POLLING && paperData.quorum == paperData.voters)
+		else if (paperData.status == POLLING && paperData.quorum == paperData.voters) {
 			PaxosPeerMessage successMessage;
 			successMessage.ballotNum = ledgerData.lastTried;
 			successMessage.decree = ledgerData.outcome;
@@ -161,12 +160,8 @@ namespace quantas {
 	}
 
 	void PaxosPeer::performComputation() {
-		if (id() == 0 && getRound() == 0) {
-			submitTrans(currentTransaction);
-		}
 		if (true)
 			checkInStrm();
-
 		if (true)
 			submitBallot();
 

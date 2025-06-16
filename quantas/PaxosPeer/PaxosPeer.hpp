@@ -42,7 +42,7 @@ namespace quantas{
 
         // successful ballot decree
         int outcome = -1;
-    }
+    };
 
     
     // peer data not considered crash safe (not stored in stable memory)
@@ -51,18 +51,18 @@ namespace quantas{
             IDLE,
             TRYING,
             POLLING
-        }
+        };
 
         Status status = IDLE;
         
         // set of votes received in lastVote messages 
-        set<int> prevVotes;
+        std::set<int> prevVotes;
 
         // set of peers forming the quorum of current ballot (set of peers that will decide whether to vote on ballot)
-        set<int> quorum;
+        std::set<int> quorum;
 
         // set of quorum peers that have sent peer Voted message for current ballot
-        set<int> voters;
+        std::set<int> voters;
 
         // if peer is polling then decree of current ballot (otherwise -1)
         int paperDecree = -1;
@@ -70,12 +70,12 @@ namespace quantas{
         // STILL FIGURING THIS OUT
         int Timer = 0;
 
-    }
+    };
 
     class PaxosPeer : public Peer<PaxosPeerMessage>{
     public:
         // methods that must be defined when deriving from Peer
-        Paxoseer                             (long);
+        PaxosPeer                             (long);
         PaxosPeer                             (const PaxosPeer &rhs);
         ~PaxosPeer                            ();
 
@@ -104,8 +104,6 @@ namespace quantas{
 
         // vector of vectors of messages that have been received
         vector<vector<PaxosPeerMessage>> receivedMessages;
-        // vector of recieved transactions
-        vector<PaxosPeerMessage>		    transactions;
         // vector of confirmed transactions OR ledger in reference to Part Time-Parliament
         vector<PaxosPeerMessage>		    confirmedTrans;
         // latency of confirmed transactions
