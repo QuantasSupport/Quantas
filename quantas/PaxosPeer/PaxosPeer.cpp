@@ -47,6 +47,15 @@ namespace quantas {
 			else if (newMsg.messageType == "LastMessage") {
 				if (paperData.status == Paper::TRYING) {
 					paperData.prevVotes.insert(newMsg.Id);
+
+					if (prevVotes > neighbours.size()/2 + 1) {
+						// beginBallot function sets status to polling
+						// so this will only occur once
+						PaxosPeerMessage poll = beginBallot();
+						for (int i = 0; i < paperData.prevVotes.size(); ++i) {
+							sendMessage(paperData.prevVotes[i], poll);
+						}
+					}
 				}
 			}
 			else if (newMsg.messageType == "BeginBallot") {
@@ -64,14 +73,18 @@ namespace quantas {
 				// submitBallot function deals with checking if all members of the quorum have voted
 				if (paperData.status == Paper::POLLING) {
 					paperData.votes.insert(newMsg.Id);
-					if (paperData.voters == paperData.quorum) {
+					if (paperData.voters == paperData.prevVotes) {
 						ledgerData.outcome = newMsg.decree;
 						latency = getRound() - roundSent;
+
+						// success message currently handled in submitBallot function
+						// which might be worth changing
 					}
 				}
 			}
 			else if (newMsg.messageType == "Success") {
 				ledgerData.outcome = newMsg.decree;
+				++ledgerData.currentSlot;
 			}
 		}
 	}
@@ -88,16 +101,12 @@ namespace quantas {
 		message.messageType = "NextBallot";
 		message.ballotNum = ledgerData.lastTried;
 		message.Id = id();
+		message.slotNumber = ledgerData.currentSlot;
 		
 		paperData.status = Paper::TRYING;
 		paperData.prevVotes.clear();
 		paperData.quorum.clear();
 		paperData.voters.clear();
-
-		/* need better solution for selecting quorum */
-		for (int i = 0; i < neighbors().size(); i++) {
-			paperData.quorum.insert(neighbors()[i]);
-		}
 
 		return message;
 	}
@@ -145,25 +154,21 @@ namespace quantas {
 	}
 
 	void PaxosPeer::submitBallot() {
-		if (paperData.status == Paper::IDLE) {
+		// checks that peer can submit a new ballot and that peer is waiting on ballot
+		if (paperData.status == Paper::IDLE && nextBal != -1) {
 			// currently this wait time is arbitrarily decided
-			if (paperData.timer > 3) {
-				//randomness is used to decide quorum
-				PaxosPeerMessage ballotMessage = nextBallot();
-				int majority = neighbours().size / 2 + 1;
-				auto neighboursCopy = neighbours(); 
-				// randomly adds peers to quorum and erases
-				// 
-				for (int i = 0; i < majority; ++i) {
-					long randPeer = randMod(neighboursCopy.size());
-					neighboursCopy.erase(neighboursCopy.begin() + randPeer);
-					sendMessage(randPeer, ballotMessage);
-					paperData.quorum.insert(randPeer);
-				}
+			if (paperData.timer > 5) {
+				PaxosPeerMessage ballot = nextBallot();
+				broadcast(ballot);
 				roundSent = getRound();
 			}
 			else
 				++paperData.timer;
+		}
+		else if (paperData.status == Paper::IDLE && nextBal == -1) {
+			PaxosPeerMessage ballot = nextBallot();
+			broadcast(ballot);
+			roundSent = getRound();
 		}
 		// this might end up placed in the checkInStrm function
 		else if (paperData.status == Paper::POLLING && paperData.quorum == paperData.voters) {
@@ -189,7 +194,8 @@ namespace quantas {
 		double satisfied = 0;
 		double lat = 0;
 		for (int i = 0; i < peers.size(); i++) {
-			satisfied += peers[i]->requestsSatisfied;
+			// satisfied should be equal to number of slots confirmed.
+			//satisfied += peers[i]->requestsSatisfied;
 			lat += peers[i]->latency;
 		}
 		LogWriter::getTestLog()["latency"].push_back(lat / satisfied);

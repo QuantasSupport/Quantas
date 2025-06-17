@@ -7,6 +7,8 @@ QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
+//Note: This implementation of Paxos represents classic Multi-Paxos (meaning no leader with multiple rounds of consensus)
+
 #ifndef PaxosPeer_hpp
 #define PaxosPeer_hpp
 
@@ -24,6 +26,7 @@ namespace quantas{
         int                 ballotNum = -1; // refers to a sequence number
         string              messageType = "";
         int                 decree = -1; // decree
+        int slotNumber      = -1; // slot number
     };
 
     // peer data considered crash safe (stored in stable memory)
@@ -42,6 +45,9 @@ namespace quantas{
 
         // successful ballot decree
         int outcome = -1;
+
+        // slot number (essential for multi-paxos). indicates what slot peer is trying to achieve consensus for
+        int currentSlot = 0;
     };
 
     
@@ -55,7 +61,7 @@ namespace quantas{
 
         Status status = IDLE;
         
-        // set of votes received in lastVote messages 
+        // set of votes received in lastVote messages. Also represents quorum once it reaches majority
         std::set<int> prevVotes;
 
         // set of peers forming the quorum of current ballot (set of peers that will decide whether to vote on ballot)
@@ -104,7 +110,8 @@ namespace quantas{
 
         // vector of vectors of messages that have been received
         vector<vector<PaxosPeerMessage>> receivedMessages;
-        // vector of confirmed transactions OR ledger in reference to Part Time-Parliament
+        // vector of confirmed transactions A.K.A slots
+        // consensus is achieved once per slot
         vector<PaxosPeerMessage>		    confirmedTrans;
 
         // latency of successful ballots
