@@ -30,8 +30,8 @@ namespace quantas {
 
 			if (newMsg.messageType == "NextBallot") {
 				if (newMsg.ballotNum > ledgerData.nextBal && newMsg.ballotNum > ledgerData.lastTried) {
-					if (paperData.status != IDLE) {
-						paperData.status = IDLE;
+					if (paperData.status != Paper::IDLE) {
+						paperData.status = Paper::IDLE;
 						paperData.quorum.clear();
 						paperData.prevVotes.clear();
 						paperData.voters.clear();
@@ -45,7 +45,7 @@ namespace quantas {
 				}
 			}
 			else if (newMsg.messageType == "LastMessage") {
-				if (paperData.status == TRYING) {
+				if (paperData.status == Paper::TRYING) {
 					paperData.prevVotes.insert(newMsg.Id);
 				}
 			}
@@ -62,10 +62,12 @@ namespace quantas {
 			}
 			else if (newMsg.messageType == "Voted") {
 				// submitBallot function deals with checking if all members of the quorum have voted
-				if (paperData.status == POLLING) {
+				if (paperData.status == Paper::POLLING) {
 					paperData.votes.insert(newMsg.Id);
-					if (paperData.voters == paperData.quorum)
+					if (paperData.voters == paperData.quorum) {
 						ledgerData.outcome = newMsg.decree;
+						latency = getRound() - roundSent;
+					}
 				}
 			}
 			else if (newMsg.messageType == "Success") {
@@ -87,7 +89,7 @@ namespace quantas {
 		message.ballotNum = ledgerData.lastTried;
 		message.Id = id();
 		
-		paperData.status = TRYING;
+		paperData.status = Paper::TRYING;
 		paperData.prevVotes.clear();
 		paperData.quorum.clear();
 		paperData.voters.clear();
@@ -118,7 +120,7 @@ namespace quantas {
 		message.decree = paperData.paperDecree;
 		message.Id = id();
 
-		paperData.status = POLLING;
+		paperData.status = Paper::POLLING;
 		paperData.voters.clear();
 
 		return message;
@@ -143,27 +145,28 @@ namespace quantas {
 	}
 
 	void PaxosPeer::submitBallot() {
-		if (paperData.status == IDLE) {
+		if (paperData.status == Paper::IDLE) {
 			// currently this wait time is arbitrarily decided
 			if (paperData.timer > 3) {
 				//randomness is used to decide quorum
 				PaxosPeerMessage ballotMessage = nextBallot();
 				int majority = neighbours().size / 2 + 1;
 				auto neighboursCopy = neighbours(); 
-				int i = 0;
-				while (i < majority) {
+				// randomly adds peers to quorum and erases
+				// 
+				for (int i = 0; i < majority; ++i) {
 					long randPeer = randMod(neighboursCopy.size());
 					neighboursCopy.erase(neighboursCopy.begin() + randPeer);
 					sendMessage(randPeer, ballotMessage);
 					paperData.quorum.insert(randPeer);
-					++i;
 				}
+				roundSent = getRound();
 			}
 			else
 				++paperData.timer;
 		}
 		// this might end up placed in the checkInStrm function
-		else if (paperData.status == POLLING && paperData.quorum == paperData.voters) {
+		else if (paperData.status == Paper::POLLING && paperData.quorum == paperData.voters) {
 			PaxosPeerMessage successMessage;
 			successMessage.ballotNum = ledgerData.lastTried;
 			successMessage.decree = ledgerData.outcome;
@@ -182,17 +185,21 @@ namespace quantas {
 	}
 
 	void PaxosPeer::endOfRound(const vector<Peer<PaxosPeerMessage>*>& _peers) {
-		const vector<PBFTPeer*> peers = reinterpret_cast<vector<PBFTPeer*> const&>(_peers);
-		double length = peers[0]->confirmedTrans.size();
-		LogWriter::getTestLog()["latency"].push_back(latency / length);
+		const vector<PaxosPeer*> peers = reinterpret_cast<vector<PaxosPeer*> const&>(_peers);
+		double satisfied = 0;
+		double lat = 0;
+		for (int i = 0; i < peers.size(); i++) {
+			satisfied += peers[i]->requestsSatisfied;
+			lat += peers[i]->latency;
+		}
+		LogWriter::getTestLog()["latency"].push_back(lat / satisfied);
 	}
 
 	
-	/*
-	Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer>* generateSim() {
+	
+	Simulation<quantas::PaxosPeerMessage, quantas::PaxosPeer>* generateSim() {
         
-        Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer>* sim = new Simulation<quantas::PBFTPeerMessage, quantas::PBFTPeer>;
+        Simulation<quantas::PaxosPeerMessage, quantas::PaxosPeer>* sim = new Simulation<quantas::PaxosPeerMessage, quantas::PaxosPeer>;
         return sim;
     }
-	*/
 }

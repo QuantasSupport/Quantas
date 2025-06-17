@@ -106,8 +106,12 @@ namespace quantas{
         vector<vector<PaxosPeerMessage>> receivedMessages;
         // vector of confirmed transactions OR ledger in reference to Part Time-Parliament
         vector<PaxosPeerMessage>		    confirmedTrans;
-        // latency of confirmed transactions
+
+        // latency of successful ballots
         int                             latency = 0;
+        // round number of when the last ballot was submitted. for tracking latency.
+        // -1 if peer hasn't submitted a ballot yet.
+        int                             roundSent = -1;
         // rate at which to submit transactions ie 1 in x chance for all n nodes
         int                             submitRate = 20;
 
@@ -116,8 +120,6 @@ namespace quantas{
         // Used for submitting a new ballot to vote on
         void                  submitBallot();
         
-        // AAA
-        //void                  checkContents();
         // direct messages between peers
         void sendMessage(long, PaxosPeerMessage);
     };
