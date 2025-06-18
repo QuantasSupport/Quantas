@@ -13,6 +13,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #define PaxosPeer_hpp
 
 #include <set>
+#include <map>
 #include "../Common/Peer.hpp"
 #include "../Common/Simulation.hpp"
 
@@ -74,7 +75,7 @@ namespace quantas{
         int paperDecree = -1;
 
         // STILL FIGURING THIS OUT
-        int Timer = 0;
+        int timer = 0;
 
     };
 
@@ -110,9 +111,9 @@ namespace quantas{
 
         // vector of vectors of messages that have been received
         vector<vector<PaxosPeerMessage>> receivedMessages;
-        // vector of confirmed transactions A.K.A slots
-        // consensus is achieved once per slot
-        vector<PaxosPeerMessage>		    confirmedTrans;
+        // map of confirmed transactions, where key is slot number
+        // and value is the message that reached consensus for that slot 
+        std::map<int,PaxosPeerMessage>		    confirmedTrans;
 
         // latency of successful ballots
         int                             latency = 0;

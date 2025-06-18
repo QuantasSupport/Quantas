@@ -48,12 +48,13 @@ namespace quantas {
 				if (paperData.status == Paper::TRYING) {
 					paperData.prevVotes.insert(newMsg.Id);
 
-					if (prevVotes > neighbours.size()/2 + 1) {
+					if (paperData.prevVotes.size() > neighbors().size()/2 + 1) {
 						// beginBallot function sets status to polling
 						// so this will only occur once
 						PaxosPeerMessage poll = beginBallot();
-						for (int i = 0; i < paperData.prevVotes.size(); ++i) {
-							sendMessage(paperData.prevVotes[i], poll);
+						paperData.quorum = paperData.prevVotes;
+						for (auto i : paperData.quorum) {
+							sendMessage(i, poll);
 						}
 					}
 				}
@@ -72,7 +73,7 @@ namespace quantas {
 			else if (newMsg.messageType == "Voted") {
 				// submitBallot function deals with checking if all members of the quorum have voted
 				if (paperData.status == Paper::POLLING) {
-					paperData.votes.insert(newMsg.Id);
+					paperData.voters.insert(newMsg.Id);
 					if (paperData.voters == paperData.prevVotes) {
 						ledgerData.outcome = newMsg.decree;
 						latency = getRound() - roundSent;
@@ -84,6 +85,7 @@ namespace quantas {
 			}
 			else if (newMsg.messageType == "Success") {
 				ledgerData.outcome = newMsg.decree;
+				confirmedTrans.insert(std::make_pair(ledgerData.currentSlot,newMsg));
 				++ledgerData.currentSlot;
 			}
 		}
@@ -125,7 +127,7 @@ namespace quantas {
 	PaxosPeerMessage PaxosPeer::beginBallot() {
 		PaxosPeerMessage message;
 		message.messageType = "BeginBallot";
-		message.ballotNum = lastTried;
+		message.ballotNum = ledgerData.lastTried;
 		message.decree = paperData.paperDecree;
 		message.Id = id();
 
@@ -155,7 +157,7 @@ namespace quantas {
 
 	void PaxosPeer::submitBallot() {
 		// checks that peer can submit a new ballot and that peer is waiting on ballot
-		if (paperData.status == Paper::IDLE && nextBal != -1) {
+		if (paperData.status == Paper::IDLE && ledgerData.nextBal != -1) {
 			// currently this wait time is arbitrarily decided
 			if (paperData.timer > 5) {
 				PaxosPeerMessage ballot = nextBallot();
@@ -165,7 +167,7 @@ namespace quantas {
 			else
 				++paperData.timer;
 		}
-		else if (paperData.status == Paper::IDLE && nextBal == -1) {
+		else if (paperData.status == Paper::IDLE && ledgerData.nextBal == -1) {
 			PaxosPeerMessage ballot = nextBallot();
 			broadcast(ballot);
 			roundSent = getRound();
@@ -178,6 +180,10 @@ namespace quantas {
 			successMessage.Id = id();
 			successMessage.messageType = "Success";
 			broadcast(successMessage);
+
+			// once consensus is achieved the peer starts working on next slot
+			confirmedTrans.insert(std::make_pair(ledgerData.currentSlot,successMessage));
+			++ledgerData.currentSlot;
 		}
 	}
 
@@ -191,11 +197,13 @@ namespace quantas {
 
 	void PaxosPeer::endOfRound(const vector<Peer<PaxosPeerMessage>*>& _peers) {
 		const vector<PaxosPeer*> peers = reinterpret_cast<vector<PaxosPeer*> const&>(_peers);
-		double satisfied = 0;
+		double satisfied = peers[0]->confirmedTrans.size();
 		double lat = 0;
+		// might be possible for number of latencys to not match number of 
+		// confirmed transactions. probably rare but could be worth looking into
 		for (int i = 0; i < peers.size(); i++) {
-			// satisfied should be equal to number of slots confirmed.
-			//satisfied += peers[i]->requestsSatisfied;
+			if (satisfied < peers[i]->confirmedTrans.size())
+				satisfied = peers[i]->confirmedTrans.size();
 			lat += peers[i]->latency;
 		}
 		LogWriter::getTestLog()["latency"].push_back(lat / satisfied);
