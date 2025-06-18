@@ -27,7 +27,7 @@ namespace quantas{
         int                 ballotNum = -1; // refers to a sequence number
         string              messageType = "";
         int                 decree = -1; // decree
-        int slotNumber      = -1; // slot number
+        int                 slotNumber      = -1; // slot number
     };
 
     // peer data considered crash safe (stored in stable memory)
@@ -105,6 +105,9 @@ namespace quantas{
 
         // stores all data that may be corrupted if peer crashes
         Paper paperData;
+
+        // function that clears ledger and paper when slot changes
+        void clearState();
 
         // used for creating ballot/sequence numbers
         int ballotIndex = 0;
