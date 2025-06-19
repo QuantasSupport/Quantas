@@ -22,11 +22,10 @@ namespace quantas{
     struct PaxosPeerMessage {
 
         int 				Id = -1; // node who sent the message
-        //int					trans = -1; // the transaction id
         int                 lastVoted = -1; // used for lastVote message. -1 if irrelavent
         int                 ballotNum = -1; // refers to a sequence number
         string              messageType = "";
-        int                 decree = -1; // decree
+        string              decree = ""; // decree
         int                 slotNumber      = -1; // slot number
     };
 
@@ -39,13 +38,13 @@ namespace quantas{
         int prevBal = -1;
 
         // decree of ballot for which peer last voted for (-1 if peer has never voted) 
-        int ledgerDecree = -1;
+        string ledgerDecree = "";
 
         // largest ballot number for which peer has granted promise for. (-1 if peer hasn't sent a lastVote message to anyone)
         int nextBal = -1;
 
         // successful ballot decree
-        int outcome = -1;
+        string outcome = "";
 
         // slot number (essential for multi-paxos). indicates what slot peer is trying to achieve consensus for
         int currentSlot = 0;
@@ -62,8 +61,8 @@ namespace quantas{
 
         Status status = IDLE;
         
-        // set of votes received in lastVote messages. Also represents quorum once it reaches majority
-        std::set<int> prevVotes;
+        // set of votes received in lastVote messages
+        vector<PaxosPeerMessage> prevVotes;
 
         // set of peers forming the quorum of current ballot (set of peers that will decide whether to vote on ballot)
         std::set<int> quorum;
@@ -99,6 +98,7 @@ namespace quantas{
         PaxosPeerMessage beginBallot();
         // returns a Voted PaxosPeer message
         PaxosPeerMessage voted();
+        // probably should move success message to here too
 
         // stores all data that is expected to remain if peer crashes
         Ledger ledgerData;
@@ -116,7 +116,7 @@ namespace quantas{
         vector<vector<PaxosPeerMessage>> receivedMessages;
         // map of confirmed transactions, where key is slot number
         // and value is the message that reached consensus for that slot 
-        std::map<int,PaxosPeerMessage>		    confirmedTrans;
+        std::map<int,string>		    confirmedTrans;
 
         // latency of successful ballots
         int                             latency = 0;
@@ -133,6 +133,7 @@ namespace quantas{
         
         // direct messages between peers
         void sendMessage(long, PaxosPeerMessage);
+
     };
 
     Simulation<quantas::PaxosPeerMessage, quantas::PaxosPeer>* generateSim();
