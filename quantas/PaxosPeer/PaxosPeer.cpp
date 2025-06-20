@@ -61,8 +61,6 @@ namespace quantas {
 			else if (newMsg.messageType == "LastMessage" && newMsg.slotNumber == ledgerData.currentSlot) {
 				if (paperData.status == Paper::TRYING) {
 					paperData.prevVotes.push_back(newMsg);
-					std::cerr << id() << " has: " << paperData.prevVotes.size() << std::endl;
-
 					//std::cerr << "Peer " << id() << " received LastMessage with ballot number " << newMsg.ballotNum << std::endl;
 
 					// only need half because the peer will vote for itself
@@ -94,7 +92,7 @@ namespace quantas {
 					paperData.timer = 0;
 
 					PaxosPeerMessage reply = voted();
-					std::cerr << "Peer " << id() << " sending Voted with ballot number " << reply.ballotNum << std::endl;
+					std::cerr << "Peer " << id() << " sending Voted with ballot number " << reply.ballotNum << "for decree "<< newMsg.decree<< std::endl;
 					sendMessage(newMsg.Id, reply);
 				}
 			}
@@ -105,19 +103,32 @@ namespace quantas {
 					paperData.voters.insert(newMsg.Id);
 					if (paperData.voters.size() == paperData.prevVotes.size()) {
 						ledgerData.outcome = newMsg.decree;
+						PaxosPeerMessage reply = success();
+						broadcast(reply);
+
 						latency += getRound() - roundSent;
 						++throughput;
-						// success message currently handled in submitBallot function
-						// which might be worth changing
+
+						// once consensus is achieved the peer starts working on next slot
+
+						confirmedTrans.insert(std::make_pair(ledgerData.currentSlot,ledgerData.outcome));
+						++ledgerData.currentSlot;
+						int tmpSlot = ledgerData.currentSlot;
+						clearState();
+						ledgerData.currentSlot = tmpSlot;
 					}
 				}
 			}
 			else if (newMsg.messageType == "Success" ) {
-				ledgerData.outcome = newMsg.decree;
-				confirmedTrans.insert(std::make_pair(ledgerData.currentSlot,ledgerData.outcome));
-				++ledgerData.currentSlot;
 				std::cerr << "Peer " << id() << " received Success with ballot number " << newMsg.ballotNum << std::endl;
-				clearState();
+				ledgerData.outcome = newMsg.decree;
+				std::cerr << "outcome was: " << ledgerData.outcome << " for slot " << ledgerData.currentSlot << std::endl;
+				std::pair<int,string> tmp(newMsg.slotNumber,newMsg.decree);
+				confirmedTrans.insert(tmp);
+				++ledgerData.currentSlot;
+				int tmpSlot = ledgerData.currentSlot; 
+				clearState(); // sets ledger to default values so slot must be set again
+				ledgerData.currentSlot = tmpSlot;
 			}
 		}
 	}
@@ -126,13 +137,11 @@ namespace quantas {
 	PaxosPeerMessage PaxosPeer::nextBallot() {
 		// each peer needs own disjoint set of ballot numbers
 		// ensures no collisions for up to 1000 peers between ballot numbers
-		std::cerr << ledgerData.nextBal << " INFO " << ledgerData.lastTried << std::endl;
-		/* implement as in leslie lamport paper */
-		while (id() + ballotIndex * 1000 < ledgerData.nextBal) {
+		/* implement as in leslie lamport paper MAYBE */
+		while (id() + neighbors().size()+1 * 1000 < ledgerData.nextBal && ledgerData.nextBal > 0) {
 			++ballotIndex;
-			std::cerr << "Ballot index: " << ballotIndex << std::endl;
 		}
-		std::cerr << "---index---" << std::endl;
+
 		ledgerData.lastTried = id() + ballotIndex * 1000;
 		ledgerData.nextBal = ledgerData.lastTried;
 		PaxosPeerMessage message;
@@ -178,10 +187,13 @@ namespace quantas {
 			}
 		}
 		if (largest.decree != "") {
+			std::cerr << "largest decree: " << largest.decree << std::endl;
 			message.decree = largest.decree;
 		}
 		else {
-			message.decree = 'A' + randMod(26);
+			char randDecree = 'A' + randMod(26);
+			message.decree.push_back(randDecree);
+			std::cerr << "char: " << randDecree << std::endl;
 		}
 		std::cerr << "Chosen decree: " << message.decree << std::endl;
 
@@ -195,12 +207,23 @@ namespace quantas {
 		PaxosPeerMessage message;
 		message.messageType = "Voted";
 		message.ballotNum = ledgerData.nextBal;
-		message.decree = paperData.paperDecree;
+		message.decree = ledgerData.ledgerDecree;
 		message.Id = id();
 		message.slotNumber = ledgerData.currentSlot;
 
 		ledgerData.prevBal = ledgerData.nextBal;
 		
+		return message;
+	}
+
+	PaxosPeerMessage PaxosPeer::success() {
+		PaxosPeerMessage message;
+		message.messageType = "Success";
+		message.ballotNum = ledgerData.lastTried;
+		message.decree = ledgerData.outcome;
+		message.Id = id();
+		message.slotNumber = ledgerData.currentSlot;
+
 		return message;
 	}
 
@@ -229,21 +252,6 @@ namespace quantas {
 			broadcast(ballot);
 			roundSent = getRound();
 		}
-		// this might end up placed in the checkInStrm function
-		else if (paperData.status == Paper::POLLING && paperData.quorum == paperData.voters) {
-			PaxosPeerMessage successMessage;
-			successMessage.ballotNum = ledgerData.lastTried;
-			successMessage.decree = ledgerData.outcome;
-			successMessage.Id = id();
-			successMessage.messageType = "Success";
-			successMessage.slotNumber = ledgerData.currentSlot;
-			broadcast(successMessage);
-
-			// once consensus is achieved the peer starts working on next slot
-			confirmedTrans.insert(std::make_pair(ledgerData.currentSlot,ledgerData.outcome));
-			++ledgerData.currentSlot;
-			clearState();
-		}
 	}
 
 	void PaxosPeer::performComputation() {
@@ -260,19 +268,21 @@ namespace quantas {
 		// might be possible for number of latencys to not match number of 
 		// confirmed transactions. probably rare but could be worth looking into
 		for (int i = 0; i < peers.size(); i++) {
-			satisfied += peers[i]->throughput
+			satisfied += peers[i]->throughput;
 			lat += peers[i]->latency;
 		}
 		LogWriter::getTestLog()["latency"].push_back(lat / satisfied);
 		LogWriter::getTestLog()["throughput"].push_back(satisfied);
 
-		
+
 		if(id() == 0) {
+			/*
 			std::cerr << "Chosen decrees: size: " << confirmedTrans.size() << std::endl;
 			std::cerr << "Current slot: " << ledgerData.currentSlot << std::endl;
-			for (auto i : confirmedTrans) {
-				std::cerr << i.second << " " << std::endl;
+			for (auto it = confirmedTrans.begin(); it != confirmedTrans.end(); ++it) {
+				std::cerr << " Decree: " << it->second << " ";
 			}
+			*/
 		}
 	}
 

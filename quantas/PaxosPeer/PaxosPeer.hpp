@@ -37,7 +37,7 @@ namespace quantas{
         // number of ballot for which peer last voted for (-1 if peer has never voted)
         int prevBal = -1;
 
-        // decree of ballot for which peer last voted for (-1 if peer has never voted) 
+        // decree of ballot for which peer last voted for ("" if peer has never voted) 
         string ledgerDecree = "";
 
         // largest ballot number for which peer has granted promise for. (-1 if peer hasn't sent a lastVote message to anyone)
@@ -98,7 +98,8 @@ namespace quantas{
         PaxosPeerMessage beginBallot();
         // returns a Voted PaxosPeer message
         PaxosPeerMessage voted();
-        // probably should move success message to here too
+        // returns a Success PaxosPeer message
+        PaxosPeerMessage success();
 
         // stores all data that is expected to remain if peer crashes
         Ledger ledgerData;
@@ -120,6 +121,9 @@ namespace quantas{
 
         // latency of successful ballots
         int                             latency = 0;
+        /// throughput of successful ballots
+        int                             throughput = 0;
+
         // round number of when the last ballot was submitted. for tracking latency.
         // -1 if peer hasn't submitted a ballot yet.
         int                             roundSent = -1;
