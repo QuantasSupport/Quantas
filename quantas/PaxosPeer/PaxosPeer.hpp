@@ -19,29 +19,35 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas{
 
-    struct PaxosPeerMessage {
+    // ballot numbers are stored as std::pairs. first is ballotIndex, second is peer id. 
+    // If p.first == q.first, id is used to decide the greater ballot number.
+    // comparison operators for std::pair already compare first element and then second element
+    // so no additional logic is needed
 
-        int 				Id = -1; // node who sent the message
-        int                 lastVoted = -1; // used for lastVote message. -1 if irrelavent
-        int                 ballotNum = -1; // refers to a sequence number
+    struct PaxosPeerMessage {
+        int                 Id = -1;
+        std::pair<int,int>  lastVoted = {-1,-1}; // used for lastVote message. -1 if irrelavent
+        std::pair<int,int>  ballotNum = {-1,-1}; // note: no need for separate id variable. stored in second
         string              messageType = "";
         string              decree = ""; // decree
         int                 slotNumber      = -1; // slot number
     };
 
-    // peer data considered crash safe (stored in stable memory)
+
+    // ledger contains peer data considered crash safe (stored in stable memory)
     struct Ledger {
         // number last ballot that peer tried to initiate (-1 if the peer hasn't attempted to initiate a ballot)
-        int lastTried = -1;
+        std::pair<int,int> lastTried = {-1,-1};
 
         // number of ballot for which peer last voted for (-1 if peer has never voted)
-        int prevBal = -1;
+        std::pair<int, int> prevBal = {-1,-1};
 
         // decree of ballot for which peer last voted for ("" if peer has never voted) 
         string ledgerDecree = "";
 
-        // largest ballot number for which peer has granted promise for. (-1 if peer hasn't sent a lastVote message to anyone)
-        int nextBal = -1;
+        // largest ballot number for which peer has granted promise for.
+        //(first is -1 if peer hasn't received any ballots yet)
+        std::pair<int,int> nextBal = {-1,-1};
 
         // successful ballot decree
         string outcome = "";
@@ -51,7 +57,7 @@ namespace quantas{
     };
 
     
-    // peer data not considered crash safe (not stored in stable memory)
+    // paper contains peer data not considered crash safe (not stored in stable memory)
     struct Paper {
         enum Status {
             IDLE,

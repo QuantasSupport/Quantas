@@ -120,7 +120,7 @@ namespace quantas {
 				}
 			}
 			else if (newMsg.messageType == "Success" ) {
-				std::cerr << "Peer " << id() << " received Success with ballot number " << newMsg.ballotNum << std::endl;
+				std::cerr << "Peer " << id() << " received Success with ballot number " << newMsg.ballotNum.first << " " << newMsg.ballotNum.second << std::endl;
 				//ledgerData.outcome = newMsg.decree;
 				std::cerr << "outcome was: " << ledgerData.outcome << " for slot " << ledgerData.currentSlot << std::endl;
 				std::pair<int,string> tmp(newMsg.slotNumber,newMsg.decree);
@@ -136,20 +136,22 @@ namespace quantas {
 	// initializes and returns a nextBallot message
 	PaxosPeerMessage PaxosPeer::nextBallot() {
 		// each peer needs own disjoint set of ballot numbers
-		// ensures no collisions for up to 1000 peers between ballot numbers
 		/* implement as in leslie lamport paper MAYBE */
-		while (id() + neighbors().size()+1 * ballotIndex < ledgerData.nextBal && ledgerData.nextBal > 0) {
+		while (ballotIndex <= ledgerData.nextBal.first) {
 			++ballotIndex;
-			std::cerr << "incrementing ballot index to " << ballotIndex << std::endl;
 		}
 
-		ledgerData.lastTried = id() + neighbors().size()+1 * ballotIndex;
-		ledgerData.nextBal = ledgerData.lastTried;
+		if (ledgerData.nextBal.first == -1)
+			ballotIndex = 1;
+
+		ledgerData.lastTried.first = ballotIndex;
+		ledgerData.lastTried.second = id();
+
 		PaxosPeerMessage message;
 		message.messageType = "NextBallot";
 		message.ballotNum = ledgerData.lastTried;
-		message.Id = id();
 		message.slotNumber = ledgerData.currentSlot;
+		message.Id = id();
 		
 		paperData.status = Paper::TRYING;
 		paperData.prevVotes.clear();
@@ -165,9 +167,9 @@ namespace quantas {
 		message.messageType = "LastMessage";
 		message.lastVoted = ledgerData.prevBal;
 		message.ballotNum = ledgerData.nextBal;
-		message.Id = id();
 		message.slotNumber = ledgerData.currentSlot;
 		message.decree = ledgerData.ledgerDecree;
+		message.Id = id();
 		return message;
 	}
 
@@ -176,8 +178,8 @@ namespace quantas {
 		PaxosPeerMessage message;
 		message.messageType = "BeginBallot";
 		message.ballotNum = ledgerData.lastTried;
-		message.Id = id();
 		message.slotNumber = ledgerData.currentSlot;
+		message.Id = id();
 
 		// decree selection takes decree of most recent vote
 		// from prevVotes set
@@ -222,8 +224,8 @@ namespace quantas {
 		message.messageType = "Success";
 		message.ballotNum = ledgerData.lastTried;
 		message.decree = ledgerData.outcome;
-		message.Id = id();
 		message.slotNumber = ledgerData.currentSlot;
+		message.Id = id();
 
 		return message;
 	}
@@ -236,19 +238,19 @@ namespace quantas {
 
 	void PaxosPeer::submitBallot() {
 		// checks that peer can submit a new ballot and that peer is waiting on ballot
-		if (paperData.status == Paper::IDLE && ledgerData.nextBal != -1) {
+		if (paperData.status == Paper::IDLE && ledgerData.nextBal.first != -1) {
 			// currently this wait time is arbitrarily decided
-			if (paperData.timer > 11) {
+			if (paperData.timer > 8) {
 				std::cerr << "timer ran out" << std::endl;
 				PaxosPeerMessage ballot = nextBallot();
-				std::cerr << "Peer " << id() << " sending NextBallot with ballot number " << ballot.ballotNum << std::endl;
+				std::cerr << "Peer " << id() << " sending NextBallot with ballot number " << ballot.ballotNum.first << " " << ballot.ballotNum.second << std::endl;
 				broadcast(ballot);
 				roundSent = getRound();
 			}
 			else
 				++paperData.timer;
 		}
-		else if (paperData.status == Paper::IDLE && ledgerData.nextBal == -1) {
+		else if (paperData.status == Paper::IDLE && ledgerData.nextBal.first == -1) {
 			PaxosPeerMessage ballot = nextBallot();
 			//std::cerr << "Peer " << id() << " sending NextBallot with ballot number " << ballot.ballotNum << std::endl;
 			broadcast(ballot);
@@ -278,13 +280,13 @@ namespace quantas {
 
 
 		if(id() == 0) {
-			/*
+			
 			std::cerr << "Chosen decrees: size: " << confirmedTrans.size() << std::endl;
 			std::cerr << "Current slot: " << ledgerData.currentSlot << std::endl;
 			for (auto it = confirmedTrans.begin(); it != confirmedTrans.end(); ++it) {
 				std::cerr << " Decree: " << it->second << " ";
 			}
-			*/
+			
 		}
 	}
 
