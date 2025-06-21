@@ -121,7 +121,7 @@ namespace quantas {
 			}
 			else if (newMsg.messageType == "Success" ) {
 				std::cerr << "Peer " << id() << " received Success with ballot number " << newMsg.ballotNum.first << " " << newMsg.ballotNum.second << std::endl;
-				//ledgerData.outcome = newMsg.decree;
+				ledgerData.outcome = newMsg.decree;
 				std::cerr << "outcome was: " << ledgerData.outcome << " for slot " << ledgerData.currentSlot << std::endl;
 				std::pair<int,string> tmp(newMsg.slotNumber,newMsg.decree);
 				confirmedTrans.insert(tmp);
@@ -190,7 +190,7 @@ namespace quantas {
 			}
 		}
 		if (largest.decree != "") {
-			std::cerr << "largest decree: " << largest.decree << std::endl;
+			//std::cerr << "largest decree: " << largest.decree << std::endl;
 			message.decree = largest.decree;
 		}
 		else {
@@ -198,7 +198,7 @@ namespace quantas {
 			message.decree.push_back(randDecree);
 			std::cerr << "char: " << randDecree << std::endl;
 		}
-		std::cerr << "Chosen decree: " << message.decree << std::endl;
+		//std::cerr << "Chosen decree: " << message.decree << std::endl;
 
 		paperData.status = Paper::POLLING;
 		paperData.voters.clear();
@@ -241,9 +241,9 @@ namespace quantas {
 		if (paperData.status == Paper::IDLE && ledgerData.nextBal.first != -1) {
 			// currently this wait time is arbitrarily decided
 			if (paperData.timer > 8) {
-				std::cerr << "timer ran out" << std::endl;
+				//std::cerr << "timer ran out" << std::endl;
 				PaxosPeerMessage ballot = nextBallot();
-				std::cerr << "Peer " << id() << " sending NextBallot with ballot number " << ballot.ballotNum.first << " " << ballot.ballotNum.second << std::endl;
+				//std::cerr << "Peer " << id() << " sending NextBallot with ballot number " << ballot.ballotNum.first << " " << ballot.ballotNum.second << std::endl;
 				broadcast(ballot);
 				roundSent = getRound();
 			}
@@ -278,7 +278,7 @@ namespace quantas {
 		LogWriter::getTestLog()["latency"].push_back(lat / satisfied);
 		LogWriter::getTestLog()["throughput"].push_back(satisfied);
 
-
+		/*
 		if(id() == 0) {
 			
 			std::cerr << "Chosen decrees: size: " << confirmedTrans.size() << std::endl;
@@ -288,6 +288,7 @@ namespace quantas {
 			}
 			
 		}
+			*/
 	}
 
 	

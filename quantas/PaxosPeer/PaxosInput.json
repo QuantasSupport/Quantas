@@ -16,6 +16,22 @@
       "tests": 10,
       "rounds": 100
     },
+        {
+      "algorithm": "Paxos",
+      "logFile": "PaxosDelay3.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    },
     {
       "algorithm": "Paxos",
       "logFile": "PaxosDelay5.txt",
@@ -32,6 +48,22 @@
       "tests": 10,
       "rounds": 100
     },
+        {
+      "algorithm": "Paxos",
+      "logFile": "PaxosDelay7.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 7
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    },
     {
       "algorithm": "Paxos",
       "logFile": "PaxosDelay10.txt",
@@ -39,6 +71,22 @@
       "distribution": {
         "type": "uniform",
         "maxDelay": 10
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "totalPeers": 20
+      },
+      "tests": 10,
+      "rounds": 100
+    },
+    {
+      "algorithm": "Paxos",
+      "logFile": "PaxosDelay12.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 12
       },
       "topology": {
         "type": "complete",
