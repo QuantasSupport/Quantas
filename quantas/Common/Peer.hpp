@@ -46,6 +46,8 @@ public:
 
     static Peer* makePeer(const std::string &type, interfaceId pubId = 0) {
         PeerRegistry* inst = instance();
+        if (inst->registry.bucket_count() == 0)
+            throw  std::runtime_error("unordered_map has zero buckets in makePeer() in file Peer.hpp");
         auto it = inst->registry.find(type);
         if (it == inst->registry.end()) {
             throw std::runtime_error("Unknown peer type: " + type);

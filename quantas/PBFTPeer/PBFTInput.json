@@ -8,15 +8,19 @@
       "threadCount": 1,
       "distribution": {
         "type": "uniform",
-        "maxDelay": 1
+        "maxDelay": 1,
+        "maxMsgsRec": 10
+      },
+      "parameters": {
+        "byzantine_count": 1
       },
       "topology": {
         "type": "complete",
         "initialPeers": 20,
         "initialPeerType": "PBFTPeer"
       },
-      "tests": 10,
-      "rounds": 100
+      "tests": 3,
+      "rounds": 20
     }
   ]
 }

@@ -1,10 +1,10 @@
 {
   "algorithms": [
-    "LinearChordPeer/LinearChordPeer.cpp"
+    "KademliaPeer/KademliaPeer.cpp"
   ],
   "experiments": [
     {
-      "logFile": "LinearChordScale16.txt",
+      "logFile": "KademliaScale16.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -12,13 +12,13 @@
       "topology": {
         "type": "complete",
         "initialPeers": 16,
-        "initialPeerType": "LinearChordPeer"
+        "initialPeerType": "KademliaPeer"
       },
       "tests": 5,
       "rounds": 100
     },
     {
-      "logFile": "LinearChordScale32.txt",
+      "logFile": "KademliaScale32.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -26,13 +26,13 @@
       "topology": {
         "type": "complete",
         "initialPeers": 32,
-        "initialPeerType": "LinearChordPeer"
+        "initialPeerType": "KademliaPeer"
       },
       "tests": 5,
       "rounds": 100
     },
     {
-      "logFile": "LinearChordScale64.txt",
+      "logFile": "KademliaScale64.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -40,13 +40,13 @@
       "topology": {
         "type": "complete",
         "initialPeers": 64,
-        "initialPeerType": "LinearChordPeer"
+        "initialPeerType": "KademliaPeer"
       },
       "tests": 5,
       "rounds": 100
     },
     {
-      "logFile": "LinearChordScale128.txt",
+      "logFile": "KademliaScale128.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -54,13 +54,13 @@
       "topology": {
         "type": "complete",
         "initialPeers": 128,
-        "initialPeerType": "LinearChordPeer"
+        "initialPeerType": "KademliaPeer"
       },
       "tests": 5,
       "rounds": 100
     },
     {
-      "logFile": "LinearChordScale256.txt",
+      "logFile": "KademliaScale256.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -68,13 +68,13 @@
       "topology": {
         "type": "complete",
         "initialPeers": 256,
-        "initialPeerType": "LinearChordPeer"
+        "initialPeerType": "KademliaPeer"
       },
       "tests": 5,
       "rounds": 100
     },
     {
-      "logFile": "LinearChordScale512.txt",
+      "logFile": "KademliaScale512.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -82,13 +82,13 @@
       "topology": {
         "type": "complete",
         "initialPeers": 512,
-        "initialPeerType": "LinearChordPeer"
+        "initialPeerType": "KademliaPeer"
       },
       "tests": 5,
       "rounds": 100
     },
     {
-      "logFile": "LinearChordScale1024.txt",
+      "logFile": "KademliaScale1024.txt",
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -96,7 +96,7 @@
       "topology": {
         "type": "complete",
         "initialPeers": 1024,
-        "initialPeerType": "LinearChordPeer"
+        "initialPeerType": "KademliaPeer"
       },
       "tests": 5,
       "rounds": 100

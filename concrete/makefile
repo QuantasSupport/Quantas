@@ -23,8 +23,8 @@ release: $(EXE)
 
 run: kill release
 	# @echo running with input: $(CONFIGFILE)
-	@./$(EXE) config0.json 5000 &
-	@./$(EXE) config0.json &
+	@./$(EXE) $(CONFIGFILE) 5000 &
+	@./$(EXE) $(CONFIGFILE) &
 
 kill:
 	@USER=$$(whoami); \

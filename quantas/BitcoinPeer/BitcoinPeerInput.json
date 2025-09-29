@@ -1,0 +1,33 @@
+{
+  "algorithms": [
+    "BitcoinPeer/BitcoinPeer.cpp"
+  ],
+  "experiments": [
+    {
+      "logFile": "bitcoinRun.txt",
+      "threadCount": 11,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1,
+        "maxMsgsRec": 10
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 11,
+        "initialPeerType": "BitcoinPeer"
+      },
+      "parameters": {
+        "submitRate": 10,
+        "defaultMineRate": 1,
+        "mineScaler": 5,
+        "mineRates": [9],
+        "parasiteFault": {
+          "leadThreshold": 2,
+          "peerIndices": [0]
+        }
+      },
+      "tests": 1,
+      "rounds": 1000
+    }
+  ]
+}

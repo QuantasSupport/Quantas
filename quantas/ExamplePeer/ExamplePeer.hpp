@@ -1,59 +1,50 @@
 /*
-Copyright 2022
+Copyright 2024
 
 This file is part of QUANTAS.
-QUANTAS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
+QUANTAS is free software: you can redistribute it and/or modify it under the terms of
+the GNU General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
+QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with QUANTAS.
+If not, see <https://www.gnu.org/licenses/>.
 */
 
 #ifndef ExamplePeer_hpp
 #define ExamplePeer_hpp
 
-#include <iostream>
 #include <vector>
 #include "../Common/Peer.hpp"
 
+namespace quantas {
 
-namespace quantas{
+class Packet;
+class ExamplePeer2;
 
-    using std::string; 
-    using std::ostream;
-    using std::vector;
+class ExamplePeer : public Peer {
+public:
+    ExamplePeer(NetworkInterface* networkInterface);
+    ExamplePeer(const ExamplePeer& rhs);
+    ~ExamplePeer() override;
 
-    //
-    // Example of a message body type
-    //
-    class ExampleMessage : public Message {
-    public:
-        ExampleMessage() {}
-        ExampleMessage(string id, string m) : aPeerId(id), message(m) {};
-        ExampleMessage* clone() const override {return new ExampleMessage(aPeerId, message);}
+    void initParameters(std::vector<Peer*>& peers, json parameters);
+    void performComputation() override;
+    void endOfRound(std::vector<Peer*>& peers) override;
 
-        string aPeerId;
-        string message;
-    };
+    NetworkInterface* releaseNetworkInterface();
 
-    //
-    // Example Peer used for network testing
-    //
-    class ExamplePeer : public Peer{
-    public:
-        // methods that must be defined when deriving from Peer
-        ExamplePeer                             (NetworkInterface*);
-        ExamplePeer                             (const ExamplePeer &rhs);
-        ExamplePeer                             (Peer* rhs);
-        ~ExamplePeer                            ();
+    int msgsSent = 0;
+    bool changePeerType = false;
 
-        // initialize the configuration of the system
-        void                 initParameters(vector<Peer*>& _peers, json parameters);
-        // perform one step of the Algorithm with the messages in inStream
-        void                 performComputation ();
-        // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound         (vector<Peer*>& _peers);
-        
-        int msgsSent = 0;
-        bool changePeerType = false;
-    };
-}
+private:
+    void checkInStrm();
+    void logInboundMessage(const Packet& packet) const;
+    json buildGreetingPayload() const;
+    void logSentMessages(const std::vector<Peer*>& peers) const;
+};
+
+} // namespace quantas
+
 #endif /* ExamplePeer_hpp */

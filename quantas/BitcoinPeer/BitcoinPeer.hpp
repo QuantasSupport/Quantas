@@ -1,89 +1,73 @@
 /*
-Copyright 2022
+Copyright 2024
 
 This file is part of QUANTAS.
-QUANTAS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
+QUANTAS is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. QUANTAS is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with
+QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef BitcoinPeer_hpp
-#define BitcoinPeer_hpp
+#ifndef BITCOINPEER_HPP
+#define BITCOINPEER_HPP
 
 #include <deque>
-#include <mutex>
-#include "../Common/Peer.hpp"
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "../Common/PowPeer.hpp"
 
 namespace quantas {
 
-    using std::string;
-    using std::ostream;
-    using std::vector;
-    using std::mutex;
-    using std::lock_guard;
+// Proof-of-Work peer that communicates entirely with JSON messages and relies on
+// PoW for lightweight block bookkeeping.
+class BitcoinPeer : public PoWPeer {
+public:
+    BitcoinPeer(NetworkInterface* interfacePtr);
+    BitcoinPeer(const BitcoinPeer& rhs);
+    ~BitcoinPeer() override = default;
 
-    struct BitcoinTrans {
-        int id = -1; // the transaction id
-        int roundSubmitted = -1; // the round the transaction was submitted
+    void performComputation() override;
+    void runProtocolStep(const std::vector<std::string>& overrideParents = {}) override;
+    void initParameters(const std::vector<Peer*>& peers, json parameters) override;
+    void endOfRound(std::vector<Peer*>& peers) override;
+
+private:
+    // Minimal description of a queued transaction
+    struct PendingTx {
+        int id = -1;
+        int roundSubmitted = -1;
+        interfaceId submitter = NO_PEER_ID;
     };
 
-    struct BitcoinBlock {
-        interfaceId			minerId = NO_PEER_ID; // node who mined the transaction
-        BitcoinTrans		trans;            // transaction 
-        interfaceId         tipMiner = NO_PEER_ID; // the id of the node who mined the previous block
-        int                 length = 1;  // the length of the blockchain
-    };
+    void checkInStrm();
+    bool guardSubmit() const;
+    bool guardMine() const;
+    std::vector<std::string> getParents(const PoW& group) const;
+    PendingTx makeTransaction();
+    // turns contents into a sendable json format
+    json buildTransactionMessage(const PendingTx& pending) const;
+    json buildBlockMessage(const PoW::BlockRecord& record,
+                           const std::vector<std::string>& parents,
+                           int minedRound,
+                           const PendingTx& pending) const;
 
-    class BitcoinMessage : public Message {
-    public:
-        BitcoinMessage() {}
-        BitcoinMessage(BitcoinBlock b, bool m) : block(b), mined(m) {};
-        BitcoinMessage* clone() const override {return new BitcoinMessage(block, mined);}
+    mutable int submitRate = 20;
+    int _mineRate = 1; // mining is determined as mineRate / mineDenominator
+    int _mineDenominator = 100; // this comes from Sum(everyones mine rate) * scalar from input
 
-        BitcoinBlock		block; // the block being sent
-        bool				mined = false; // decides if it's a mined block or submitted transaction
-    };
-
-    class BitcoinPeer : public Peer {
-    public:
-        // methods that must be defined when deriving from Peer
-        BitcoinPeer(NetworkInterface*);
-        BitcoinPeer(const BitcoinPeer& rhs);
-        ~BitcoinPeer();
-
-        // perform one step of the Algorithm with the messages in inStream
-        void                 performComputation() override;
-        // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(vector<Peer*>& _peers) override;
-
-        // vector of vectors of blocks that have been mined
-        vector<vector<BitcoinBlock>> blockChain{ { vector<BitcoinBlock> { BitcoinBlock() } } };
-        // vector of blocks which haven't yet been linked to their previous block
-        vector<BitcoinBlock>         unlinkedBlocks;
-        // vector of recieved transactions
-        vector<BitcoinBlock>		  transactions;
-        // rate at which to submit transactions ie 1 in x chance for all n nodes
-        int                   submitRate = 20;
-        // rate at which to mine blocks ie 1 in x chance for all n nodes
-        int                   mineRate = 40;
-        // the id of the next transaction to submit
-        static int            currentTransaction;
-        static mutex          currentTransaction_mutex;
-
-        // checkInStrm loops through the in stream adding blocks to unlinked or transactions
-        void                  checkInStrm();
-        // linkBlocks attempts to add unlinkedBlocks to the blockChain
-        void                  linkBlocks();
-        // guardSubmit checks if the node should submit a transaction
-        bool                  guardSubmitTrans();
-        // submitTrans creates a transaction and broadcasts it to everyone
-        void                  submitTrans();
-        // guardMineBlock determines if the node can mine a block
-        bool 				  guardMineBlock();
-        // mineBlock mines the next transaction, adds it to the blockChain and broadcasts it
-        void                  mineBlock();
-        // findNextTransaction finds the next unmined transaction on the longest chain of the blockChain
-        BitcoinBlock          findNextTransaction();
-    };
+    std::deque<PendingTx> _queue; // current queue of pending txs (has issues when switching branches to be fixed)
+    std::set<std::pair<interfaceId, int>> _knownTransactions; // all known transactions (kept to ensure consistency with the pending queue)
+    int _localSubmitted = 0; // transaction id counter
+    int minedBlocks = 0; // total blocks mined by this peer
 };
-#endif /* BitcoinPeer_hpp */
+
+}
+
+#endif // BITCOINPEER_HPP

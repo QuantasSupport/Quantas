@@ -18,15 +18,20 @@
 
 # INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 
-# INPUTFILE := quantas/PBFTPeer/_PBFTInput.json
-
 # INPUTFILE := quantas/AltBitPeer/AltBitUtility.json
-
-# INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
 
 # INPUTFILE := quantas/PBFTPeer/PBFTInput.json
 
-INPUTFILE := quantas/PBFTPeer/PBFTInputV2.json
+# INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
+
+# INPUTFILE := quantas/EthereumPeer/EthereumPeerInput.json
+
+# INPUTFILE := quantas/LinearChordPeer/LinearChordInput.json
+
+# INPUTFILE := quantas/KademliaPeer/KademliaPeerInput.json
+
+INPUTFILE := quantas/PBFTPeer/PBFTByzantineSweep.json
+
 
 ############################### Variables and Flags ###############################
 
@@ -55,7 +60,8 @@ GCC_MIN_VERSION := 8
 # release for faster runtime, debug for debugging
 release: CXXFLAGS += -O3 -s
 release: check-version $(EXE)
-debug: CXXFLAGS += -O0 -g -D_GLIBCXX_DEBUG
+debug: CXXFLAGS += -O0 -g -D_GLIBCXX_DEBUG 
+# -fsanitize=address,undefined -fno-omit-frame-pointer # flag helps with double delete errors
 debug: check-version $(EXE)
 
 ############################### Running Commands ###############################
@@ -92,7 +98,16 @@ run_simple_memory: debug
 
 # runs the program with GDB for more advanced error viewing
 run_debug: debug
-	@gdb --ex "set print thread-events off" --ex run --ex backtrace --args ./$(EXE) $(INPUTFILE); exit_code=$$?; \
+	@gdb -q -nx \
+		 -iex "set pagination off" \
+		 --ex "set pagination off" \
+		 --ex "set height 0" \
+	     --ex "set debuginfod enabled off" \
+	     --ex "set print thread-events off" \
+	     --ex run \
+	     --ex backtrace \
+	     --args ./$(EXE) $(INPUTFILE); \
+	exit_code=$$?; \
 	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
 
 ############################### Tests ###############################
@@ -121,7 +136,7 @@ test: check-version rand_test
 
 # Define a helper function to check dmesg for errors
 define check_failure
-    @echo "Make target '$@' failed! Checking dmesg..."; \
+    echo "Make target '$@' failed! Checking dmesg..."; \
     dmesg | tail -20 | grep -i -E 'oom|killed|segfault|error' || echo "No relevant logs found."
 endef
 

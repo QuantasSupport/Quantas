@@ -30,7 +30,7 @@ public:
     inline NetworkInterface() {};
     inline NetworkInterface(interfaceId pubId) : _publicId(pubId) {};
     inline NetworkInterface(interfaceId pubId, interfaceId internalId) : _publicId(pubId), _internalId(internalId) {};
-    inline ~NetworkInterface() {};
+    inline virtual ~NetworkInterface() {};
 
     // getters
     inline interfaceId publicId()   const { return _publicId; }

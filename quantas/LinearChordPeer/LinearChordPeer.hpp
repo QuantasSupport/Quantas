@@ -1,5 +1,5 @@
 /*
-Copyright 2022
+Copyright 2024
 
 This file is part of QUANTAS.
 QUANTAS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -7,62 +7,58 @@ QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LinearChordPeer_hpp
-#define LinearChordPeer_hpp
+#ifndef LINEARCHORDPEER_HPP
+#define LINEARCHORDPEER_HPP
+
+#include <set>
+#include <unordered_map>
+#include <vector>
 
 #include "../Common/Peer.hpp"
 
-
 namespace quantas {
 
+class LinearChordPeer : public Peer {
+public:
+    LinearChordPeer(NetworkInterface* interfacePtr);
+    LinearChordPeer(const LinearChordPeer& rhs);
+    ~LinearChordPeer() override = default;
 
-	struct LinearChordMessage {
-		interfaceId reqId;
-		std::string action; // options are R, N
-		int roundSubmitted;
-		int hops = 0; // number of times this message has been echoed
-	};
+    void initParameters(const std::vector<Peer*>& peers, json parameters) override;
+    void performComputation() override;
+    void endOfRound(std::vector<Peer*>& peers) override;
 
-	struct LinearChordFinger {
-		interfaceId Id;
-		int roundUpdated = 0; // round the finger was last updated
-	};
-	class LinearChordPeer : public Peer<LinearChordMessage> {
-	public:
-		// methods that must be defined when deriving from Peer
-		LinearChordPeer(NetworkInterface*);
-		LinearChordPeer(const LinearChordPeer& rhs);
-		~LinearChordPeer();
+private:
+    struct FingerEntry {
+        interfaceId nodeId = NO_PEER_ID;
+        size_t ringIndex = 0;
+        size_t skip = 0;              // number of logical steps around the ring
+        size_t skipNormalized = 0;    // skip modulo ring size to detect wrap-around
+    };
 
-		// perform one step of the Algorithm with the messages in inStream
-		void                 performComputation() override;
-		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-		void                 endOfRound(vector<Peer*>& _peers) override;
+    void checkInStrm();
+    void handleLookup(json msg);
+    void submitLookup(int transactionId);
+    json makeLookupTemplate(interfaceId target, int transactionId) const;
+    interfaceId pickRandomTarget() const;
+    interfaceId selectFinger(interfaceId target, const std::set<interfaceId>& neighborSet) const;
+    interfaceId chooseClockwiseNeighbor(interfaceId target, const std::set<interfaceId>& neighborSet) const;
+    void dispatchLookup(json msg, interfaceId nextHop, const std::set<interfaceId>& neighborSet);
+    void buildFingerTable();
 
-		// the id of the next transaction to submit
-		static int                      currentTransaction;
-		// list of nodes with 'higher' id than current node
-		std::vector<LinearChordFinger> successor;
-		// list of nodes with 'lower' id than current node
-		std::vector<LinearChordFinger> predecessor;
-		// number of requests satisfied
-		int requestsSatisfied = 0;
-		// total hops of all satisfied requests
-		int totalHops = 0;
-		// latency of satisfied requests
-		int latency = 0;
-		// redundancy link number
-		int redundantSize = 2;
-		static int numberOfNodes;
-		// status of node
-		bool alive = true;
-		// sent every x rounds to indicate node is alive
-		void                 heartBeat();
-		// sends a direct message
-		void				 sendMessage(interfaceId peer, LinearChordMessage message);
-		// submitTrans creates a transaction
-		void                  submitTrans(int tranID);
-	};
+    std::vector<interfaceId> _ringOrder;
+    std::unordered_map<interfaceId, size_t> _indexById;
+    std::vector<FingerEntry> _fingers;
+    size_t _selfIndex = 0;
+    bool _initialized = false;
+
+    int _requestsSatisfied = 0;
+    int _totalHops = 0;
+    int _totalLatency = 0;
+
+    static int s_nextTransactionId;
+};
 
 }
-#endif /* LinearChordPeer_hpp */
+
+#endif // LINEARCHORDPEER_HPP

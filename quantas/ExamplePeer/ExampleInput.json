@@ -19,7 +19,7 @@
       "topology": {
         "type": "complete",
         "initialPeers": 5,
-        "maxMsgsRec": 1,
+        "maxMsgsRec": 10,
         "initialPeerType": "ExamplePeer"
       },
       "tests": 1,

@@ -25,63 +25,12 @@ public:
     // methods that must be defined when deriving from Peer
     ConsensusPeer                             (NetworkInterface* networkInterface) : ByzantinePeer(networkInterface) {};
     ConsensusPeer                             (const ConsensusPeer &rhs) {};
-    ~ConsensusPeer                            () {};
-
-    // perform one step of the Algorithm with the messages in inStream
-    void                 performComputation() override {
-        // std::cout << "Peer: " << publicId() << std::endl;
-        while (!inStreamEmpty()) {
-            Packet packet = popInStream();
-            json msg = packet.getMessage();
-            
-            // std::cout << "ConsensusPeer received: " << msg << std::endl;
-            if (!msg.contains("type")) {
-                std::cout << "Message requires a type" << std::endl;
-                continue;
-            }
-            if (!msg.contains("consensusId")) {
-                std::cout << "Message requires a consensusId" << std::endl;
-                continue;
-            }
-            if (msg["type"] == "Request") {
-                int targetId = msg["consensusId"];
-                auto it = consensuses.find(targetId);
-                if (it != consensuses.end()) {
-                    Consensus* target = it->second;
-                    target->_unhandledRequests.insert({RoundManager::currentRound(), msg});
-                }
-            } else if (msg["type"] == "Consensus") {
-                int targetId = msg["consensusId"];
-                auto it = consensuses.find(targetId);
-                if (it != consensuses.end()) {
-                    Consensus* target = it->second;
-                    if (!msg.contains("seqNum")) {
-                        std::cout << "Message requires a  a seqNum" << std::endl;
-                        continue;
-                    }
-                    int seq = msg["seqNum"];
-                    if (!msg.contains("MessageType")) {
-                        std::cout << "Message requires a  a MessageType" << std::endl;
-                        continue;
-                    }
-                    string type = msg["MessageType"];
-                    target->_receivedMessages[seq].insert(std::make_pair(type, msg));
-                } else {
-                    std::cout << "message lost" << std::endl;
-                }
-            } else {
-                std::cout << "Other?" << std::endl;
-            }
-            // std::cout << std::endl;
-        }
-
+    virtual ~ConsensusPeer                            () {
         for (auto consensus : consensuses) {
-            consensus.second->runPhase(this);
+            delete consensus.second;
         }
     };
-    // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-    // void                 endOfRound(vector<Peer*>& _peers) override;
-
+    
     // map of currently involved consensus instances
     std::map<int, Consensus*> consensuses;
 

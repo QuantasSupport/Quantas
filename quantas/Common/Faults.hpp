@@ -1,11 +1,19 @@
 #ifndef FAULTS_HPP
 #define FAULTS_HPP
 
+#include "Peer.hpp"
+#include <vector>
+#include <map>
+#include <string>
+#include <unordered_set>
+
 namespace quantas {
 
 class Fault {
 public:
-    virtual ~Fault() = default;
+
+    Fault() {};
+    virtual ~Fault() {};
 
     // Return true if it should be considered this type of fault
     virtual bool overridesUnicastTo() const { return false; }
@@ -23,23 +31,34 @@ public:
 class FaultManager {
 public:
     ~FaultManager() {
-        auto deleteVec = [](std::vector<Fault*>& vec) {
-            for (Fault*& fault : vec) {
-                if (fault != nullptr) {
-                    delete fault;
-                    fault = nullptr;
-                }
+        std::unordered_set<Fault*> seen;
+
+        auto null_in = [&](auto& vec, Fault* f){
+            for (auto& x : vec) if (x == f) x = nullptr;
+        };
+        auto null_everywhere = [&](Fault* f){
+            null_in(unicastToFaults, f);
+            null_in(receiveFaults, f);
+            null_in(computationFaults, f);
+            for (auto& [_, v] : sendFaults) null_in(v, f);
+        };
+
+        auto deleteVec = [&](std::vector<Fault*>& vec){
+            for (Fault*& f : vec) {
+            if (!f) continue;
+            if (seen.insert(f).second) {  // first time we see this address
+                delete f;
+            }
+            null_everywhere(f);           // wipe all copies of the pointer
             }
         };
 
         deleteVec(unicastToFaults);
         deleteVec(receiveFaults);
         deleteVec(computationFaults);
-
-        for (auto& [sendType, faultVec] : sendFaults) {
-            deleteVec(faultVec);
-        }
+        for (auto& [_, v] : sendFaults) deleteVec(v);
     }
+
 
     void addFault(Fault* fault) {
 
