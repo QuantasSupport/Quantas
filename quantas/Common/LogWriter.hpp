@@ -1,59 +1,100 @@
-/*
-Copyright 2022
-
-This file is part of QUANTAS.
-QUANTAS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
-*/
-
 #ifndef LogWriter_hpp
 #define LogWriter_hpp
 
 #include <string>
+#include <fstream>
 #include <iostream>
-#include "../Common/Json.hpp"
+#include <mutex>
+#include "Json.hpp"
 
 namespace quantas {
 
     using nlohmann::json;
-    using std::ostream;
-    using std::cout;
-    using std::endl;
 
     class LogWriter {
-    protected:
-        ostream* _log = &cout;
-        int         _round = 0;
-        int         _test = 0;
-
     public:
-        static LogWriter*  instance () {
+        static LogWriter* instance() {
             static LogWriter s;
             return &s;
         }
 
-        void print () {
-            *_log << data.dump(4);
-            *_log << endl;
-            data.clear();
+        // Set log file path and open stream
+        static void setLogFile(const std::string& path) {
+            LogWriter* inst = instance();
+            std::lock_guard<std::mutex> lock(inst->_mutex);
+
+            if (inst->_file_stream.is_open()) {
+                inst->_file_stream.close();
+            }
+
+            if (path == "cout") {
+                inst->_log_stream = &std::cout;
+                return;
+            }
+
+            inst->_file_stream.open(path);
+
+            if (inst->_file_stream.is_open()) {
+                inst->_log_stream = &inst->_file_stream;
+            } else {
+                std::cerr << "[LogWriter] Failed to open log file: " << path << ". Falling back to std::cout.\n";
+                inst->_log_stream = &std::cout;
+            }
         }
 
-        json        data;
-        void                setLog          (ostream& out)  { _log = &out; }
-        ostream*            getLog          ()const         { return _log; }
-        void                setTest         (int test)      { _test = test; }
-        int                 getTest         ()const         { return _test; }
-        void                setRound        (int round)     { _round = round; }
-        int                 getRound        ()const         { return _round; }
-        static json&        getTestLog      ()              { return instance()->data["tests"][instance()->getTest()]; }
+        static void print() {
+            LogWriter* inst = instance();
+            std::lock_guard<std::mutex> lock(inst->_mutex);
+            if (inst->_log_stream != nullptr) {
+                (*inst->_log_stream) << inst->data.dump(4) << std::endl;
+                inst->_log_stream->flush();
+            }
+            inst->data.clear();
+            if (inst->_file_stream.is_open()) {
+                inst->_file_stream.close();
+            }
+            inst->_log_stream = nullptr;
+        }
+
+        static void setTest(int test) {
+            LogWriter* inst = instance();
+            std::lock_guard<std::mutex> lock(inst->_mutex);
+            inst->_test = test;
+        }
+
+        static int getTest() {
+            LogWriter* inst = instance();
+            std::lock_guard<std::mutex> lock(inst->_mutex);
+            return inst->_test;
+        }
+
+        template <typename T>
+        static void pushValue(const std::string& key, const T& val) {
+            LogWriter* inst = instance();
+            std::lock_guard<std::mutex> lock(inst->_mutex);
+            inst->data["tests"][inst->_test][key].push_back(val);
+        }
+
+        template <typename T>
+        static void setValue(const std::string& key, const T& val) {
+            LogWriter* inst = instance();
+            std::lock_guard<std::mutex> lock(inst->_mutex);
+            inst->data[key] = val;
+        }
 
     private:
-        // copying and creation prohibited by clients
-        LogWriter(){}
-        LogWriter(const LogWriter&){}
+        std::ofstream _file_stream;
+        std::ostream* _log_stream = nullptr;
+        int _test = 0;
+        json data;
+        mutable std::mutex _mutex;
+
+        // disallow copies
+        LogWriter() = default;
+        LogWriter(const LogWriter&) = delete;
+        LogWriter& operator=(const LogWriter&) = delete;
     };
 
-}
+} // namespace quantas
 
 #endif // LogWriter_hpp

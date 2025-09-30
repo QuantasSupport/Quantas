@@ -11,161 +11,164 @@
 # copy of the GNU General Public License along with QUANTAS. If not,
 # see <https://www.gnu.org/licenses/>.
 
+############################### Input ###############################
 
-PROJECT_DIR := quantas
+# Configurable usage to override the hardcoded input:
+# [make run INPUTFILE=quantas/ExamplePeer/ExampleInput.json]
 
-################
-#
-#  configure this for the specific algorithm and input file
-#
+# Hard coded usage [make run]
+# Configure this for the specific input file.
+# Make sure to include the path to the input file 
 
-INPUTFILE := ExampleInput.json
+INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 
-# ALGFILE := TrailPeer
+# INPUTFILE := quantas/AltBitPeer/AltBitUtility.json
 
-ALGFILE := ExamplePeer
+# INPUTFILE := quantas/PBFTPeer/PBFTInput.json
 
-# ALGFILE := BitcoinPeer
+# INPUTFILE := quantas/BitcoinPeer/BitcoinInput.json
 
-# ALGFILE := EthereumPeer
+# INPUTFILE := quantas/EthereumPeer/EthereumPeerInput.json
 
-# ALGFILE := PBFTPeer
+# INPUTFILE := quantas/LinearChordPeer/LinearChordInput.json
 
-# ALGFILE := RaftPeer
+# INPUTFILE := quantas/KademliaPeer/KademliaPeerInput.json
 
-# ALGFILE := SmartShardsPeer
+# INPUTFILE := quantas/RaftPeer/RaftInput.json
 
-# ALGFILE := LinearChordPeer
+# INPUTFILE := quantas/StableDataLinkPeer/StableDataLinkInput.json
 
-# ALGFILE := KademliaPeer
+############################### Variables and Flags ###############################
 
-# ALGFILE := AltBitPeer
+EXE := quantas.exe
 
-# ALGFILE := StableDataLinkPeer
+# compiles all the cpps in Common and main.cpp
+COMMON_SRCS := $(wildcard quantas/Common/*.cpp)
+COMMON_OBJS := $(COMMON_SRCS:.cpp=.o)
 
-# ALGFILE := ChangRobertsPeer
+ABSTRACT_OBJS := $(COMMON_OBJS) quantas/Common/Abstract/abstractSimulation.o quantas/Common/Abstract/Channel.o quantas/Common/Abstract/Network.o
+CONCRETE_OBJS := $(COMMON_OBJS) quantas/Common/Concrete/concreteSimulation.o quantas/Common/Concrete/ipUtil.o
 
-# ALGFILE := DynamicPeer
+# compiles all cpps specified as necessary in the INPUTFILE
+ALGS := $(shell sed -n '/"algorithms"/,/]/p' $(INPUTFILE) \
+         | sed -n 's/.*"\([^"]*\.cpp\)".*/quantas\/\1/p')
+ALG_OBJS += $(ALGS:.cpp=.o)
 
-# ALGFILE := KPTPeer
-
-# ALGFILE := KSMPeer
-
-# ALGFILE := CycleOfTreesPeer
-
-####### end algorithm configuration
-
-####### All algorithms
-
-
-INPUTFILE := $(PROJECT_DIR)/$(ALGFILE)/$(INPUTFILE)
-
-
-CPPFLAGS := -Iinclude -MMD -MP
-CXXFLAGS = -pthread -include $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).hpp
+# necessary flags
 CXX := g++
-
-
-GCC_VERSION := $(shell $(CXX) -dumpversion)
+CXXFLAGS := -pthread -std=c++17
+GCC_VERSION := $(shell $(CXX) $(CXXFLAGS) -dumpversion)
 GCC_MIN_VERSION := 8
 
+############################### Build Types ###############################
+
+# release for faster runtime, debug for debugging
+release: CXXFLAGS += -O3 -s
+release: check-version $(EXE)
+debug: CXXFLAGS += -O0 -g -D_GLIBCXX_DEBUG 
+# -fsanitize=address,undefined -fno-omit-frame-pointer # flag helps with double delete errors
+debug: check-version $(EXE)
+
+############################### Running Commands ###############################
+
+# When running on windows use make clang
+clang: CXX := clang++
+clang: release
+	@echo running with input: $(INPUTFILE)
+	@./$(EXE) $(INPUTFILE)
+
+# When running on Linux use make run
+run: release
+	@echo running with input: $(INPUTFILE)
+	@./$(EXE) $(INPUTFILE); exit_code=$$?; \
+	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
+
+############################### Debugging ###############################
+
+# runs the program with full Valgrind to trace memory leaks
+run_memory: debug
+	@echo running: $(INPUTFILE) with valgrind
+	@valgrind --leak-check=full \
+         --show-leak-kinds=all \
+         --track-origins=yes \
+		 ./$(EXE) $(INPUTFILE)
+
+# runs the program with Valgrind to see if there are any memory leaks
+run_simple_memory: debug
+	@echo ""
+	@echo running: $(INPUTFILE) with valgrind
+	@valgrind --leak-check=full ./$(EXE) $(INPUTFILE) 2>&1 \
+		| grep -E "HEAP SUMMARY|in use|LEAK SUMMARY|definitely lost: |indirectly lost: |possibly lost: |still reachable: |ERROR SUMMARY"
+	@echo ""
+
+# runs the program with GDB for more advanced error viewing
+run_debug: debug
+	@gdb -q -nx \
+		 -iex "set pagination off" \
+		 --ex "set pagination off" \
+		 --ex "set height 0" \
+	     --ex "set debuginfod enabled off" \
+	     --ex "set print thread-events off" \
+	     --ex run \
+	     --ex backtrace \
+	     --args ./$(EXE) $(INPUTFILE); \
+	exit_code=$$?; \
+	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
+
+############################### Tests ###############################
+
+# Test thread based random number generation
+rand_test: quantas/Tests/randtest.cpp
+	@echo "Testing thread based random number generation..."
+	@make --no-print-directory clean
+	@$(CXX) $(CXXFLAGS) $^ -o $@.exe
+	@./$@.exe
+	@echo ""
+	
+# in the future this could be generalized to go through every file in a Tests
+# folder such that the input files need not be listed here
+TEST_INPUTS := quantas/ExamplePeer/ExampleInput.json quantas/AltBitPeer/AltBitUtility.json quantas/PBFTPeer/PBFTInput.json quantas/BitcoinPeer/BitcoinInput.json quantas/EthereumPeer/EthereumPeerInput.json quantas/LinearChordPeer/LinearChordInput.json quantas/KademliaPeer/KademliaPeerInput.json quantas/RaftPeer/RaftInput.json quantas/StableDataLinkPeer/StableDataLinkInput.json
+
+test: check-version rand_test
+	@make --no-print-directory clean
+	@echo "Running memory tests on all test inputs..."
+	@echo ""
+	@for file in $(TEST_INPUTS); do \
+		$(MAKE) --no-print-directory run_simple_memory INPUTFILE="$$file"; \
+	done
+
+############################### Helpers ###############################
+
+# Define a helper function to check dmesg for errors
+define check_failure
+    echo "Make target '$@' failed! Checking kernel logs..."; \
+    { \
+      if command -v journalctl >/dev/null 2>&1; then \
+        journalctl -k -n 200 --no-pager 2>/dev/null; \
+      else \
+        dmesg 2>/dev/null | tail -200; \
+      fi; \
+    } | grep -iE 'oom|killed|segfault|error' || echo "No relevant logs found."
+endef
+
+%.o: %.cpp
+	@echo compiling $<
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# check the version of the GCC compiler being used is above a threshold
 check-version:
 	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "Default version of g++ must be higher than 8."; fi
 	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then echo "To change the default version visit: https://linuxconfig.org/how-to-switch-between-multiple-gcc-and-g-compiler-versions-on-ubuntu-20-04-lts-focal-fossa"; fi
 	@if [ "$(GCC_VERSION)" -lt "$(GCC_MIN_VERSION)" ]; then exit 1; fi
 
-EXE := quantas.exe
-OBJS = $(PROJECT_DIR)/main.o $(PROJECT_DIR)/$(ALGFILE)/$(ALGFILE).o $(PROJECT_DIR)/Common/Distribution.o
+$(EXE): $(ALG_OBJS) $(ABSTRACT_OBJS)
+	@$(CXX) $(CXXFLAGS) $^ -o $(EXE)
 
+############################### Cleanup ###############################
 
-# extra debug and release flags
-release: CXXFLAGS += -O3 -s -std=c++17
-debug: CXXFLAGS += -O0 -g -D_GLIBCXX_DEBUG -std=c++17
-
-clang: CXX := clang++
-clang: CXXFLAGS += -std=c++17
-
-.PHONY: all clean run release debug
-
-all: release
-
-release: check-version $(EXE)
-debug: check-version $(EXE)
-
-clang: all
-	./$(EXE) $(INPUTFILE)
-
-$(EXE): $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $(EXE)
-
-$(PROJECT_DIR)/%.o: $(PROJECT_DIR)/%.c
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Define a helper function to check dmesg for errors
-define check_failure
-    echo "Make target '$@' failed! Checking dmesg..."; \
-    dmesg | tail -20 | grep -i -E 'oom|killed|segfault|error' || echo "No relevant logs found."
-endef
-
-run: all
-	./$(EXE) $(INPUTFILE); exit_code=$$?; \
-	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
-
-run_debug: debug
-	gdb --ex "set print thread-events off" --ex run --ex backtrace --args ./$(EXE) $(INPUTFILE); exit_code=$$?; \
-	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
-
-# in the future this could be generalized to go through every file in "Tests"
-rand_test: $(PROJECT_DIR)/Tests/randtest.cpp $(PROJECT_DIR)/Common/Distribution.cpp
-	$(CXX) -pthread -std=c++17 $^ -o $@.exe
-	./$@.exe
-
-TESTS = check-version rand_test test_Example test_Bitcoin test_Ethereum test_PBFT test_Raft test_SmartShards test_LinearChord test_Kademlia test_AltBit test_StableDataLink test_ChangRoberts test_Dynamic test_KPT test_KSM
-
-############################### Compile and run all tests - uses a wild card.
-test: $(TESTS)
-	@make --no-print-directory clean
-	@echo all tests successful
-
-test_%: ALGFILE = $*Peer
-test_%: CXXFLAGS += -O0 -g  -D_GLIBCXX_DEBUG -std=c++17
-test_%:
-	@make --no-print-directory clean
-	@echo Testing $(ALGFILE)
-	@$(CXX) $(CXXFLAGS) -c -o quantas/main.o quantas/main.cpp
-	@$(CXX) $(CXXFLAGS) -c -o quantas/$(ALGFILE)/$(ALGFILE).o quantas/$(ALGFILE)/$(ALGFILE).cpp
-	@$(CXX) $(CXXFLAGS) -c -o quantas/Common/Distribution.o quantas/Common/Distribution.cpp
-	@$(CXX) $(CXXFLAGS)  quantas/main.o quantas/$(ALGFILE)/$(ALGFILE).o quantas/Common/Distribution.o -o $(EXE)
-	@./$(EXE) quantas/$(ALGFILE)/$*Input.json; exit_code=$$?; \
-	if [ $$exit_code -ne 0 ]; then $(call check_failure); exit $$exit_code; fi
-	@$(RM) quantas/$(ALGFILE)/*.o
-	@echo $(ALGFILE) successful
-
+# enables recursive glob patterns for bash to clean out unecessary files
+clean: SHELL := /bin/bash -O globstar
 clean:
-	@$(RM) *.exe
-	@$(RM) *.out
-	@$(RM) *.o
-	@$(RM) -r *.dSYM
-	@$(RM) $(PROJECT_DIR)/*.gch
-	@$(RM) $(PROJECT_DIR)/*.tmp
-	@$(RM) $(PROJECT_DIR)/*.o
-	@$(RM) $(PROJECT_DIR)/*.d
-	@$(RM) $(PROJECT_DIR)/Common/*.gch
-	@$(RM) $(PROJECT_DIR)/Common/*.tmp
-	@$(RM) $(PROJECT_DIR)/Common/*.o
-	@$(RM) $(PROJECT_DIR)/Common/*.d
-	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.gch
-	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.tmp
-	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.o
-	@$(RM) $(PROJECT_DIR)/$(ALGFILE)/*.d
-	@$(RM) quantas_test/*.gch
-	@$(RM) quantas_test/*.tmp
-	@$(RM) quantas_test/*.o
-	@$(RM) quantas_test/*.d
-
-# enables recursive glob patterns for bash
-cleanRec: SHELL := /bin/bash -O globstar
-cleanRec:
 	@$(RM) **/*.out
 	@$(RM) **/*.o
 	@$(RM) **/*.d
@@ -174,4 +177,13 @@ cleanRec:
 	@$(RM) **/*.tmp
 	@$(RM) **/*.exe
 
--include $(OBJS:.o=.d)
+clean_txt: SHELL := /bin/bash -O globstar
+clean_txt:
+	@$(RM) **/*.txt
+
+# -include $(OBJS:.o=.d)
+
+############################### PHONY ###############################
+
+# All make commands found in this file
+.PHONY: clean run release debug $(EXE) %.o clang run_memory run_simple_memory run_debug check-version rand_test test clean_txt

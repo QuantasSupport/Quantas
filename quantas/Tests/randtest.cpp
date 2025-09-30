@@ -2,7 +2,7 @@
 #include <thread>
 #include <vector>
 #include <cassert>
-#include "../Common/Distribution.hpp"
+#include "../Common/RandomUtil.hpp"
 
 void getRandomInts(std::vector<int> &randomInts, int howMany)
 {
@@ -29,14 +29,14 @@ int main()
         t.join();
     }
 
-    for (auto &vecForThread : results)
-    {
-        for (auto &numInVec : vecForThread)
-        {
-            std::cout << numInVec << " ";
-        }
-        std::cout << std::endl;
-    }
+    // for (auto &vecForThread : results)
+    // {
+    //     for (auto &numInVec : vecForThread)
+    //     {
+    //         std::cout << numInVec << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
 
     for (int k = 0; k < RandIntCount; k++)
     {

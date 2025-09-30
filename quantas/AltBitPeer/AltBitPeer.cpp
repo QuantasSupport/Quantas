@@ -12,100 +12,115 @@ You should have received a copy of the GNU General Public License along with QUA
 
 namespace quantas {
 
-	int AltBitPeer::currentTransaction = 1;
+	static bool registerAltBit = [](){
+		PeerRegistry::registerPeerType("AltBitPeer", 
+			[](interfaceId pubId){ return new AltBitPeer(new NetworkInterfaceAbstract(pubId)); });
+		return true;
+	}();
+
+	static bool registerAltBitConcrete = [](){
+		PeerRegistry::registerPeerType("AltBitPeerConcrete", 
+			[](interfaceId pubId){ return new AltBitPeer(new NetworkInterfaceConcrete()); });
+		return true;
+	}();
 
 	AltBitPeer::~AltBitPeer() {
 
 	}
 
-	AltBitPeer::AltBitPeer(const AltBitPeer& rhs) : Peer<AltBitMessage>(rhs) {
+	AltBitPeer::AltBitPeer(const AltBitPeer& rhs) : Peer(rhs) {
 
 	}
 
-	AltBitPeer::AltBitPeer(long id) : Peer(id) {
+	AltBitPeer::AltBitPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
 
 	}
 
 	void AltBitPeer::performComputation() {
-		if (alive) {
-			if (getRound() == 0 && id() == 0) {
-				submitTrans(currentTransaction);
-			}
-			if (previousMessageRound + timeOutRate < getRound()) {// resend lost message
-				if (id() == 0) {
-					AltBitMessage message;
-					message.action = "data";
-					message.roundSubmitted = getRound(); // if message lost roundSubmitted isn't accurate
-					message.messageNum = ns;
-					previousMessageRound = getRound();
-					sendMessage(1, message);
+		while (!inStreamEmpty()) {
+			// std::cout << publicId() << " received a message" << std::endl;
+			Packet packet = popInStream();
+			interfaceId source = packet.sourceId();
+			json oldMessage = packet.getMessage();
+			if (oldMessage["action"] == "ack") {
+				if (oldMessage["messageNum"] == ns) {
+					previousMessageRound = RoundManager::currentRound();
+					requestsSatisfied++;
+					ns++;
+					submitTrans(currentTransaction);
 				}
-				else {
-					AltBitMessage message;
-					message.action = "ack";
-					message.roundSubmitted = getRound(); // if message lost roundSubmitted isn't accurate
-					message.messageNum = ns;
-					previousMessageRound = getRound();
-					sendMessage(0, message);
-				}
-			}
-			while (!inStreamEmpty()) {
-				Packet<AltBitMessage> packet = popInStream();
-				long source = packet.sourceId();
-				AltBitMessage message = packet.getMessage();
-				if (randMod(messageLossDen) < messageLossNum) { // used for message loss
-					continue;
-				}
-				if (message.action == "ack") {
-					if (message.messageNum == ns) {
-						previousMessageRound = getRound();
-						requestsSatisfied++;
-						ns++;
-						submitTrans(currentTransaction);
-					}
 
-				}
-				else if (message.action == "data") {
-					previousMessageRound = getRound();
-					ns = message.messageNum;
-					message.action = "ack";
-					sendMessage(0, message);
+			}
+			else if (oldMessage["action"] == "data") {
+				json newMessage = oldMessage;
+				previousMessageRound = RoundManager::currentRound();
+				ns = oldMessage["messageNum"];
+				newMessage["action"] = "ack";
+				sendMessage(0, newMessage);
+			}
+		}
 
-				}
+		if (messagesSent == 0 && publicId() == 0) {
+			submitTrans(currentTransaction);
+		} else if (previousMessageRound + timeOutRate < RoundManager::currentRound()) {// resend lost message
+			if (publicId() == 0) {
+				json message;
+				message["action"] = "data";
+				message["roundSubmitted"] = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
+				message["messageNum"] = ns;
+				previousMessageRound = RoundManager::currentRound();
+				sendMessage(1, message);
+			}
+			else {
+				json message;
+				message["action"] = "ack";
+				message["roundSubmitted"] = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
+				message["messageNum"] = ns;
+				previousMessageRound = RoundManager::currentRound();
+				sendMessage(0, message);
 			}
 		}
 	}
-	void AltBitPeer::endOfRound(const vector<Peer<AltBitMessage>*>& _peers) {
+
+	void AltBitPeer::initParameters(const std::vector<Peer*>& _peers, json parameters) {
 		const vector<AltBitPeer*> peers = reinterpret_cast<vector<AltBitPeer*> const&>(_peers);
-		int satisfied = 0;
-		double messages = 0;
-		for (int i = 0; i < peers.size(); i++) {
-			satisfied += peers[i]->requestsSatisfied;
-			messages += peers[i]->messagesSent;
-		}
 
-		LogWriter::getTestLog()["utility"].push_back(satisfied / messages * 100);
+		const int timeOutRate = parameters.value("timeOutRate", RoundManager::lastRound());
+		for (auto* peer : peers) {
+			peer->timeOutRate = timeOutRate;
+		}
 	}
 
-	void AltBitPeer::sendMessage(long peer, AltBitMessage message) {
-		Packet<AltBitMessage> newMessage(getRound(), peer, id());
-		newMessage.setMessage(message);
-		pushToOutSteam(newMessage);
-		messagesSent++;
+	
+
+	void AltBitPeer::endOfRound(vector<Peer*>& _peers) {
+		if (RoundManager::lastRound() <= RoundManager::currentRound()) {
+			const vector<AltBitPeer*> peers = reinterpret_cast<vector<AltBitPeer*> const&>(_peers);
+			double throughput = 0.0;
+			double messages = 0.0;
+			for (const auto* peer : peers) {
+				throughput += static_cast<double>(peer->requestsSatisfied);
+				messages += static_cast<double>(peer->messagesSent);
+			}
+			const double utility = messages > 0.0 ? (throughput / messages) * 100.0 : 0.0;
+
+			LogWriter::pushValue("utility", utility);
+			LogWriter::pushValue("messages", messages);
+			LogWriter::pushValue("throughput", throughput);
+		}
+	}
+
+	void AltBitPeer::sendMessage(interfaceId peer, json message) {
+		++messagesSent;
+		unicastTo(message,peer);
 	}
 
 	void AltBitPeer::submitTrans(int tranID) {
-		AltBitMessage message;
-		message.action = "data";
-		message.roundSubmitted = getRound();
-		message.messageNum = ns;
+		json message;
+		message["action"] = "data";
+		message["roundSubmitted"] = RoundManager::currentRound();
+		message["messageNum"] = ns;
 		sendMessage(1, message);
 		currentTransaction++;
 	}
-	
-	Simulation<quantas::AltBitMessage, quantas::AltBitPeer>* generateSim() {
-        
-        Simulation<quantas::AltBitMessage, quantas::AltBitPeer>* sim = new Simulation<quantas::AltBitMessage, quantas::AltBitPeer>;
-        return sim;
-    }
 }

@@ -1,52 +1,105 @@
 {
+  "algorithms": [
+    "RaftPeer/RaftPeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "Raft",
-      "logFile": "RaftDelay1.txt",
-      "threadCount": 1,
+      "algorithm": "RaftPeer",
+      "logFile": "RaftDelay1Crashes.txt",
+      "threadCount": 48,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
       },
+      "parameters": {
+        "committee_id": 0,
+        "crash_count": 5,
+        "crash_recovery_round": 40,
+        "crash_recovery_delay": 20,
+        "crash_odds": 0.05,
+        "submit_rate": 10,
+        "timeout_spacing": 20,
+        "timeout_jitter": 10
+      },
       "topology": {
         "type": "complete",
         "initialPeers": 20,
-        "totalPeers": 20
+        "initialPeerType": "RaftPeer"
       },
-      "tests": 10,
-      "rounds": 100
+      "tests": 1,
+      "rounds": 1000
     },
     {
-      "algorithm": "Raft",
-      "logFile": "RaftDelay5.txt",
-      "threadCount": 1,
+      "algorithm": "RaftPeer",
+      "logFile": "RaftDelay1CrashOdds.01.txt",
+      "threadCount": 48,
       "distribution": {
         "type": "uniform",
-        "maxDelay": 5
+        "maxDelay": 1
+      },
+      "parameters": {
+        "committee_id": 0,
+        "crash_count": 2,
+        "crash_recovery_round": 100,
+        "crash_recovery_delay": 10,
+        "crash_odds": 0.01,
+        "submit_rate": 10,
+        "timeout_spacing": 40,
+        "timeout_jitter": 30
       },
       "topology": {
         "type": "complete",
         "initialPeers": 20,
-        "totalPeers": 20
+        "initialPeerType": "RaftPeer"
       },
-      "tests": 10,
-      "rounds": 100
+      "tests": 1,
+      "rounds": 1000
     },
     {
-      "algorithm": "Raft",
-      "logFile": "RaftDelay10.txt",
-      "threadCount": 1,
+      "algorithm": "RaftPeer",
+      "logFile": "RaftDelay1NoCrashes.txt",
+      "threadCount": 48,
       "distribution": {
         "type": "uniform",
-        "maxDelay": 10
+        "maxDelay": 1
+      },
+      "parameters": {
+        "committee_id": 0,
+        "submit_rate": 20,
+        "timeout_spacing": 20,
+        "timeout_jitter": 5
       },
       "topology": {
         "type": "complete",
         "initialPeers": 20,
-        "totalPeers": 20
+        "initialPeerType": "RaftPeer"
       },
-      "tests": 10,
-      "rounds": 100
+      "tests": 1,
+      "rounds": 1000
+    },
+    {
+      "algorithm": "RaftPeer",
+      "logFile": "RaftDelay1CrashOdds.05.txt",
+      "threadCount":48,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1
+      },
+      "parameters": {
+        "committee_id": 0,
+        "crash_recovery_delay": 10,
+        "crash_odds": 0.05,
+        "submit_rate": 10,
+        "timeout_spacing": 20,
+        "timeout_jitter": 15
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 20,
+        "initialPeerType": "RaftPeer"
+      },
+      "tests": 1,
+      "rounds": 1000
     }
   ]
 }

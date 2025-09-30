@@ -1,93 +1,69 @@
 /*
-Copyright 2022
+Copyright 2024
 
 This file is part of QUANTAS.
-QUANTAS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
+QUANTAS is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. QUANTAS is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with
+QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef EthereumPeer_hpp
-#define EthereumPeer_hpp
+#ifndef ETHEREUMPEER_HPP
+#define ETHEREUMPEER_HPP
 
 #include <deque>
-#include <mutex>
-#include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
-namespace quantas{
+#include "../Common/PowPeer.hpp"
 
-    using std::string; 
-    using std::ostream;
-    using std::vector;
-    using std::mutex;
-    using std::lock_guard;
-  
-    struct EtherTrans {
-        int id              = -1; // the transaction id
-        int roundSubmitted  = -1; // the round the transaction was submitted
+namespace quantas {
+
+// PoW peer that follows Ethereum's GHOST weighting rule via PoWEthereum.
+class EthereumPeer : public PoWPeer {
+public:
+    EthereumPeer(NetworkInterface* interfacePtr);
+    EthereumPeer(const EthereumPeer& rhs);
+    ~EthereumPeer() override = default;
+
+    void performComputation() override;
+    void runProtocolStep(const std::vector<std::string>& overrideParents = {}) override;
+    void initParameters(const std::vector<Peer*>& peers, json parameters) override;
+    void endOfRound(std::vector<Peer*>& peers) override;
+
+private:
+    struct PendingTx {
+        int id = -1;
+        int roundSubmitted = -1;
+        interfaceId submitter = NO_PEER_ID;
     };
 
-    struct EtherBlock {
-        int 				minerId     = -1; // node who mined the transaction
-        EtherTrans			trans;            // transaction
-        // Both are needed to uniquely identify a block
-        vector<int>         tipMiners   = vector<int>(); // the ids of the nodes who mined the previous blocks
-        vector<int>         tipLengths  = vector<int>(); // the lengths of the tip blocks
+    void checkInStrm();
+    bool guardSubmit() const;
+    bool guardMine() const;
+    std::vector<std::string> getParents(const PoW& group) const;
+    PendingTx makeTransaction();
+    json buildTransactionMessage(const PendingTx& pending) const;
+    json buildBlockMessage(const PoW::BlockRecord& record,
+                           const std::vector<std::string>& parents,
+                           int minedRound,
+                           const PendingTx& pending) const;
 
-        int                 length      = 0;  // the length of the blockchain
-    };
+    mutable int submitRate = 20;
+    int _mineRate = 1;
+    int _mineDenominator = 100;
 
-    struct EthereumPeerMessage {
+    std::deque<PendingTx> _queue;
+    std::set<std::pair<interfaceId, int>> _knownTransactions;
+    int _localSubmitted = 0;
+};
 
-        EtherBlock			block; // the block being sent
-        bool				mined = false; // decides if it's a mined block or submitted transaction
-    };
-
-    class EthereumPeer : public Peer<EthereumPeerMessage>{
-    public:
-        // methods that must be defined when deriving from Peer
-        EthereumPeer                             (long);
-        EthereumPeer                             (const EthereumPeer&rhs);
-        ~EthereumPeer();
-
-        // perform one step of the Algorithm with the messages in inStream
-        void                 performComputation();
-        // perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-        void                 endOfRound(const vector<Peer<EthereumPeerMessage>*>& _peers);
-
-        // vector of vectors of blocks that have been mined
-        vector<vector<EtherBlock>> blockChain{ { vector<EtherBlock> { EtherBlock() } } };
-        // vector of blocks which haven't yet been linked to their previous block
-        vector<EtherBlock>         unlinkedBlocks;
-        // vector of recieved transactions
-        vector<EtherBlock>		   transactions;
-        // rate at which to submit transactions ie 1 in x chance for all n nodes
-        int                   submitRate = 20;
-        // rate at which to mine blocks ie 1 in x chance for all n nodes
-        int                   mineRate = 40;
-        // the id of the next transaction to submit
-        static int            currentTransaction;
-        static mutex          currentTransaction_mutex;
-
-        // checkInStrm loops through the in stream adding blocks to unlinked or transactions
-        void                  checkInStrm();
-        // linkBlocks attempts to add unlinkedBlocks to the blockChain
-        void                  linkBlocks();
-        // guardSubmit checks if the node should submit a transaction
-        bool                  guardSubmitTrans();
-        // submitTrans creates a transaction and broadcasts it to everyone
-        void                  submitTrans();
-        // guardMineBlock determines if the node can mine a block
-        bool 				  guardMineBlock();
-        // mineBlock mines the next transaction, adds it to the blockChain and broadcasts it
-        void                  mineBlock();
-        // findNextTransaction finds the next unmined transaction on the longest chain of the blockChain
-        EtherBlock            findNextTransaction();
-        // findTips finds the blocks which are currently leaf nodes
-        void                  findTips(vector<int> &ids, vector<int> &lengths);
-    };
-
-    Simulation<quantas::EthereumPeerMessage, quantas::EthereumPeer>* generateSim();
 }
-#endif /* EthereumPeer_hpp */
+
+#endif // ETHEREUMPEER_HPP

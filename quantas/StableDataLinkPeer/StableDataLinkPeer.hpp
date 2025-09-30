@@ -11,52 +11,43 @@ You should have received a copy of the GNU General Public License along with QUA
 #define StableDataLinkPeer_hpp
 
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+
+#include <vector>
 
 namespace quantas {
 
+using std::vector;
+using nlohmann::json;
 
-	struct StableDataLinkMessage {
-		string action; // options are ack, data
-		int messageNum;
-		int roundSubmitted;
-	};
+class StableDataLinkPeer : public Peer {
+public:
+	StableDataLinkPeer(NetworkInterface*);
+	StableDataLinkPeer(const StableDataLinkPeer& rhs);
+	~StableDataLinkPeer() override;
 
-	class StableDataLinkPeer : public Peer<StableDataLinkMessage> {
-	public:
-		// methods that must be defined when deriving from Peer
-		StableDataLinkPeer(long);
-		StableDataLinkPeer(const StableDataLinkPeer& rhs);
-		~StableDataLinkPeer();
+	void performComputation() override;
+	void endOfRound(vector<Peer*>& _peers) override;
 
-		// perform one step of the Algorithm with the messages in inStream
-		void                 performComputation();
-		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-		void                 endOfRound(const vector<Peer<StableDataLinkMessage>*>& _peers);
-
-		// the id of the next transaction to submit
-		static int                      currentTransaction;
-		// channel size (non fifo channels not implemented channel size limit not implemented)
-		int c = 1;
-		// number of requests satisfied
 		int requestsSatisfied = 0;
-		// number of messages sent
 		int messagesSent = 0;
-		// number of copies recieved
-		int ack = 0;
-		// num / den = likelyhood of message getting lost
-		int messageLossNum = 0;
-		int messageLossDen = 1;
 		int timeOutRate = 4;
 		int previousMessageRound = 0;
-		// status of node
 		bool alive = true;
-		// sends a direct message
-		void				 sendMessage(long peer, StableDataLinkMessage message);
-		// submitTrans creates a transaction
-		void                  submitTrans(int tranID);
-	};
 
-	Simulation<quantas::StableDataLinkMessage, quantas::StableDataLinkPeer>* generateSim();
+private:
+		void handleAck(int messageNum);
+		void handleData(int messageNum);
+		void sendMessage(interfaceId peer, const json& message);
+		void submitTrans();
+		void sendData(int messageNum);
+		void resendData();
+		void sendAck(int messageNum);
+		interfaceId partnerId() const;
+
+		int nextMessageNum = 1;
+		int lastSentMessageNum = 0;
+		int lastDeliveredMessageNum = 0;
+		bool awaitingAck = false;
+	};
 }
 #endif /* StableDataLinkPeer_hpp */

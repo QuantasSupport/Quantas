@@ -11,50 +11,41 @@ You should have received a copy of the GNU General Public License along with QUA
 #define AltBitPeer_hpp
 
 #include "../Common/Peer.hpp"
-#include "../Common/Simulation.hpp"
+#include <vector>
 
 namespace quantas {
+	using std::vector;
 
-
-	struct AltBitMessage {
-		string action; // options are ack, data
-		int messageNum;
-		int roundSubmitted;
-	};
-
-	class AltBitPeer : public Peer<AltBitMessage> {
+	class AltBitPeer : public Peer {
 	public:
 		// methods that must be defined when deriving from Peer
-		AltBitPeer(long);
+		AltBitPeer(NetworkInterface*);
 		AltBitPeer(const AltBitPeer& rhs);
 		~AltBitPeer();
 
 		// perform one step of the Algorithm with the messages in inStream
-		void                 performComputation();
+		void                 performComputation() override;
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
-		void                 endOfRound(const vector<Peer<AltBitMessage>*>& _peers);
+		void                 endOfRound(vector<Peer*>& _peers) override;
+
+		void 				 initParameters(const std::vector<Peer*>& _peers, json parameters);
 
 		// the id of the next transaction to submit
-		static int                      currentTransaction;
+		int currentTransaction = 1;
 		// number of requests satisfied
 		int requestsSatisfied = 0;
 		// number of messages sent
 		int messagesSent = 0;
 		// message number
 		int ns = 1;
-		// num / den = likelyhood of message getting lost
-		int messageLossNum = 0;
-		int messageLossDen = 1;
+		// time till resend a message
 		int timeOutRate = 4;
+		// last round a message was sent
 		int previousMessageRound = 0;
-		// status of node
-		bool alive = true;
 		// sends a direct message
-		void				 sendMessage(long peer, AltBitMessage message);
+		void				  sendMessage(interfaceId peer, json message);
 		// submitTrans creates a transaction
 		void                  submitTrans(int tranID);
 	};
-
-	Simulation<quantas::AltBitMessage, quantas::AltBitPeer>* generateSim();
 }
 #endif /* AltBitPeer_hpp */

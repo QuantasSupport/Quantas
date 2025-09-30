@@ -1,52 +1,26 @@
 {
+  "algorithms": [
+    "PBFTPeer/PBFTPeer.cpp"
+  ],
   "experiments": [
     {
-      "algorithm": "PBFT",
       "logFile": "PBFTDelay1.txt",
       "threadCount": 1,
       "distribution": {
         "type": "uniform",
-        "maxDelay": 1
+        "maxDelay": 1,
+        "maxMsgsRec": 10
+      },
+      "parameters": {
+        "byzantine_count": 1
       },
       "topology": {
         "type": "complete",
         "initialPeers": 20,
-        "totalPeers": 20
+        "initialPeerType": "PBFTPeer"
       },
-      "tests": 10,
-      "rounds": 100
-    },
-    {
-      "algorithm": "PBFT",
-      "logFile": "PBFTDelay5.txt",
-      "threadCount": 1,
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 5
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 20,
-        "totalPeers": 20
-      },
-      "tests": 10,
-      "rounds": 100
-    },
-    {
-      "algorithm": "PBFT",
-      "logFile": "PBFTDelay10.txt",
-      "threadCount": 1,
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 10
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 20,
-        "totalPeers": 20
-      },
-      "tests": 10,
-      "rounds": 100
+      "tests": 3,
+      "rounds": 20
     }
   ]
 }

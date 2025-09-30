@@ -2,102 +2,150 @@
 Copyright 2022
 
 This file is part of QUANTAS.
-QUANTAS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
+QUANTAS is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+QUANTAS is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-// peer is an abstract template class derived from the NetworkInterface class. 
-// It has the minimum functions that must be defined for the simulator to use a 
-// user defined peer. The methods listed in this abstract class are the only 
-// methods used in the network and simulation classes. Two methods 
-// (deconstructor and performComputation) must be defined by the user, that is 
-// they are pure virtual functions. All others can have empty body's. It is 
-// however unlikely the user will want to leave them empty. It is templated with 
-// a user defined message struct or class.
+#ifndef PEER_HPP
+#define PEER_HPP
 
-
-#ifndef Peer_hpp
-#define Peer_hpp
-
-#include <stdio.h>
 #include <vector>
-#include <map>
-#include <deque>
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <memory>
 #include "NetworkInterface.hpp"
+#include "Abstract/NetworkInterfaceAbstract.hpp"
+#include "Concrete/NetworkInterfaceConcrete.hpp"
+#include "RoundManager.hpp"
 #include "LogWriter.hpp"
 
-namespace quantas{
+namespace quantas {
 
-    using std::string;
-    using std::deque;
-    using std::map;
-    using std::ostream;
-    using std::vector;
-    using std::cout;
-    using std::endl;
-    
-    //
-    // Base Peer class
-    //
-    template <class message>
-    class Peer : public NetworkInterface<message>{
-    public:
-        Peer                                                       ();
-        Peer                                                       (long);
-        Peer                                                       (const Peer &);
-        virtual ~Peer                                              () = 0;
-        // initialize any user defined parameters
-        virtual void                       initParameters          (const vector<Peer<message>*>& _peers, json parameters) {};
-        // perform one step of the Algorithm with the messages in inStream
-        virtual void                       performComputation      () = 0;
-        // ran once per round, used to submit transactions or collect metrics
-        virtual void                       endOfRound              (const vector<Peer<message>*>& _peers) {};
-        
-        static void                        initializeRound         ()                                     { _round = 0; };
-        static void                        incrementRound          ()                                     { _round++; };
-        static void                        initializeLastRound     (int lastRound)                        { _lastRound = lastRound; };
-        static void                        initializeSourcePoolSize(int sourcePoolSize)                   { _sourcePoolSize = sourcePoolSize; };
-        static int                         getRound                ()                                     { return _round; };
-        static int                         getLastRound            ()                                     { return _lastRound;};
-        static bool                        lastRound               ()                                     { return _lastRound == _round; };
-        static int                         getSourcePoolSize       ()                                     { return _sourcePoolSize; };
-    private:
-        // current round
-        static int                         _round;
-        // last round
-        static int                         _lastRound;
-        // size of source pool (FOR BLOCKCHAIN IN DYNAMIC NETWORKS)
-        static int                         _sourcePoolSize;
+using nlohmann::json;
+
+// Forward declaration, so we can pass Peer* in method signatures below
+class Peer;
+
+class PeerRegistry {
+public:
+    static PeerRegistry* instance(){
+        static PeerRegistry s;
+        return &s;
+     }
+
+    static Peer* makePeer(const std::string &type, interfaceId pubId = 0) {
+        PeerRegistry* inst = instance();
+        if (inst->registry.bucket_count() == 0)
+            throw  std::runtime_error("unordered_map has zero buckets in makePeer() in file Peer.hpp");
+        auto it = inst->registry.find(type);
+        if (it == inst->registry.end()) {
+            throw std::runtime_error("Unknown peer type: " + type);
+        }
+        return it->second(pubId);
+    }
+
+    static bool registerPeerType(const std::string &name, std::function<Peer*(interfaceId)> factory) {
+        PeerRegistry* inst = instance();
+        bool result = inst->registry.insert(std::make_pair(name, factory)).second;
+        if (!result) {
+            std::cout << "Peer of type:" << name <<" already registered." << std::endl;
+        }
+        return result;
+    }
+
+    ~PeerRegistry(){}
+
+private:
+    // copying and creation prohibited 
+    PeerRegistry() {}
+    PeerRegistry(const PeerRegistry&) = delete;
+    PeerRegistry& operator=(const PeerRegistry&) = delete;
+
+    std::unordered_map<std::string, std::function<Peer*(interfaceId)>> registry;
+};
+
+// The base Peer class
+class Peer {
+public:
+inline Peer() {}
+    inline Peer(NetworkInterface* networkInterface) : _networkInterface(networkInterface) {}
+    inline Peer(const Peer &rhs) {};
+    inline virtual ~Peer() {};
+
+    virtual void clearInterface() {
+        if (_networkInterface != nullptr) {
+            _networkInterface->clearAll();
+            delete _networkInterface;
+            _networkInterface = nullptr;
+        }
+    }
+
+    // Called once after constructing all peers
+    // (subclass can parse 'parameters' as needed)
+    virtual void initParameters(const std::vector<Peer*>& peers,
+                                json parameters) {}
+
+    // try to run performComputation though it may not
+    virtual void tryPerformComputation() {
+        if (!isCrashed()) {
+            performComputation();
+        }
     };
 
-    template <class message>
-    int Peer<message>::_round = 0;
+    // Main algorithmic step that each Peer runs each round
+    virtual void performComputation() = 0;
+
+    // Called after performComputation in each round (subclass can override to collect metrics, etc.)
+    virtual void endOfRound(std::vector<Peer*>& peers) {}
     
-    template <class message>
-    int Peer<message>::_lastRound = 0;
-    
-    template <class message>
-    int Peer<message>::_sourcePoolSize = 0;
+    bool isCrashed() {return (_crashRecoveryRound > RoundManager::currentRound());}
+    void setCrashRecoveryRound(size_t crashRecoveryRound) {_crashRecoveryRound = crashRecoveryRound;}
 
-    template <class message>
-    Peer<message>::Peer(): NetworkInterface<message>(){
-    }
 
-    template <class message>
-    Peer<message>::Peer(long id): NetworkInterface<message>(id){
-    }
+    ////////////////// Network Interface direct access ////////////////////
+    // getters
+    NetworkInterface* getNetworkInterface() const { return _networkInterface; };
+    interfaceId publicId()   const { return _networkInterface->publicId(); };
+    interfaceId internalId() const { return _networkInterface->internalId(); };
+    std::set<interfaceId> neighbors() const { return _networkInterface->neighbors(); };
+    void setPublicId(interfaceId pid) { _networkInterface->setPublicId(pid); };
+    void addNeighbor(interfaceId nbr) { _networkInterface->addNeighbor(nbr); };
+    void removeNeighbor(interfaceId nbr) { _networkInterface->removeNeighbor(nbr); };
 
-    template <class message>
-    Peer<message>::Peer(const Peer &rhs){
-    }
+    // Send messages to to others using these
+    virtual void unicastTo (json msg, const interfaceId& dest) { _networkInterface->unicastTo(msg, dest); };
+    virtual void unicast (json msg) { _networkInterface->unicast(msg); };
+    virtual void multicast (json msg, const std::set<interfaceId>& targets) { _networkInterface->multicast(msg, targets); };
+    virtual void broadcast (json msg) { _networkInterface->broadcast(msg); };
+    virtual void broadcastBut (json msg, const interfaceId& id) { _networkInterface->broadcastBut(msg, id); };
+    virtual void randomMulticast (json msg) { _networkInterface->randomMulticast(msg); };
 
-    template <class message>
-    Peer<message>::~Peer(){
-    }
-}
+    // Pop from local arrived inStream
+    Packet popInStream() { return _networkInterface->popInStream(); };
+    bool inStreamEmpty() const { return _networkInterface->inStreamEmpty(); }
 
-#endif 
+    // moves msgs to the inStream if they've arrived
+    void receive() { _networkInterface->receive(); };
+
+    // Clear everything
+    void clearAll() { _networkInterface->clearAll(); };
+
+protected:
+    size_t _crashRecoveryRound = 0;
+    NetworkInterface* _networkInterface = nullptr;
+};
+
+} // namespace quantas
+
+#endif // PEER_HPP

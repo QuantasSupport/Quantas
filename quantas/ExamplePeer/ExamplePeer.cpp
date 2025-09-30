@@ -1,83 +1,155 @@
 /*
-Copyright 2022
+Copyright 2024
 
 This file is part of QUANTAS.
-QUANTAS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
+QUANTAS is free software: you can redistribute it and/or modify it under the terms of
+the GNU General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
+QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with QUANTAS.
+If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <string>
+
 #include "ExamplePeer.hpp"
+#include "ExamplePeer2.hpp"
 
 namespace quantas {
 
-	//
-	// Example Channel definitions
-	//
-	ExamplePeer::~ExamplePeer() {
+static bool registerExamplePeer = []() {
+    return PeerRegistry::registerPeerType(
+        "ExamplePeer",
+        [](interfaceId pubId) { return new ExamplePeer(new NetworkInterfaceAbstract(pubId)); });
+}();
 
-	}
+ExamplePeer::ExamplePeer(NetworkInterface* networkInterface)
+    : Peer(networkInterface) {}
 
-	ExamplePeer::ExamplePeer(const ExamplePeer& rhs) : Peer<ExampleMessage>(rhs) {
-		
-	}
+ExamplePeer::ExamplePeer(const ExamplePeer& rhs)
+    : Peer(rhs) {
+    msgsSent = rhs.msgsSent;
+    changePeerType = rhs.changePeerType;
+}
 
-	ExamplePeer::ExamplePeer(long id) : Peer(id) {
-		
-	}
+ExamplePeer::~ExamplePeer() = default;
 
-	void ExamplePeer::initParameters(const vector<Peer<ExampleMessage>*>& _peers, json parameters) {
-		const vector<ExamplePeer*> peers = reinterpret_cast<vector<ExamplePeer*> const&>(_peers);
-		
-		cout << "Initializing parameters of simulation" << endl;
+void ExamplePeer::initParameters(std::vector<Peer*>& peers, json parameters) {
+    if (parameters.contains("parameter1")) {
+        LogWriter::pushValue("parameter1", parameters["parameter1"]);
+    }
 
-		if (parameters.contains("parameter1")) {
-			cout << "parameter1: " << parameters["parameter1"] << endl;
-		}
+    if (parameters.contains("parameter2")) {
+        LogWriter::pushValue("parameter2", parameters["parameter2"]);
+    }
 
-		if (parameters.contains("parameter2")) {
-			cout << "parameter2: " << parameters["parameter2"] << endl;
-		}
+    bool shouldChangeType = parameters.value("changePeerType", changePeerType);
+    LogWriter::pushValue("changePeerType", shouldChangeType);
 
-		if (parameters.contains("parameter3")) {
-			cout << "parameter3: " << parameters["parameter3"] << endl;
-		}
-	}
-
-	void ExamplePeer::performComputation() {
-
-		cout << "Peer:" << id() << " performing computation" << endl;
-
-		// Read messages from other peers
-		while (!inStreamEmpty()) {
-			Packet<ExampleMessage> newMsg = popInStream();
-			cout << endl << std::to_string(id()) << " has receved a message from " << newMsg.getMessage().aPeerId << endl;
-			cout << newMsg.getMessage().message << endl;
-		}
-		cout << endl;
-
-		
-		// Send message to self
-		ExampleMessage msg;
-		msg.message = "Message: it's me " + std::to_string(id()) + "!";
-		msg.aPeerId = std::to_string(id());
-		Packet<ExampleMessage> newMsg(getRound(), id(), id());
-		newMsg.setMessage(msg);
-		pushToOutSteam(newMsg);
-
-		// Send hello to everyone else
-		msg.message = "Message: Hello From " + std::to_string(id()) + ". Sent on round: " + std::to_string(getRound());
-		msg.aPeerId = std::to_string(id());
-		broadcast(msg);
-	}
-
-	void ExamplePeer::endOfRound(const vector<Peer<ExampleMessage>*>& _peers) {
-		cout << "End of round " << getRound() << endl;
-	}
-
-	Simulation<quantas::ExampleMessage, quantas::ExamplePeer>* generateSim() {
-        
-        Simulation<quantas::ExampleMessage, quantas::ExamplePeer>* sim = new Simulation<quantas::ExampleMessage, quantas::ExamplePeer>;
-        return sim;
+    for (Peer* peerPtr : peers) {
+        if (auto* example = dynamic_cast<ExamplePeer*>(peerPtr)) {
+            example->changePeerType = shouldChangeType;
+        }
     }
 }
+
+void ExamplePeer::performComputation() {
+    LogWriter::pushValue("performs computation", publicId());
+    checkInStrm();
+
+    json message = buildGreetingPayload();
+    broadcast(message);
+    msgsSent += static_cast<int>(neighbors().size());
+}
+
+void ExamplePeer::endOfRound(std::vector<Peer*>& peers) {
+    logSentMessages(peers);
+
+    if (changePeerType && peers.size() > 1) {
+        if (auto* oldPeer = dynamic_cast<ExamplePeer*>(peers[1])) {
+            ExamplePeer2* replacement = new ExamplePeer2(oldPeer);
+            peers[1] = replacement;
+            delete oldPeer;
+        }
+    }
+
+    for (Peer* peerPtr : peers) {
+        if (auto* example = dynamic_cast<ExamplePeer*>(peerPtr)) {
+            example->changePeerType = false;
+        }
+    }
+
+    if (RoundManager::lastRound() <= RoundManager::currentRound()) {
+        int total = 0;
+        for (Peer* peerPtr : peers) {
+            if (auto* first = dynamic_cast<ExamplePeer*>(peerPtr)) {
+                total += first->msgsSent;
+            } else if (auto* second = dynamic_cast<ExamplePeer2*>(peerPtr)) {
+                total += second->msgsSent;
+            }
+        }
+        LogWriter::pushValue("finalMessageCount", total);
+    }
+}
+
+NetworkInterface* ExamplePeer::releaseNetworkInterface() {
+    NetworkInterface* iface = _networkInterface;
+    _networkInterface = nullptr;
+    return iface;
+}
+
+void ExamplePeer::checkInStrm() {
+    while (!inStreamEmpty()) {
+        Packet packet = popInStream();
+        logInboundMessage(packet);
+    }
+}
+
+void ExamplePeer::logInboundMessage(const Packet& packet) const {
+    json payload = packet.getMessage();
+    json logEntry;
+    logEntry["to"] = publicId();
+    interfaceId sender = packet.sourceId();
+    if (payload.contains("from")) {
+        if (payload["from"].is_number_integer()) {
+            sender = payload["from"].get<interfaceId>();
+        } else if (payload["from"].is_string()) {
+            try {
+                sender = static_cast<interfaceId>(std::stol(payload["from"].get<std::string>()));
+            } catch (...) {
+                // leave sender as packet source if conversion fails
+            }
+        }
+    }
+    logEntry["from"] = sender;
+    logEntry["receivedRound"] = RoundManager::currentRound();
+    logEntry["contents"] = payload;
+    LogWriter::pushValue("receivedMessages", logEntry);
+}
+
+json ExamplePeer::buildGreetingPayload() const {
+    json payload;
+    payload["type"] = "greeting";
+    payload["from"] = publicId();
+    payload["roundSent"] = RoundManager::currentRound();
+    payload["message"] = "Message: Hello From " + std::to_string(publicId()) +
+                           ". Sent on round: " + std::to_string(RoundManager::currentRound());
+    payload["sequence"] = msgsSent;
+    return payload;
+}
+
+void ExamplePeer::logSentMessages(const std::vector<Peer*>& peers) const {
+    int total = 0;
+    for (Peer* peerPtr : peers) {
+        if (auto* first = dynamic_cast<ExamplePeer*>(peerPtr)) {
+            total += first->msgsSent;
+        } else if (auto* second = dynamic_cast<ExamplePeer2*>(peerPtr)) {
+            total += second->msgsSent;
+        }
+    }
+    LogWriter::pushValue("sentMessages", total);
+}
+
+} // namespace quantas
