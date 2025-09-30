@@ -4,18 +4,63 @@
   ],
   "experiments": [
     {
-      "logFile": "StableDataLinkDelay1.txt",
+      "logFile": "StableDataLinkFaultsDelay3.txt",
       "threadCount": 1,
       "distribution": {
         "type": "uniform",
-        "maxDelay": 1
+        "maxDelay": 3,
+        "dropProbability": 0.1,
+        "reorderProbability": 0.05,
+        "duplicateProbability": 0.02,
+        "maxMsgsRec": 1,
+        "size": 3
       },
       "topology": {
         "type": "complete",
         "initialPeers": 2,
         "initialPeerType": "StableDataLinkPeer"
       },
-      "tests": 10,
+      "tests": 1,
+      "rounds": 100
+    },
+    {
+      "logFile": "StableDataLinkNoFaultDelay3.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 3,
+        "dropProbability": 0.0,
+        "reorderProbability": 0.0,
+        "duplicateProbability": 0.0,
+        "maxMsgsRec": 1,
+        "size": 100
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "initialPeerType": "StableDataLinkPeer"
+      },
+      "tests": 1,
+      "rounds": 100
+    },
+    {
+      "logFile": "StableDataLinkNoFaultDelay1.txt",
+      "threadCount": 1,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1,
+        "dropProbability": 0.0,
+        "reorderProbability": 0.0,
+        "duplicateProbability": 0.0,
+        "maxMsgsRec": 1,
+        "size": 100
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 2,
+        "initialPeerType": "StableDataLinkPeer"
+      },
+      "tests": 1,
       "rounds": 100
     }
   ]

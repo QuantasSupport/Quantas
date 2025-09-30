@@ -14,12 +14,12 @@
       },
       "distribution": {
         "type": "uniform",
-        "maxDelay": 3
+        "maxDelay": 3,
+        "maxMsgsRec": 10
       },
       "topology": {
         "type": "complete",
         "initialPeers": 5,
-        "maxMsgsRec": 10,
         "initialPeerType": "ExamplePeer"
       },
       "tests": 1,
@@ -44,7 +44,6 @@
           "0": [ 1, 2 ],
           "1": [ 2 ]
         },
-        "maxMsgsRec": 1,
         "initialPeerType": "ExamplePeer"
       },
       "tests": 1,
@@ -60,7 +59,6 @@
       "topology": {
         "type": "complete",
         "initialPeers": 3,
-        "maxMsgsRec": 1,
         "initialPeerType": "ExamplePeer"
       },
       "tests": 1,

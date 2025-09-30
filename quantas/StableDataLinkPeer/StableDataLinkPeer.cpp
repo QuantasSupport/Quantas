@@ -7,108 +7,136 @@ QUANTAS is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 You should have received a copy of the GNU General Public License along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
 #include "StableDataLinkPeer.hpp"
 
 namespace quantas {
 
-	static bool registerStableDataLink = [](){
-		registerPeerType("StableDataLinkPeer", 
-			[](interfaceId pubId){ return new StableDataLinkPeer(new NetworkInterfaceAbstract(pubId)); });
-		return true;
-	}();
+static bool registerStableDataLink = []() {
+	return PeerRegistry::registerPeerType(
+		"StableDataLinkPeer",
+		[](interfaceId pubId) { return new StableDataLinkPeer(new NetworkInterfaceAbstract(pubId)); });
+}();
 
-	int StableDataLinkPeer::currentTransaction = 1;
+static bool registerStableDataLinkConcrete = []() {
+	return PeerRegistry::registerPeerType(
+		"StableDataLinkPeerConcrete",
+		[](interfaceId) { return new StableDataLinkPeer(new NetworkInterfaceConcrete()); });
+}();
 
-	StableDataLinkPeer::~StableDataLinkPeer() {
+StableDataLinkPeer::~StableDataLinkPeer() = default;
 
+StableDataLinkPeer::StableDataLinkPeer(const StableDataLinkPeer& rhs) : Peer(rhs) {}
+
+StableDataLinkPeer::StableDataLinkPeer(NetworkInterface* networkInterface)
+	: Peer(networkInterface) {
+	timeOutRate = 4;
+}
+
+void StableDataLinkPeer::performComputation() {
+	const size_t currentRound = RoundManager::currentRound();
+
+	if (publicId() == 0 && !awaitingAck && nextMessageNum == 1) {
+		submitTrans();
 	}
 
-	StableDataLinkPeer::StableDataLinkPeer(const StableDataLinkPeer& rhs) : Peer<StableDataLinkMessage>(rhs) {
-		
-	}
+	while (!inStreamEmpty()) {
+		Packet packet = popInStream();
+		json message = packet.getMessage();
+		const std::string action = message.value("action", "");
+		const int messageNum = message.value("messageNum", -1);
 
-	StableDataLinkPeer::StableDataLinkPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
-		
-	}
-
-	void StableDataLinkPeer::performComputation() {
-		if (alive) {
-			if (RoundManager::currentRound() == 1 && publicId() == 0) {
-				submitTrans(currentTransaction);
-			}
-			if (previousMessageRound + timeOutRate < RoundManager::currentRound()) {// resend lost message
-				if (publicId() == 0) {
-					StableDataLinkMessage message;
-					message.action = "data";
-					message.roundSubmitted = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
-					message.messageNum = currentTransaction - 1;
-					previousMessageRound = RoundManager::currentRound();
-					sendMessage(1, message);
-				}
-				else {
-					StableDataLinkMessage message;
-					message.action = "ack";
-					message.roundSubmitted = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
-					message.messageNum = currentTransaction - 1;
-					previousMessageRound = RoundManager::currentRound();
-					sendMessage(0, message);
-				}
-			}
-			while (!inStreamEmpty()) {
-				Packet packet = popInStream();
-				interfaceId source = packet.sourceId();
-				StableDataLinkMessage message = packet.getMessage();
-				if (randMod(messageLossDen) < messageLossNum) { // used for message loss
-					continue;
-				}
-				if (message.action == "ack") {
-					ack++;
-					if (ack < 3 * c + 2) {
-						message.action = "data";
-						previousMessageRound = RoundManager::currentRound();
-						sendMessage(1, message);
-					}
-					else {
-						requestsSatisfied++;
-						previousMessageRound = RoundManager::currentRound();
-						submitTrans(currentTransaction);
-						ack = 0;
-					}
-				}
-				else if (message.action == "data") {
-					message.action = "ack";
-					previousMessageRound = RoundManager::currentRound();
-					sendMessage(0, message);
-				}
-			}
+		if (action == "ack") {
+			handleAck(messageNum);
+		} else if (action == "data") {
+			handleData(messageNum);
 		}
 	}
 
-	void StableDataLinkPeer::endOfRound(vector<Peer*>& _peers) {
-		const vector<StableDataLinkPeer*> peers = reinterpret_cast<vector<StableDataLinkPeer*> const&>(_peers);
-		int satisfied = 0;
-		double messages = 0;
-		for (int i = 0; i < peers.size(); i++) {
-			satisfied += peers[i]->requestsSatisfied;
-			messages += peers[i]->messagesSent;
-		}
-		LogWriter::pushValue("utility", satisfied / messages * 100);
+	if (publicId() == 0 && awaitingAck && previousMessageRound + timeOutRate < currentRound) {
+		resendData();
+	}
+}
+
+void StableDataLinkPeer::endOfRound(vector<Peer*>& _peers) {
+	const vector<StableDataLinkPeer*>& peers = reinterpret_cast<vector<StableDataLinkPeer*> const&>(_peers);
+	double totalSatisfied = 0.0;
+	double totalMessages = 0.0;
+	for (const auto* peer : peers) {
+		totalSatisfied += static_cast<double>(peer->requestsSatisfied);
+		totalMessages += static_cast<double>(peer->messagesSent);
 	}
 
-	void StableDataLinkPeer::sendMessage(interfaceId peer, StableDataLinkMessage message) {
-		Packet newMessage(RoundManager::currentRound(), peer, publicId());
-		newMessage.setMessage(message);
-		pushToOutSteam(newMessage);
-		messagesSent++;
-	}
+	const double utility = totalMessages > 0.0 ? (totalSatisfied / totalMessages) * 100.0 : 0.0;
+	const double throughput = peers.empty() ? 0.0 : totalSatisfied / peers.size();
 
-	void StableDataLinkPeer::submitTrans(int tranID) {
-		StableDataLinkMessage message;
-		message.action = "data";
-		message.roundSubmitted = RoundManager::currentRound();
-		message.messageNum = tranID;
-		sendMessage(1, message);
-		currentTransaction++;
+	LogWriter::pushValue("utility", utility);
+	LogWriter::pushValue("messages", totalMessages);
+	LogWriter::pushValue("throughput", throughput);
+}
+
+void StableDataLinkPeer::handleAck(int messageNum) {
+	if (publicId() != 0) return;
+	if (!awaitingAck) return;
+	if (messageNum != lastSentMessageNum) return;
+
+	previousMessageRound = RoundManager::currentRound();
+	awaitingAck = false;
+	requestsSatisfied++;
+	submitTrans();
+}
+
+void StableDataLinkPeer::handleData(int messageNum) {
+	if (messageNum < 0) return;
+	previousMessageRound = RoundManager::currentRound();
+	if (messageNum > lastDeliveredMessageNum) {
+		lastDeliveredMessageNum = messageNum;
 	}
+	sendAck(messageNum);
+}
+
+void StableDataLinkPeer::sendMessage(interfaceId peer, const json& message) {
+	unicastTo(message, peer);
+	messagesSent++;
+	previousMessageRound = RoundManager::currentRound();
+}
+
+void StableDataLinkPeer::submitTrans() {
+	if (publicId() != 0) return;
+	lastSentMessageNum = nextMessageNum;
+	awaitingAck = true;
+	sendData(nextMessageNum);
+	nextMessageNum++;
+}
+
+void StableDataLinkPeer::sendData(int messageNum) {
+	json message;
+	message["action"] = "data";
+	message["roundSubmitted"] = RoundManager::currentRound();
+	message["messageNum"] = messageNum;
+	sendMessage(partnerId(), message);
+}
+
+void StableDataLinkPeer::resendData() {
+	if (!awaitingAck) return;
+	if (lastSentMessageNum <= 0) return;
+	sendData(lastSentMessageNum);
+}
+
+void StableDataLinkPeer::sendAck(int messageNum) {
+	if (messageNum < 0) return;
+	json message;
+	message["action"] = "ack";
+	message["roundSubmitted"] = RoundManager::currentRound();
+	message["messageNum"] = messageNum;
+	sendMessage(partnerId(), message);
+}
+
+interfaceId StableDataLinkPeer::partnerId() const {
+	const auto nbrs = neighbors();
+	if (!nbrs.empty()) {
+		return *nbrs.begin();
+	}
+	return (publicId() == 0) ? 1 : 0;
+}
+
 }

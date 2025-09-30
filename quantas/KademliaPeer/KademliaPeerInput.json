@@ -47,6 +47,7 @@
     },
     {
       "logFile": "KademliaScale128.txt",
+      "threadCount": 48,
       "distribution": {
         "type": "uniform",
         "maxDelay": 1
@@ -54,48 +55,6 @@
       "topology": {
         "type": "complete",
         "initialPeers": 128,
-        "initialPeerType": "KademliaPeer"
-      },
-      "tests": 5,
-      "rounds": 100
-    },
-    {
-      "logFile": "KademliaScale256.txt",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 256,
-        "initialPeerType": "KademliaPeer"
-      },
-      "tests": 5,
-      "rounds": 100
-    },
-    {
-      "logFile": "KademliaScale512.txt",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 512,
-        "initialPeerType": "KademliaPeer"
-      },
-      "tests": 5,
-      "rounds": 100
-    },
-    {
-      "logFile": "KademliaScale1024.txt",
-      "distribution": {
-        "type": "uniform",
-        "maxDelay": 1
-      },
-      "topology": {
-        "type": "complete",
-        "initialPeers": 1024,
         "initialPeerType": "KademliaPeer"
       },
       "tests": 5,

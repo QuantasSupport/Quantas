@@ -28,6 +28,8 @@ namespace quantas {
 		// perform any calculations needed at the end of a round such as determine throughput (only ran once, not for every peer)
 		void                 endOfRound(vector<Peer*>& _peers) override;
 
+		void 				 initParameters(const std::vector<Peer*>& _peers, json parameters);
+
 		// the id of the next transaction to submit
 		int currentTransaction = 1;
 		// number of requests satisfied
@@ -40,8 +42,6 @@ namespace quantas {
 		int timeOutRate = 4;
 		// last round a message was sent
 		int previousMessageRound = 0;
-		// status of node
-		bool alive = true;
 		// sends a direct message
 		void				  sendMessage(interfaceId peer, json message);
 		// submitTrans creates a transaction

@@ -33,80 +33,86 @@ namespace quantas {
 	}
 
 	AltBitPeer::AltBitPeer(NetworkInterface* networkInterface) : Peer(networkInterface) {
-		if (auto networkInterface = dynamic_cast<NetworkInterfaceConcrete*>(getNetworkInterface())) {
-			// Concrete simulation
-			timeOutRate = 4;
-		} else {
-			// Abstract simulation
-			timeOutRate = 4000;
-		}
+
 	}
 
 	void AltBitPeer::performComputation() {
-		if (alive) {
-			if (messagesSent == 0 && publicId() == 0) {
-				submitTrans(currentTransaction);
-			} else if (previousMessageRound + timeOutRate < RoundManager::currentRound()) {// resend lost message
-				if (publicId() == 0) {
-					json message;
-					message["action"] = "data";
-					message["roundSubmitted"] = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
-					message["messageNum"] = ns;
+		while (!inStreamEmpty()) {
+			// std::cout << publicId() << " received a message" << std::endl;
+			Packet packet = popInStream();
+			interfaceId source = packet.sourceId();
+			json oldMessage = packet.getMessage();
+			if (oldMessage["action"] == "ack") {
+				if (oldMessage["messageNum"] == ns) {
 					previousMessageRound = RoundManager::currentRound();
-					sendMessage(1, message);
+					requestsSatisfied++;
+					ns++;
+					submitTrans(currentTransaction);
 				}
-				else {
-					json message;
-					message["action"] = "ack";
-					message["roundSubmitted"] = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
-					message["messageNum"] = ns;
-					previousMessageRound = RoundManager::currentRound();
-					sendMessage(0, message);
-				}
-			}
-			while (!inStreamEmpty()) {
-				// std::cout << publicId() << " received a message" << std::endl;
-				Packet packet = popInStream();
-				interfaceId source = packet.sourceId();
-				json oldMessage = packet.getMessage();
-				if (oldMessage["action"] == "ack") {
-					if (oldMessage["messageNum"] == ns) {
-						previousMessageRound = RoundManager::currentRound();
-						requestsSatisfied++;
-						ns++;
-						submitTrans(currentTransaction);
-					}
 
-				}
-				else if (oldMessage["action"] == "data") {
-					json newMessage = oldMessage;
-					previousMessageRound = RoundManager::currentRound();
-					ns = oldMessage["messageNum"];
-					newMessage["action"] = "ack";
-					sendMessage(0, newMessage);
-				}
+			}
+			else if (oldMessage["action"] == "data") {
+				json newMessage = oldMessage;
+				previousMessageRound = RoundManager::currentRound();
+				ns = oldMessage["messageNum"];
+				newMessage["action"] = "ack";
+				sendMessage(0, newMessage);
+			}
+		}
+
+		if (messagesSent == 0 && publicId() == 0) {
+			submitTrans(currentTransaction);
+		} else if (previousMessageRound + timeOutRate < RoundManager::currentRound()) {// resend lost message
+			if (publicId() == 0) {
+				json message;
+				message["action"] = "data";
+				message["roundSubmitted"] = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
+				message["messageNum"] = ns;
+				previousMessageRound = RoundManager::currentRound();
+				sendMessage(1, message);
+			}
+			else {
+				json message;
+				message["action"] = "ack";
+				message["roundSubmitted"] = RoundManager::currentRound(); // if message lost roundSubmitted isn't accurate
+				message["messageNum"] = ns;
+				previousMessageRound = RoundManager::currentRound();
+				sendMessage(0, message);
 			}
 		}
 	}
+
+	void AltBitPeer::initParameters(const std::vector<Peer*>& _peers, json parameters) {
+		const vector<AltBitPeer*> peers = reinterpret_cast<vector<AltBitPeer*> const&>(_peers);
+
+		const int timeOutRate = parameters.value("timeOutRate", RoundManager::lastRound());
+		for (auto* peer : peers) {
+			peer->timeOutRate = timeOutRate;
+		}
+	}
+
+	
 
 	void AltBitPeer::endOfRound(vector<Peer*>& _peers) {
 		if (RoundManager::lastRound() <= RoundManager::currentRound()) {
 			const vector<AltBitPeer*> peers = reinterpret_cast<vector<AltBitPeer*> const&>(_peers);
-			int satisfied = 0;
-			double messages = 0;
-			for (int i = 0; i < peers.size(); i++) {
-				satisfied += peers[i]->requestsSatisfied;
-				messages += peers[i]->messagesSent;
+			double throughput = 0.0;
+			double messages = 0.0;
+			for (const auto* peer : peers) {
+				throughput += static_cast<double>(peer->requestsSatisfied);
+				messages += static_cast<double>(peer->messagesSent);
 			}
+			const double utility = messages > 0.0 ? (throughput / messages) * 100.0 : 0.0;
 
-			LogWriter::pushValue("satisfied", satisfied);
+			LogWriter::pushValue("utility", utility);
 			LogWriter::pushValue("messages", messages);
+			LogWriter::pushValue("throughput", throughput);
 		}
 	}
 
 	void AltBitPeer::sendMessage(interfaceId peer, json message) {
+		++messagesSent;
 		unicastTo(message,peer);
-		messagesSent++;
 	}
 
 	void AltBitPeer::submitTrans(int tranID) {

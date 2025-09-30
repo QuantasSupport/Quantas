@@ -13,10 +13,14 @@
 
 ############################### Input ###############################
 
-#  Configure this for the specific input file.
-#  Make sure to include the path to the input file 
+# Configurable usage to override the hardcoded input:
+# [make run INPUTFILE=quantas/ExamplePeer/ExampleInput.json]
 
-# INPUTFILE := quantas/ExamplePeer/ExampleInput.json
+# Hard coded usage [make run]
+# Configure this for the specific input file.
+# Make sure to include the path to the input file 
+
+INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 
 # INPUTFILE := quantas/AltBitPeer/AltBitUtility.json
 
@@ -30,8 +34,9 @@
 
 # INPUTFILE := quantas/KademliaPeer/KademliaPeerInput.json
 
-INPUTFILE := quantas/PBFTPeer/PBFTByzantineSweep.json
+# INPUTFILE := quantas/RaftPeer/RaftInput.json
 
+# INPUTFILE := quantas/StableDataLinkPeer/StableDataLinkInput.json
 
 ############################### Variables and Flags ###############################
 
@@ -122,7 +127,7 @@ rand_test: quantas/Tests/randtest.cpp
 	
 # in the future this could be generalized to go through every file in a Tests
 # folder such that the input files need not be listed here
-TEST_INPUTS := quantas/ExamplePeer/ExampleInput.json quantas/AltBitPeer/AltBitUtility.json quantas/PBFTPeer/PBFTInputV2.json quantas/BitcoinPeer/BitcoinInput.json
+TEST_INPUTS := quantas/ExamplePeer/ExampleInput.json quantas/AltBitPeer/AltBitUtility.json quantas/PBFTPeer/PBFTInput.json quantas/BitcoinPeer/BitcoinInput.json quantas/EthereumPeer/EthereumPeerInput.json quantas/LinearChordPeer/LinearChordInput.json quantas/KademliaPeer/KademliaPeerInput.json quantas/RaftPeer/RaftInput.json quantas/StableDataLinkPeer/StableDataLinkInput.json
 
 test: check-version rand_test
 	@make --no-print-directory clean
@@ -136,8 +141,14 @@ test: check-version rand_test
 
 # Define a helper function to check dmesg for errors
 define check_failure
-    echo "Make target '$@' failed! Checking dmesg..."; \
-    dmesg | tail -20 | grep -i -E 'oom|killed|segfault|error' || echo "No relevant logs found."
+    echo "Make target '$@' failed! Checking kernel logs..."; \
+    { \
+      if command -v journalctl >/dev/null 2>&1; then \
+        journalctl -k -n 200 --no-pager 2>/dev/null; \
+      else \
+        dmesg 2>/dev/null | tail -200; \
+      fi; \
+    } | grep -iE 'oom|killed|segfault|error' || echo "No relevant logs found."
 endef
 
 %.o: %.cpp
