@@ -24,7 +24,7 @@ along with QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 #include <iostream>
 #include <algorithm>
 #include <memory>
-#include "Peer.hpp"
+#include "../Peer.hpp"
 #include "Faults.hpp"
 
 namespace quantas {

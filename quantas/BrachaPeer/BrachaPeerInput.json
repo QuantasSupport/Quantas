@@ -1,0 +1,91 @@
+{
+    "algorithms": [
+        "BrachaPeer/BrachaPeer.cpp"
+    ],
+    "experiments": [
+        {
+            "id": "Bracha_result_F0D1",
+            "threadCount": 1,
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1,
+                "maxMsgsRec":10
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 10,
+                "initialPeerType": "BrachaPeer"
+            },
+            "parameters": {
+                "numFaulty": 0,
+                "initialMessage": "faulty:1",
+                "numMessages": 5
+            },
+            "tests": 10,
+            "rounds": 100
+        },
+        {
+            "id": "Bracha_result_F1D1",
+            "threadCount": 1,
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1,
+               "maxMsgsRec":10
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 10,
+                "initialPeerType": "BrachaPeer"
+            },
+            "parameters": {
+                "numFaulty": 1,
+                "initialMessage": "faulty:1",
+                "numMessages": 5
+            },
+            "tests": 10,
+            "rounds": 100
+        },
+        {
+            "id": "Bracha_result_F2D1",
+            "threadCount": 1,
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1,
+               "maxMsgsRec":10
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 10,
+                "initialPeerType": "BrachaPeer"
+            },
+            "parameters": {
+                "numFaulty": 2,
+                "initialMessage": "faulty:2",
+                "numMessages": 5
+            },
+            "tests": 10,
+            "rounds": 100
+        },
+        {
+            "id": "Bracha_result_F3D1",
+            "threadCount": 1,
+            "distribution": {
+                "type": "uniform",
+                "maxDelay": 1,
+               "maxMsgsRec":1000
+            },
+            "topology": {
+                "type": "complete",
+                "initialPeers": 10,
+                "initialPeerType": "BrachaPeer"
+            },
+            "parameters": {
+                "numFaulty": 3,
+                "initialMessage": "faulty:3",
+                "numMessages": 5
+            },
+            "tests": 10,
+            "rounds": 100
+        }
+    ]
+}

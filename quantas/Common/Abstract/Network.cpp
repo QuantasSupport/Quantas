@@ -1,6 +1,6 @@
 #include "Network.hpp"
 #include "../RandomUtil.hpp"
-
+#include <stdexcept>
 #include <cmath>
 
 namespace quantas {
@@ -51,10 +51,28 @@ void Network::initNetwork(json topology) {
     } else if (t == "grid") {
         int h = topology.value("height", 1);
         int w = topology.value("width", 1);
+        if (h < 1) {
+            throw std::invalid_argument( "Error: parameter h must be greater than 0" );
+        }
+        if (w < 1) {
+            throw std::invalid_argument( "Error: parameter w must be greater than 0" );
+        }
+        if (h * w > initialPeers) {
+            throw std::invalid_argument( "Error: h*w must be less than or equal to initial peers" );
+        }
         grid(h, w);
     } else if (t == "torus") {
         int h = topology.value("height", 1);
         int w = topology.value("width", 1);
+        if (h < 1) {
+            throw std::invalid_argument( "Error: parameter h must be greater than 0" );
+        }
+        if (w < 1) {
+            throw std::invalid_argument( "Error: parameter w must be greater than 0" );
+        }
+        if (h * w > initialPeers) {
+            throw std::invalid_argument( "Error: h*w must be less than or equal to initial peers" );
+        }
         torus(h, w);
     } else if (t == "chain") {
         chain(initialPeers);
@@ -68,8 +86,19 @@ void Network::initNetwork(json topology) {
         kademlia(initialPeers);
     } else if (t == "userList") {
         userList(topology);
+    } else if (t == "randomTree") {
+        randomTree(initialPeers);
+    } else if (t == "randomKAverageDegree") {
+        int k = topology.value("k", 1);
+        if (k < 1) {
+            throw std::invalid_argument( "Error: parameter k must be greater than 0" );
+        }
+        if (k > (initialPeers - 1) / 2) {
+            throw std::invalid_argument( "Error: parameter k must be less than or equal to (n-1) / 2 due to bidirectional edges" );
+        }
+        randomKAverageDegree(initialPeers, k);
     } else {
-        std::cerr << "Error: missing or unknown topology 'type' in JSON.\n";
+        throw std::invalid_argument( "Error: missing or unknown topology 'type' in JSON" );
     }
 
     createInitialChannels();
@@ -101,10 +130,10 @@ for (auto* peer : _peers) {
 
 // ------------- Topology Builders -------------
 
-void Network::fullyConnect(int numberOfPeers) {
+void Network::fullyConnect(int initialPeers) {
     // for each pair i<j, call addNeighbor
-    for (int i = 0; i < numberOfPeers; i++) {
-        for (int j = i + 1; j < numberOfPeers; j++) {
+    for (int i = 0; i < initialPeers; i++) {
+        for (int j = i + 1; j < initialPeers; j++) {
             if (i != j) {
                 _peers[i]->addNeighbor(_peers[j]->internalId());
                 _peers[j]->addNeighbor(_peers[i]->internalId());
@@ -113,9 +142,9 @@ void Network::fullyConnect(int numberOfPeers) {
     }
 }
 
-void Network::star(int numberOfPeers) {
+void Network::star(int initialPeers) {
     // connect all to peer[0]
-    for (int i = 1; i < numberOfPeers; i++) {
+    for (int i = 1; i < initialPeers; i++) {
         _peers[0]->addNeighbor(_peers[i]->internalId());
         _peers[i]->addNeighbor(_peers[0]->internalId());
     }
@@ -160,60 +189,60 @@ void Network::torus(int height, int width) {
     }
 }
 
-void Network::chain(int numberOfPeers) {
+void Network::chain(int initialPeers) {
     // link each i with i+1
-    for (int i = 0; i < numberOfPeers - 1; i++) {
+    for (int i = 0; i < initialPeers - 1; i++) {
         _peers[i]->addNeighbor(_peers[i+1]->internalId());
         _peers[i+1]->addNeighbor(_peers[i]->internalId());
     }
 }
 
-void Network::ring(int numberOfPeers) {
-    chain(numberOfPeers);
+void Network::ring(int initialPeers) {
+    chain(initialPeers);
     // also link last back to first
-    if (numberOfPeers > 1) {
-        _peers[numberOfPeers - 1]->addNeighbor(_peers[0]->internalId());
-        _peers[0]->addNeighbor(_peers[numberOfPeers - 1]->internalId());
+    if (initialPeers > 1) {
+        _peers[initialPeers - 1]->addNeighbor(_peers[0]->internalId());
+        _peers[0]->addNeighbor(_peers[initialPeers - 1]->internalId());
     }
 }
 
-void Network::unidirectionalRing(int numberOfPeers) {
+void Network::unidirectionalRing(int initialPeers) {
     // link i->(i+1)
-    for (int i = 0; i < numberOfPeers - 1; i++) {
+    for (int i = 0; i < initialPeers - 1; i++) {
         _peers[i]->addNeighbor(_peers[i+1]->internalId());
     }
     // last -> first
-    if (numberOfPeers > 1) {
-        _peers[numberOfPeers - 1]->addNeighbor(_peers[0]->internalId());
+    if (initialPeers > 1) {
+        _peers[initialPeers - 1]->addNeighbor(_peers[0]->internalId());
     }
 }
 
-void Network::chord(int numberOfPeers) {
-    if (numberOfPeers <= 1) return;
+void Network::chord(int initialPeers) {
+    if (initialPeers <= 1) return;
 
-    const size_t maxSkip = static_cast<size_t>(numberOfPeers - 1);
-    for (int i = 0; i < numberOfPeers; ++i) {
+    const size_t maxSkip = static_cast<size_t>(initialPeers - 1);
+    for (int i = 0; i < initialPeers; ++i) {
         for (size_t skip = 1; skip <= maxSkip; skip <<= 1) {
             const int neighbor =
-                static_cast<int>((static_cast<size_t>(i) + skip) % static_cast<size_t>(numberOfPeers));
+                static_cast<int>((static_cast<size_t>(i) + skip) % static_cast<size_t>(initialPeers));
             if (neighbor == i) continue;
             _peers[i]->addNeighbor(_peers[neighbor]->internalId());
         }
     }
 }
 
-void Network::kademlia(int numberOfPeers) {
-    if (numberOfPeers <= 1) return;
+void Network::kademlia(int initialPeers) {
+    if (initialPeers <= 1) return;
 
-    int bits = static_cast<int>(std::ceil(std::log2(static_cast<double>(numberOfPeers))));
+    int bits = static_cast<int>(std::ceil(std::log2(static_cast<double>(initialPeers))));
     if (bits <= 0) {
         bits = 1;
     }
 
-    for (int i = 0; i < numberOfPeers; ++i) {
+    for (int i = 0; i < initialPeers; ++i) {
         for (int bit = 0; bit < bits; ++bit) {
             const int neighbor = i ^ (1 << bit);
-            if (neighbor < 0 || neighbor >= numberOfPeers || neighbor == i) continue;
+            if (neighbor < 0 || neighbor >= initialPeers || neighbor == i) continue;
             _peers[i]->addNeighbor(_peers[neighbor]->internalId());
         }
     }
@@ -231,6 +260,35 @@ void Network::userList(json topology) {
             for (auto &dest : lst[key]) {
                 _peers[i]->addNeighbor(dest);
             }
+        }
+    }
+}
+
+void Network::randomTree(int initialPeers) {
+    for (int i = 1; i < initialPeers; i++) {
+        int j = randMod(i);
+        _peers[i]->addNeighbor(_peers[j]->internalId());
+        _peers[j]->addNeighbor(_peers[i]->internalId());
+    }
+}
+
+void Network::randomKAverageDegree(int initialPeers, int k) {
+    if (initialPeers < 2) return; 
+    randomTree(initialPeers);
+    if (initialPeers < 3) return;
+    
+    int edgesToMake = ((k*initialPeers) - initialPeers) + 1;
+    while (edgesToMake > 0) {
+        int i = randMod(initialPeers);
+        int j = i;
+        while (i == j) {
+            j = randMod(initialPeers);
+        }
+        auto neighbors = _peers[i]->neighbors();
+        if (neighbors.find(j) == neighbors.end()) {
+            _peers[i]->addNeighbor(_peers[j]->internalId());
+            _peers[j]->addNeighbor(_peers[i]->internalId());
+            --edgesToMake;
         }
     }
 }
