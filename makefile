@@ -22,7 +22,7 @@
 # The launcher supplies QUANTAS_IS_LEADER and QUANTAS_LEADER_IP/PORT, so
 # concrete JSON files do not need machine-specific leader addresses.
 
-# INPUTFILE := quantas/ExamplePeer/ExampleInput.json
+INPUTFILE := quantas/ExamplePeer/ExampleInput.json
 # INPUTFILE := quantas/ExamplePeer/ExampleConcreteInput1.json
 # INPUTFILE := quantas/KademliaPeer/KademliaConcreteInput.json
 # INPUTFILE := quantas/ChordPeer/ChordConcreteInput.json
@@ -55,7 +55,7 @@
 
 # INPUTFILE := quantas/LightningPeer/LightningPeerSweep.json
 
-INPUTFILE := quantas/BrachaPeer/BrachaPeerInput.json
+# INPUTFILE := quantas/BrachaPeer/BrachaPeerInput.json
 
 ############################### Variables and Flags ###############################
 
