@@ -11,7 +11,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <functional>
 #include <sstream>
 #include "PBFTPeer.hpp"
-#include "../Common/equivocateFault.hpp"
+#include "../Common/Faults/EquivocateFault.hpp"
 
 namespace quantas {
 

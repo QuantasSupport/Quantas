@@ -17,7 +17,7 @@ QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vector>
 
-#include "ByzantinePeer.hpp"
+#include "Faults/ByzantinePeer.hpp"
 #include "Pow.hpp"
 
 namespace quantas {

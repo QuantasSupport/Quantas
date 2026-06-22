@@ -1,0 +1,37 @@
+{
+  "algorithms": [
+    "LightningPeer/LightningPeer.cpp"
+  ],
+  "experiments": [
+    {
+      "id": "lightningRun1",
+      "threadCount": 48,
+      "distribution": {
+        "type": "uniform",
+        "maxDelay": 1,
+        "maxMsgsRec": 10
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 25,
+        "initialPeerType": "LightningPeer"
+      },
+      "parameters": {
+        "torus": true,
+        "submitRate": 5,
+        "initialPeers": 25,
+        "height": 5,
+        "width": 5,
+        "minInitialChannelCapacity": 500,
+        "maxInitialChannelCapacity": 1000,
+        "minInitialLocalBalanceRatio": 0.20,
+        "minPaymentAmount": 5,
+        "maxPaymentAmount": 100,
+        "minPeerWalletBalance": 500,
+        "maxPeerWalletBalance": 2000
+      },
+      "tests": 1,
+      "rounds": 100
+    }
+  ]
+}

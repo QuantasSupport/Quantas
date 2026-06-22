@@ -1,0 +1,187 @@
+{
+  "algorithms": [
+    "LightningPeer/LightningPeer.cpp"
+  ],
+  "experiments": [
+    {
+      "id": "lightning_torus_16",
+      "threadCount": 16,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 16, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": true, "submitRate": 5, "initialPeers": 16, "height": 4, "width": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_torus_64",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 64, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": true, "submitRate": 5, "initialPeers": 64, "height": 8, "width": 8, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_torus_144",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 144, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": true, "submitRate": 5, "initialPeers": 144, "height": 12, "width": 12, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_torus_256",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 256, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": true, "submitRate": 5, "initialPeers": 256, "height": 16, "width": 16, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_torus_400",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 400, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": true, "submitRate": 5, "initialPeers": 400, "height": 20, "width": 20, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_torus_576",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 576, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": true, "submitRate": 5, "initialPeers": 576, "height": 24, "width": 24, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_torus_784",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 784, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": true, "submitRate": 5, "initialPeers": 784, "height": 28, "width": 28, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_torus_1024",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 1024, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": true, "submitRate": 5, "initialPeers": 1024, "height": 32, "width": 32, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_torus_1296",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 1296, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": true, "submitRate": 5, "initialPeers": 1296, "height": 36, "width": 36, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_torus_1600",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 1600, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": true, "submitRate": 5, "initialPeers": 1600, "height": 40, "width": 40, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_random_16",
+      "threadCount": 16,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 16, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": false, "submitRate": 5, "initialPeers": 16, "k": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_random_64",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 64, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": false, "submitRate": 5, "initialPeers": 64, "k": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_random_144",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 144, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": false, "submitRate": 5, "initialPeers": 144, "k": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_random_256",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 256, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": false, "submitRate": 5, "initialPeers": 256, "k": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_random_400",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 400, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": false, "submitRate": 5, "initialPeers": 400, "k": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_random_576",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 576, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": false, "submitRate": 5, "initialPeers": 576, "k": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_random_784",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 784, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": false, "submitRate": 5, "initialPeers": 784, "k": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_random_1024",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 1024, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": false, "submitRate": 5, "initialPeers": 1024, "k": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_random_1296",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 1296, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": false, "submitRate": 5, "initialPeers": 1296, "k": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    },
+    {
+      "id": "lightning_random_1600",
+      "threadCount": 48,
+      "distribution": { "type": "uniform", "maxDelay": 1, "maxMsgsRec": 10 },
+      "topology": { "type": "complete", "initialPeers": 1600, "initialPeerType": "LightningPeer" },
+      "parameters": { "torus": false, "submitRate": 5, "initialPeers": 1600, "k": 4, "minInitialChannelCapacity": 500, "maxInitialChannelCapacity": 1000, "minInitialLocalBalanceRatio": 0.20, "minPaymentAmount": 5, "maxPaymentAmount": 100, "minPeerWalletBalance": 500, "maxPeerWalletBalance": 2000 },
+      "tests": 3,
+      "rounds": 200
+    }
+  ]
+}

@@ -25,7 +25,7 @@ QUANTAS. If not, see <https://www.gnu.org/licenses/>.
 #include "PoWEthereum.hpp"
 #include "../Common/Committee.hpp"
 #include "../Common/OutputWriter.hpp"
-#include "../Common/ParasiteFault.hpp"
+#include "../Common/Faults/ParasiteFault.hpp"
 #include "../Common/RandomUtil.hpp"
 #include "../Common/RoundManager.hpp"
 #include "../Common/Abstract/NetworkInterfaceAbstract.hpp"

@@ -1,7 +1,7 @@
 #ifndef FAULTS_HPP
 #define FAULTS_HPP
 
-#include "Peer.hpp"
+#include "../Peer.hpp"
 #include <vector>
 #include <map>
 #include <string>

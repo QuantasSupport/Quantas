@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with QUA
 #include <deque>
 #include <vector>
 #include "Peer.hpp"
-#include "ByzantinePeer.hpp"
+#include "Faults/ByzantinePeer.hpp"
 #include "Consensus.hpp"
 
 namespace quantas{

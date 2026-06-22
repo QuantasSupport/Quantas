@@ -66,6 +66,8 @@ public:
     void chord(int numberOfPeers);
     void kademlia(int numberOfPeers);
     void userList(json topology);
+    void randomTree(int numberOfPeers);
+    void randomKAverageDegree(int numberOfPeers, int k);
     void createInitialChannels();
 
     // -------------- Specialized Initilization ------------
