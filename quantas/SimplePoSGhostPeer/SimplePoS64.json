@@ -1,0 +1,607 @@
+{
+  "algorithms": [
+    "SimplePoSGhostPeer/SimplePoSGhostPeer.cpp"
+  ],
+  "experiments": [
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d1",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 1,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d2",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 2,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d3",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 3,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d4",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 4,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d5",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 5,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d6",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d7",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 7,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d8",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 8,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d9",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 9,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d10",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 10,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d11",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 11,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d12",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 12,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d13",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 13,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSForkLatency_d14",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 14,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z000",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z025",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.25
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z050",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.5
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z075",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.75
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z100",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 1.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z125",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 1.25
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z150",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 1.5
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z175",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 1.75
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z200",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 2.0
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z225",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 2.25
+      },
+      "tests": 30,
+      "rounds": 8000
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSStakeSweep_z250",
+      "seed": 500,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 64,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 2.5
+      },
+      "tests": 30,
+      "rounds": 8000
+    }
+  ]
+}
