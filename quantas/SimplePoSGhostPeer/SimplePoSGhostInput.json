@@ -1,0 +1,103 @@
+{
+  "algorithms": [
+    "SimplePoSGhostPeer/SimplePoSGhostPeer.cpp"
+  ],
+  "experiments": [
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSDelay1",
+      "seed": 1,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 1,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 16,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 3,
+      "rounds": 400
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSDelay3",
+      "seed": 3,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 3,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 16,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 3,
+      "rounds": 400
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSDelay6",
+      "seed": 6,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 16,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 0.0
+      },
+      "tests": 3,
+      "rounds": 400
+    },
+    {
+      "algorithm": "SimplePoSGhostPeer",
+      "id": "SimplePoSDelay6Zipf",
+      "seed": 7,
+      "threadCount": 8,
+      "distribution": {
+        "type": "uniform",
+        "minDelay": 1,
+        "maxDelay": 6,
+        "maxMsgsRec": 1000
+      },
+      "topology": {
+        "type": "complete",
+        "initialPeers": 16,
+        "initialPeerType": "SimplePoSGhostPeer"
+      },
+      "parameters": {
+        "slotLength": 4,
+        "voteOffset": 2,
+        "zipfExponent": 1.0
+      },
+      "tests": 3,
+      "rounds": 400
+    }
+  ]
+}
